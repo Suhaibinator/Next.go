@@ -12,6 +12,7 @@ import (
 
 const PurposeHeader = "X-Nextgo-Purpose"
 const StreamHeader = "X-Nextgo-Stream"
+const StreamAdmissionHeader = "X-Nextgo-Stream-Admission"
 const StreamVersion = 1
 const StreamMediaType = "application/x-nextgo-stream+json"
 const MaxStreamFrame = 2 << 20

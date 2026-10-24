@@ -106,6 +106,8 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Deterministic initial-stream parser conformance
         run: npm run test:stream-parser
+      - name: Stream admission and recoverable navigation
+        run: npm run test:stream-admission
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -138,6 +140,8 @@ jobs:
         run: sh ./scripts/test-shared-prerender-container.sh
       - name: Initial-stream parser Linux conformance
         run: sh ./scripts/test-stream-parser-container.sh
+      - name: Stream admission Linux conformance
+        run: sh ./scripts/test-stream-admission-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

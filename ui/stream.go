@@ -271,7 +271,12 @@ func resolveDeferred(ctx context.Context, loader func(context.Context) (Node, er
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return loader(ctx)
+	work, release, err := acquireStreamLoader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
+	return loader(work)
 }
 
 // RenderStream writes inert HTML templates for the initial document consumer.

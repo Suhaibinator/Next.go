@@ -8,6 +8,7 @@ import (
 	nextgo "github.com/Suhaibinator/Next.go"
 	"github.com/Suhaibinator/Next.go/examples/demo/components/counter"
 	"github.com/Suhaibinator/Next.go/ui"
+	"os"
 	"time"
 )
 
@@ -19,6 +20,11 @@ func Page(c *nextgo.Context) (nextgo.Page, error) {
 	return nextgo.Page{Title: "Streaming — Next.go", Stream: true, Body: ui.El("section", ui.Attrs{"class": "counter"},
 		ui.El("h1", nil, ui.Text("Streaming server rendering")), ui.El("p", nil, ui.Text("The initial HTML arrives immediately. A deferred server loader completes after 500 milliseconds.")),
 		ui.Defer("demo-content", ui.El("p", ui.Attrs{"data-stream-loading": "", "role": "status"}, ui.Text("Loading deferred server content…")), func(ctx context.Context) (ui.Node, error) {
+			// Explicitly enabled only by the admission qualification fixture.
+			if os.Getenv("NEXTGO_DEMO_STREAM_HOLD") == "true" && c.Query.Get("hold") == "1" {
+				<-ctx.Done()
+				return nil, ctx.Err()
+			}
 			timer := time.NewTimer(500 * time.Millisecond)
 			defer timer.Stop()
 			select {

@@ -865,6 +865,12 @@ func decodeEnvelopeResponse(resp Response, body []byte, target string, started t
 	if _, headErr := buildHead(data.Head); headErr != nil {
 		return data, 0, false, headErr
 	}
+	// Only a fully validated response from this runtime can report transient
+	// admission failure. Preserve the current view rather than committing its
+	// generic busy document; ordinary 503 pages keep their existing semantics.
+	if data.Status == 503 && resp.Header.Get(navigation.StreamAdmissionHeader) == "busy" {
+		return data, 0, false, fmt.Errorf("the server is busy; please try again shortly")
+	}
 	if data.Status == 200 {
 		data.cacheUntil = started.Add(cacheLifetime(resp.Header))
 		ttl = max(0, time.Until(data.cacheUntil))

@@ -786,7 +786,7 @@ Applications can use `go.work` and local module replacements for shared Go serve
 
 ## Streamed client navigation
 
-`Page.Stream` and `ui.Defer` now support progressive Go/WASM navigation as well as initial HTML. A validated shell commits first; independent nested chunks hydrate as they arrive, with bounded loaders, cancellation and recoverable retry. Try `/stream?mode=nested`. See [the streaming contract](docs/STREAMING.md) for protocol details, limits, authentication timing and remaining gaps.
+`Page.Stream` and `ui.Defer` now support progressive Go/WASM navigation as well as initial HTML. A validated shell commits first; independent nested chunks hydrate as they arrive, with bounded loaders, cancellation and recoverable retry. `Config.Streaming` adds one shared allowance across locale/domain mounts: defaults are 32 renders, 64 running deferred callbacks and a 30-second render deadline. Saturated navigation preserves the current view with a recoverable busy error; callbacks retain their physical slots until they return. See [admission, readiness and cancellation limits](docs/STREAMING.md#application-wide-admission-and-deadlines). The admission subset passes 329 browser checks with three existing CDP skips, both SDK native/WASM checks and host/Linux executable suites; [qualification scope](docs/STREAMING.md#admission-qualification-october-24-2026-utc) distinguishes this from a full release. Try `/stream?mode=nested`. See [the streaming contract](docs/STREAMING.md) for protocol details, limits, authentication timing and remaining gaps.
 
 ## Build snapshots and regeneration
 

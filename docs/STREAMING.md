@@ -45,6 +45,75 @@ not every deferred region. Wait for a specific deferred island to hydrate before
 using its controls. This marker is separate from navigation's JSON `done`
 record; the navigation transport and validation are unchanged.
 
+## Application-wide admission and deadlines
+
+`Config.Streaming` bounds progressive-page rendering across one application,
+including all its locale mounts and domain aliases:
+
+```go
+config.Streaming = nextgo.StreamingOptions{
+    MaxStreams: 32,
+    MaxLoaders: 64,
+    Timeout: 30 * time.Second,
+}
+```
+
+Zero fields select those defaults. Explicit values allow 1–1,024 admitted
+renders, 1–4,096 physically running deferred callbacks, and a 1-ms–5-minute
+render timeout. One limiter is created before locale applications, so changing
+locale or domain does not create another allowance. Per-stream boundary,
+concurrency, depth and byte limits still apply independently.
+
+Admission occurs for a successful `Page.Stream` render after page, layout,
+metadata and prepared-head work, and after an intent-prefetch request has been
+skipped with 204. It covers full documents, negotiated navigation streams,
+legacy buffered navigation JSON and HEAD rendering. It does not bound the
+earlier page/layout/metadata functions, ordinary pages, API/custom handlers,
+application-created goroutines or allocations, or other processes.
+
+Stream admission never queues. When full, a document receives **503**,
+`Retry-After: 1`, `Cache-Control: private, no-store` and
+`X-Nextgo-Stream-Admission: busy` before any shell is committed. Navigation
+validates the complete owned JSON response before treating this marked 503 as
+a recoverable busy error, preserving the current view. An ordinary unmarked
+503 retains its normal response behavior; incompatible build/configuration
+still uses full-document recovery. The marker is not a way to bypass envelope
+or head/ownership validation.
+
+Admitted workers wait for deferred-loader capacity within their render context
+deadline. A callback holds its physical loader slot until it returns or panics,
+even after cancellation; canceling a request cannot release a still-running
+callback's capacity. Progressive `RenderEvents` can return at its deadline
+while such a callback remains blocked. Legacy JSON and HEAD paths invoke
+deferred work synchronously, so a noncooperative callback retains both its
+render and loader slots until it returns. Callbacks must honor context and
+propagate deadlines to their dependencies. These are concurrency/deadline
+controls, not forced Go-code termination or a heap/RSS guarantee.
+An earlier request deadline still wins; increasing the server timeout does not
+extend navigation's separate thirty-second active-reader deadline.
+
+Custom rendering integrations can share `ui.NewStreamLimiter(maxStreams,
+maxLoaders)`, set their own context deadline, call `Begin(ctx)`, pass the returned
+context to `ui.RenderEvents`, `ui.RenderStream` or `ui.HTMLContext`, and defer
+the returned release function. `Begin` fails immediately with
+`ui.ErrStreamCapacity`; release is idempotent and never frees an active
+callback's loader slot. Direct render calls without an admitted context retain
+their existing per-stream bounds rather than inheriting an application limiter.
+
+A deferred callback must not synchronously render another deferred callback
+through the same active limiter: this returns `ui.ErrStreamReentrant` instead
+of waiting on capacity it already holds. Returning a node containing nested
+`ui.Defer` remains supported; its child callbacks are scheduled after the
+parent callback returns.
+
+Use a lightweight handler for readiness and monitor streaming saturation
+separately; ordinary handlers remain reachable when stream capacity is full.
+A busy page is a transient admission result, not proof that restarting a
+healthy application will resolve downstream blocking. Limits apply per app
+instance, so replicas still need an explicit process-wide/deployment resource
+and fairness policy. Representative concurrency, stuck-dependency recovery and
+long-running memory/soak qualification remain open.
+
 ## Navigation behavior
 
 The browser keeps the current view while waiting for a valid shell. Before committing, it validates response origin, protocol, build/configuration identity, draft state, URL, document/head metadata and boundary declarations. Body, title, head and history use the same commit path as ordinary navigation, including optional view transitions and compatible layout retention.
@@ -85,6 +154,32 @@ Focused verification passes **20 checks: five host Chromium and fifteen Linux
 Firefox/WebKit/touch WebKit**. These focused results do not replace the failed
 remote run or establish a complete release-browser matrix.
 
-Initial document chunks still need Go/WASM to become visible. Metadata streaming, deferred fallbacks containing deferred work, independent route/slot ownership changes, late authorization/status interrupts, full error-boundary reset, partial prerendering, global loader admission, full peak-memory/soak/accessibility review and actual proxy/cloud qualification remain open. No complete Next.js streaming or production-maturity claim follows from this milestone. See the complete [parity inventory](PARITY.md).
+### Admission qualification (October 24, 2026 UTC)
+
+The frozen admission source passes full native race/vet on Go 1.27.3/macOS and
+Go 1.24.13/Linux, matching core/lazy-module WASM tests and client vet, host module
+vet, demo/workspace generation checks and fresh host demo/workspace/cache builds.
+Complete host and nonroot read-only Linux HTTP, both mock Lambda transports and
+durable/shared-seed executable suites pass. Focused native checks repeated
+three times cover shared locale capacity, every response representation,
+fail-fast responses, cancellation and physical callback-slot retention.
+
+The final browser matrix passes **329 checks / three existing Chromium-only
+CDP skips on other engines**: 83 host Chromium checks (61 production, 13 navigation
+streaming, five parser and four admission), and 246 Linux Firefox/WebKit/touch
+checks (180 production, 39 navigation streaming, 15 parser and 12 admission).
+Each completed suite is counted once. Logs are under
+`.nextgo-test-results/qualification/stream-budget/`, with the frozen 686-input
+source manifest retained there. Prior parser/resource matrices remain separate
+historical results. This verifies the admission subset, not the complete
+capability inventory or a production release; all 11 release gates remain open.
+
+Remote checkpoint `8cfb91d` passes both native jobs, its dedicated stream-parser
+job and its container job; its broader browser run is still in progress. That
+checkpoint precedes app-wide admission and does not qualify the current source
+or erase `ac654be`'s historical failures. No whole remote-CI/release pass is
+claimed.
+
+Initial document chunks still need Go/WASM to become visible. Metadata streaming, deferred fallbacks containing deferred work, independent route/slot ownership changes, late authorization/status interrupts, full error-boundary reset, partial prerendering, cross-process admission/fairness, full peak-memory/soak/accessibility review and actual proxy/cloud qualification remain open. No complete Next.js streaming or production-maturity claim follows from this milestone. See the complete [parity inventory](PARITY.md).
 
 The capability target follows the official [Next.js navigation/streaming guide](https://nextjs.org/docs/app/getting-started/linking-and-navigating). Cooperative cancellation follows [Go's context guidance](https://go.dev/blog/context).

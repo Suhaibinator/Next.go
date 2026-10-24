@@ -172,7 +172,11 @@ type Config struct {
 	Redirects         []RedirectRule
 	Rewrites          []RewriteRule
 	Proxy             ProxyOptions
-	PreserveLayouts   bool
+	// Streaming bounds progressive-page rendering and deferred callbacks across
+	// this application, including managed locale mounts.
+	Streaming       StreamingOptions
+	streamLimiter   *ui.StreamLimiter
+	PreserveLayouts bool
 	// ViewTransitions opts navigation into progressive native browser animation.
 	// Reduced motion and unsupported browsers always use immediate DOM updates.
 	ViewTransitions bool
@@ -301,6 +305,9 @@ func newApp(c Config) (*App, error) {
 		return nil, publicErr
 	}
 	c.Public = public
+	if err := initStreaming(&c); err != nil {
+		return nil, err
+	}
 	if c.Draft != nil {
 		if err := c.Draft.Validate(); err != nil {
 			return nil, err
@@ -832,6 +839,24 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		w.WriteHeader(204)
 		return
 	}
+	if p.Stream && status == http.StatusOK {
+		ctx, cancel := context.WithTimeout(r.Context(), a.config.Streaming.Timeout)
+		defer cancel()
+		work, release, err := a.config.streamLimiter.Begin(ctx)
+		if err != nil {
+			if !errors.Is(err, ui.ErrStreamCapacity) {
+				a.config.Logger.Printf("stream admission: %v", err)
+				a.respondPage(w, r, errorPage(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Retry-After", "1")
+			w.Header().Set(navigation.StreamAdmissionHeader, "busy")
+			a.respondPage(w, r, streamBusyPage(), http.StatusServiceUnavailable)
+			return
+		}
+		defer release()
+		r = r.WithContext(work)
+	}
 	if p.Stream && status == 200 && r.Method == "GET" && r.Header.Get("X-Nextgo-Navigate") == "1" && r.Header.Get(navigation.StreamHeader) == fmt.Sprint(navigation.StreamVersion) {
 		a.respondNavigationStream(w, r, p, head, documentAttrs)
 		return
@@ -853,7 +878,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 	w.Header().Set(navigation.ConfigurationHeader, a.configurationID)
 	w.Header().Add("Vary", "X-Nextgo-Navigate, X-Nextgo-Stream, X-Nextgo-Purpose")
 	if status != 200 || w.Header().Get("Cache-Control") == "" {
-		if len(w.Header().Values("Set-Cookie")) > 0 || status == http.StatusUnauthorized || status == http.StatusForbidden {
+		if len(w.Header().Values("Set-Cookie")) > 0 || status == http.StatusUnauthorized || status == http.StatusForbidden || status == http.StatusServiceUnavailable {
 			w.Header().Set("Cache-Control", "private, no-store")
 		} else {
 			w.Header().Set("Cache-Control", "no-store")
