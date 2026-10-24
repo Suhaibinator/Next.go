@@ -22,21 +22,67 @@ test('same binary with changed slash and asset policy reloads before committing 
   await expect(page.locator('script[src$="/boot.js"]')).toHaveAttribute('src', /^\/v2-cdn\/_nextgo\/.+\/boot.js$/);
 });
 
-test('a mismatched speculative prefetch leaves the document alone and clicking reloads safely', async ({ page, request }) => {
-  await page.goto('/'); await ready(page);
-  await page.evaluate(() => { window.prefetchDeploymentDocument = true; });
-  await activate(request, 'updated');
-  const prefetched = page.waitForResponse(response => new URL(response.url()).pathname === '/posts/' && response.status() === 200);
-  await notes(page).focus();
-  const response = await prefetched;
-  expect(response.request().isNavigationRequest()).toBe(false);
-  await response.finished();
-  await expect(page).toHaveURL('http://127.0.0.1:4107/');
-  expect(await page.evaluate(() => window.prefetchDeploymentDocument)).toBe(true);
-  await notes(page).click();
-  await expect(page).toHaveURL(/\/posts\/$/); await ready(page);
-  expect(await page.evaluate(() => window.prefetchDeploymentDocument)).toBeUndefined();
-});
+for (const cacheState of ['cold', 'warm']) {
+  test(`a mismatched speculative prefetch leaves the document alone and clicking reloads safely (${cacheState} cache)`, async ({ page, request }, testInfo) => {
+    await page.goto('/'); await ready(page);
+    const build = await page.locator('body').getAttribute('data-nextgo-build');
+    const configuration = await page.locator('body').getAttribute('data-nextgo-configuration');
+    const key = encodeURIComponent(`${testInfo.project.name}-${testInfo.repeatEachIndex}-${testInfo.retry}-${cacheState}`);
+    const target = `/posts?skew-prefetch=${key}`;
+    const canonical = `/posts/?skew-prefetch=${key}`;
+    await page.evaluate(() => { window.prefetchDeploymentDocument = true; });
+    // Each case owns a fresh cache key. Disable incidental hover prefetch and
+    // blur first so focus always produces the intended post-activation event.
+    await notes(page).evaluate((link, href) => {
+      link.blur();
+      link.setAttribute('data-nextgo-prefetch', 'false');
+      link.href = href;
+    }, target);
+    await activate(request, 'updated');
+    if (cacheState === 'warm') {
+      // A cached public page can bypass slot-carrier validation and return 200.
+      // Prime only the server cache; the old browser document stays untouched.
+      const primer = await request.get(canonical, { headers: { 'X-Nextgo-Navigate': '1' } });
+      expect(primer.status()).toBe(200);
+      expect(primer.headers()['x-nextgo-configuration']).not.toBe(configuration);
+      await primer.body();
+    }
+    const prefetched = page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === '/posts/' && url.searchParams.get('skew-prefetch') === decodeURIComponent(key)
+        && response.headers()['content-type']?.includes('application/json');
+    });
+    await notes(page).evaluate(link => link.removeAttribute('data-nextgo-prefetch'));
+    await notes(page).focus();
+    const response = await prefetched;
+    expect(response.request().isNavigationRequest()).toBe(false);
+    await response.finished();
+    // Chromium's synchronous headers() can contain only provisional redirect
+    // headers. Await the complete set before checking framework request intent.
+    const requestHeaders = await response.request().allHeaders();
+    expect(requestHeaders['x-nextgo-purpose']).toBe('prefetch');
+    expect(requestHeaders['x-nextgo-navigate']).toBe('1');
+    const envelope = await response.json();
+    expect(envelope.configuration).not.toBe(configuration);
+    expect(response.headers()['x-nextgo-configuration']).toBe(envelope.configuration);
+    expect(response.headers()['x-nextgo-protocol']).toBe(String(envelope.version));
+    expect(envelope.version).toBe(3);
+    expect(envelope.build).toBe(build);
+    expect(envelope.status).toBe(response.status());
+    const carrier = requestHeaders['x-nextgo-slots'];
+    if (carrier) expect(JSON.parse(carrier).configuration).toBe(configuration);
+    // Cold rendering rejects an old slot carrier before invoking the page;
+    // a warm public snapshot still carries the new configuration with status 200.
+    expect(response.status()).toBe(cacheState === 'cold' && carrier ? 400 : 200);
+    if (cacheState === 'warm') expect(response.headers()['x-nextgo-prefetch']).toBe('public');
+    await expect(page).toHaveURL('http://127.0.0.1:4107/');
+    expect(await page.evaluate(() => window.prefetchDeploymentDocument)).toBe(true);
+    await notes(page).click();
+    await expect(page).toHaveURL(`http://127.0.0.1:4107${canonical}`); await ready(page);
+    expect(await page.evaluate(() => window.prefetchDeploymentDocument)).toBeUndefined();
+    await expect(page.locator('body')).toHaveAttribute('data-nextgo-configuration', envelope.configuration);
+  });
+}
 
 test('moving a mounted application recovers through a full document and retains query and fragment', async ({ page, request }) => {
   await activate(request, 'old-mounted');

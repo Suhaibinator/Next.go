@@ -20,6 +20,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
 	"github.com/Suhaibinator/Next.go/scripts"
 	"github.com/Suhaibinator/Next.go/seo"
+	"github.com/Suhaibinator/Next.go/ui"
 )
 
 // PrerenderFallback controls paths omitted from a dynamic route's StaticParams.
@@ -36,7 +37,10 @@ const (
 // Expire defaults to cache.Never. Shared opts into Config.SharedCache and an
 // online build authority; otherwise runtime regeneration is process-local.
 type PrerenderPolicy struct {
-	Shared          bool `json:",omitempty"`
+	Shared bool `json:",omitempty"`
+	// Partial captures a public shell containing registered ui.RequestRegion
+	// fallbacks. Only the regions execute against each incoming request.
+	Partial         bool `json:",omitempty"`
 	HostIndependent bool
 	Revalidate      time.Duration
 	Expire          time.Duration
@@ -77,6 +81,7 @@ type prerenderPage struct {
 	Document    Document          `json:"document"`
 	Head        []seo.Element     `json:"head"`
 	HeadHTML    string            `json:"headHTML"`
+	Regions     []ui.RegionSpec   `json:"regions,omitempty"`
 }
 
 const maxPrerenderBytes = 32 << 20
@@ -95,6 +100,9 @@ func (a *App) initPrerenderPolicies() error {
 			return fmt.Errorf("route %s: prerender requires an ordinary page without Cache or parallel owners", r.Pattern)
 		}
 		p := *r.Prerender
+		if p.Partial && len(r.Regions) == 0 {
+			return fmt.Errorf("route %s: partial prerendering requires registered request regions", r.Pattern)
+		}
 		p.Tags = slices.Clone(p.Tags)
 		if !p.HostIndependent {
 			return fmt.Errorf("route %s: prerender requires explicit HostIndependent", r.Pattern)
@@ -133,7 +141,8 @@ func (a *App) prerenderIdentity() string {
 				Pattern    string
 				Policy     PrerenderPolicy
 				Parameters [][2]string
-			}{r.Pattern, *r.Prerender, staticParameterIdentity(r)})
+				Regions    []string
+			}{r.Pattern, *r.Prerender, staticParameterIdentity(r), requestRegionNames(r)})
 		}
 	}
 	if len(values) == 0 {
@@ -249,8 +258,14 @@ func (a *App) BuildPrerender(ctx context.Context) ([]byte, error) {
 			if strings.Contains(v.HTML, a.config.BuildID) || strings.Contains(v.Page.preparedHead.markup, a.config.BuildID) {
 				return nil, fmt.Errorf("prerender %s: output depends on provisional build ID", logical)
 			}
-			result.Pages = append(result.Pages, prerenderPage{Shape: capture.shape, Pattern: capture.pattern, Path: logical, GeneratedAt: v.GeneratedAt, HTML: v.HTML, Title: v.Page.Title, Description: v.Page.Description, Meta: v.Page.Meta, Document: *v.Page.document, Head: v.Page.preparedHead.elements, HeadHTML: v.Page.preparedHead.markup})
+			if len(v.Regions) > 0 {
+				result.Version = 3
+			}
+			result.Pages = append(result.Pages, prerenderPage{Shape: capture.shape, Pattern: capture.pattern, Path: logical, GeneratedAt: v.GeneratedAt, HTML: v.HTML, Title: v.Page.Title, Description: v.Page.Description, Meta: v.Page.Meta, Document: *v.Page.document, Head: v.Page.preparedHead.elements, HeadHTML: v.Page.preparedHead.markup, Regions: v.Regions})
 			total += len(v.HTML) + len(v.Page.preparedHead.markup) + len(logical)
+			for _, region := range v.Regions {
+				total += 96 + len(region.ID) + len(region.Region) + len(region.Props)
+			}
 			if total > maxPrerenderBytes/2 {
 				return nil, fmt.Errorf("nextgo: prerender artifact exceeds budget")
 			}
@@ -370,7 +385,7 @@ func (a *App) initPrerenderRuntime() error {
 		if err := wirejson.Strict(data, &manifest); err != nil {
 			return fmt.Errorf("nextgo: invalid prerender artifact: %w", err)
 		}
-		if manifest.Version != 1 && manifest.Version != 2 || manifest.Version == 1 && len(manifest.SharedSeeds) > 0 || manifest.Code == "" || prerenderid.Build(manifest.Code, data) != a.config.BuildID || len(manifest.Pages) > 10000 {
+		if manifest.Version != 1 && manifest.Version != 2 && manifest.Version != 3 || manifest.Version == 1 && len(manifest.SharedSeeds) > 0 || manifest.Code == "" || prerenderid.Build(manifest.Code, data) != a.config.BuildID || len(manifest.Pages) > 10000 {
 			return fmt.Errorf("nextgo: prerender artifact/build mismatch")
 		}
 	}
@@ -443,7 +458,13 @@ func (a *App) collectPrerenderMembership(ctx context.Context, manifest prerender
 				return nil, nil, fmt.Errorf("nextgo: prerender membership exceeds 10000 paths")
 			}
 			known[app][p.Path] = true
-			value := ownCachedPage(cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, GeneratedAt: p.GeneratedAt, Prerendered: true})
+			value := ownCachedPage(cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, Regions: p.Regions, GeneratedAt: p.GeneratedAt, Prerendered: true})
+			if manifest.Version != 3 && len(p.Regions) > 0 {
+				return nil, nil, fmt.Errorf("nextgo: partial shell requires artifact version 3")
+			}
+			if err := validatePageShell(value, *selected); err != nil {
+				return nil, nil, fmt.Errorf("nextgo: invalid prerender shell: %w", err)
+			}
 			if !selected.Prerender.Shared {
 				groups[app.config.Cache] = append(groups[app.config.Cache], cache.Seed[cachedPage]{Key: app.prerenderKey(p.Path), Value: value, LoadedAt: p.GeneratedAt, Options: cache.Options{Lifetime: selected.Cache.Lifetime, Tags: selected.Cache.Tags, Paths: []string{prerenderDecodedPath(p.Path)}}})
 			}

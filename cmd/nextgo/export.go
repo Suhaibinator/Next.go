@@ -399,6 +399,9 @@ func exportResponse(ctx context.Context, client *http.Client, target string, nav
 		return nil, err
 	}
 	defer response.Body.Close()
+	if response.Header.Get("X-Nextgo-Request-Regions") == "1" || response.Header.Get("X-Nextgo-Partial") == "1" {
+		return nil, fmt.Errorf("cannot export %s: request-time regions require an HTTP server", target)
+	}
 	if response.Header.Get("X-Nextgo-Nonce") != "" {
 		return nil, fmt.Errorf("cannot export %s: per-request CSP nonces require dynamic rendering", target)
 	}

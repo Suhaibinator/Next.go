@@ -28,6 +28,9 @@ func Defer(id string, fallback Node, loader func(context.Context) (Node, error))
 }
 
 func (d *deferredNode) Render(w io.Writer) error {
+	if RenderContext(w).Value(shellCaptureKey{}) == true {
+		return fmt.Errorf("ui: shell capture requires registered request regions, not Defer callbacks")
+	}
 	if len(d.id) > 128 || !boundaryID.MatchString(d.id) {
 		return fmt.Errorf("ui: invalid streaming boundary ID %q", d.id)
 	}

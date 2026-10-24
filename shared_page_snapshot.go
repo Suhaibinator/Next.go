@@ -46,6 +46,7 @@ type sharedPageSnapshot struct {
 	Head        []seo.Element     `json:"head"`
 	GeneratedAt time.Time         `json:"generatedAt"`
 	Prerendered bool              `json:"prerendered,omitempty"`
+	Regions     []ui.RegionSpec   `json:"regions,omitempty"`
 }
 
 func encodeSharedPage(value cachedPage, binding string) (sharedPageSnapshot, error) {
@@ -62,6 +63,10 @@ func encodeSharedPage(value cachedPage, binding string) (sharedPageSnapshot, err
 		dto.Format = 2
 		dto.Prerendered = true
 	}
+	if len(value.Regions) > 0 {
+		dto.Format = 3
+		dto.Regions = value.Regions
+	}
 	owned, _, err := validateSharedPage(dto, binding)
 	return owned, err
 }
@@ -72,7 +77,7 @@ func decodeSharedPage(value sharedPageSnapshot, binding string) (cachedPage, err
 		return cachedPage{}, err
 	}
 	return cachedPage{
-		HTML: owned.HTML, GeneratedAt: owned.GeneratedAt, Prerendered: owned.Prerendered,
+		HTML: owned.HTML, GeneratedAt: owned.GeneratedAt, Prerendered: owned.Prerendered, Regions: owned.Regions,
 		Page: Page{Title: owned.Title, Description: owned.Description, Meta: owned.Meta,
 			document: &owned.Document, preparedHead: &renderedHead{elements: owned.Head, markup: markup}},
 	}, nil
@@ -88,7 +93,16 @@ func validateSharedPage(value sharedPageSnapshot, binding string) (sharedPageSna
 	if !snapshotText(binding, 512) || binding == "" || value.Binding != binding {
 		return sharedPageSnapshot{}, "", sharedSnapshotError("binding")
 	}
-	if value.Format != sharedPageFormat && value.Format != 2 || value.Format == sharedPageFormat && value.Prerendered || value.Format == 2 && !value.Prerendered {
+	validFormat := false
+	switch value.Format {
+	case sharedPageFormat:
+		validFormat = !value.Prerendered && value.Regions == nil
+	case 2:
+		validFormat = value.Prerendered && value.Regions == nil
+	case 3:
+		validFormat = len(value.Regions) > 0
+	}
+	if !validFormat {
 		return sharedPageSnapshot{}, "", sharedSnapshotError("format")
 	}
 	if value.GeneratedAt.IsZero() || value.GeneratedAt.Year() < 1 || value.GeneratedAt.Year() > 9999 {
@@ -96,6 +110,11 @@ func validateSharedPage(value sharedPageSnapshot, binding string) (sharedPageSna
 	}
 	if !snapshotText(value.HTML, maxSharedPageBody) {
 		return sharedPageSnapshot{}, "", sharedSnapshotError("body bounds")
+	}
+	if value.Format == 3 {
+		if err := ui.ValidateShell(ui.CapturedShell{HTML: value.HTML, Regions: value.Regions}); err != nil {
+			return sharedPageSnapshot{}, "", sharedSnapshotError("request-region shell")
+		}
 	}
 	if !snapshotText(value.Title, maxSharedPageText) || !snapshotText(value.Description, maxSharedPageText) || len(value.Meta) > 256 {
 		return sharedPageSnapshot{}, "", sharedSnapshotError("metadata bounds")
@@ -122,6 +141,7 @@ func validateSharedPage(value sharedPageSnapshot, binding string) (sharedPageSna
 		return sharedPageSnapshot{}, "", err
 	}
 	value.Meta = maps.Clone(value.Meta)
+	value.Regions = ownRegionSpecs(value.Regions)
 	value.Head = head
 	value.GeneratedAt = value.GeneratedAt.UTC()
 	return value, markup, nil

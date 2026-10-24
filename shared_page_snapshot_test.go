@@ -1,12 +1,17 @@
 package nextgo
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/internal/paths"
@@ -227,6 +232,253 @@ func TestSharedPageSnapshotRejectsDangerousHeadDescriptors(t *testing.T) {
 			dto.Head = []seo.Element{element}
 			if _, err := decodeSharedPage(dto, "binding"); !errors.Is(err, ErrSharedPageSnapshot) {
 				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func sharedPartialCodecFixture(t *testing.T) cachedPage {
+	t.Helper()
+	value := sharedCodecFixture(t)
+	shell, err := ui.CaptureShell(context.Background(), ui.El("section", nil,
+		ui.Text("☃ Static prefix "),
+		ui.RequestRegion("account-hole", "account", map[string]any{"label": "public <label>", "n": 1}, ui.El("p", nil, ui.Text("Public account fallback"))),
+		ui.Text(" Static separator "),
+		ui.RequestRegion("cart-hole", "cart", []int{1, 2}, ui.Text("Public cart fallback")),
+		ui.Text(" Static suffix")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	value.HTML, value.Regions = shell.HTML, shell.Regions
+	return value
+}
+
+func TestSharedPageSnapshotPartialShellRoundTrip(t *testing.T) {
+	for _, prerendered := range []bool{false, true} {
+		name := "runtime"
+		if prerendered {
+			name = "build"
+		}
+		t.Run(name, func(t *testing.T) {
+			value := sharedPartialCodecFixture(t)
+			value.Prerendered = prerendered
+			dto, err := encodeSharedPage(value, "partial-binding")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if dto.Format != 3 || dto.Prerendered != prerendered || len(dto.Regions) != 2 {
+				t.Fatal(dto)
+			}
+			data, err := json.Marshal(dto)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if bytes.Contains(data, []byte("headHTML")) {
+				t.Fatal("partial codec persisted raw head markup")
+			}
+			var transferred sharedPageSnapshot
+			if err := json.Unmarshal(data, &transferred); err != nil {
+				t.Fatal(err)
+			}
+			decoded, err := decodeSharedPage(transferred, "partial-binding")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if decoded.HTML != value.HTML || !reflect.DeepEqual(decoded.Regions, value.Regions) || decoded.Prerendered != prerendered || !decoded.GeneratedAt.Equal(value.GeneratedAt) {
+				t.Fatal("partial snapshot changed shell, descriptors, provenance, or age", decoded)
+			}
+			if decoded.Page.Body != nil || decoded.Page.Stream || decoded.Page.preparedHead.markup != value.Page.preparedHead.markup || *decoded.Page.document != *value.Page.document {
+				t.Fatal("partial snapshot retained live rendering or lost head/document")
+			}
+			if err := ui.ValidateShell(ui.CapturedShell{HTML: decoded.HTML, Regions: decoded.Regions}); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestSharedPageSnapshotPartialRegionsOwnContainersAndProps(t *testing.T) {
+	value := sharedPartialCodecFixture(t)
+	dto, err := encodeSharedPage(value, "binding")
+	if err != nil {
+		t.Fatal(err)
+	}
+	original := bytes.Clone(dto.Regions[0].Props)
+	value.Regions[0].Props[0] = '!'
+	value.Regions[0].Region = "changed-source"
+	value.Regions[0].Start++
+	if !bytes.Equal(dto.Regions[0].Props, original) || dto.Regions[0].Region != "account" || dto.Regions[0].Start == value.Regions[0].Start {
+		t.Fatal("encoded descriptors alias the source")
+	}
+	decoded, err := decodeSharedPage(dto, "binding")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dto.Regions[0].Props[0] = '!'
+	dto.Regions[0].Region = "changed-dto"
+	dto.Regions[0].Start++
+	if !bytes.Equal(decoded.Regions[0].Props, original) || decoded.Regions[0].Region != "account" || decoded.Regions[0].Start == dto.Regions[0].Start {
+		t.Fatal("decoded descriptors alias the DTO")
+	}
+}
+
+func TestSharedPageSnapshotPartialFormatContract(t *testing.T) {
+	for _, test := range []struct {
+		name        string
+		format      int
+		prerendered bool
+		regions     int
+		want        bool
+	}{
+		{"full-runtime", 1, false, 0, true}, {"full-build", 2, true, 0, true},
+		{"runtime-claims-build", 1, true, 0, false}, {"build-loses-provenance", 2, false, 0, false},
+		{"legacy-runtime-regions", 1, false, 1, false}, {"legacy-build-regions", 2, true, 1, false},
+		{"legacy-runtime-empty-field", 1, false, -1, false}, {"legacy-build-empty-field", 2, true, -1, false},
+		{"partial-runtime", 3, false, 1, true}, {"partial-build", 3, true, 1, true},
+		{"partial-nil", 3, false, 0, false}, {"partial-empty", 3, true, -1, false}, {"future", 4, false, 1, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			value := sharedPartialCodecFixture(t)
+			dto, err := encodeSharedPage(value, "binding")
+			if err != nil {
+				t.Fatal(err)
+			}
+			dto.Format, dto.Prerendered = test.format, test.prerendered
+			if test.regions == 0 {
+				dto.Regions = nil
+			} else if test.regions < 0 {
+				dto.Regions = []ui.RegionSpec{}
+			}
+			_, err = decodeSharedPage(dto, "binding")
+			if (err == nil) != test.want {
+				t.Fatalf("format%d provenance%v descriptors%d: %v", dto.Format, dto.Prerendered, len(dto.Regions), err)
+			}
+		})
+	}
+	value := sharedPartialCodecFixture(t)
+	value.Page.Stream = true
+	if _, err := encodeSharedPage(value, "binding"); !errors.Is(err, ErrSharedPageSnapshot) {
+		t.Fatal("live stream entered partial snapshot", err)
+	}
+}
+
+func TestSharedPageSnapshotRejectsMalformedPartialShell(t *testing.T) {
+	changes := map[string]func(*sharedPageSnapshot){
+		"missing-regions":      func(v *sharedPageSnapshot) { v.Regions = nil },
+		"region-count":         func(v *sharedPageSnapshot) { v.Regions = make([]ui.RegionSpec, ui.MaxShellRegions+1) },
+		"empty-regions":        func(v *sharedPageSnapshot) { v.Regions = []ui.RegionSpec{} },
+		"empty-id":             func(v *sharedPageSnapshot) { v.Regions[0].ID = "" },
+		"invalid-id":           func(v *sharedPageSnapshot) { v.Regions[0].ID = "not an id" },
+		"long-id":              func(v *sharedPageSnapshot) { v.Regions[0].ID = strings.Repeat("a", 129) },
+		"duplicate-id":         func(v *sharedPageSnapshot) { v.Regions[1].ID = v.Regions[0].ID },
+		"empty-registration":   func(v *sharedPageSnapshot) { v.Regions[0].Region = "" },
+		"invalid-registration": func(v *sharedPageSnapshot) { v.Regions[0].Region = "server/handler" },
+		"long-registration":    func(v *sharedPageSnapshot) { v.Regions[0].Region = strings.Repeat("a", 129) },
+		"start-negative":       func(v *sharedPageSnapshot) { v.Regions[0].Start = -1 },
+		"end-negative":         func(v *sharedPageSnapshot) { v.Regions[0].End = -1 },
+		"start-overflow":       func(v *sharedPageSnapshot) { v.Regions[0].Start = int(^uint(0) >> 1) },
+		"end-overflow":         func(v *sharedPageSnapshot) { v.Regions[0].End = int(^uint(0) >> 1) },
+		"end-outside":          func(v *sharedPageSnapshot) { v.Regions[0].End = len(v.HTML) + 1 },
+		"reversed-range":       func(v *sharedPageSnapshot) { v.Regions[0].Start = v.Regions[0].End + 1 },
+		"overlap":              func(v *sharedPageSnapshot) { v.Regions[1].Start = v.Regions[0].End - 1 },
+		"reversed-order":       func(v *sharedPageSnapshot) { v.Regions[0], v.Regions[1] = v.Regions[1], v.Regions[0] },
+		"start-not-header":     func(v *sharedPageSnapshot) { v.Regions[0].Start++ },
+		"end-not-footer":       func(v *sharedPageSnapshot) { v.Regions[0].End-- },
+		"utf8-offset":          func(v *sharedPageSnapshot) { v.Regions[0].Start = strings.Index(v.HTML, "☃") + 1 },
+		"damaged-header": func(v *sharedPageSnapshot) {
+			raw := []byte(v.HTML)
+			raw[v.Regions[0].Start] = '?'
+			v.HTML = string(raw)
+		},
+		"damaged-footer": func(v *sharedPageSnapshot) {
+			raw := []byte(v.HTML)
+			raw[v.Regions[0].End-1] = 'x'
+			v.HTML = string(raw)
+		},
+		"nil-props":       func(v *sharedPageSnapshot) { v.Regions[0].Props = nil },
+		"empty-props":     func(v *sharedPageSnapshot) { v.Regions[0].Props = json.RawMessage{} },
+		"invalid-props":   func(v *sharedPageSnapshot) { v.Regions[0].Props = json.RawMessage(`{`) },
+		"props-duplicate": func(v *sharedPageSnapshot) { v.Regions[0].Props = json.RawMessage(`{"k":1,"k":2}`) },
+		"props-trailing":  func(v *sharedPageSnapshot) { v.Regions[0].Props = json.RawMessage(`{}[]`) },
+		"props-utf8":      func(v *sharedPageSnapshot) { v.Regions[0].Props = json.RawMessage{'"', 255, '"'} },
+		"props-depth": func(v *sharedPageSnapshot) {
+			v.Regions[0].Props = json.RawMessage(strings.Repeat("[", 66) + "0" + strings.Repeat("]", 66))
+		},
+		"props-size": func(v *sharedPageSnapshot) {
+			v.Regions[0].Props = json.RawMessage(`"` + strings.Repeat("x", ui.MaxRegionPropsBytes) + `"`)
+		},
+		"shell-size": func(v *sharedPageSnapshot) { v.HTML += strings.Repeat("x", ui.MaxShellBytes-len(v.HTML)+1) },
+	}
+	for name, change := range changes {
+		t.Run(name, func(t *testing.T) {
+			dto, err := encodeSharedPage(sharedPartialCodecFixture(t), "binding")
+			if err != nil {
+				t.Fatal(err)
+			}
+			change(&dto)
+			if _, err := decodeSharedPage(dto, "binding"); !errors.Is(err, ErrSharedPageSnapshot) {
+				t.Fatal("malformed partial snapshot accepted", err)
+			}
+		})
+	}
+	// Aggregate props admission is stricter than validating any single region.
+	value := sharedCodecFixture(t)
+	nodes := make([]ui.Node, 17)
+	for i := range nodes {
+		nodes[i] = ui.RequestRegion("hole"+strconv.Itoa(i), "region", nil, ui.Text("fallback"))
+	}
+	shell, err := ui.CaptureShell(context.Background(), ui.Fragment(nodes...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	value.HTML, value.Regions = shell.HTML, shell.Regions
+	for i := range value.Regions {
+		value.Regions[i].Props = json.RawMessage(`"` + strings.Repeat("x", ui.MaxRegionPropsBytes-2) + `"`)
+	}
+	if _, err := encodeSharedPage(value, "binding"); !errors.Is(err, ErrSharedPageSnapshot) {
+		t.Fatal("aggregate props budget accepted", err)
+	}
+}
+
+func TestSharedPageSnapshotPartialDetachesDescriptorBacking(t *testing.T) {
+	for _, operation := range []string{"encode", "decode"} {
+		t.Run(operation, func(t *testing.T) {
+			names := "account-hole|account" + strings.Repeat("x", 4<<20)
+			propsBacking := []byte(`{"public":true}` + strings.Repeat(" ", 4<<20))
+			spec := ui.RegionSpec{ID: names[:len("account-hole")], Region: names[len("account-hole")+1 : len("account-hole|account")], Props: propsBacking[:len(`{"public":true}`)]}
+			source := sharedPartialCodecFixture(t)
+			spec.Start, spec.End = source.Regions[0].Start, source.Regions[0].End
+			var owned ui.RegionSpec
+			if operation == "encode" {
+				source.Regions[0] = spec
+				dto, err := encodeSharedPage(source, "binding")
+				if err != nil {
+					t.Fatal(err)
+				}
+				owned = dto.Regions[0]
+			} else {
+				dto, err := encodeSharedPage(source, "binding")
+				if err != nil {
+					t.Fatal(err)
+				}
+				dto.Regions[0] = spec
+				value, err := decodeSharedPage(dto, "binding")
+				if err != nil {
+					t.Fatal(err)
+				}
+				owned = value.Regions[0]
+			}
+			base := uintptr(unsafe.Pointer(unsafe.StringData(names)))
+			for _, name := range []string{owned.ID, owned.Region} {
+				at := uintptr(unsafe.Pointer(unsafe.StringData(name)))
+				if at >= base && at < base+uintptr(len(names)) {
+					t.Fatal("codec descriptor retains oversized identity backing")
+				}
+			}
+			propsBase := uintptr(unsafe.Pointer(unsafe.SliceData(propsBacking)))
+			propsAt := uintptr(unsafe.Pointer(unsafe.SliceData(owned.Props)))
+			if propsAt >= propsBase && propsAt < propsBase+uintptr(len(propsBacking)) {
+				t.Fatal("codec descriptor retains oversized props backing")
 			}
 		})
 	}

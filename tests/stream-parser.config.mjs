@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   testDir: fileURLToPath(new URL('.', import.meta.url)),
-  outputDir: process.env.NEXTGO_E2E_RESULTS || fileURLToPath(new URL('../.nextgo-test-results/stream-parser', import.meta.url)),
+  outputDir: process.env.NEXTGO_E2E_RESULTS || fileURLToPath(new URL('../.nextgo-test-results/stream-parser/browser', import.meta.url)),
   workers: 1, fullyParallel: false, timeout: 30_000, expect: { timeout: 5000 },
   grep: /split parser|initial streaming shell stays intact|traced HTTP still flushes/,
   use: { headless: true, trace: 'retain-on-failure' },

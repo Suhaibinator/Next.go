@@ -66,7 +66,7 @@ func (w *initialStreamWriter) Flush() {
 func (a *App) respondStream(w http.ResponseWriter, r *http.Request, p Page, head string, document Document) {
 	a.draftResponse(w, r)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if flag, _ := r.Context().Value(parallelRequestKey{}).(bool); flag || a.draftState(r) == "1" || len(w.Header().Values("Set-Cookie")) > 0 {
+	if flag, _ := r.Context().Value(parallelRequestKey{}).(bool); flag || a.draftState(r) == "1" || len(w.Header().Values("Set-Cookie")) > 0 || strings.Contains(strings.ToLower(w.Header().Get("Cache-Control")), "private") {
 		w.Header().Set("Cache-Control", "private, no-store")
 	} else {
 		w.Header().Set("Cache-Control", "no-store")

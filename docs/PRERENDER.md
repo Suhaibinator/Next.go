@@ -11,6 +11,13 @@ acknowledged cross-instance invalidation. Replication/HA, parallel route
 prerendering, and automatic static/dynamic analysis remain unfinished.
 See [the complete parity inventory](PARITY.md), especially D06–D08.
 
+`Partial: true` separately opts a public static shell into named request-time
+regions registered in `regions.go`; build capture never invokes those callbacks.
+The shell/head retain the policy's cache lifetime while each region uses the
+current request. See [partial prerendering](PARTIAL_PRERENDERING.md) for the
+explicit boundary, privacy/access requirements, artifact version and bounded
+qualification scope.
+
 ## Opt in
 
 Put `prerender.go` beside a `page.go`, in the same Go package:
@@ -97,11 +104,14 @@ must be available to the build environment. Builds execute trusted application
 code; they may run loaders and contact configured data services.
 
 The probe uses production environment precedence and a synthetic anonymous GET
-with no query/body/credentials. It rejects redirects, errors, streaming pages,
+with no query/body/credentials. It rejects redirects, errors, ordinary streaming pages,
 private/no-store middleware output, per-request CSP nonces, response mutation,
 rewritten route/path mismatches, and lifecycle work registered from the cached
 page renderer. It has a bounded deadline; application loaders must honor context
 cancellation. Build output must not depend on the provisional `BuildID`.
+Explicit partial shells capture `ui.RequestRegion` fallbacks and descriptors
+instead of executing region callbacks; ordinary `ui.Defer` inside static
+capture remains unsupported.
 
 A private `prerender.json` is embedded separately from public assets. Snapshot
 bytes participate in the final build ID. Startup validates the strict manifest
@@ -303,9 +313,12 @@ and canonical encoded path. Their host-independent binding differs from the
 host-sensitive runtime-only shared-page cache. Body/head/document snapshots
 retain the trusted-writer boundary described in
 [shared caching](SHARED_CACHE.md#public-output-and-storage-boundaries). Private
-artifact format 2 carries shared reservations; local-only artifacts retain
-format 1. A seed's snapshot DTO format 2 records build provenance; ordinary
-runtime snapshot DTO format 1 remains supported.
+artifact format 2 carries full-page shared reservations; full-page local-only
+artifacts retain format 1. Partial shells use artifact format 3 and shared DTO
+format 3 for validated region descriptors. Full-page seed DTO format 2 records
+build provenance; current readers retain support for full-page formats 1/2.
+Only public shells are shared; request-time region results are never seeded or
+stored. See [the partial-shell contract](PARTIAL_PRERENDERING.md).
 
 Use acknowledged `nextgo.ExpireCache(ctx, selector)` or
 `nextgo.MarkCacheStale(ctx, selector, window)` after a backing write commits.

@@ -44,6 +44,7 @@ type Route struct {
 	Error              string
 	Loading            string
 	Prerender          bool
+	Regions            bool
 	StaticParamsLayers []StaticParamsLayer
 	StaticParams       bool
 	API                bool
@@ -111,6 +112,9 @@ func Discover(root string) (*Project, error) {
 		return nil, err
 	}
 	if err = validateFileInterceptions(p); err != nil {
+		return nil, err
+	}
+	if err = validateRegionRoutes(p); err != nil {
 		return nil, err
 	}
 	componentsDir := filepath.Join(abs, "components")
@@ -203,6 +207,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 	staticParams := map[string]string{}
 	claimedStaticParams := map[string]bool{}
 	prerender := map[string]string{}
+	regions := map[string]string{}
 	defaults := map[string]bool{}
 	hasSlots := false
 	err := filepath.WalkDir(appDir, func(path string, d fs.DirEntry, walkErr error) error {
@@ -222,7 +227,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 			return nil
 		}
 		base := d.Name()
-		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" {
+		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" && base != "regions.go" {
 			return nil
 		}
 		if base == "config.go" && filepath.Dir(path) != appDir {
@@ -250,6 +255,13 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 		}
 		if base == "prerender.go" {
 			prerender[importPath] = path
+			return nil
+		}
+		if base == "regions.go" {
+			if strings.HasPrefix(filepath.Base(appDir), "slot_") || filepath.Base(appDir) == "intercept_root" {
+				return fmt.Errorf("%s supports ordinary pages, not named-slot or interception registrations", path)
+			}
+			regions[importPath] = path
 			return nil
 		}
 		if base == "staticparams.go" {
@@ -326,10 +338,20 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 		return nil, err
 	}
 	if len(p.Routes) == 0 && len(defaults) == 0 && !hasSlots {
+		if len(regions) > 0 {
+			return nil, fmt.Errorf("regions.go requires page.go in the same directory")
+		}
 		return nil, fmt.Errorf("no pages or API routes in %s", appDir)
 	}
 	for i := range p.Routes {
 		r := &p.Routes[i]
+		if file := regions[r.Import]; file != "" {
+			if r.API {
+				return nil, fmt.Errorf("%s requires page.go in the same directory", file)
+			}
+			r.Regions = true
+			delete(regions, r.Import)
+		}
 		if file := prerender[r.Import]; file != "" {
 			if r.API {
 				return nil, fmt.Errorf("%s requires page.go in the same directory", file)
@@ -495,6 +517,9 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 
 	if len(prerender) > 0 {
 		return nil, fmt.Errorf("prerender.go requires page.go in the same directory")
+	}
+	if len(regions) > 0 {
+		return nil, fmt.Errorf("regions.go requires page.go in the same directory")
 	}
 	for imp := range claimedStaticParams {
 		delete(staticParams, imp)

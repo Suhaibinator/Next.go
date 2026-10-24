@@ -2,6 +2,7 @@ package nextgo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"strings"
@@ -71,5 +72,66 @@ func TestCachedPageOwnsRenderedMetadataBacking(t *testing.T) {
 	}
 	if value.Page.Title != "Headline" || value.Page.Meta["source"] != "CMS" || value.Page.document.Language != "en" {
 		t.Fatal("freezing changed metadata")
+	}
+}
+
+func TestCachedPageOwnsRegionBackingWithoutCopyingFallbackPerRegion(t *testing.T) {
+	names := "account-hole|account" + strings.Repeat("x", 4<<20)
+	id, registration := names[:len("account-hole")], names[len("account-hole")+1:len("account-hole|account")]
+	raw := []byte(`{"public":1}` + strings.Repeat(" ", 4<<20))
+	props := json.RawMessage(raw[:len(`{"public":1}`)])
+	shell := `<div aria-busy="true" data-nextgo-boundary="account-hole"><p>Public fallback</p></div>`
+	bodyBacking := strings.Repeat("x", 2<<20) + shell + strings.Repeat("y", 2<<20)
+	body := bodyBacking[2<<20 : (2<<20)+len(shell)]
+	backing := make([]ui.RegionSpec, 1, 4096)
+	backing[0] = ui.RegionSpec{ID: id, Region: registration, Props: props, Start: 0, End: len(body)}
+	owned := ownCachedPage(cachedPage{HTML: body, Regions: backing})
+	if len(owned.Regions) != 1 || cap(owned.Regions) != 1 || owned.HTML != shell || owned.Regions[0].Start != 0 || owned.Regions[0].End != len(shell) {
+		t.Fatal("region snapshot changed or retained extra descriptor capacity", owned)
+	}
+	aliasesString := func(value, large string) bool {
+		if value == "" {
+			return false
+		}
+		at := uintptr(unsafe.Pointer(unsafe.StringData(value)))
+		base := uintptr(unsafe.Pointer(unsafe.StringData(large)))
+		return at >= base && at < base+uintptr(len(large))
+	}
+	if aliasesString(owned.HTML, bodyBacking) || aliasesString(owned.Regions[0].ID, names) || aliasesString(owned.Regions[0].Region, names) {
+		t.Fatal("frozen shell/region identity retains oversized source backing")
+	}
+	at := uintptr(unsafe.Pointer(unsafe.SliceData(owned.Regions[0].Props)))
+	base := uintptr(unsafe.Pointer(unsafe.SliceData(raw)))
+	if at >= base && at < base+uintptr(len(raw)) {
+		t.Fatal("region props retain oversized source backing")
+	}
+	backing[0].Start = 1
+	backing[0].Region = "changed"
+	raw[0] = '!'
+	if owned.Regions[0].Start != 0 || owned.Regions[0].Region != "account" || string(owned.Regions[0].Props) != `{"public":1}` {
+		t.Fatal("owned descriptors or props alias caller mutations", owned.Regions)
+	}
+	// A region records offsets into the one frozen HTML body, not another copy
+	// of its fallback. The accounted body contribution must remain exactly once.
+	withoutHTML := owned
+	withoutHTML.HTML = ""
+	if owned.CacheSize()-withoutHTML.CacheSize() != int64(len(shell)) {
+		t.Fatal("fallback shell body is counted more than once")
+	}
+	withoutRegions := owned
+	withoutRegions.Regions = nil
+	if owned.CacheSize()-withoutRegions.CacheSize() < int64(len(id)+len(registration)+len(props)) {
+		t.Fatal("region identity/props are absent from cache accounting")
+	}
+}
+
+func TestCachedPageRegionOwnershipPreservesNilAndDropsSpareCapacity(t *testing.T) {
+	if ownCachedPage(cachedPage{}).Regions != nil {
+		t.Fatal("nil descriptor state changed")
+	}
+	source := make([]ui.RegionSpec, 0, 1000)
+	owned := ownCachedPage(cachedPage{Regions: source})
+	if owned.Regions == nil || len(owned.Regions) != 0 || cap(owned.Regions) != 0 {
+		t.Fatal("empty descriptor snapshot retains source capacity")
 	}
 }

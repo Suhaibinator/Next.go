@@ -96,7 +96,7 @@ func (a *App) initSharedPrerenderSeeds(manifest prerenderManifest, scopes []prer
 				continue
 			}
 			seen[identity][binding] = true
-			value := cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, GeneratedAt: p.GeneratedAt, Prerendered: true}
+			value := cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, Regions: p.Regions, GeneratedAt: p.GeneratedAt, Prerendered: true}
 			dto, err := encodeSharedPage(value, binding)
 			if err != nil {
 				// A valid private build render can exceed the shared codec's

@@ -248,6 +248,7 @@ type cachedPage struct {
 	Page        Page
 	HTML        string
 	GeneratedAt time.Time
+	Regions     []ui.RegionSpec
 }
 
 // CacheSize accounts the frozen HTML/head payload and conservative containers.
@@ -255,6 +256,9 @@ type cachedPage struct {
 // heap, transient rendering buffers or container/allocator implementation details.
 func (p cachedPage) CacheSize() int64 {
 	size := int64(512 + len(p.HTML) + len(p.Page.Title) + len(p.Page.Description))
+	for _, region := range p.Regions {
+		size += int64(192 + len(region.ID) + len(region.Region) + len(region.Props))
+	}
 	if p.Page.document != nil {
 		size += int64(128 + len(p.Page.document.Language) + len(p.Page.document.Direction) + len(p.Page.document.Viewport))
 	}
@@ -278,16 +282,25 @@ type renderedHTML string
 func (h renderedHTML) Render(w io.Writer) error { _, err := io.WriteString(w, string(h)); return err }
 
 type uncacheable struct {
-	page   Page
-	status int
+	page     Page
+	status   int
+	snapshot *cachedPage
 }
 
 func (e *uncacheable) Error() string { return "uncacheable render" }
 
 func (a *App) loadPage(c *Context, route Route, w http.ResponseWriter, span *telemetry.Span) (Page, int) {
 	span.Cache("disabled")
+	if len(route.Regions) > 0 && c.Value(prerenderCaptureKey{}) == nil {
+		w.Header().Set("X-Nextgo-Request-Regions", "1")
+		w.Header().Set("Cache-Control", "private, no-store")
+		clearNavigationReuse(w.Header())
+	}
 	if capture, ok := c.Value(prerenderCaptureKey{}).(*prerenderCapture); ok {
 		return a.capturePrerender(c, route, w, capture)
+	}
+	if route.Prerender != nil && route.Prerender.Partial {
+		return a.loadPartialPage(c, route, w, span)
 	}
 	logical := c.Request.URL.EscapedPath()
 	if route.Prerender != nil {
@@ -445,6 +458,19 @@ func (a *App) RevalidateTag(tag string) { a.config.Cache.ExpireTag(tag) }
 func (a *App) RevalidatePath(path string) { a.config.Cache.ExpirePathPrefix(path) }
 
 func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[string]string, query url.Values, route Route) (cachedPage, error) {
+	partial := route.Prerender != nil && route.Prerender.Partial
+	if partial {
+		ctx = a.publicShellContext(ctx)
+		input = a.publicShellRequest(input, ctx)
+		logical, err := staticPath(route.Pattern, Params(params))
+		if err != nil {
+			return cachedPage{}, err
+		}
+		input.URL.Path, _ = url.PathUnescape(logical)
+		input.URL.RawPath = logical
+		input.RequestURI = logical
+		query = make(url.Values)
+	}
 	// Public cache flights receive a fresh memo table, never private work
 	// performed by middleware in the initiating request.
 	ctx = context.WithValue(WithRequestMemo(postresponse.BlockRegistration(ctx, ErrAfterCache)), pageCacheReadOnlyKey{}, true)
@@ -452,18 +478,29 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 	copyContext := &Context{Context: ctx, Request: request, Params: maps.Clone(params), Query: cloneQuery(query), response: responseState{public: true}}
 	defer copyContext.response.seal()
 	page, status := a.render(copyContext, route)
-	if status != 200 || page.Stream {
+	if status != 200 || page.Stream && !partial {
 		if copyContext.response.seal().violated {
 			return cachedPage{}, ErrPublicCacheResponse
 		}
-		return cachedPage{}, &uncacheable{page, status}
+		return cachedPage{}, &uncacheable{page: page, status: status}
 	}
 	page = a.localeMetadata(page)
 	head, headHTML, err := pageHeadPaths(page, a.paths)
 	if err != nil {
 		return cachedPage{}, err
 	}
-	html, err := ui.HTMLContext(ctx, page.Body)
+	var html string
+	var regions []ui.RegionSpec
+	if partial {
+		var shell ui.CapturedShell
+		shell, err = ui.CaptureShell(ctx, page.Body)
+		html, regions = shell.HTML, shell.Regions
+		if err == nil {
+			err = validatePageShell(cachedPage{HTML: html, Regions: regions}, route)
+		}
+	} else {
+		html, err = ui.HTMLContext(ctx, page.Body)
+	}
 	if copyContext.response.seal().violated {
 		return cachedPage{}, ErrPublicCacheResponse
 	}
@@ -488,5 +525,5 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 		return cachedPage{}, err
 	}
 	page = Page{document: &document, Title: title, Description: description, Meta: meta, preparedHead: &renderedHead{elements: head, markup: headHTML}}
-	return ownCachedPage(cachedPage{Page: page, HTML: html, GeneratedAt: time.Now()}), nil
+	return ownCachedPage(cachedPage{Page: page, HTML: html, Regions: regions, GeneratedAt: time.Now()}), nil
 }

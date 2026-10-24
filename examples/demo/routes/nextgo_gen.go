@@ -241,6 +241,29 @@ func Media() string { return "/media" }
 // Optimistic constructs the application path for page /optimistic.
 func Optimistic() string { return "/optimistic" }
 
+// Partial constructs the application path for page /partial.
+func Partial() string { return "/partial" }
+
+// PartialBySlug constructs the application path for page /partial/:slug.
+func PartialBySlug(p PartialBySlugParams) (string, error) {
+	return routeinfo.BuildPath("/partial/:slug", map[string][]string{"slug": {p.Slug}})
+}
+
+// PartialBySlugParams contains decoded values for /partial/:slug.
+type PartialBySlugParams struct {
+	// Slug is the decoded "slug" parameter.
+	Slug string
+}
+
+// ReadPartialBySlug validates and copies parameters from Context.Params.
+func ReadPartialBySlug(values map[string]string) (PartialBySlugParams, error) {
+	p := PartialBySlugParams{Slug: values["slug"]}
+	if _, err := PartialBySlug(p); err != nil {
+		return PartialBySlugParams{}, err
+	}
+	return p, nil
+}
+
 // PhotosById constructs the application path for page /photos/:id.
 func PhotosById(p PhotosByIdParams) (string, error) {
 	return routeinfo.BuildPath("/photos/:id", map[string][]string{"id": {p.Id}})

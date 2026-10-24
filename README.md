@@ -20,6 +20,7 @@ The example includes:
 | --- | --- |
 | `/` | Shared root layout, meaningful SSR, two independent Go counters |
 | `/about` | Static route and client-side navigation |
+| `/partial`, `/partial/alpha`, `/partial/beta` | Captured public shell and fresh request-time server regions |
 | `/keyed`, `/keyed/table` | DOM-preserving keyed Go collections, row state, explicit updates and cleanup |
 | `/composition`, `/composition/details` | Typed providers, child scopes, effects and retained-layout cleanup |
 | `/forms` | Typed controlled inputs, validation, pending saves, cancellation and native POST fallback |
@@ -408,7 +409,7 @@ Body: ui.El("main", nil,
 ),
 ```
 
-Full-document requests flush the initial shell and later inert templates. Go/WASM waits for each template's matching outside completion marker before moving its existing nodes into the boundary and hydrating its islands; no executable inline patch scripts are generated. The fallback remains visible while the HTML parser has only part of a chunk. **Deferred chunks require WASM to become visible**; the no-script view keeps fallback content. Negotiated navigation commits a validated shell, then independently nested chunks as they arrive. Older clients still receive complete buffered envelopes. Partial prerendered shells, metadata streaming and independent route/slot ownership are unfinished. Failures after headers flush use generic boundary error content. See [the streaming sample](examples/demo/app/stream/page.go) and [completion contract](docs/STREAMING.md#initial-document-completion).
+Full-document requests flush the initial shell and later inert templates. Go/WASM waits for each template's matching outside completion marker before moving its existing nodes into the boundary and hydrating its islands; no executable inline patch scripts are generated. The fallback remains visible while the HTML parser has only part of a chunk. **Deferred chunks require WASM to become visible**; the no-script view keeps fallback content. Negotiated navigation commits a validated shell, then independently nested chunks as they arrive. Older clients still receive complete buffered envelopes. Explicit partial shells with registered request-time regions are available; automatic partial-shell analysis, metadata streaming and independent route/slot ownership remain unfinished. Failures after headers flush use generic boundary error content. See [the streaming sample](examples/demo/app/stream/page.go) and [completion contract](docs/STREAMING.md#initial-document-completion).
 
 `seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, dynamic social images, manifests/file discovery, automatic font download/subsetting and managed script loading remain outstanding. Local font/stylesheet resources are available through the assets API below.
 
@@ -635,7 +636,7 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, partial prerendered shells, independent slot streaming/head composition and intercepted routes, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, generated remote action stubs and one-response streamed mutations, optimistic rollback, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and intercepted routes, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, generated remote action stubs and one-response streamed mutations, optimistic rollback, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
 
 The optimized reference build still has a multi-megabyte Go WASM runtime; see [measured sizes and performance limits](docs/PERFORMANCE.md). Loading and compiling it takes time; useful SSR and ordinary links are available first. DOM access uses `syscall/js`, an experimental API outside Go's compatibility guarantee. CPU-heavy Go work can block the browser main thread. These are real tradeoffs of this implementation, not features hidden by the framework. See the [Go WebAssembly guide](https://go.dev/wiki/WebAssembly) and [`syscall/js` documentation](https://pkg.go.dev/syscall/js).
 
@@ -791,6 +792,22 @@ Applications can use `go.work` and local module replacements for shared Go serve
 ## Build snapshots and regeneration
 
 Add `prerender.go` beside an ordinary page and return `*nextgo.PrerenderPolicy` with explicit `HostIndependent: true` and a revalidation duration. Production builds embed validated snapshots; stale generations refresh through the existing cache. Dynamic `StaticParams` supports blocking on-demand generation or a closed-list custom 404. Development renders on request. Try `/prerender`. See [prerendering conventions](docs/PRERENDER.md) for examples, privacy requirements, build execution, limits, and restart behavior. The default regeneration and invalidation path remains process-local.
+
+### Public shells with request-time regions
+
+`PrerenderPolicy{Partial: true, HostIndependent: true}` captures a public page,
+layouts, metadata and `ui.RequestRegion` fallbacks. A native `regions.go` exports
+`Regions() map[string]nextgo.RegionFunc`; callbacks receive the current request
+and owned JSON props, while retained static providers do not rerun per visitor.
+The final response stays private/no-store. Title/head/status are static; protect
+access before flushing the shell. Go/WASM makes completed regions visible using
+the existing streaming transport and independently hydrates their islands.
+
+Try `/partial/alpha?message=Hello`. Optional `Shared: true` uses the existing
+online-ticket authority for shells only. Static export rejects request-time
+regions and preserves existing published output. This explicit subset passes the current 377-check browser matrix
+with three existing CDP skips, both SDK native/WASM checks and host/nonroot Linux
+HTTP/both mock Lambda suites. See [examples, bounds and remaining work](docs/PARTIAL_PRERENDERING.md).
 
 ### Shared prerender seeds
 

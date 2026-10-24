@@ -76,6 +76,11 @@ type PageFunc func(*Context) (Page, error)
 type LayoutFunc func(*Context, ui.Node) (ui.Node, error)
 type ErrorFunc func(*Context, error) (Page, error)
 type LoadingFunc func(*Context) (ui.Node, error)
+
+// RegionFunc renders request-time output for a named ui.RequestRegion. The
+// supplied context and request belong to this render, not the public shell
+// generation. Headers are already sealed; return nested nodes for deferred work.
+type RegionFunc func(*Context, json.RawMessage) (ui.Node, error)
 type CachePolicy struct {
 	TTL time.Duration
 	// Shared selects Config.SharedCache for this explicit public-page policy.
@@ -101,6 +106,9 @@ type Route struct {
 	Primary   *PrimarySlot
 	Primaries []PrimarySlot
 	Page      PageFunc
+	// Regions registers native request-time renderers. Map keys are stable
+	// region names; boundary instance IDs are supplied by ui.RequestRegion.
+	Regions map[string]RegionFunc
 	// Layouts are ordered outermost first.
 	Layouts     []LayoutFunc
 	LayoutBases []string
@@ -371,6 +379,9 @@ func newApp(c Config) (*App, error) {
 	if err := a.initPrerenderPolicies(); err != nil {
 		return nil, err
 	}
+	if err := a.initRequestRegions(); err != nil {
+		return nil, err
+	}
 	if err := a.validateConfig(); err != nil {
 		return nil, err
 	}
@@ -579,6 +590,12 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		request = request.WithContext(r.Context())
 		ctx := &Context{Context: r.Context(), Request: request, Params: params, Query: request.URL.Query()}
+		if len(route.Regions) > 0 {
+			bound := ui.WithRegionResolver(r.Context(), a.requestRegionResolver(ctx, route))
+			r = r.WithContext(bound)
+			ctx.Context = bound
+			ctx.Request = request.WithContext(bound)
+		}
 		if interception != nil {
 			ctx.slotTarget = r.URL
 			ctx.interceptSlot = interception.slot

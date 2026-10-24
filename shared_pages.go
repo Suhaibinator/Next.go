@@ -108,7 +108,7 @@ func (a *App) lookupSharedPage(c *Context, route Route, inputLoader func(context
 func uncachedSharedPage(page cachedPage) error {
 	fresh := page.Page
 	fresh.Body = renderedHTML(page.HTML)
-	return &uncacheable{fresh, 200}
+	return &uncacheable{page: fresh, status: 200, snapshot: &page}
 }
 func keepPageSnapshot(err error) bool {
 	if errors.Is(err, ErrPublicCacheResponse) {

@@ -108,6 +108,8 @@ jobs:
         run: npm run test:stream-parser
       - name: Stream admission and recoverable navigation
         run: npm run test:stream-admission
+      - name: Partial shells and current-request regions
+        run: npm run test:partial
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -142,6 +144,8 @@ jobs:
         run: sh ./scripts/test-stream-parser-container.sh
       - name: Stream admission Linux conformance
         run: sh ./scripts/test-stream-admission-container.sh
+      - name: Partial prerender Linux browser conformance
+        run: sh ./scripts/test-partial-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

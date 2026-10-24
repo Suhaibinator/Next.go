@@ -134,6 +134,12 @@ Clients that do not negotiate streaming receive complete buffered JSON as before
 
 The native writer flushes complete records, and the existing compression wrapper preserves those flushes. Proxies, CDNs and hosting platforms can still buffer them. Buffered Lambda mode returns the valid sequence after collecting it; optional Lambda response-streaming mode can deliver records incrementally. Local generated-binary tests cover both; actual AWS/CDN behavior remains unverified.
 
+Explicit [partial prerendering](PARTIAL_PRERENDERING.md) can reuse a captured
+public shell and stream named request-time regions through this transport.
+Those callbacks remain fresh/private; static metadata/status and the same
+admission/deadline limitations apply. See its qualified subset and remaining
+work in the partial-shell contract.
+
 ## General browser streams
 
 `client.FetchStream` shares `Fetch` options, same-origin credentials, redirect policy, byte admission and abort semantics. It calls a header callback before delivering owned byte slices, applies callback backpressure and returns an empty `Response.Body`. A callback error stops the reader. Call it from a Go goroutine, rather than blocking a JavaScript event callback. The default decoded response limit remains 8 MiB. Applications remain responsible for their own data schema, authorization and consistency.
@@ -174,12 +180,14 @@ source manifest retained there. Prior parser/resource matrices remain separate
 historical results. This verifies the admission subset, not the complete
 capability inventory or a production release; all 11 release gates remain open.
 
-Remote checkpoint `8cfb91d` passes both native jobs, its dedicated stream-parser
-job and its container job; its broader browser run is still in progress. That
-checkpoint precedes app-wide admission and does not qualify the current source
-or erase `ac654be`'s historical failures. No whole remote-CI/release pass is
-claimed.
+Remote checkpoint `8cfb91d` passed both native jobs, its dedicated stream-parser
+job and its container job; its broader browser run finished with 953 passes,
+three skips and one WebKit deployment-skew failure. A 200-only prefetch wait
+was invalid: new configuration can reject a cold old-slot request with 400,
+while warm cached output can still return 200. Current skew cases cover both
+and validate discard/recovery; see [the later qualification](PARTIAL_PRERENDERING.md#qualification-october-24-2026-utc).
+This does not erase the historical failure or certify whole remote CI/release.
 
-Initial document chunks still need Go/WASM to become visible. Metadata streaming, deferred fallbacks containing deferred work, independent route/slot ownership changes, late authorization/status interrupts, full error-boundary reset, partial prerendering, cross-process admission/fairness, full peak-memory/soak/accessibility review and actual proxy/cloud qualification remain open. No complete Next.js streaming or production-maturity claim follows from this milestone. See the complete [parity inventory](PARITY.md).
+Initial document chunks still need Go/WASM to become visible. Metadata streaming, deferred fallbacks containing deferred work, independent route/slot ownership changes, late authorization/status interrupts, full error-boundary reset, automatic partial-shell analysis, cross-process admission/fairness, full peak-memory/soak/accessibility review and actual proxy/cloud qualification remain open. No complete Next.js streaming or production-maturity claim follows from this milestone. See the complete [parity inventory](PARITY.md).
 
 The capability target follows the official [Next.js navigation/streaming guide](https://nextjs.org/docs/app/getting-started/linking-and-navigating). Cooperative cancellation follows [Go's context guidance](https://go.dev/blog/context).

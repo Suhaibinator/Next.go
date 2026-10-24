@@ -1,14 +1,17 @@
 package nextgo
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/Suhaibinator/Next.go/seo"
+	"github.com/Suhaibinator/Next.go/ui"
 )
 
 // Freeze backing storage as well as containers. A short metadata substring may
 // otherwise keep an entire request or CMS document alive beyond its byte weight.
 func ownCachedPage(value cachedPage) cachedPage {
+	value.Regions = ownRegionSpecs(value.Regions)
 	value.HTML = strings.Clone(value.HTML)
 	value.Page.Title = strings.Clone(value.Page.Title)
 	value.Page.Description = strings.Clone(value.Page.Description)
@@ -28,6 +31,19 @@ func ownCachedPage(value cachedPage) cachedPage {
 		value.Page.preparedHead = owned
 	}
 	return value
+}
+func ownRegionSpecs(regions []ui.RegionSpec) []ui.RegionSpec {
+	if regions == nil {
+		return nil
+	}
+	owned := make([]ui.RegionSpec, len(regions))
+	for i, region := range regions {
+		region.ID = strings.Clone(region.ID)
+		region.Region = strings.Clone(region.Region)
+		region.Props = bytes.Clone(region.Props)
+		owned[i] = region
+	}
+	return owned
 }
 func ownStringMap(values map[string]string) map[string]string {
 	if values == nil {

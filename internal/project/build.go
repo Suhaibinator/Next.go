@@ -464,6 +464,9 @@ func writeRoute(b *strings.Builder, r Route, aliases map[string]string, rootNotF
 		if r.Prerender {
 			fmt.Fprintf(b, "Prerender:%s.Prerender(),", aliases[r.Import])
 		}
+		if r.Regions {
+			fmt.Fprintf(b, "Regions:%s.Regions(),", aliases[r.Import])
+		}
 		if r.StaticParams {
 			fmt.Fprintf(b, "StaticParams:%s.StaticParams,StaticParamsID:%q,", aliases[r.Import], r.Import)
 		}
