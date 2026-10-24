@@ -11,7 +11,8 @@
     "test:shared-cache": "node scripts/test-browser.mjs --config tests/shared-cache.config.mjs",
     "test:shared-pages": "node scripts/test-browser.mjs --config tests/shared-pages.config.mjs",
     "test:crossbrowser": "node scripts/test-browser.mjs --config tests/crossbrowser.config.mjs",
-    "test:shared-prerender": "node scripts/test-browser.mjs --config tests/shared-prerender.config.mjs"
+    "test:shared-prerender": "node scripts/test-browser.mjs --config tests/shared-prerender.config.mjs",
+    "test:stream-parser": "node scripts/test-browser.mjs --config tests/stream-parser.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

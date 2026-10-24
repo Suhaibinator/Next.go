@@ -96,12 +96,12 @@ func TestRenderStreamProgressiveChunks(t *testing.T) {
 	}
 	close(second)
 	next := awaitFlush(t, w)
-	if !strings.HasSuffix(next, `<template data-nextgo-chunk="second"><p>second loaded</p></template>`) || strings.Contains(next, `data-nextgo-chunk="first"`) {
+	if !strings.HasSuffix(next, `<template data-nextgo-chunk="second"><p>second loaded</p></template><span hidden data-nextgo-chunk-ready="second"></span>`) || strings.Contains(next, `data-nextgo-chunk="first"`) {
 		t.Fatalf("second boundary did not finish first: %s", next)
 	}
 	close(first)
 	last := awaitFlush(t, w)
-	if !strings.HasSuffix(last, `<template data-nextgo-chunk="first"><p>first &lt;loaded&gt;</p></template>`) {
+	if !strings.HasSuffix(last, `<template data-nextgo-chunk="first"><p>first &lt;loaded&gt;</p></template><span hidden data-nextgo-chunk-ready="first"></span>`) {
 		t.Fatalf("bad final chunk: %s", last)
 	}
 	if err := awaitRender(t, done); err != nil {
@@ -124,7 +124,7 @@ func TestRenderStreamErrorsStayGeneric(t *testing.T) {
 				t.Fatal(err)
 			}
 			result := w.String()
-			if strings.Contains(result, "secret") || !strings.Contains(result, `<template data-nextgo-chunk="content" data-nextgo-stream-error="true">`) || !strings.Contains(result, `role="alert">Unable to load content.`) {
+			if strings.Contains(result, "secret") || !strings.Contains(result, `<template data-nextgo-chunk="content" data-nextgo-stream-error="true">`) || !strings.Contains(result, `role="alert">Unable to load content.`) || !strings.HasSuffix(result, `</template><span hidden data-nextgo-chunk-ready="content"></span>`) {
 				t.Fatalf("unsafe error chunk: %s", result)
 			}
 		})
@@ -217,7 +217,7 @@ func TestRenderStreamNestedDeferredStreamsAfterParent(t *testing.T) {
 	if err := RenderStream(ctx, &w, outer); err != nil {
 		t.Fatal(err)
 	}
-	want := `<div aria-busy="true" data-nextgo-boundary="outer">outer loading</div><template data-nextgo-chunk="outer">outer content <div aria-busy="true" data-nextgo-boundary="inner">inner loading</div></template><template data-nextgo-chunk="inner">inner content</template>`
+	want := `<div aria-busy="true" data-nextgo-boundary="outer">outer loading</div><template data-nextgo-chunk="outer">outer content <div aria-busy="true" data-nextgo-boundary="inner">inner loading</div></template><span hidden data-nextgo-chunk-ready="outer"></span><template data-nextgo-chunk="inner">inner content</template><span hidden data-nextgo-chunk-ready="inner"></span>`
 	if w.String() != want {
 		t.Fatalf("nested boundary was not resolved inside chunk: %s", w.String())
 	}

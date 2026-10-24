@@ -30,6 +30,21 @@ Fallbacks must be immediate nodes and cannot themselves contain a deferred bound
 
 The framework schedules at most 128 boundaries, 16 concurrent loader callbacks and 16 levels of deferred nesting per stream. Framework-owned HTML buffers allow 2 MiB per shell/chunk and 8 MiB total. A bad initial tree produces no shell. A failed or oversized late boundary normally becomes generic error content; a stream-level limit or destination error ends the stream. Callbacks must observe their context. Cancellation signals cooperative Go work; it cannot forcibly terminate application callbacks or make external side effects transactional.
 
+## Initial document completion
+
+An HTML parser can expose an opening `<template>` and partial inert content
+before receiving its closing tag. Go waits for a hidden
+`span[data-nextgo-chunk-ready]` outside the template, as its next element sibling
+with the same boundary ID. The server emits this marker after `</template>`.
+Only then does Go dispose the fallback, move the template's existing nodes into
+the boundary, remove the template/marker and hydrate its islands. Partial
+content remains inert and the fallback stays visible; no patch script is added.
+
+The body's hydration-ready attribute describes the currently hydrated shell,
+not every deferred region. Wait for a specific deferred island to hydrate before
+using its controls. This marker is separate from navigation's JSON `done`
+record; the navigation transport and validation are unchanged.
+
 ## Navigation behavior
 
 The browser keeps the current view while waiting for a valid shell. Before committing, it validates response origin, protocol, build/configuration identity, draft state, URL, document/head metadata and boundary declarations. Body, title, head and history use the same commit path as ordinary navigation, including optional view transitions and compatible layout retention.
@@ -57,6 +72,18 @@ The native writer flushes complete records, and the existing compression wrapper
 ## Evidence and remaining qualification
 
 [UI tests](../ui/stream_test.go) cover parent-before-child ordering, independent siblings, context propagation, generic errors, concurrency/size/count limits and failed-writer cancellation. [Codec tests](../internal/navigation/stream_test.go) feed individual bytes and reject malformed/truncated records. [HTTP tests](../navigation_stream_test.go) prove shell-before-loader completion, disconnect cancellation, prefetch suppression and legacy JSON behavior. [WASM tests](../client/fetch_js_test.go) verify header/body order, callback failure and byte admission. [Browser scenarios](../tests/navigation-stream.spec.mjs) exercise real progressive DOM/hydration, history, detached listener cleanup, corrupted transports, retry, deployment mismatch and mounted/slash/locale ownership. [Lambda executable checks](../tests/deployment/navigation_stream_test.go) verify frame ordering in both transports and early shell delivery in streaming mode.
+
+Remote CI at checkpoint `ac654be` passed both native SDK jobs and the container
+job, but its broader browser job finished with **952 passes, three skips and
+two initial-stream hydration failures**. A deterministic Chromium fixture
+reproduced premature adoption of an incomplete parsed template. The outside
+completion marker fixes that race. The
+[parser-split fixture](../tests/stream-parser.spec.mjs) holds real server HTML
+before the island, inside its markup and after `</template>` but before the
+marker, checking fallback retention, final control hydration and shell identity.
+Focused verification passes **20 checks: five host Chromium and fifteen Linux
+Firefox/WebKit/touch WebKit**. These focused results do not replace the failed
+remote run or establish a complete release-browser matrix.
 
 Initial document chunks still need Go/WASM to become visible. Metadata streaming, deferred fallbacks containing deferred work, independent route/slot ownership changes, late authorization/status interrupts, full error-boundary reset, partial prerendering, global loader admission, full peak-memory/soak/accessibility review and actual proxy/cloud qualification remain open. No complete Next.js streaming or production-maturity claim follows from this milestone. See the complete [parity inventory](PARITY.md).
 

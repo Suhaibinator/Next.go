@@ -89,6 +89,30 @@ jobs:
             .nextgo-test-results/
           include-hidden-files: true
           retention-days: 7
+  streaming:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Deterministic initial-stream parser conformance
+        run: npm run test:stream-parser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: streaming-failure-artifacts
+          path: .nextgo-test-results/
+          include-hidden-files: true
+          retention-days: 7
   container:
     runs-on: ubuntu-latest
     steps:
@@ -112,6 +136,8 @@ jobs:
         run: sh ./scripts/test-shared-pages-container.sh
       - name: Shared-prerender Linux browser conformance
         run: sh ./scripts/test-shared-prerender-container.sh
+      - name: Initial-stream parser Linux conformance
+        run: sh ./scripts/test-stream-parser-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

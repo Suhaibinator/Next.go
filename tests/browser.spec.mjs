@@ -365,7 +365,10 @@ test('Go streaming bridge hydrates appended chunks once and discards chunks afte
     const chunk = document.createElement('template');
     chunk.dataset.nextgoChunk = 'test[stream]';
     chunk.content.append(replacement);
-    document.body.append(chunk);
+    const complete = document.createElement('span');
+    complete.hidden = true;
+    complete.dataset.nextgoChunkReady = 'test[stream]';
+    document.body.append(chunk, complete);
   });
   await expect.poll(() => page.evaluate(() => window.oldStreamIsland.isConnected)).toBe(false);
   await page.getByRole('button', { name: 'Increase First counter', exact: true }).click();

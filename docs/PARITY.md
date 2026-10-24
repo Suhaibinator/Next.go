@@ -230,9 +230,14 @@ Next.js provides CLI/build tooling, refresh, configuration, instrumentation, tes
 Remote CI for immutable checkpoint `ac654be` passed both native SDK jobs and the
 container job, but its broader browser job failed two initial-stream hydration
 cases after 952 passes/three skips. Traces show `body` marked ready while a streamed
-counter remains unmarked and disabled; parser/observer timing is under active
-investigation. The later 341-check local resource matrix is a different subset
-and does not waive these failures. No complete release-browser pass is claimed.
+counter remains unmarked and disabled. A deterministic Chromium fixture
+reproduced premature adoption while the HTML parser exposed an incomplete
+template. The frozen fix requires a matching hidden completion marker outside
+the template before adopting its existing nodes and hydrating deferred islands.
+Focused verification passes **20 checks: five host Chromium and fifteen Linux
+Firefox/WebKit/touch WebKit**. The later 341-check local resource matrix is a
+different subset and does not waive the historical remote failures. No complete
+release-browser pass is claimed. [Streaming contract and parser fixture](STREAMING.md#initial-document-completion).
 
 
 All gates below are **open** until linked evidence from the exact release candidate demonstrates them. These are project release criteria, not claims that Next.js provides every operational safeguard automatically. Official production, data-security, CSP, accessibility, testing and self-hosting guidance inform this checklist. [Production checklist](https://nextjs.org/docs/app/guides/production-checklist), [data security](https://nextjs.org/docs/app/guides/data-security), [CSP](https://nextjs.org/docs/app/guides/content-security-policy), [accessibility](https://nextjs.org/docs/architecture/accessibility), [testing](https://nextjs.org/docs/app/guides/testing), [self-hosting](https://nextjs.org/docs/app/guides/self-hosting).

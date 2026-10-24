@@ -287,7 +287,7 @@ func RenderStream(ctx context.Context, w io.Writer, node Node) error {
 			var chunk bytes.Buffer
 			chunk.WriteString(`<template data-nextgo-chunk="` + html.EscapeString(event.ID) + `"` + attr + `>`)
 			chunk.Write(data)
-			chunk.WriteString(`</template>`)
+			chunk.WriteString(`</template><span hidden data-nextgo-chunk-ready="` + html.EscapeString(event.ID) + `"></span>`)
 			data = chunk.Bytes()
 		}
 		if err := writeStreamBytes(ctx, w, data); err != nil {
