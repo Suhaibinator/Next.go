@@ -820,6 +820,14 @@ See [verification scope and limits](docs/SHARED_CACHE.md#verification-scope).
 Custom servers can bound startup enumeration/import RPCs with
 `nextgo.NewContext(ctx, config)`; that startup context does not govern later
 requests. Drain serving/completion work with `App.Close` at shutdown.
+Reference authorities have a separate 8-MiB seed-control ledger, configurable
+through `MaxControlBytes` or cache CLI `-control-bytes`. Local `Usage()` exposes
+data/control accounting; `Stats()` and `-bytes` retain their data-only meanings.
+See [pressure behavior and resource limits](docs/SHARED_CACHE.md#seed-control-accounting).
+The control-budget and retained-ownership additions pass the repeated local
+341-check browser matrix, both SDK native race/vet and matching WASM/build/
+executable checks. This is verified subset coverage, not whole-release or
+remote-CI certification.
 The optional file authority retains acknowledged generations and ticket
 fences locally; this is a cold-start optimization, not an application database,
 durable job queue or replicated/HA service. Actual-cloud and operational release

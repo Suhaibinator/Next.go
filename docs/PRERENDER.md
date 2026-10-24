@@ -112,6 +112,11 @@ private filesystem through an application handler.
 Snapshot HTML is frozen after ordinary UI escaping, URL checks, metadata
 validation, and layout rendering. Only that generated immutable snapshot uses
 an internal HTML replay node; the public UI API still has no implicit raw HTML.
+Retention and local import also own the backing storage of the materialized
+HTML, titles/descriptions, metadata/head maps and strings, and document controls.
+This prevents small snapshot substrings from retaining a larger source buffer;
+it does not bound transient rendering/decoding memory or heap/RSS, and arbitrary
+generic cache values still follow their shared-reference/weigher contract.
 The runtime renders the document shell with its final build and configuration
 IDs and matching Go WASM support files.
 
@@ -220,10 +225,25 @@ fail startup validation. Existing retained
 generations or active load leases win over a seed; import does not overwrite
 them. Limits may leave only part of a build retained. Interrupted sessions do
 not survive authority restart, and consumed tickets are never restored as new
-permissions. Ticket/session quotas are global to a backend, across namespaces;
-bounded ticket and session-key metadata is additional to ordinary entry-capacity
-and `MaxBytes` accounting. The typed import helper also bounds aggregate
+permissions. Ticket/session quotas are global to a backend, across namespaces.
+Their separate `MaxControlBytes` ledger defaults to 8 MiB and is additional to
+ordinary entry-capacity and `MaxBytes` accounting. Sessions keep fixed-size
+scoped-key hashes for once-only evidence. The typed import helper also bounds aggregate
 metadata and encoded envelopes before consuming a ticket.
+
+Set `MemoryOptions.MaxControlBytes`, `FileOptions.MaxControlBytes` or the cache
+CLI's `-control-bytes` to choose a 1-byte–1-GiB control limit (zero in Go options
+selects the default). Reservation can evict oldest pending tickets, not active
+sessions. A capacity-blocked session start preserves its ticket; control pressure
+rejects an entire install batch before recording new seen keys, publishing values
+or evicting entries. Finish, revocation and expiry pruning release charges.
+Pending tickets persist in file storage and reopening under a reduced control
+budget can fail closed; sessions/seen hashes do not restore. Local backend
+`Usage()` reports both ledgers and seed counts; `Stats()` keeps its data-only
+meaning. See [accounting and operational limits](SHARED_CACHE.md#seed-control-accounting).
+These are retained-ledger bounds, not heap/RSS or concurrent decode/clone/GC
+limits. The control-budget and ownership subset passes the
+[repeated qualification matrix](SHARED_CACHE.md#control-budget-qualification-october-24-2026-utc).
 
 Import is not a transaction across all chunks. Earlier accepted chunks can
 remain published when a later chunk, deadline or final cleanup fails. Startup
@@ -348,6 +368,10 @@ reason to copy the build credential into the image.
 
 ### Shared-prerender verification (October 24, 2026 UTC)
 
+These results describe the preceding shared-prerender increment. The later
+control-budget/ownership source passes the same full matrix; see
+[current resource qualification](SHARED_CACHE.md#control-budget-qualification-october-24-2026-utc).
+
 The frozen implementation passes full native race/vet on Go 1.27.3 macOS arm64
 and Go 1.24.13 Linux arm64, matching core/lazy-module WASM builds/vet and route
 generation checks. Root integration includes 17 tests and 24 invalidation
@@ -364,7 +388,7 @@ WASM, DOM identity after hydration, independent counters, navigation and
 acknowledged invalidation. Together with 305 existing production/shared-page/
 shared-data checks, the frozen source passes **341 checks / 3 existing
 Chromium-only protocol skips on other engines**. See
-[logs, earlier fixture failures and scope](SHARED_CACHE.md#shared-prerender-qualification-october-24-2026-utc).
+[logs, earlier fixture failures and scope](SHARED_CACHE.md#preceding-shared-prerender-qualification-october-24-2026-utc).
 
 This evidence covers the implemented subset, not actual AWS, machine power
 loss, replicated/HA authorities, immutable release rollout or production

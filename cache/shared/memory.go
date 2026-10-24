@@ -17,14 +17,15 @@ import (
 // values and invalidation state. Live leases are never evicted to admit a key.
 // Payload accounting is conservative; it does not measure Go heap/RSS.
 type Memory struct {
-	mu             sync.Mutex
-	capacity       int
-	maxBytes, used int64
-	now            func() time.Time
-	entries        map[ID]*list.Element
-	lru            *list.List
-	seedTickets    map[string]pendingSeed
-	seedSessions   map[string]*activeSeed
+	mu              sync.Mutex
+	capacity        int
+	maxBytes, used  int64
+	maxControlBytes int64
+	now             func() time.Time
+	entries         map[ID]*list.Element
+	lru             *list.List
+	seedTickets     map[string]pendingSeed
+	seedSessions    map[string]*activeSeed
 }
 type memoryEntry struct {
 	id                     ID
@@ -39,13 +40,28 @@ type memoryEntry struct {
 	cost                   int64
 }
 
-// NewMemory requires positive entry and payload-accounting limits. At most
-// capacity keys (including leases) and maxBytes accounted bytes are retained.
+// MemoryOptions bounds retained data and seed-control accounting separately.
+// MaxControlBytes defaults to DefaultControlBytes; a positive override may be
+// at most 1 GiB. These conservative ledgers are not Go heap/RSS limits.
+type MemoryOptions struct {
+	Capacity                  int
+	MaxBytes, MaxControlBytes int64
+}
+
+// NewMemory requires positive entry and payload-accounting limits and uses the
+// default seed-control budget. Stats continues to report only the data ledger.
 func NewMemory(capacity int, maxBytes int64) (*Memory, error) {
-	if capacity <= 0 || maxBytes <= 0 {
+	return NewMemoryWithOptions(MemoryOptions{Capacity: capacity, MaxBytes: maxBytes})
+}
+
+func NewMemoryWithOptions(options MemoryOptions) (*Memory, error) {
+	if options.MaxControlBytes == 0 {
+		options.MaxControlBytes = DefaultControlBytes
+	}
+	if options.Capacity <= 0 || options.MaxBytes <= 0 || options.MaxControlBytes < 1 || options.MaxControlBytes > maxControlBytes {
 		return nil, ErrInvalid
 	}
-	return &Memory{capacity: capacity, maxBytes: maxBytes, now: time.Now, entries: map[ID]*list.Element{}, lru: list.New(), seedTickets: map[string]pendingSeed{}, seedSessions: map[string]*activeSeed{}}, nil
+	return &Memory{capacity: options.Capacity, maxBytes: options.MaxBytes, maxControlBytes: options.MaxControlBytes, now: time.Now, entries: map[ID]*list.Element{}, lru: list.New(), seedTickets: map[string]pendingSeed{}, seedSessions: map[string]*activeSeed{}}, nil
 }
 func (m *Memory) remove(e *list.Element) {
 	v := e.Value.(*memoryEntry)
@@ -173,9 +189,9 @@ func (m *Memory) begin(ctx context.Context, id ID, policy Policy, lease time.Dur
 		if !m.makeRoom(cost, true, nil, now) {
 			return View{}, ErrCapacity
 		}
-		e := &memoryEntry{id: id, policy: p, cost: cost}
+		e := &memoryEntry{id: ownedID(id), policy: ownedPolicy(p), cost: cost}
 		elem = m.lru.PushFront(e)
-		m.entries[id] = elem
+		m.entries[e.id] = elem
 		m.used += cost
 	}
 	e := elem.Value.(*memoryEntry)

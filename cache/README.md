@@ -207,6 +207,13 @@ the same key; the typed helper returns an error for an inconsistent cached type.
 - Values are shared references. Treat them as immutable or clone at application
   boundaries. The cache does not serialize, copy, persist, or distribute data.
 
+Retained keys and tag/path labels own their string backing, so a short substring
+does not keep a larger input buffer alive through cache metadata. Label
+deduplication grows its map with unique members rather than reserving from an
+untrusted duplicate-heavy input count. These metadata rules do not deep-copy
+arbitrary cached values: application immutability and backing-storage estimates
+remain the caller's responsibility.
+
 Keys must include all result-affecting inputs, including tenant/user identity,
 locale, filters, and authorization version where relevant. Never use a shared
 public key for a result computed from request-specific secrets. Caching is
@@ -421,6 +428,11 @@ page snapshots implement `Sizer`. Its default page store allows 128 entries and
 `Config.Cache` controls its own limits, so retain byte accounting when replacing
 that store.
 
+Framework materialized page snapshots own their HTML, title/description,
+metadata maps/strings, head descriptors/markup and document controls when
+retained or imported from local prerender artifacts. That specific frozen-page
+boundary is separate from the generic cache's shared-reference value contract.
+
 A byte estimate is not a heap measurement: shared backing storage, application
 references, transient loader/rendering memory and queued work are outside this
 accounting. An entry-count-only `cache.New(n)` remains available. Bound request
@@ -478,18 +490,52 @@ The bounded shared-prerender subset passes native, browser and executable
 checks; see [verification scope](../docs/SHARED_CACHE.md#verification-scope).
 Those results do not qualify actual cloud deployments, power loss or HA.
 
-Ticket/session quotas are global per backend and their bounded metadata is
-additional to entry `MaxBytes`. Import validates complete-set budgets before
+Ticket/session quotas are global per backend. Their separate `MaxControlBytes`
+ledger defaults to 8 MiB and is additional to entry `MaxBytes`. Import validates complete-set budgets before
 consumption, then publishes chunks; a later error can leave earlier chunks
 retained. Each offered key is marked once even when admission rejects it.
 Unknown sessions accept zero entries, and a consumed ticket cannot replay.
 Custom server construction can use `nextgo.NewContext` to bound startup work;
 later requests/completions have their own lifetimes and shutdown uses `App.Close`.
 
+`shared.NewMemoryWithOptions(shared.MemoryOptions{Capacity: 1024,
+MaxBytes: 64 << 20, MaxControlBytes: 8 << 20})` configures both retained ledgers.
+The old `NewMemory(entries, bytes)` keeps its signature and selects the default
+control budget. Go option zero means default; explicit control limits are
+1 byte–1 GiB. CLI `-control-bytes` applies to both memory/file modes while
+`-bytes` remains the data limit.
+
+Control accounting charges tickets at 512 plus namespace bytes, sessions at
+768 plus namespace bytes and each distinct offered-key digest at 96 bytes.
+Sessions retain SHA-256 scoped-key hashes instead of full key strings.
+Shared reference backends also clone retained namespace/schema/key and label
+backing strings; ticket/session namespaces, store scope names and replayed
+journal metadata are owned at retention boundaries.
+Reservation can evict only oldest pending tickets; a capacity-blocked session
+start preserves its ticket. Control-pressure install rejection changes no seen
+markers, published values or admission evictions in that batch. Finish,
+revocation and expiry pruning release the charges. `Memory.Usage()` and
+`File.Usage()` expose data/control bytes and limits plus entry/ticket/session/
+seen-key counts; existing `Stats()` remains data-only. No wire-v3 change is
+needed. See [the complete accounting contract](../docs/SHARED_CACHE.md#seed-control-accounting).
+
+These ledgers do not bound heap/RSS, concurrent transport decoding, temporary
+file-state clones, copy-on-write maps or GC retention. The control-budget and
+retained-ownership subset passes the repeated native/WASM/executable/browser
+matrix; [current qualification](../docs/SHARED_CACHE.md#control-budget-qualification-october-24-2026-utc)
+distinguishes it from prior shared-prerender evidence.
+Deterministic 4-MiB substring-backing pointer audits cover shared memory/file
+metadata, local keys/labels and framework pages. They verify retained ownership,
+not process memory or performance. The final
+[lease-bookkeeping benchmark](../docs/PERFORMANCE.md#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
+records 2,997 B/op and 27 allocations/op at 0/1,000/10,000 retained seen hashes;
+it performs no timed journal writes and establishes no storage/HTTP throughput
+or RSS guarantee.
+
 
 ## Optional durable shared authority
 
-`cache/shared.OpenFile(dir, FileOptions{Capacity, MaxBytes, MaxDiskBytes})` adds a
+`cache/shared.OpenFile(dir, FileOptions{Capacity, MaxBytes, MaxControlBytes, MaxDiskBytes})` adds a
 synchronous local-file Backend behind the shared HTTP service; memory remains
 the default. The directory must be private **0700** and owned by the service user,
 with private **0600** single-link files. A stable, never-unlinked kernel lock permits
@@ -505,6 +551,10 @@ fail closed rather than being truncated or rolled back automatically, so an
 interrupted append may require an explicit whole-cache discard and recompute.
 Checksums cannot detect rollback to a whole valid prefix/older store; there is
 no independent anti-rollback witness.
+
+Durable pending tickets must fit the control budget during replay; reopening
+with a reduced budget can fail closed. Restore sufficient configured capacity
+instead of trimming the journal. Active sessions and seen hashes never restore.
 
 Use `nextgo-cache -data-dir <private-directory>` or the Dockerfile's separate
 cache-runtime target with persistent `/data`. The [durable authority contract](../docs/SHARED_CACHE.md#durable-local-file-authority)

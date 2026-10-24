@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -64,7 +65,7 @@ func New(backend Backend, namespace, schema string, options Options) (*Store, er
 	if validateLease(options.Lease) != nil || options.Timeout <= 0 || options.Timeout > 5*time.Minute || options.PollInterval < time.Millisecond || options.PollInterval > time.Second {
 		return nil, ErrInvalid
 	}
-	return &Store{backend: backend, namespace: namespace, schema: schema, options: options}, nil
+	return &Store{backend: backend, namespace: strings.Clone(namespace), schema: strings.Clone(schema), options: options}, nil
 }
 
 // Expire waits for authoritative namespace-wide invalidation, including pending

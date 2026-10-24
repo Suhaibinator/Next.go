@@ -36,8 +36,9 @@ func execute(ctx context.Context, args []string, token string, out io.Writer) (r
 	flags.SetOutput(out)
 	addr := flags.String("addr", "127.0.0.1:3050", "private listen address; non-loopback requires TLS")
 	namespace := flags.String("namespace", "demo", "application/tenant namespace")
-	entries := flags.Int("entries", 1024, "maximum retained keys, including leases")
-	budget := flags.Int64("bytes", 64<<20, "maximum accounted retained bytes")
+	entries := flags.Int("entries", 1024, "maximum retained data keys, including leases")
+	budget := flags.Int64("bytes", 64<<20, "maximum accounted ordinary data bytes")
+	controlBudget := flags.Int64("control-bytes", shared.DefaultControlBytes, "maximum seed ticket/session/seen-key control bytes")
 	dataDir := flags.String("data-dir", "", "durable private cache directory; empty selects memory")
 	diskBudget := flags.Int64("disk-bytes", 0, "durable active journal limit; zero uses the backend default")
 	concurrency := flags.Int("concurrency", 32, "maximum active operations")
@@ -49,8 +50,8 @@ func execute(ctx context.Context, args []string, token string, out io.Writer) (r
 	if flags.NArg() != 0 {
 		return errors.New("unexpected positional arguments")
 	}
-	if *entries <= 0 || *budget <= 0 || *diskBudget < 0 {
-		return errors.New("cache entry/memory limits must be positive and disk-bytes nonnegative")
+	if *entries <= 0 || *budget <= 0 || *controlBudget <= 0 || *diskBudget < 0 {
+		return errors.New("cache entry, data and control limits must be positive and disk-bytes nonnegative")
 	}
 	if *dataDir == "" && *diskBudget != 0 {
 		return errors.New("disk-bytes requires data-dir")
@@ -70,7 +71,7 @@ func execute(ctx context.Context, args []string, token string, out io.Writer) (r
 	var backend shared.Backend
 	mode := "memory only"
 	if *dataDir != "" {
-		file, err := shared.OpenFile(*dataDir, shared.FileOptions{Capacity: *entries, MaxBytes: *budget, MaxDiskBytes: *diskBudget})
+		file, err := shared.OpenFile(*dataDir, shared.FileOptions{Capacity: *entries, MaxBytes: *budget, MaxControlBytes: *controlBudget, MaxDiskBytes: *diskBudget})
 		if err != nil {
 			return err
 		}
@@ -84,7 +85,7 @@ func execute(ctx context.Context, args []string, token string, out io.Writer) (r
 			}
 		}()
 	} else {
-		backend, err = shared.NewMemory(*entries, *budget)
+		backend, err = shared.NewMemoryWithOptions(shared.MemoryOptions{Capacity: *entries, MaxBytes: *budget, MaxControlBytes: *controlBudget})
 		if err != nil {
 			return err
 		}

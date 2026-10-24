@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -55,7 +56,7 @@ func Bootstrap[T any](ctx context.Context, s *Store, seeds []Seed[T]) (int, erro
 		if cost < 0 {
 			continue
 		}
-		prepared = append(prepared, &entry{key: seed.Key, value: f.value, loadedAt: seed.LoadedAt, expiresAt: options.expiresAt(seed.LoadedAt), freshUntil: s.freshUntil(seed.LoadedAt, options), noExpiry: options.noExpiry(), tags: f.tags, paths: f.paths, cost: cost})
+		prepared = append(prepared, &entry{key: strings.Clone(seed.Key), value: f.value, loadedAt: seed.LoadedAt, expiresAt: options.expiresAt(seed.LoadedAt), freshUntil: s.freshUntil(seed.LoadedAt, options), noExpiry: options.noExpiry(), tags: f.tags, paths: f.paths, cost: cost})
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -15,9 +18,34 @@ type pendingSeed struct {
 type activeSeed struct {
 	namespace    string
 	created, end time.Time
-	seen         map[ID]struct{}
+	seen         map[[32]byte]struct{}
+	seenShared   bool
 	bytes        int64
 }
+
+const (
+	seedTicketBase  int64 = 512
+	seedSessionBase int64 = 768
+	seedSeenCost    int64 = 96
+)
+
+func seedTicketCost(namespace string) int64  { return seedTicketBase + int64(len(namespace)) }
+func seedSessionCost(namespace string) int64 { return seedSessionBase + int64(len(namespace)) }
+func seedKeyHash(id ID) [32]byte {
+	return sha256.Sum256([]byte("nextgo.seed.seen.v1\x00" + id.Namespace + "\x00" + id.Schema + "\x00" + id.Key))
+}
+func (m *Memory) usageLocked() Usage {
+	u := Usage{Entries: len(m.entries), DataBytes: m.used, DataLimit: m.maxBytes, SeedTickets: len(m.seedTickets), SeedSessions: len(m.seedSessions), ControlLimit: m.maxControlBytes}
+	for _, t := range m.seedTickets {
+		u.ControlBytes += seedTicketCost(t.namespace)
+	}
+	for _, s := range m.seedSessions {
+		u.SeedSeenKeys += len(s.seen)
+		u.ControlBytes += seedSessionCost(s.namespace) + int64(len(s.seen))*seedSeenCost
+	}
+	return u
+}
+func (m *Memory) Usage() Usage { m.mu.Lock(); defer m.mu.Unlock(); return m.usageLocked() }
 
 func seedToken() (string, error) {
 	var b [32]byte
@@ -65,17 +93,40 @@ func (m *Memory) ReserveSeeds(ctx context.Context, namespace string) (SeedTicket
 	}
 	now := m.now()
 	m.pruneSeeds(now)
-	if len(m.seedTickets) >= MaxSeedTickets {
-		oldest := ""
-		var at time.Time
-		for t, p := range m.seedTickets {
-			if oldest == "" || p.created.Before(at) || p.created.Equal(at) && t < oldest {
-				oldest, at = t, p.created
-			}
-		}
-		delete(m.seedTickets, oldest)
+	needed := seedTicketCost(namespace)
+	if needed > m.maxControlBytes {
+		return SeedTicket{}, ErrCapacity
 	}
-	m.seedTickets[token] = pendingSeed{namespace, now}
+	used, count := m.usageLocked().ControlBytes, len(m.seedTickets)
+	var evict []string
+	if count >= MaxSeedTickets || used > m.maxControlBytes-needed {
+		ordered := make([]string, 0, count)
+		for token := range m.seedTickets {
+			ordered = append(ordered, token)
+		}
+		sort.Slice(ordered, func(i, j int) bool {
+			a, b := m.seedTickets[ordered[i]], m.seedTickets[ordered[j]]
+			if a.created.Equal(b.created) {
+				return ordered[i] < ordered[j]
+			}
+			return a.created.Before(b.created)
+		})
+		for _, old := range ordered {
+			if count < MaxSeedTickets && used <= m.maxControlBytes-needed {
+				break
+			}
+			evict = append(evict, old)
+			used -= seedTicketCost(m.seedTickets[old].namespace)
+			count--
+		}
+		if count >= MaxSeedTickets || used > m.maxControlBytes-needed {
+			return SeedTicket{}, ErrCapacity
+		}
+	}
+	for _, old := range evict {
+		delete(m.seedTickets, old)
+	}
+	m.seedTickets[token] = pendingSeed{strings.Clone(namespace), now}
 	return SeedTicket{token, now.UTC()}, nil
 }
 func (m *Memory) BeginSeeds(ctx context.Context, namespace, token string) (SeedSession, error) {
@@ -97,11 +148,13 @@ func (m *Memory) BeginSeeds(ctx context.Context, namespace, token string) (SeedS
 	if !ok || t.namespace != namespace {
 		return SeedSession{}, nil
 	}
-	if len(m.seedSessions) >= MaxSeedSessions {
+	used := m.usageLocked().ControlBytes
+	extra := seedSessionCost(namespace) - seedTicketCost(namespace)
+	if len(m.seedSessions) >= MaxSeedSessions || used > m.maxControlBytes-extra {
 		return SeedSession{}, ErrCapacity
 	}
 	delete(m.seedTickets, token)
-	m.seedSessions[next] = &activeSeed{namespace: namespace, created: t.created, end: now.Add(SeedSessionTTL), seen: map[ID]struct{}{}}
+	m.seedSessions[next] = &activeSeed{namespace: t.namespace, created: t.created, end: now.Add(SeedSessionTTL), seen: map[[32]byte]struct{}{}}
 	return SeedSession{next, SeedSessionTTL}, nil
 }
 func (m *Memory) InstallSeeds(ctx context.Context, namespace, token string, values []SeedValue) (int, error) {
@@ -132,21 +185,37 @@ func (m *Memory) InstallSeeds(ctx context.Context, namespace, token string, valu
 		return 0, nil
 	}
 	count, total := len(s.seen), s.bytes
-	for _, v := range values {
-		if _, seen := s.seen[v.ID]; !seen {
+	hashes := make([][32]byte, len(values))
+	newHashes := map[[32]byte]struct{}{}
+	for i, v := range values {
+		hash := seedKeyHash(v.ID)
+		hashes[i] = hash
+		_, seen := s.seen[hash]
+		_, repeated := newHashes[hash]
+		if !seen && !repeated {
+			newHashes[hash] = struct{}{}
 			count++
 			total += int64(len(v.Value))
 		}
 	}
-	if count > MaxSeedSessionValues || total > MaxSeedSessionBytes {
+	extra := int64(len(newHashes)) * seedSeenCost
+	if count > MaxSeedSessionValues || total > MaxSeedSessionBytes || m.usageLocked().ControlBytes > m.maxControlBytes-extra {
 		return 0, ErrCapacity
+	}
+	if len(newHashes) > 0 && s.seenShared {
+		owned := make(map[[32]byte]struct{}, count)
+		for key := range s.seen {
+			owned[key] = struct{}{}
+		}
+		s.seen = owned
+		s.seenShared = false
 	}
 	admitted := 0
 	for i, v := range values {
-		if _, seen := s.seen[v.ID]; seen {
+		if _, seen := s.seen[hashes[i]]; seen {
 			continue
 		}
-		s.seen[v.ID] = struct{}{}
+		s.seen[hashes[i]] = struct{}{}
 		s.bytes += int64(len(v.Value))
 		p, _ := normalize(v.Policy)
 		if p.ExpireAfter != Never && !now.Before(s.created.Add(p.ExpireAfter)) {
@@ -170,11 +239,11 @@ func (m *Memory) InstallSeeds(ctx context.Context, namespace, token string, valu
 		if elem != nil {
 			m.remove(elem)
 		}
-		e := &memoryEntry{id: v.ID, policy: p, value: bytes.Clone(v.Value), found: true, noExpiry: p.ExpireAfter == Never, loaded: s.created, fresh: s.created.Add(p.FreshFor), generation: generations[i], cost: cost}
+		e := &memoryEntry{id: ownedID(v.ID), policy: ownedPolicy(p), value: bytes.Clone(v.Value), found: true, noExpiry: p.ExpireAfter == Never, loaded: s.created, fresh: s.created.Add(p.FreshFor), generation: generations[i], cost: cost}
 		if !e.noExpiry {
 			e.expires = s.created.Add(p.ExpireAfter)
 		}
-		m.entries[v.ID] = m.lru.PushFront(e)
+		m.entries[e.id] = m.lru.PushFront(e)
 		m.used += cost
 		admitted++
 	}

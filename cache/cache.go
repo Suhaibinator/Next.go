@@ -371,7 +371,7 @@ func (s *Store) load(ctx context.Context, key string, f *flight, loader Loader) 
 					s.remove(previous)
 				}
 				now := f.loadedAt
-				e := &entry{key: key, value: f.value, loadedAt: now, expiresAt: f.options.expiresAt(now), noExpiry: f.options.noExpiry(), freshUntil: s.freshUntil(now, f.options), tags: f.tags, paths: f.paths, cost: cost}
+				e := &entry{key: strings.Clone(key), value: f.value, loadedAt: now, expiresAt: f.options.expiresAt(now), noExpiry: f.options.noExpiry(), freshUntil: s.freshUntil(now, f.options), tags: f.tags, paths: f.paths, cost: cost}
 				// Prune before adding to avoid accounting overflow even for huge budgets.
 				if len(s.entries) >= s.capacity || (s.maxBytes > 0 && s.bytes > s.maxBytes-cost) {
 					s.pruneExpired(s.now())
@@ -379,7 +379,7 @@ func (s *Store) load(ctx context.Context, key string, f *flight, loader Loader) 
 				for len(s.entries) >= s.capacity || (s.maxBytes > 0 && s.bytes > s.maxBytes-cost) {
 					s.remove(s.lru.Back())
 				}
-				s.entries[key] = s.lru.PushFront(e)
+				s.entries[e.key] = s.lru.PushFront(e)
 				s.bytes += cost
 			} else if f.err == nil && ctx.Err() == nil || f.err != nil && !retainStale {
 				if previous := s.entries[key]; previous != nil {
@@ -671,12 +671,16 @@ func (s *Store) remove(elem *list.Element) {
 }
 
 func labels(values []string, paths bool) map[string]struct{} {
-	result := make(map[string]struct{}, len(values))
+	// Input can contain many duplicate labels. Grow by unique members so a
+	// one-label entry cannot retain a huge, mostly empty hinted allocation.
+	result := make(map[string]struct{})
 	for _, value := range values {
 		if paths {
 			value = cleanPath(value)
 		}
-		result[value] = struct{}{}
+		if _, exists := result[value]; !exists {
+			result[strings.Clone(value)] = struct{}{}
+		}
 	}
 	return result
 }

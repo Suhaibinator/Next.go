@@ -114,6 +114,14 @@ codecs remain responsible for their own field semantics. A shared ID with
 inconsistent normalized policy returns `ErrPolicy` while its entry or lease
 exists. Label order/duplicates and path normalization do not create spurious policy conflicts.
 
+At retention boundaries, the reference memory/file backends own the backing
+storage of namespace/schema/key and tag/path strings, as well as stored value
+bytes. Store construction also owns its namespace/schema strings; pending-ticket
+and active-session namespaces and recovered journal identities are owned.
+A short substring cannot retain an unrelated large caller buffer through those
+metadata fields. This ownership does not measure or bound callers' other
+references, concurrent operations, transient buffers or process heap/RSS.
+
 `FreshFor` is 0–365 days. A finite `ExpireAfter` must be positive, at least
 `FreshFor`, and at most 365 days; `shared.Never` disables hard expiry. Equal
 positive fresh/expiry windows model an exact TTL with no stale interval. Both
@@ -319,6 +327,14 @@ budgets reject malformed stored snapshots. `GeneratedAt` is diagnostic;
 authoritative backend ages govern reuse, rather than comparing application
 wall clocks.
 
+Framework snapshot retention owns the body/title/description, metadata names
+and values, head descriptors/markup and document-control string backing, together
+with their maps/slices/containers. Local prerender import applies the same
+materialized-page ownership boundary. This prevents a small retained metadata
+substring from pinning its entire original request/CMS buffer. It is narrower
+than a general deep-copy promise for arbitrary application values; the generic
+local cache still shares those values by reference.
+
 **The body is trusted rendered HTML.** The configured authenticated namespace
 and all its writers are part of the application's HTML trust boundary, like a
 private compiler snapshot artifact. This format has no content signature and
@@ -458,8 +474,10 @@ are retained by the optional file backend. A memory authority loses them at
 restart and denies unknown tickets; a new deployment reserves a new ticket.
 
 The ticket/session quotas apply to the entire backend, across namespaces.
-Their bounded metadata is separate from ordinary entry `Capacity`/`MaxBytes`
-accounting. The typed helper validates the complete set's keys, policies and
+Their metadata has a separate global `MaxControlBytes` ledger, defaulting to
+8 MiB; it does not consume ordinary entry `Capacity`/`MaxBytes` accounting.
+See [seed-control accounting](#seed-control-accounting) for pressure behavior
+and diagnostics. The typed helper validates the complete set's keys, policies and
 aggregate metadata/encoding budgets before consuming a ticket, then sends
 bounded chunks. This is not an all-or-nothing import: earlier chunks may be
 retained if a later chunk or cleanup fails. Each offered key is remembered once
@@ -530,7 +548,8 @@ are not runtime dependencies. The service's memory is not a persistent volume.
 `shared.NewMemory(entries, bytes)` is the bounded reference implementation.
 `shared.NewHandler` adds protocol-v3 HTTP with a bearer token, one allowed
 namespace and bounded active operations. `cmd/nextgo-cache` runs it with default
-1,024 keys (leases included), 64 MiB accounted retained data and 32 active HTTP
+1,024 keys (leases included), 64 MiB accounted retained data, 8 MiB seed-control
+accounting and 32 active HTTP
 operations. Limits are flags; `-help` lists them. Live leases are protected from
 admission eviction, and failed admission does not evict unrelated values. Stored
 values are at most **1 MiB** before base64 HTTP encoding, envelopes at most
@@ -559,6 +578,66 @@ follows. The memory service is one authority, not a durable or highly available 
 It can be used by Linux or Lambda workers that can reach its trusted endpoint;
 real cloud networking, TLS termination, scaling and recovery remain to qualify.
 
+### Seed-control accounting
+
+The reference memory and file backends bound seed tickets, active import
+sessions and once-per-key evidence separately from retained page/data values.
+Use the optional memory constructor to choose both ledgers:
+
+```go
+memory, err := shared.NewMemoryWithOptions(shared.MemoryOptions{
+    Capacity: 1024,
+    MaxBytes: 64 << 20,
+    MaxControlBytes: 8 << 20,
+})
+if err != nil { return err }
+usage := memory.Usage()
+// usage.DataBytes / usage.DataLimit and usage.ControlBytes / usage.ControlLimit
+// are separate accounting ledgers, not process memory measurements.
+```
+
+`MaxControlBytes: 0` selects `shared.DefaultControlBytes` (8 MiB); explicit
+values range from 1 byte to 1 GiB. `NewMemory(entries, bytes)` preserves its
+existing signature and uses the default control budget. `FileOptions` exposes
+the same `MaxControlBytes` field. The CLI's positive `-control-bytes` flag
+applies to both memory and `-data-dir` modes; `-bytes` remains the data ledger.
+
+Control charges are **512 + namespace byte length** per pending ticket,
+**768 + namespace byte length** per session, and **96 bytes** per distinct
+offered seed key. Sessions retain a domain-separated SHA-256 digest of the
+scoped namespace/schema/key identity rather than a copy of its potentially
+4-KiB key string. The global ledger is shared by all namespaces; existing
+ticket/session/count, batch and session-value limits still apply independently.
+
+Reservation may evict the oldest pending tickets to fit the count/control
+budget, but never active sessions. If fitting is impossible it returns
+`ErrCapacity`. Starting a session returns `ErrCapacity` without consuming its
+ticket when session count or control space is exhausted. Installation checks
+the entire batch's additional seen-key charge before changing seen markers,
+values or admission evictions; control pressure rejects that batch with
+`ErrCapacity`. Previously committed chunks remain, as for other partial imports.
+Finish, namespace revocation and expiry pruning release the corresponding
+control charges; no hidden expiry worker is started.
+
+Local `(*Memory).Usage()` and `(*File).Usage()` return `Entries`, `DataBytes`,
+`DataLimit`, `SeedTickets`, `SeedSessions`, `SeedSeenKeys`, `ControlBytes` and
+`ControlLimit`. They report the retained ledger snapshot; expired control
+records can remain counted until a backend operation prunes them. Existing
+`Stats()` continues to return only retained data keys/leases and accounted data
+bytes. These diagnostics add no HTTP operation or protocol change: wire v3 is
+unchanged.
+
+Both ledgers are conservative accounting, **not a Go heap, peak-memory or RSS
+guarantee**. Concurrent request decoding, input values, serialization buffers,
+file-backend candidate clones, copy-on-write seen maps, loader allocations and
+GC retention remain separate resources. Size transport concurrency and process
+limits accordingly. The control-budget and ownership additions pass the
+[repeated qualification matrix](#control-budget-qualification-october-24-2026-utc);
+preceding shared-prerender results below remain historical evidence.
+Deterministic 4-MiB substring-backing audits cover retained shared memory/file
+identities, local keys/labels and framework snapshots. Those pointer checks
+verify ownership boundaries; they are not heap/RSS or benchmark evidence.
+
 ## Durable local file authority
 
 `shared.OpenFile` is an optional synchronous file-backed implementation of the
@@ -573,6 +652,7 @@ open release work.
 disk, err := shared.OpenFile("/absolute/private/cache-dir", shared.FileOptions{
     Capacity: 1024,
     MaxBytes: 64 << 20,
+    MaxControlBytes: 8 << 20,
     MaxDiskBytes: 256 << 20,
 })
 if err != nil { return err }
@@ -593,7 +673,8 @@ go run ./cmd/nextgo-cache -namespace demo -data-dir /absolute/private/cache-dir
 
 `-data-dir` selects file storage; `-disk-bytes` optionally sets its active-journal
 budget. `-entries` and `-bytes` continue to bound resident keys and accounted
-memory. Leaving `-data-dir` empty selects memory. Keep the backend open until all
+data memory; `-control-bytes` separately bounds seed-control accounting. Leaving
+`-data-dir` empty selects memory. Keep the backend open until all
 its callers and completion work are drained, then call `Close`; the CLI owns
 that lifecycle. Serverless app workers should remain HTTP clients of the
 persistent authority. A separate `/tmp` directory in each Lambda worker does
@@ -641,13 +722,21 @@ preemptible Go work and can outlive context or HTTP-drain budgets.
 
 ### Bounds, compaction and failure recovery
 
-Zero `FileOptions` fields select 1,024 resident keys, 64 MiB accounted memory and
-256 MiB **active WAL**. Allowed explicit limits are 1–1,000,000 keys,
-1 byte–1 TiB accounted memory, and 4 KiB–1 TiB active WAL. These are not heap/RSS,
+Zero `FileOptions` fields select 1,024 resident keys, 64 MiB accounted data,
+8 MiB seed-control accounting and 256 MiB **active WAL**. Allowed explicit limits
+are 1–1,000,000 keys, 1 byte–1 TiB accounted data, 1 byte–1 GiB seed control,
+and 4 KiB–1 TiB active WAL. These are not heap/RSS,
 transient serialization or whole-filesystem quotas. Reopening with reduced
 limits can reject an existing journal; it does not silently discard history
 until it fits. File writes and resident-state work are synchronous; no
 throughput or load/soak claim follows.
+
+Pending tickets are durable and replay against the configured control budget;
+active sessions and their seen-key maps remain ephemeral. Reopening with a
+smaller control limit can fail closed during journal replay rather than evicting
+durable ticket history to fit. Restore a sufficient configured budget and retry;
+do not truncate or replace the journal to force admission. The ledger adds no
+WAL format change to the existing seed-bearing v2 journal.
 
 Atomic compaction can temporarily retain both the old journal and its replacement:
 peak journal space can reach **twice `MaxDiskBytes`**, plus fixed lock/directory
@@ -700,7 +789,44 @@ responsibilities; this image does not add replication or HA.
 
 ## Verification scope
 
-### Shared-prerender qualification (October 24, 2026 UTC)
+### Control-budget qualification (October 24, 2026 UTC)
+
+The final frozen control-budget/retained-ownership source passes full native
+race tests and vet on Go 1.27.3/macOS arm64 and Go 1.24.13/Linux arm64, matching
+core/lazy-module WASM builds/vet and generation checks. Normal demo, workspace
+and standalone cache production builds pass. The complete host and nonroot
+read-only Linux HTTP, both buffered/streaming **mock** Lambda, durable authority
+and shared-seed executable suites pass.
+
+Seven independent control-budget tests cover ledger pressure and recovery.
+Retained-ownership checks cover shared memory/file identities, local cache
+keys/labels and framework snapshots; CLI flag/reopen tests and core copy-on-write/
+scoped-hash checks also pass. Deterministic substring-backing checks verify that
+short retained fields do not alias their 4-MiB source buffers; they do not
+establish a heap or RSS limit.
+
+The repeated browser matrix passes **341 checks / 3 existing Chromium-only
+protocol skips on other engines**: 241 production, 36 shared pages, 28 shared
+data and 36 online-build shared-prerender checks. These are the completed local
+host/Linux runs for the current frozen source, counted once rather than added
+to the identical preceding matrix. Logs are retained under
+`.nextgo-test-results/qualification/control-budget/`. Files named
+`*ledger-initial*` precede the retained-backing fixes and are excluded from final
+evidence.
+
+The final [lease-bookkeeping observation](PERFORMANCE.md#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
+records 2,997 B/op and 27 allocations/op in all nine samples across 0/1,000/
+10,000 retained seed hashes. No journal writes occur in its timed loop; it is
+not storage/HTTP throughput, production load, heap/RSS or speed-comparison
+evidence. Both reference WASM size budgets still fail.
+
+This verifies the implemented subset. It does not certify the entire remote
+CI workflow or an immutable release. All 79 capabilities remain tracked and
+all 11 [release gates](PARITY.md) remain open, including actual AWS, power-loss/
+media recovery, replicated/HA operation, operational rollout, representative
+load/soak, security and performance qualification.
+
+### Preceding shared-prerender qualification (October 24, 2026 UTC)
 
 The frozen Go source passes full native race tests and vet on Go 1.27.3/macOS
 arm64 and Go 1.24.13/Linux arm64, matching core/lazy-module WASM builds and vet,

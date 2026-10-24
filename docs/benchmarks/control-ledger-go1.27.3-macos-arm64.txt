@@ -1,0 +1,20 @@
+go version go1.27.3 darwin/arm64
+Scope: file-backend lease acquire/release with retained seed hashes; no journal writes in the timed loop.
+This is not storage/HTTP throughput, total heap, RSS, cold-start or production load evidence.
+Native qualification was also running; timing is not an isolated comparison.
+
+goos: darwin
+goarch: arm64
+pkg: github.com/Suhaibinator/Next.go/cache/shared
+cpu: Apple M4 Max
+BenchmarkFileLeaseChurnWithSeedLedger/seen=0-16         	  375997	      1628 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=0-16         	  371424	      2021 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=0-16         	  304561	      1675 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=1000-16      	  375598	      1749 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=1000-16      	  379302	      1676 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=1000-16      	  375331	      1645 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=10000-16     	  357704	      1599 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=10000-16     	  342632	      1741 ns/op	    2997 B/op	      27 allocs/op
+BenchmarkFileLeaseChurnWithSeedLedger/seen=10000-16     	  377737	      1635 ns/op	    2997 B/op	      27 allocs/op
+PASS
+ok  	github.com/Suhaibinator/Next.go/cache/shared	7.170s

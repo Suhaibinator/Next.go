@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
@@ -295,7 +296,10 @@ func (f *File) restoreRecord(r diskRecord, at, now time.Time) error {
 		if _, exists := f.memory.seedTickets[r.ID.Key]; exists || len(f.memory.seedTickets) >= MaxSeedTickets {
 			return ErrProtocol
 		}
-		f.memory.seedTickets[r.ID.Key] = pendingSeed{r.ID.Namespace, now.Add(r.Ticket.CreatedAt.Sub(now))}
+		if f.memory.usageLocked().ControlBytes > f.memory.maxControlBytes-seedTicketCost(r.ID.Namespace) {
+			return ErrCapacity
+		}
+		f.memory.seedTickets[strings.Clone(r.ID.Key)] = pendingSeed{strings.Clone(r.ID.Namespace), now.Add(r.Ticket.CreatedAt.Sub(now))}
 		return nil
 	}
 	if r.Ticket != nil {
@@ -352,11 +356,11 @@ func (f *File) restoreRecord(r diskRecord, at, now time.Time) error {
 		}
 		return now.Add(t.Sub(now))
 	}
-	entry := &memoryEntry{id: r.ID, policy: p, value: value, generation: d.Generation, found: true, noExpiry: d.NoExpiry, loaded: rebase(d.Loaded), fresh: rebase(d.Fresh), expires: rebase(d.Expires), cost: cost}
+	entry := &memoryEntry{id: ownedID(r.ID), policy: ownedPolicy(p), value: value, generation: d.Generation, found: true, noExpiry: d.NoExpiry, loaded: rebase(d.Loaded), fresh: rebase(d.Fresh), expires: rebase(d.Expires), cost: cost}
 	if elem != nil {
 		f.memory.remove(elem)
 	}
-	f.memory.entries[r.ID] = f.memory.lru.PushFront(entry)
+	f.memory.entries[entry.id] = f.memory.lru.PushFront(entry)
 	f.memory.used += cost
 	return nil
 }

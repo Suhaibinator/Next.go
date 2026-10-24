@@ -9,8 +9,10 @@ These are measurements of this framework before and after one change. They are
 not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
-The latest recorded sample is the
+The latest recorded browser sample is the
 [shared-prerender observation](#shared-prerender-observation-october-24-2026-utc).
+The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
+measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
 
 ## Measured WASM and startup improvement
@@ -522,3 +524,41 @@ capacity is not live heap, peak memory or process RSS. This observation does
 not measure shared-cache throughput/latency, production cold starts, mobile
 devices, representative networks, field behavior or Next.js performance, and
 does not satisfy a production performance gate.
+
+
+## Seed-ledger lease bookkeeping observation (October 24, 2026 UTC)
+
+The [final native benchmark output](benchmarks/control-ledger-go1.27.3-macos-arm64.txt)
+records Go 1.27.3 (`darwin/arm64`) on Apple M4 Max. Each operation acquires a
+missing-value lease through `File.Begin` and releases it through `File.Release`.
+The file backend already holds one import session containing 0, 1,000 or
+10,000 once-per-key seed hashes; expired seed values are not retained. Setup
+and journal work occur outside the measured loop. The loop performs no
+publication, journal writes or filesystem synchronization.
+
+| Retained seed hashes | Samples | Bytes allocated/op | Allocations/op |
+| ---: | ---: | ---: | ---: |
+| 0 | 3 | 2,997 | 27 |
+| 1,000 | 3 | 2,997 | 27 |
+| 10,000 | 3 | 2,997 | 27 |
+
+All nine samples report the same per-operation allocation counts, with timings
+of **1,599–2,021 ns/op**. The measurement includes retained-string ownership
+allocations.
+Concurrent native qualification was active, so timing is not an isolated
+comparison and supports no before/after speed claim. The result concerns this
+specific lease bookkeeping path; it does not establish journal/storage or HTTP
+throughput, total heap/RSS, cold starts, concurrent production load or a Next.js
+comparison. Seed-control accounting remains separate from temporary allocations
+and process memory.
+
+Repeat this benchmark with the desired Go SDK:
+
+```sh
+go test -run '^$' -bench '^BenchmarkFileLeaseChurnWithSeedLedger$' \
+  -benchmem -count=3 ./cache/shared
+```
+
+This native observation provides no new browser-bundle measurement. The latest
+recorded sample above still exceeds both the **6-MiB raw and 1.6-MiB gzip-9 WASM
+budgets**. No production performance gate is satisfied by this benchmark.

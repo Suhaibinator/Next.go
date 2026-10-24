@@ -13,14 +13,16 @@ import (
 	"time"
 )
 
-// FileOptions bounds resident entries, accounted memory, and the active journal.
-// Zero fields select 1024 entries, 64 MiB memory and 256 MiB disk respectively.
+// FileOptions bounds entries, data accounting, seed-control accounting and the
+// active journal. Zero fields select 1024 entries, 64 MiB data, 8 MiB control
+// and 256 MiB disk. MaxControlBytes may be at most 1 GiB.
 // Atomic compaction may temporarily use up to twice MaxDiskBytes for the active
 // and staging journals, plus fixed lock/directory metadata. This is not an RSS
 // limit. Reopening with reduced limits may reject an existing journal.
 type FileOptions struct {
 	Capacity               int
 	MaxBytes, MaxDiskBytes int64
+	MaxControlBytes        int64
 }
 
 // File is a synchronous durable Backend for one authority on a private local
@@ -62,7 +64,10 @@ func OpenFile(dir string, options FileOptions) (_ *File, result error) {
 	if options.MaxDiskBytes == 0 {
 		options.MaxDiskBytes = 256 << 20
 	}
-	if options.Capacity < 1 || options.Capacity > 1_000_000 || options.MaxBytes < 1 || options.MaxBytes > 1<<40 || options.MaxDiskBytes < 4096 || options.MaxDiskBytes > 1<<40 || dir == "" {
+	if options.MaxControlBytes == 0 {
+		options.MaxControlBytes = DefaultControlBytes
+	}
+	if options.Capacity < 1 || options.Capacity > 1_000_000 || options.MaxBytes < 1 || options.MaxBytes > 1<<40 || options.MaxDiskBytes < 4096 || options.MaxDiskBytes > 1<<40 || options.MaxControlBytes < 1 || options.MaxControlBytes > maxControlBytes || dir == "" {
 		return nil, ErrInvalid
 	}
 	dir, err := filepath.Abs(dir)
@@ -97,7 +102,7 @@ func OpenFile(dir string, options FileOptions) (_ *File, result error) {
 			_ = lock.Close()
 		}
 	}()
-	f.memory, _ = NewMemory(options.Capacity, options.MaxBytes)
+	f.memory, _ = NewMemoryWithOptions(MemoryOptions{Capacity: options.Capacity, MaxBytes: options.MaxBytes, MaxControlBytes: options.MaxControlBytes})
 	path := filepath.Join(dir, "cache.wal")
 	existing, err := os.Lstat(path)
 	if err != nil && !os.IsNotExist(err) {
@@ -243,7 +248,7 @@ func (f *File) Close() error {
 	return errors.Join(f.log.Close(), f.lock.Close())
 }
 func cloneMemory(m *Memory, now time.Time) *Memory {
-	c, _ := NewMemory(m.capacity, m.maxBytes)
+	c, _ := NewMemoryWithOptions(MemoryOptions{Capacity: m.capacity, MaxBytes: m.maxBytes, MaxControlBytes: m.maxControlBytes})
 	c.now = func() time.Time { return now }
 	for e := m.lru.Back(); e != nil; e = e.Prev() {
 		v := *e.Value.(*memoryEntry)
@@ -256,10 +261,8 @@ func cloneMemory(m *Memory, now time.Time) *Memory {
 	}
 	for token, session := range m.seedSessions {
 		s := *session
-		s.seen = make(map[ID]struct{}, len(session.seen))
-		for id := range session.seen {
-			s.seen[id] = struct{}{}
-		}
+		// InstallSeeds copies this immutable shared map on its first write.
+		s.seenShared = true
 		c.seedSessions[token] = &s
 	}
 	return c
@@ -356,6 +359,7 @@ func (f *File) MarkStale(c context.Context, ns string, s Selector, w time.Durati
 	return
 }
 func (f *File) Stats() (int, int64) { f.gate <- struct{}{}; defer f.leave(); return f.memory.Stats() }
+func (f *File) Usage() Usage        { f.gate <- struct{}{}; defer f.leave(); return f.memory.Usage() }
 
 type diskEntry struct {
 	ID                     ID

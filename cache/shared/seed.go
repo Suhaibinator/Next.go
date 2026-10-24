@@ -7,16 +7,28 @@ import (
 )
 
 const (
-	MaxSeedTickets       = 128
-	MaxSeedSessions      = 16
-	MaxSeedBatch         = 128
-	MaxSeedBatchBytes    = 1 << 20
-	MaxSeedEncodedBytes  = (2 << 20) - 1024
-	MaxSeedSessionValues = 10000
-	MaxSeedSessionBytes  = 32 << 20
-	SeedTicketTTL        = 30 * 24 * time.Hour
-	SeedSessionTTL       = 5 * time.Minute
+	DefaultControlBytes  int64 = 8 << 20
+	maxControlBytes      int64 = 1 << 30
+	MaxSeedTickets             = 128
+	MaxSeedSessions            = 16
+	MaxSeedBatch               = 128
+	MaxSeedBatchBytes          = 1 << 20
+	MaxSeedEncodedBytes        = (2 << 20) - 1024
+	MaxSeedSessionValues       = 10000
+	MaxSeedSessionBytes        = 32 << 20
+	SeedTicketTTL              = 30 * 24 * time.Hour
+	SeedSessionTTL             = 5 * time.Minute
 )
+
+// Usage reports retained data and seed-control ledgers. Control accounting
+// includes bounded tickets, sessions and fixed-size once-per-key hashes; it is
+// independent of DataBytes. Neither ledger is a process heap or RSS limit.
+type Usage struct {
+	Entries                                 int
+	DataBytes, DataLimit                    int64
+	SeedTickets, SeedSessions, SeedSeenKeys int
+	ControlBytes, ControlLimit              int64
+}
 
 // SeedTicket is a one-use authority-issued permission reserved before building.
 // It is public build data, but only authenticated trusted writers may import it.

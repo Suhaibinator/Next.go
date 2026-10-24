@@ -251,7 +251,8 @@ type cachedPage struct {
 }
 
 // CacheSize accounts the frozen HTML/head payload and conservative containers.
-// It cannot measure shared string backing storage or the complete Go heap.
+// Framework snapshots own their strings; this does not measure the complete Go
+// heap, transient rendering buffers or container/allocator implementation details.
 func (p cachedPage) CacheSize() int64 {
 	size := int64(512 + len(p.HTML) + len(p.Page.Title) + len(p.Page.Description))
 	if p.Page.document != nil {
@@ -487,5 +488,5 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 		return cachedPage{}, err
 	}
 	page = Page{document: &document, Title: title, Description: description, Meta: meta, preparedHead: &renderedHead{elements: head, markup: headHTML}}
-	return cachedPage{Page: page, HTML: html, GeneratedAt: time.Now()}, nil
+	return ownCachedPage(cachedPage{Page: page, HTML: html, GeneratedAt: time.Now()}), nil
 }

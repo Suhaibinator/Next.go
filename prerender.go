@@ -443,7 +443,7 @@ func (a *App) collectPrerenderMembership(ctx context.Context, manifest prerender
 				return nil, nil, fmt.Errorf("nextgo: prerender membership exceeds 10000 paths")
 			}
 			known[app][p.Path] = true
-			value := cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, GeneratedAt: p.GeneratedAt, Prerendered: true}
+			value := ownCachedPage(cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, GeneratedAt: p.GeneratedAt, Prerendered: true})
 			if !selected.Prerender.Shared {
 				groups[app.config.Cache] = append(groups[app.config.Cache], cache.Seed[cachedPage]{Key: app.prerenderKey(p.Path), Value: value, LoadedAt: p.GeneratedAt, Options: cache.Options{Lifetime: selected.Cache.Lifetime, Tags: selected.Cache.Tags, Paths: []string{prerenderDecodedPath(p.Path)}}})
 			}
