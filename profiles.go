@@ -67,6 +67,7 @@ func clearNavigationReuse(header http.Header) {
 	header.Del("X-Nextgo-Prefetch")
 	header.Del("Age")
 	header.Del(navigation.StaleHeader)
+	header.Del(navigation.ShellStaleHeader)
 }
 
 func (a *App) initCacheProfiles() error {

@@ -162,7 +162,7 @@ func (s *navigationStream) apply(frame navigation.StreamFrame) error {
 	return nil
 }
 
-func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, state js.Value, id uint64, options NavigationOptions) (data envelope, streamed, fallback bool, err error) {
+func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, state js.Value, id uint64, options NavigationOptions, hint *shellResumeHint) (data envelope, streamed, fallback bool, err error) {
 	if staticExport() {
 		data, _, fallback, err = fetchEnvelope(ctx, key)
 		return
@@ -171,6 +171,10 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 	defer cancel()
 	started := time.Now()
 	headers := map[string]string{"Cache-Control": "no-cache", "X-Nextgo-Navigate": "1", navigation.StreamHeader: fmt.Sprint(navigation.StreamVersion)}
+	headers[navigation.ShellProtocolHeader] = fmt.Sprint(navigation.ShellVersion)
+	if hint != nil && hint.epoch == cacheEpoch {
+		headers[navigation.ShellHeader] = hint.page.Shell
+	}
 	if routeManifest.Parallel != "" {
 		var selected string
 		selected, err = slotRequestState(ctx)
@@ -185,6 +189,9 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 	var session *navigationStream
 	isStream := false
 	defer func() {
+		if err != nil && hint != nil && !streamed {
+			discardShellHint(key)
+		}
 		if session != nil && activeNavigationStream == session {
 			activeNavigationStream = nil
 		}
@@ -228,7 +235,7 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 			switch frame.Type {
 			case "shell":
 				var replaceDocument bool
-				data, _, replaceDocument, err = decodeEnvelopeResponse(response, frame.Page, key, started, true)
+				data, _, replaceDocument, err = decodeEnvelopeResponseWithShell(response, frame.Page, key, started, true, shellDecodeOptions{hint: hint})
 				if err != nil {
 					return err
 				}

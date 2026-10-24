@@ -24,6 +24,7 @@ import (
 // Configure is called by generated entrypoints before starting the application.
 func Configure(config *nextgo.Config) {
 	configureStreaming(config)
+	configurePartialControls(config)
 	configureScripts(config)
 	configureHeaderRules(config)
 	message := os.Getenv("NEXTGO_DEMO_PUBLIC_MESSAGE")

@@ -805,9 +805,11 @@ the existing streaming transport and independently hydrates their islands.
 
 Try `/partial/alpha?message=Hello`. Optional `Shared: true` uses the existing
 online-ticket authority for shells only. Static export rejects request-time
-regions and preserves existing published output. This explicit subset passes the current 377-check browser matrix
+regions and preserves existing published output. The preceding explicit-rendering source passes 377 browser checks
 with three existing CDP skips, both SDK native/WASM checks and host/nonroot Linux
-HTTP/both mock Lambda suites. See [examples, bounds and remaining work](docs/PARTIAL_PRERENDERING.md).
+HTTP/both mock Lambda suites. New negotiated public-shell prefetch/resume keeps
+only fallback HTML/head in the bounded Go cache and always contacts the server
+before committing a view; private regions stay fresh. That increment passes native/WASM and standalone executable checks, plus 40 focused browser checks across host Chromium and Linux Firefox/WebKit/touch. See [the prefetch/resume contract](docs/PARTIAL_PREFETCH.md). See [examples, bounds and remaining work](docs/PARTIAL_PRERENDERING.md).
 
 ### Shared prerender seeds
 

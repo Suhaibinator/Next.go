@@ -24,6 +24,10 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Add("Vary", "X-Nextgo-Navigate, X-Nextgo-Stream, X-Nextgo-Purpose")
 	clearNavigationReuse(w.Header())
+	shell, shellRef := partialEnvelopeFields(r, page, http.StatusOK, true)
+	if shell != "" {
+		w.Header().Set(navigation.ShellProtocolHeader, fmt.Sprint(navigation.ShellVersion))
+	}
 	a.draftResponse(w, r)
 	committed, used := false, 0
 	write := func(frame navigation.StreamFrame) error {
@@ -55,7 +59,11 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 	}
 	err := ui.RenderEvents(ctx, page.Body, func(event ui.StreamEvent) error {
 		if event.ID == "" {
-			payload, err := json.Marshal(Envelope{Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: document, Build: a.config.BuildID, URL: requestURI(r), HTML: string(event.HTML), Title: page.Title, Description: page.Description, Meta: page.Meta, Status: 200, Head: head})
+			html := string(event.HTML)
+			if shellRef {
+				html = ""
+			}
+			payload, err := json.Marshal(Envelope{Shell: shell, ShellRef: shellRef, Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: document, Build: a.config.BuildID, URL: requestURI(r), HTML: html, Title: page.Title, Description: page.Description, Meta: page.Meta, Status: 200, Head: head})
 			if err != nil {
 				return err
 			}

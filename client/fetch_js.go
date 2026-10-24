@@ -171,9 +171,15 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 		}
 	}
 	controller := js.Global().Get("AbortController").New()
-	// Fully read responses no longer need the controller. Aborting on every
-	// exit also cleans up streams if a browser API throws synchronously.
-	defer controller.Call("abort")
+	complete := false
+	// Abort incomplete/error exits, including synchronous browser API panics.
+	// Aborting after EOF can turn a consumed response into ERR_ABORTED in
+	// Chromium instead of allowing its normal request-finished notification.
+	defer func() {
+		if !complete {
+			controller.Call("abort")
+		}
+	}()
 	headers := js.Global().Get("Headers").New()
 	for name, value := range options.Headers {
 		headers.Call("set", name, value)
@@ -231,10 +237,10 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 	}
 	body := result.Get("body")
 	if body.IsNull() || body.IsUndefined() {
+		complete = true
 		return response, nil
 	}
 	reader := body.Call("getReader")
-	complete := false
 	defer func() {
 		defer func() { _ = recover() }()
 		if !complete {

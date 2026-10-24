@@ -591,13 +591,16 @@ type envelope struct {
 	Description   string              `json:"description"`
 	Meta          map[string]string   `json:"meta"`
 	Status        int                 `json:"status"`
+	Shell         string              `json:"shell,omitempty"`
+	ShellRef      bool                `json:"shellRef,omitempty"`
+	shellEpoch    uint64
 	cacheUntil    time.Time
 }
 
 // Account for payload strings plus conservative per-entry/map overhead. This
 // bounds retained response data; browser DOM and the Go heap are separate costs.
 func envelopeBytes(data envelope) int64 {
-	size := int64(512 + len(data.URL) + len(data.Build) + len(data.Configuration) + len(data.Document.Language) + len(data.Document.Direction) + len(data.Document.Viewport) + len(data.HTML) + len(data.Title) + len(data.Description))
+	size := int64(512 + len(data.URL) + len(data.Build) + len(data.Configuration) + len(data.Shell) + len(data.Document.Language) + len(data.Document.Direction) + len(data.Document.Viewport) + len(data.HTML) + len(data.Title) + len(data.Description))
 	for key, value := range data.Meta {
 		size += int64(96 + len(key) + len(value))
 	}
@@ -619,6 +622,7 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 	}()
 	key := requestURL(target)
 	data, cached := pageCache.get(key)
+	var hint *shellResumeHint
 	if !cached {
 		if pending := prefetches[key]; pending != nil {
 			select {
@@ -629,11 +633,15 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 			data, cached = pageCache.get(key)
 		}
 	}
+	if cached && data.Shell != "" {
+		hint = &shellResumeHint{page: data, epoch: cacheEpoch}
+		cached = false
+	}
 	if !cached {
 		epoch := cacheEpoch
 		var fallback bool
 		var streamed bool
-		data, streamed, fallback, err = fetchActiveNavigation(ctx, key, target, pop, state, id, options)
+		data, streamed, fallback, err = fetchActiveNavigation(ctx, key, target, pop, state, id, options, hint)
 		if streamed {
 			return err
 		}
@@ -647,7 +655,7 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 			reloadPage(target, replace)
 			return nil
 		}
-		if epoch == cacheEpoch {
+		if epoch == cacheEpoch && data.Shell == "" {
 			pageCache.putUntil(key, data, data.cacheUntil)
 		}
 	}
@@ -692,6 +700,9 @@ func commitNavigation(ctx context.Context, target string, pop bool, state js.Val
 	return Transition(ctx, transition, func() error {
 		if id != navigationID || ctx.Err() != nil {
 			return context.Canceled
+		}
+		if data.ShellRef && data.shellEpoch != cacheEpoch {
+			return fmt.Errorf("cached shell was invalidated before navigation commit")
 		}
 		return commit(parsed, root, data, target, pop, state, replace)
 	})
@@ -785,6 +796,7 @@ func fetchEnvelope(ctx context.Context, target string) (data envelope, ttl time.
 		headers["X-Nextgo-Navigate"] = "1"
 		if intent, _ := ctx.Value(prefetchContextKey{}).(bool); intent {
 			headers[navigation.PurposeHeader] = "prefetch"
+			headers[navigation.ShellProtocolHeader] = fmt.Sprint(navigation.ShellVersion)
 		}
 		if routeManifest.Parallel != "" {
 			selected, selectionErr := slotRequestState(ctx)
@@ -798,10 +810,14 @@ func fetchEnvelope(ctx context.Context, target string) (data envelope, ttl time.
 	if err != nil {
 		return data, 0, false, err
 	}
-	return decodeEnvelopeResponse(resp, resp.Body, target, started, false)
+	intent, _ := ctx.Value(prefetchContextKey{}).(bool)
+	return decodeEnvelopeResponseWithShell(resp, resp.Body, target, started, false, shellDecodeOptions{prefetch: intent})
 }
 
 func decodeEnvelopeResponse(resp Response, body []byte, target string, started time.Time, stream bool) (data envelope, ttl time.Duration, fallback bool, err error) {
+	return decodeEnvelopeResponseWithShell(resp, body, target, started, stream, shellDecodeOptions{})
+}
+func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, started time.Time, stream bool, shellOptions shellDecodeOptions) (data envelope, ttl time.Duration, fallback bool, err error) {
 	if !sameOriginResponse(resp.URL) {
 		if sameResponseOrigin(resp.URL) {
 			return data, 0, true, nil
@@ -819,6 +835,9 @@ func decodeEnvelopeResponse(resp Response, body []byte, target string, started t
 		return data, 0, true, nil
 	}
 	if err = json.Unmarshal(body, &data); err != nil {
+		return data, 0, false, err
+	}
+	if err = validateShellFields(body, data); err != nil {
 		return data, 0, false, err
 	}
 	if data.Version != navigation.ProtocolVersion {
@@ -849,6 +868,21 @@ func decodeEnvelopeResponse(resp Response, body []byte, target string, started t
 	if !eligibleURL(canonical) {
 		return data, 0, true, nil
 	}
+	// Validate fresh server metadata before borrowing any cached shell bytes.
+	// This fragment remains detached; commit creates its own managed head.
+	if _, headErr := buildHead(data.Head); headErr != nil {
+		return data, 0, false, headErr
+	}
+	if data.Shell != "" || data.ShellRef {
+		if staticExport() || len(resp.Header.Values(navigation.ShellProtocolHeader)) != 1 || resp.Header.Get(navigation.ShellProtocolHeader) != fmt.Sprint(navigation.ShellVersion) || data.Status != 200 || (!stream && !shellOptions.prefetch) || (!data.ShellRef && data.HTML == "") || (!stream && data.ShellRef) {
+			return data, 0, false, fmt.Errorf("invalid public shell envelope")
+		}
+		if data.ShellRef {
+			if err = applyShellReference(&data, shellOptions.hint, target); err != nil {
+				return data, 0, false, err
+			}
+		}
+	}
 	parsedSlots := win.Get("DOMParser").New().Call("parseFromString", data.HTML, "text/html")
 	if _, scriptErr := scriptMarkers(parsedSlots.Get("body")); scriptErr != nil {
 		return data, 0, false, scriptErr
@@ -859,12 +893,6 @@ func decodeEnvelopeResponse(resp Response, body []byte, target string, started t
 	if _, err := selectionNodes(parsedSlots); err != nil {
 		return data, 0, false, err
 	}
-	// A malformed head must never poison the prefetch cache or make retries
-	// reuse a response that already failed validation. Detached nodes are never
-	// inserted here; commit builds a fresh fragment for the active document.
-	if _, headErr := buildHead(data.Head); headErr != nil {
-		return data, 0, false, headErr
-	}
 	// Only a fully validated response from this runtime can report transient
 	// admission failure. Preserve the current view rather than committing its
 	// generic busy document; ordinary 503 pages keep their existing semantics.
@@ -872,7 +900,14 @@ func decodeEnvelopeResponse(resp Response, body []byte, target string, started t
 		return data, 0, false, fmt.Errorf("the server is busy; please try again shortly")
 	}
 	if data.Status == 200 {
-		data.cacheUntil = started.Add(cacheLifetime(resp.Header))
+		lifetime := cacheLifetime(resp.Header)
+		if data.Shell != "" {
+			lifetime = 0
+			if shellOptions.prefetch && !data.ShellRef {
+				lifetime = shellCacheLifetime(resp.Header, data.Shell)
+			}
+		}
+		data.cacheUntil = started.Add(lifetime)
 		ttl = max(0, time.Until(data.cacheUntil))
 	}
 	return data, ttl, false, nil

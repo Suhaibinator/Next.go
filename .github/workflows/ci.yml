@@ -110,6 +110,8 @@ jobs:
         run: npm run test:stream-admission
       - name: Partial shells and current-request regions
         run: npm run test:partial
+      - name: Public shell prefetch and validated resume
+        run: npm run test:partial-shell
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -146,6 +148,8 @@ jobs:
         run: sh ./scripts/test-stream-admission-container.sh
       - name: Partial prerender Linux browser conformance
         run: sh ./scripts/test-partial-container.sh
+      - name: Public shell prefetch Linux browser conformance
+        run: sh ./scripts/test-partial-shell-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

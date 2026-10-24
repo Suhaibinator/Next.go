@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"time"
 	"unicode/utf8"
 
 	"github.com/Suhaibinator/Next.go/cache"
@@ -141,10 +142,14 @@ func (a *App) loadPartialPage(c *Context, route Route, w http.ResponseWriter, sp
 	w.Header().Set("Cache-Control", "private, no-store")
 	w.Header().Set("X-Nextgo-Partial", "1")
 	clearNavigationReuse(w.Header())
-	if c.Request.Header.Get("X-Nextgo-Navigate") == "1" && c.Request.Header.Get(navigation.PurposeHeader) == "prefetch" {
+	prefetch := c.Request.Header.Get("X-Nextgo-Navigate") == "1" && c.Request.Header.Get(navigation.PurposeHeader) == "prefetch"
+	if prefetch && !shellProtocol(c.Request) {
 		return Page{Stream: true}, 200
 	}
 	if a.config.Dev || route.Cache == nil || cache.Bypassed(c.Context) || ruleSensitive(c.Context) || scripts.Nonce(c.Context) != "" || c.Request.Body != nil && c.Request.Body != http.NoBody {
+		if prefetch {
+			return Page{Stream: true}, 200
+		}
 		span.Cache("bypass")
 		page, status := a.render(c, route)
 		if status == 200 {
@@ -160,6 +165,7 @@ func (a *App) loadPartialPage(c *Context, route Route, w http.ResponseWriter, sp
 	life, _ := a.cacheLifetime(route.Cache)
 	var value cachedPage
 	var info cache.Info
+	started := time.Now()
 	if route.Cache.Shared && (len(prerenderDecodedPath(logical)) > 512 || !utf8.ValidString(prerenderDecodedPath(logical))) {
 		// A valid route may exceed the shared authority's path-label bound.
 		// Render its public shell once without storing either shell or regions.
@@ -190,6 +196,18 @@ func (a *App) loadPartialPage(c *Context, route Route, w http.ResponseWriter, sp
 		a.config.Logger.Printf("partial shell: %v", err)
 		return errorPage(), 500
 	}
+	if shellProtocol(c.Request) {
+		token, err := a.partialShellID(route, logical, value)
+		if err != nil {
+			a.config.Logger.Printf("partial shell identity: %v", err)
+			return errorPage(), 500
+		}
+		page.partial = &partialResponse{token: token, prefetch: prefetch, reuseUntil: time.Now().Add(shellReuseFor(info, time.Since(started)))}
+		if prefetch {
+			page.Body, page.Stream = renderedHTML(value.HTML), false
+		}
+	}
+	w.Header().Add("Vary", navigation.ShellProtocolHeader+", "+navigation.ShellHeader)
 	w.Header().Set("X-Nextgo-Partial", "1")
 	w.Header().Set("X-Nextgo-Cache", string(info.State))
 	source := "runtime"

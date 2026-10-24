@@ -71,6 +71,7 @@ type Page struct {
 	Stream       bool
 	preparedHead *renderedHead
 	document     *Document
+	partial      *partialResponse
 }
 type PageFunc func(*Context) (Page, error)
 type LayoutFunc func(*Context, ui.Node) (ui.Node, error)
@@ -219,6 +220,10 @@ const NavigationProtocolVersion = navigation.ProtocolVersion
 type Document = seo.DocumentAttributes
 
 type Envelope struct {
+	// Shell identifies a negotiated public partial shell. ShellRef is only sent
+	// in a stream when the caller proposes that exact cached shell generation.
+	Shell         string            `json:"shell,omitempty"`
+	ShellRef      bool              `json:"shellRef,omitempty"`
 	Document      Document          `json:"document"`
 	Version       int               `json:"version"`
 	Configuration string            `json:"configuration"`
@@ -911,13 +916,35 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 	if r.Header.Get("X-Nextgo-Navigate") == "1" {
 		w.Header().Set(navigation.ProtocolHeader, fmt.Sprint(NavigationProtocolVersion))
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		shell, shellRef := partialEnvelopeFields(r, p, status, false)
+		envelope := Envelope{
+			Shell: shell, ShellRef: shellRef,
+			Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: documentAttrs,
+			Build: a.config.BuildID, URL: requestURI(r), HTML: body,
+			Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head,
+		}
+		if shell != "" {
+			encoded, err := json.Marshal(envelope)
+			if err != nil || len(encoded) > navigation.MaxStreamFrame {
+				// Public UI may be valid yet exceed speculative transport bounds.
+				// Skip speculation without running any private request regions.
+				clearNavigationReuse(w.Header())
+				w.Header().Del(navigation.ShellProtocolHeader)
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			w.Header().Set(navigation.ShellProtocolHeader, fmt.Sprint(navigation.ShellVersion))
+			w.Header().Set("X-Nextgo-Prefetch", "shell")
+			w.Header().Set(navigation.ShellStaleHeader, fmt.Sprint(shellRetentionMillis(w.Header(), p.partial.reuseUntil)))
+			w.WriteHeader(status)
+			if r.Method != "HEAD" {
+				_, _ = w.Write(encoded)
+			}
+			return
+		}
 		w.WriteHeader(status)
 		if r.Method != "HEAD" {
-			_ = json.NewEncoder(w).Encode(Envelope{
-				Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: documentAttrs,
-				Build: a.config.BuildID, URL: requestURI(r), HTML: body,
-				Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head,
-			})
+			_ = json.NewEncoder(w).Encode(envelope)
 		}
 		return
 	}

@@ -99,8 +99,10 @@ own their backing storage under the existing snapshot ownership contract.
 Every final representation is `private, no-store`; the framework clears reusable
 navigation-age/prefetch state. Cookie/query requests can reuse a public shell
 while their regions remain fresh. Draft/nonce/cache-bypass/sensitive-rule/body
-conditions keep the existing live-render bypass. Intent prefetch returns 204
-without running region callbacks, rather than caching personalized content.
+conditions keep the existing live-render bypass. Clients negotiating the
+[public-shell prefetch protocol](PARTIAL_PREFETCH.md) can retain only fallback
+HTML/head for a later server-validated resume; region callbacks never run during
+prefetch. Clients without that capability retain 204-prefetch behavior.
 Do not add a separate `CachePolicy`: ordinary full-page caching of a route
 with regions is rejected.
 
@@ -196,6 +198,10 @@ request query switch or a production health mechanism.
 
 ### Qualification (October 24, 2026 UTC)
 
+The following results describe the preceding explicit partial-rendering source.
+The later public-shell prefetch/resume increment has separate focused qualification; see
+[its scope](PARTIAL_PREFETCH.md#verification-and-remaining-work).
+
 The corrected frozen source passes full native race/vet on Go 1.27.3/macOS and
 Go 1.24.13/Linux, matching core/module WASM tests and client vet on both SDKs,
 host module vet, and demo/workspace generation checks. A fresh guarded demo
@@ -237,7 +243,7 @@ These results verify the implemented subset, not full V12/Cache Components
 parity or production maturity. No release gate is closed.
 
 Automatic Go request-data analysis, automatic cached components and nested
-lifetime propagation, partial prefetch, unknown-parameter shell reuse, static
+lifetime propagation, complete session-scoped partial prefetch, unknown-parameter shell reuse, static
 application shells, metadata streaming and parallel/independent route-region
 composition remain future work. Actual-cloud, accessibility, load/soak and
 recovery qualification remain open. All 79 capability rows and 11 release gates

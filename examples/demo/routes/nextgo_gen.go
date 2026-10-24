@@ -264,6 +264,9 @@ func ReadPartialBySlug(values map[string]string) (PartialBySlugParams, error) {
 	return p, nil
 }
 
+// PartialControl constructs the application path for HTTP endpoint /partial/control.
+func PartialControl() string { return "/partial/control" }
+
 // PhotosById constructs the application path for page /photos/:id.
 func PhotosById(p PhotosByIdParams) (string, error) {
 	return routeinfo.BuildPath("/photos/:id", map[string][]string{"id": {p.Id}})
