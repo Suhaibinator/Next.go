@@ -1,0 +1,20 @@
+Preliminary synthetic wrapper benchmark, October 23 2026.
+Go 1.27.3, macOS arm64, Apple M4 Max. Concurrent local verification was running.
+Includes httptest request/response machinery; not a full app/exporter/load budget.
+Command: go test -run ^$ -bench BenchmarkHTTPTracing -benchmem -count=3 ./telemetry
+
+goos: darwin
+goarch: arm64
+pkg: github.com/Suhaibinator/Next.go/telemetry
+cpu: Apple M4 Max
+BenchmarkHTTPTracing/disabled-16         	 2919859	       393.1 ns/op	    1024 B/op	      10 allocs/op
+BenchmarkHTTPTracing/disabled-16         	 3062904	       391.8 ns/op	    1024 B/op	      10 allocs/op
+BenchmarkHTTPTracing/disabled-16         	 2972835	       392.9 ns/op	    1024 B/op	      10 allocs/op
+BenchmarkHTTPTracing/record-16           	  746985	      1575 ns/op	    2650 B/op	      26 allocs/op
+BenchmarkHTTPTracing/record-16           	  764878	      1667 ns/op	    2650 B/op	      26 allocs/op
+BenchmarkHTTPTracing/record-16           	  754058	      1602 ns/op	    2650 B/op	      26 allocs/op
+BenchmarkHTTPTracing/unsampled-16        	 1368994	       921.5 ns/op	    2136 B/op	      25 allocs/op
+BenchmarkHTTPTracing/unsampled-16        	 1000000	      1527 ns/op	    2136 B/op	      25 allocs/op
+BenchmarkHTTPTracing/unsampled-16        	 1080926	      1158 ns/op	    2136 B/op	      25 allocs/op
+PASS
+ok  	github.com/Suhaibinator/Next.go/telemetry	14.571s

@@ -1,0 +1,13 @@
+//go:build !js
+
+package app
+
+import (
+ nextgo "github.com/Suhaibinator/Next.go"
+ "github.com/Suhaibinator/Next.go/ui"
+)
+
+func NotFound(c *nextgo.Context)(nextgo.Page,error){
+ body,err:=Layout(c,ui.Fragment(ui.El("h1",nil,ui.Text("Page not found")),ui.El("a",ui.Attrs{"href":nextgo.MustURL(c, "/")},ui.Text("Return home"))))
+ return nextgo.Page{Title:"Not found",Body:body},err
+}

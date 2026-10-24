@@ -1,0 +1,156 @@
+{
+  "date": "2026-10-24T08:11:18.097Z",
+  "path": "/composition",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 67,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 63,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 70,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 64,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 61,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 62,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 61,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 65,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    },
+    {
+      "elapsedMS": 63,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        }
+      ]
+    }
+  ]
+}

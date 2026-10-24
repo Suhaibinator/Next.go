@@ -1,0 +1,17 @@
+//go:build !js
+
+package app
+
+import (
+ nextgo "github.com/Suhaibinator/Next.go"
+ "github.com/Suhaibinator/Next.go/ui"
+ counter {{COUNTER_IMPORT}}
+)
+
+func Page(c *nextgo.Context)(nextgo.Page,error){
+ return nextgo.Page{Title:"My Go application",Description:"Server-rendered HTML with Go-powered interaction.",Body:ui.Fragment(
+ ui.El("h1",nil,ui.Text("Hello from Go.")),
+ ui.El("p",nil,ui.Text("This content arrives before WebAssembly. The counter attaches to its existing elements.")),
+ counter.View(counter.Props{Initial:3}),
+ ui.El("p",nil,ui.El("a",ui.Attrs{"href":nextgo.MustURL(c, "/hello/developer")},ui.Text("Try a dynamic route")))),},nil
+}

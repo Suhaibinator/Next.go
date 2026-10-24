@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-24T08:11:27.761Z",
+  "path": "/lazy",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 155,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 151,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 150,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 161,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 156,
+      "linearMemoryBytes": [
+        23068672,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 160,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 153,
+      "linearMemoryBytes": [
+        18087936,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 151,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 154,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    },
+    {
+      "elapsedMS": 166,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "33145ad469e282878af426f71f4acf7dd5e6755f2e4e9c16413a65755dc9ba2e",
+          "raw": 7067083,
+          "gzip9": 1884827
+        },
+        {
+          "file": "module-465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90.wasm",
+          "sha256": "465a57968853b1d6e31c93bf8c184e0ef9a33b2a4339779d8334067b82082a90",
+          "raw": 5617449,
+          "gzip9": 1537524
+        }
+      ]
+    }
+  ]
+}

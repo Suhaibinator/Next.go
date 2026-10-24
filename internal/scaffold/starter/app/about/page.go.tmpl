@@ -1,0 +1,12 @@
+//go:build !js
+
+package about
+
+import (
+ nextgo "github.com/Suhaibinator/Next.go"
+ "github.com/Suhaibinator/Next.go/ui"
+)
+
+func Page(*nextgo.Context)(nextgo.Page,error){
+ return nextgo.Page{Title:"About my Go application",Body:ui.Fragment(ui.El("h1",nil,ui.Text("Go across the stack.")),ui.El("p",nil,ui.Text("Pages and layouts render on the server. Browser islands use client.Scope, explicit state and scoped event cleanup.")))},nil
+}

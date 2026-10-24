@@ -1,0 +1,1 @@
+This text was embedded from a sibling Go module.

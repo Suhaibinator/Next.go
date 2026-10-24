@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-24T17:11:16.457Z",
+  "path": "/lazy",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 171,
+      "linearMemoryBytes": [
+        24641536,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 155,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 155,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 146,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 147,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 151,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 158,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 149,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 157,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 144,
+      "linearMemoryBytes": [
+        21233664,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "e785bc4e0514d4dc8c16756abeeb74ceeb046009c885264556ae118571a47a80",
+          "raw": 7796910,
+          "gzip9": 2044551,
+          "bodySource": "browser-response"
+        },
+        {
+          "file": "module-63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74.wasm",
+          "sha256": "63eafcbcec172af1736c727eeb7394fd8b0216a93c5d56915b7ee5a1727adc74",
+          "raw": 5617451,
+          "gzip9": 1537175,
+          "bodySource": "browser-response"
+        }
+      ]
+    }
+  ]
+}

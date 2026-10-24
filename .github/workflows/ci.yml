@@ -1,0 +1,108 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.x', 'stable']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Check generated route helpers
+        run: |
+          go run ./cmd/nextgo generate --check ./examples/demo
+          go run ./cmd/nextgo generate --check ./examples/workspace/site
+      - run: go test -race ./...
+      - run: go vet ./...
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Go WASM client unit tests
+        shell: bash
+        run: GOOS=js GOARCH=wasm go test -exec="$(go env GOROOT)/lib/wasm/go_js_wasm_exec" ./client ./mutation
+      - run: go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
+      - run: go run ./cmd/nextgo build -out ./dist/workspace ./examples/workspace/site
+      - run: go build -trimpath -o ./dist/nextgo-cache ./cmd/nextgo-cache
+      - name: Native HTTP, Lambda and durable cache process conformance
+        shell: bash
+        run: |
+          NEXTGO_TEST_BINARY="$PWD/dist/demo/server" \
+          NEXTGO_TEST_WORKSPACE_BINARY="$PWD/dist/workspace/server" \
+          NEXTGO_TEST_CACHE_BINARY="$PWD/dist/nextgo-cache" \
+          go test -race -tags=deployment ./tests/deployment -count=1
+      - name: Standalone production smoke test
+        shell: bash
+        run: |
+          work=$(mktemp -d)
+          cp ./dist/demo/server "$work/server"
+          cd "$work"
+          ./server -addr 127.0.0.1:4200 >server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:4200/api/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4200/ | grep -q '<html'
+          kill -TERM "$server_pid"
+          wait "$server_pid"
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm test
+      - run: npm run test:crossbrowser
+      - run: npm run test:shared-cache
+      - run: npm run test:shared-pages
+      - run: npm run test:static:crossbrowser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-failure-artifacts
+          path: |
+            test-results/
+            test-results-crossbrowser/
+            playwright-report/
+          retention-days: 7
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nextgo-demo .
+      - name: Container smoke test
+        shell: bash
+        run: |
+          docker run --detach --name nextgo-demo --read-only --cap-drop ALL --security-opt no-new-privileges -p 127.0.0.1:4201:3000 nextgo-demo
+          trap 'docker logs nextgo-demo; docker rm --force nextgo-demo' EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:4201/api/health; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:4201/ | grep -q '<html'
+      - name: Isolated executable deployment conformance
+        run: ./scripts/test-deployment-container.sh
+      - name: Shared-cache Linux browser conformance
+        run: sh ./scripts/test-shared-cache-container.sh
+      - name: Shared-page Linux browser conformance
+        run: sh ./scripts/test-shared-pages-container.sh
+      - name: Official OTLP collector integration
+        run: ./scripts/test-collector-container.sh

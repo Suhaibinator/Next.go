@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-24T05:56:37.161Z",
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 149,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 141,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 139,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 141,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 141,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 140,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 139,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 142,
+      "linearMemoryBytes": [
+        20971520,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 140,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    },
+    {
+      "elapsedMS": 141,
+      "linearMemoryBytes": [
+        20709376,
+        5767168
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "raw": 6605072,
+          "gzip9": 1766108
+        },
+        {
+          "file": "module-22d1ab2873c9fbfbb67b7c68b5df74982ef181983bc5df46ef922efeba6600ea.wasm",
+          "raw": 5533787,
+          "gzip9": 1510364
+        }
+      ]
+    }
+  ]
+}

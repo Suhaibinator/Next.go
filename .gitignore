@@ -27,7 +27,28 @@ go.work.sum
 
 # env file
 .env
+.env.*
+!.env.example
 
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Next.go generated applications and test output
+.nextgo/
+dist/
+node_modules/
+test-results/
+test-results-crossbrowser/
+playwright-report/
+
+# The multi-module example deliberately checks in its workspace declaration.
+!examples/workspace/go.work
+
+.nextgo-test-results/
+
+# Local credentials and agent/session metadata never belong in the source tree.
+.aws/
+.ssh/
+.codex/
+.agents/

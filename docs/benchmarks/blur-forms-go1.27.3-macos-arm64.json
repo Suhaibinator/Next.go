@@ -1,0 +1,166 @@
+{
+  "date": "2026-10-24T16:39:35.327Z",
+  "path": "/forms?validate=blur",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 168,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 113,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 219,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 117,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 97,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 102,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 114,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 101,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 91,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 108,
+      "linearMemoryBytes": [
+        6291456
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "bf418f173c874faa2eb5f3b9fe5152f284d20684f91b4c436d8d2c6364d6200e",
+          "raw": 7482915,
+          "gzip9": 1976618,
+          "bodySource": "browser-response"
+        }
+      ]
+    }
+  ]
+}

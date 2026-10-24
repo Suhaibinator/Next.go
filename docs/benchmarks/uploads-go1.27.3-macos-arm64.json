@@ -1,0 +1,166 @@
+{
+  "date": "2026-10-24T17:51:51.078Z",
+  "path": "/uploads",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 new Chromium contexts, one browser process, warm local Go dev server, no CPU/network throttling; not a production timing guarantee",
+  "samples": [
+    {
+      "elapsedMS": 58,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 61,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 62,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 62,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 60,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    },
+    {
+      "elapsedMS": 59,
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "assets": [
+        {
+          "file": "app.wasm",
+          "sha256": "05aec2df827a7e3b6a329d0b380daf1b6502b52ae254da66fbdf11f1f2e394df",
+          "raw": 8135163,
+          "gzip9": 2114363,
+          "bodySource": "browser-response"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "nextgo-browser-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test-browser.mjs && node scripts/test-browser.mjs --config tests/static.config.mjs",
+    "test:browser": "node scripts/test-browser.mjs --project=production",
+    "test:static": "node scripts/test-browser.mjs --config tests/static.config.mjs",
+    "test:static:crossbrowser": "node scripts/test-browser.mjs --config tests/static-crossbrowser.config.mjs",
+    "test:wasm": "sh scripts/test-wasm.sh",
+    "test:shared-cache": "node scripts/test-browser.mjs --config tests/shared-cache.config.mjs",
+    "test:shared-pages": "node scripts/test-browser.mjs --config tests/shared-pages.config.mjs",
+    "test:crossbrowser": "node scripts/test-browser.mjs --config tests/crossbrowser.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

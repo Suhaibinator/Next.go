@@ -1,0 +1,72 @@
+import { defineConfig } from '@playwright/test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+process.env.NEXTGO_E2E_ROOT ||= join(tmpdir(), `nextgo-e2e-${process.pid}`);
+
+export default defineConfig({
+  testDir: './tests',
+  outputDir: '.nextgo-test-results/runtime',
+  fullyParallel: false,
+  workers: 1,
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
+  use: {
+    headless: true,
+    trace: 'retain-on-failure',
+    ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } }
+      : {}),
+  },
+  projects: [
+{name:"forms",testMatch:"forms.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"composition",testMatch:"composition.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"keyed",testMatch:"keyed.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"header-rules",testMatch:"header-rules.spec.mjs"},
+{name:"composed-params",testMatch:"composed-params.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"prerender",testMatch:"prerender.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"scripts",testMatch:"scripts.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"lazy",testMatch:"lazy.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+{name:"navigation-stream",testMatch:"navigation-stream.spec.mjs",use:{baseURL:"http://127.0.0.1:4140"}},
+{name:"workspace",testMatch:"workspace.spec.mjs",use:{baseURL:"http://127.0.0.1:4139"}},
+{name:"workspace-development",testMatch:"workspace-dev.spec.mjs",use:{baseURL:"http://127.0.0.1:4138"}},
+{ name:"environment",testMatch:"environment.spec.mjs",use:{baseURL:"http://127.0.0.1:4100"}},
+    { name: 'restore', testMatch: 'restore.spec.mjs' },
+    { name: 'bfcache', testMatch: 'bfcache.spec.mjs' },
+    { name: 'preview', testMatch: 'preview.spec.mjs' },
+    { name: 'mutations', testMatch: 'mutations.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'optimistic', testMatch: 'optimistic.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'typed-routes', testMatch: 'typed-routes.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'location', testMatch: 'location.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'interceptions', testMatch: 'interceptions.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'parallel', testMatch: 'parallel.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'rules', testMatch: 'rules.spec.mjs' },
+    { name: 'transitions', testMatch: 'transitions.spec.mjs' },
+    { name: 'tracing', testMatch: 'tracing.spec.mjs' },
+    { name: 'locales', testMatch: 'locales.spec.mjs' },
+    { name: 'production', testMatch: 'browser.spec.mjs', use: { baseURL: 'http://127.0.0.1:4100' } },
+    { name: 'skew', testMatch: 'skew.spec.mjs', use: { baseURL: 'http://127.0.0.1:4107' } },
+    { name: 'slashes', testMatch: 'slashes.spec.mjs', use: { baseURL: 'http://127.0.0.1:4106' } },
+    { name: 'mounted', testMatch: 'mounted.spec.mjs', use: { baseURL: 'http://127.0.0.1:4104' } },
+    { name: 'starter', testMatch: 'starter.spec.mjs', use: { baseURL: 'http://127.0.0.1:4103' } },
+    { name: 'development', testMatch: 'dev.spec.mjs', use: { baseURL: 'http://127.0.0.1:4101' } },
+  ],
+  webServer: [
+    { command: 'node tests/serve-production.mjs', url: 'http://127.0.0.1:4100/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-starter.mjs', url: 'http://127.0.0.1:4103/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-dev.mjs', url: 'http://127.0.0.1:4101/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-mounted.mjs', url: 'http://127.0.0.1:4104/demo/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-slashes.mjs', url: 'http://127.0.0.1:4106/slash/api/health/', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-skew.mjs', url: 'http://127.0.0.1:4107/_e2e/status', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-locales.mjs', url: 'http://127.0.0.1:4120/shop/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-tracing.mjs', url: 'http://127.0.0.1:4126/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-transitions.mjs', url: 'http://127.0.0.1:4128/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-rules.mjs', url: 'http://127.0.0.1:4129/policy/api/health', timeout: 180_000, reuseExistingServer: false },
+    { command: 'node tests/serve-mutation-redirect.mjs', url: 'http://127.0.0.1:4132/_e2e/health', timeout: 30_000, reuseExistingServer: false },
+    { command: 'node tests/serve-preview.mjs', url: 'http://127.0.0.1:4134/api/health', timeout: 30_000, reuseExistingServer: false },
+{command:'node tests/serve-workspace.mjs',url:'http://127.0.0.1:4138/api/health',timeout:180_000,reuseExistingServer:false},
+{command:'node tests/serve-navigation-stream.mjs',url:'http://127.0.0.1:4140/api/health',timeout:30_000,reuseExistingServer:false},
+{command:'node tests/serve-scripts.mjs',url:'http://127.0.0.1:4142/safe/api/health',timeout:30000,reuseExistingServer:false},
+{command:'node tests/serve-header-rules.mjs',url:'http://127.0.0.1:4144/headers/api/health',timeout:30000,reuseExistingServer:false},
+  ],
+});

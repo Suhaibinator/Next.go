@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+const ready=page=>expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration','ready');
+const open=async page=>{await page.goto('/');await ready(page);await page.evaluate(()=>{window.streamDocument=true;const link=document.createElement('a');link.href='/stream?mode=nested';link.textContent='Stream this page';link.id='stream-test-link';document.querySelector('main').prepend(link)})};
+
+test('navigation commits a useful shell and hydrates independent nested chunks without reloading',async({page})=>{
+ await open(page);await page.locator('#stream-test-link').click();await expect(page).toHaveTitle('Nested streaming — Next.go');await expect(page.locator('[data-slow-pending]')).toBeVisible();expect(await page.evaluate(()=>window.streamDocument)).toBe(true);
+ await expect(page.locator('[data-fast-loaded]')).toBeVisible();await page.getByRole('button',{name:'Increase Fast streamed counter',exact:true}).click();await expect(page.getByRole('region',{name:'Fast streamed counter',exact:true}).locator('[data-count]')).toHaveText('3');
+ await expect(page.locator('[data-inner-loaded]')).toBeVisible();await expect(page.locator('[data-slow-pending]')).toBeVisible();await page.getByRole('button',{name:'Increase Nested streamed counter',exact:true}).click();await expect(page.locator('[data-inner-loaded] [data-count]')).toHaveText('4');
+ await expect(page.locator('[data-slow-loaded]')).toBeVisible();await expect(page.locator('#nextgo-status')).toBeHidden();await expect(page.getByRole('region',{name:'Fast streamed counter',exact:true}).locator('[data-count]')).toHaveText('3');
+ await page.goBack();await expect(page).toHaveTitle('Next.go — Go, all the way through');await page.goForward();await expect(page).toHaveTitle('Nested streaming — Next.go');await expect(page.locator('[data-slow-loaded]')).toBeVisible();expect(await page.evaluate(()=>window.streamDocument)).toBe(true);
+});
+
+test('superseded streamed work never changes the next page and detached controls are cleaned up',async({page})=>{
+ await open(page);await page.locator('#stream-test-link').click();await expect(page.locator('[data-fast-loaded]')).toBeVisible();await page.evaluate(()=>{window.streamDetached=document.querySelector('[data-fast-loaded] [data-nextgo-island]');window.streamDetachedButton=window.streamDetached.querySelector('[data-increment]')});
+ await page.getByRole('navigation',{name:'Main'}).getByRole('link',{name:'Architecture',exact:true}).click();await expect(page).toHaveTitle('Architecture — Next.go');await page.waitForTimeout(1600);await expect(page.locator('[data-slow-loaded]')).toHaveCount(0);await expect(page.locator('[data-inner-loaded]')).toHaveCount(0);
+ expect(await page.evaluate(()=>{window.streamDetachedButton.click();return window.streamDetached.querySelector('[data-count]').textContent})).toBe('2');
+});
+
+test('deferred failures are generic and offer a Go retry without losing completed boundary state',async({page})=>{
+ await open(page);await page.locator('#stream-test-link').evaluate(link=>link.href='/stream?mode=error');await page.locator('#stream-test-link').click();await expect(page.locator('[data-fast-loaded]')).toBeVisible();await page.getByRole('button',{name:'Increase Fast streamed counter',exact:true}).click();await expect(page.getByRole('button',{name:'Retry loading content'})).toBeVisible();await expect(page.getByRole('region',{name:'Fast streamed counter',exact:true}).locator('[data-count]')).toHaveText('3');expect(await page.content()).not.toContain('private deferred loader diagnostic');
+});
+
+for(const fault of ['truncate','unknown','duplicate','ownership','after-done'])test(`a ${fault} stream fails closed and a repaired retry succeeds`,async({page})=>{
+ await open(page);const key=crypto.randomUUID();await page.locator('#stream-test-link').evaluate((link,{fault,key})=>link.href=`/stream?mode=nested&fault=${fault}&key=${key}`,{fault,key});await page.locator('#stream-test-link').click();await expect(page).toHaveTitle('Nested streaming — Next.go');const retry=page.getByRole('button',{name:'Retry loading content'});await expect(retry).toBeVisible();await expect(page.locator('[data-malicious-stream]')).toHaveCount(0);await expect(page.locator('nextgo-layout[data-nextgo-layout="forged"]')).toHaveCount(0);await page.evaluate(()=>window.oldStreamRetry=document.querySelector('[data-nextgo-stream-retry]'));await retry.click();await expect(page.locator('[data-slow-loaded]')).toBeVisible();await expect(page.locator('#nextgo-status')).toBeHidden();
+ let requests=0;page.on('request',request=>{if(request.headers()['x-nextgo-stream']==='1')requests++});await page.evaluate(()=>window.oldStreamRetry.click());await page.waitForTimeout(100);expect(requests).toBe(0);expect(await page.evaluate(()=>window.streamDocument)).toBe(true);
+});
+for(const fault of ['build-skew','missing-header'])test(`${fault} triggers full document recovery before adopting a streamed shell`,async({page})=>{
+ await open(page);await page.locator('#stream-test-link').evaluate((link,fault)=>link.href=`/stream?mode=nested&fault=${fault}&key=${crypto.randomUUID()}`,fault);await page.locator('#stream-test-link').click();await expect(page).toHaveTitle('Nested streaming — Next.go');await expect(page.locator('[data-slow-loaded]')).toBeVisible();await ready(page);expect(await page.evaluate(()=>window.streamDocument)).toBe(undefined);
+});
+
+for(const {origin,base,path,lang}of [{origin:'http://127.0.0.1:4104',base:'/demo',path:'/demo/stream?mode=nested',lang:'en'},{origin:'http://127.0.0.1:4106',base:'/slash',path:'/slash/stream/?mode=nested',lang:'en'},{origin:'http://127.0.0.1:4120',base:'/shop/fr',path:'/shop/fr/stream?mode=nested',lang:'fr'}])test(`streamed navigation preserves ownership in ${base}`,async({page})=>{
+ await page.goto(origin+base);await ready(page);await page.evaluate(path=>{window.scopedStreamDocument=true;const link=document.createElement('a');link.id='scoped-stream-link';link.href=path;link.textContent='Scoped stream';document.querySelector('main').prepend(link)},path);await page.locator('#scoped-stream-link').click();await expect(page).toHaveTitle('Nested streaming — Next.go');await expect(page.locator('html')).toHaveAttribute('lang',lang);await expect(page.locator('[data-slow-pending]')).toBeVisible();await expect(page.locator('[data-slow-loaded]')).toBeVisible();await page.getByRole('button',{name:'Increase Slow streamed counter',exact:true}).click();await expect(page.locator('[data-slow-loaded] [data-count]')).toHaveText('5');expect(await page.evaluate(()=>window.scopedStreamDocument)).toBe(true);
+});

@@ -1,0 +1,14 @@
+//go:build !js
+
+package app
+
+import (
+ nextgo "github.com/Suhaibinator/Next.go"
+ "github.com/Suhaibinator/Next.go/ui"
+)
+
+func Layout(c *nextgo.Context,children ui.Node)(ui.Node,error){
+ return ui.Fragment(ui.El("header",nil,ui.El("nav",ui.Attrs{"aria-label":"Main"},
+ ui.El("a",ui.Attrs{"href":nextgo.MustURL(c, "/")},ui.Text("Home")),ui.El("a",ui.Attrs{"href":nextgo.MustURL(c, "/about")},ui.Text("About")),ui.El("a",ui.Attrs{"href":nextgo.MustURL(c, "/api/health")},ui.Text("API")))),
+ ui.El("main",ui.Attrs{"tabindex":"-1"},children)),nil
+}

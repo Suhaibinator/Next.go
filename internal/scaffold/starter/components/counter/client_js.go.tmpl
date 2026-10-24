@@ -1,0 +1,23 @@
+//go:build js && wasm
+
+package counter
+
+import(
+ "encoding/json"
+ "fmt"
+ "strconv"
+ "github.com/Suhaibinator/Next.go/client"
+ _ "github.com/Suhaibinator/Next.go/clientonly"
+)
+
+func Mount(scope *client.Scope,raw json.RawMessage)error{
+ props,err:=client.DecodeProps[Props](raw);if err!=nil{return err}
+ output,err:=scope.Require("[data-count]");if err!=nil{return err}
+ if output.Value.Get("textContent").String()!=strconv.Itoa(props.Initial){return fmt.Errorf("counter markup does not match props")}
+ button,err:=scope.Require("[data-increment]");if err!=nil{return err}
+ state:=client.NewState(props.Initial)
+ scope.Cleanup(state.Subscribe(func(value int){output.Text(strconv.Itoa(value))}))
+ scope.On(button,"click",func(client.Event){state.Set(state.Get()+1)})
+ button.Property("disabled",false)
+ return nil
+}

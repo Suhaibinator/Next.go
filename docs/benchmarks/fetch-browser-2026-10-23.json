@@ -1,0 +1,146 @@
+{
+  "measuredAt": "2026-10-23T07:04:24.922Z",
+  "environment": {
+    "node": "v25.7.0",
+    "go": "go version go1.27.3 darwin/arm64",
+    "chromium": "156.0.8078.48",
+    "platform": "darwin",
+    "osRelease": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "settings": {
+    "trials": 6,
+    "freshBrowserPerSample": true,
+    "cacheDisabled": true,
+    "gzipLevel": 9,
+    "latencyMS": 40,
+    "megabitsPerSecond": 10,
+    "cpuThrottle": 4
+  },
+  "variants": {
+    "baseline": {
+      "path": "/tmp/nextgo-perf-audit/baseline.wasm",
+      "sha256": "98319568b86cb5a530016fabdf6ff8440b6ff6e38d72689ca903d43b899e0fa6",
+      "rawBytes": 11949267,
+      "gzipBytes": 3164850
+    },
+    "candidate": {
+      "path": "/tmp/nextgo-perf-audit/candidate.wasm",
+      "sha256": "c9cbec598e0c5cf706871140d4ad3fb0dae03499eb20d957f481955ef6b8b671",
+      "rawBytes": 5041174,
+      "gzipBytes": 1371244
+    }
+  },
+  "mediansMS": {
+    "baseline": {
+      "ready": 2833.1000000089407,
+      "download": 2631.4000000059605,
+      "instantiate": 13.549999997019768,
+      "run": 69.00000001490116
+    },
+    "candidate": {
+      "ready": 1352.4000000059605,
+      "download": 1170.0999999940395,
+      "instantiate": 7.850000023841858,
+      "run": 56.650000005960464
+    }
+  },
+  "samples": [
+    {
+      "trial": 0,
+      "variant": "baseline",
+      "download": 2630,
+      "instantiate": 14.199999988079071,
+      "run": 67.80000001192093,
+      "ready": 2827.5999999940395
+    },
+    {
+      "trial": 0,
+      "variant": "candidate",
+      "download": 1169.5999999940395,
+      "instantiate": 7.600000023841858,
+      "run": 52,
+      "ready": 1348.9000000059605
+    },
+    {
+      "trial": 1,
+      "variant": "candidate",
+      "download": 1170.199999988079,
+      "instantiate": 7.0999999940395355,
+      "run": 54.30000001192093,
+      "ready": 1347.6000000238419
+    },
+    {
+      "trial": 1,
+      "variant": "baseline",
+      "download": 2632.800000011921,
+      "instantiate": 12,
+      "run": 65.30000001192093,
+      "ready": 2833.5
+    },
+    {
+      "trial": 2,
+      "variant": "baseline",
+      "download": 2635.9000000059605,
+      "instantiate": 13.5,
+      "run": 72.90000000596046,
+      "ready": 2843.5
+    },
+    {
+      "trial": 2,
+      "variant": "candidate",
+      "download": 1170,
+      "instantiate": 8.100000023841858,
+      "run": 57.19999998807907,
+      "ready": 1351.9000000059605
+    },
+    {
+      "trial": 3,
+      "variant": "candidate",
+      "download": 1172.4000000059605,
+      "instantiate": 8.599999994039536,
+      "run": 60.30000001192093,
+      "ready": 1359.5
+    },
+    {
+      "trial": 3,
+      "variant": "baseline",
+      "download": 2624,
+      "instantiate": 13.599999994039536,
+      "run": 68.30000001192093,
+      "ready": 2825.699999988079
+    },
+    {
+      "trial": 4,
+      "variant": "baseline",
+      "download": 2634.899999976158,
+      "instantiate": 12.100000023841858,
+      "run": 72.5,
+      "ready": 2843.800000011921
+    },
+    {
+      "trial": 4,
+      "variant": "candidate",
+      "download": 1172.1000000238419,
+      "instantiate": 6.299999982118607,
+      "run": 56.10000002384186,
+      "ready": 1353
+    },
+    {
+      "trial": 5,
+      "variant": "candidate",
+      "download": 1169.2999999821186,
+      "instantiate": 9.600000023841858,
+      "run": 59,
+      "ready": 1352.9000000059605
+    },
+    {
+      "trial": 5,
+      "variant": "baseline",
+      "download": 2626.9000000059605,
+      "instantiate": 13.699999988079071,
+      "run": 69.7000000178814,
+      "ready": 2832.7000000178814
+    }
+  ]
+}

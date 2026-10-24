@@ -1,0 +1,11 @@
+//go:build !js
+
+package counter
+
+import("strconv";"github.com/Suhaibinator/Next.go/ui")
+
+func View(props Props)ui.Node{
+ return ui.Island("counter",props,ui.El("section",ui.Attrs{"aria-label":"Counter"},
+ ui.El("output",ui.Attrs{"data-count":"","aria-live":"polite"},ui.Text(strconv.Itoa(props.Initial))),
+ ui.El("button",ui.Attrs{"type":"button","data-increment":"","disabled":""},ui.Text("Increase counter"))))
+}

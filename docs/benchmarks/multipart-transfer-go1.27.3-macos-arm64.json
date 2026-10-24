@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-24T18:15:36.891Z",
+  "sourceOrigin": "http://127.0.0.1:3010",
+  "environment": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "node": "v25.7.0",
+    "browser": "156.0.8078.4",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "One synthetic two-file request per mode through a local byte-counting proxy; 524288 content bytes, no request compression. This is not latency, throughput, allocation, cold-start, cloud or general performance qualification.",
+  "samples": [
+    {
+      "contentType": "multipart/form-data; boundary=----WebKitFormBoundary1zSfXtUBxYlbosJc",
+      "bodyBytes": 524759,
+      "declaredContentLength": 524759,
+      "mode": "multipart"
+    },
+    {
+      "contentType": "application/json",
+      "bodyBytes": 699167,
+      "declaredContentLength": 699167,
+      "mode": "json"
+    }
+  ]
+}
