@@ -374,7 +374,7 @@ func (a *App) initPrerenderRuntime() error {
 			return fmt.Errorf("nextgo: prerender artifact/build mismatch")
 		}
 	}
-	groups, known, err := a.collectPrerenderMembership(context.Background(), manifest, scopes)
+	groups, known, err := a.collectPrerenderMembership(a.config.startupContext, manifest, scopes)
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (a *App) initPrerenderRuntime() error {
 		app.prerenderKnown = paths
 	}
 	for store, seeds := range groups {
-		if _, err := cache.Bootstrap(context.Background(), store, seeds); err != nil {
+		if _, err := cache.Bootstrap(a.config.startupContext, store, seeds); err != nil {
 			if !errors.Is(err, cache.ErrAlreadyUsed) {
 				return err
 			}

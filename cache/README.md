@@ -139,7 +139,7 @@ value generation, not necessarily the age of data hidden inside nested caches.
 
 Automatic nested lifetime propagation and implicit cached-function scopes
 remain work. Shared scheduled refresh is explicit; authority-admitted build
-seeds are a separate increment under qualification.
+seeds have a separate bounded, tested authority-admission contract.
 
 ```go
 var postsCache = cache.New(512)
@@ -460,7 +460,7 @@ mixed versions fail closed. Shared caching does not make process-local caches
 in other replicas coherent, propagate nested profiles or invalidate browser/CDN
 copies.
 
-### Authority-admitted prerender seeds (qualification in progress)
+### Authority-admitted prerender seeds
 
 `PrerenderPolicy.Shared: true` uses `Config.SharedCache` for both optional build
 seeds and runtime regeneration. Build must reserve a one-use authenticated
@@ -474,8 +474,17 @@ The bounded ticket/session protocol and optional file persistence do not make
 this an application database, durable work queue or replicated/HA authority.
 See [shared prerender admission](../docs/SHARED_CACHE.md#shared-prerender-admission)
 and the [online build/runtime example](../docs/PRERENDER.md#shared-build-seeds-and-regeneration).
-The current shared-prerender increment has not completed its full qualification;
-preceding durable-cache results describe the preceding feature set.
+The bounded shared-prerender subset passes native, browser and executable
+checks; see [verification scope](../docs/SHARED_CACHE.md#verification-scope).
+Those results do not qualify actual cloud deployments, power loss or HA.
+
+Ticket/session quotas are global per backend and their bounded metadata is
+additional to entry `MaxBytes`. Import validates complete-set budgets before
+consumption, then publishes chunks; a later error can leave earlier chunks
+retained. Each offered key is marked once even when admission rejects it.
+Unknown sessions accept zero entries, and a consumed ticket cannot replay.
+Custom server construction can use `nextgo.NewContext` to bound startup work;
+later requests/completions have their own lifetimes and shutdown uses `App.Close`.
 
 
 ## Optional durable shared authority
@@ -502,6 +511,8 @@ cache-runtime target with persistent `/data`. The [durable authority contract](.
 details ownership, locking, active/peak disk accounting, startup failure and
 recovery. Shared prerender ticket reservation/consumption and admitted values
 are journaled; import sessions and load leases are not restored. WAL format 2
-upgrades an existing format-1 journal on the first seed mutation. This is one
+upgrades an existing format-1 journal on the first seed mutation and never
+downgrades in place; older authority executables reject the upgraded store.
+Wire v3 likewise needs coordinated clients/service. This is one
 local authority, not replicated/HA/NFS storage or a completed production release
 qualification.

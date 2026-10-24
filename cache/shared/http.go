@@ -77,10 +77,95 @@ func strict(data []byte, out any) error {
 	if !exactKeys(data, fields, children) {
 		return ErrProtocol
 	}
+	if !seedWireShape(data, out) {
+		return ErrProtocol
+	}
 	if err := wirejson.Strict(data, out); err != nil {
 		return ErrProtocol
 	}
 	return nil
+}
+func seedWireShape(data []byte, out any) bool {
+	var object map[string]json.RawMessage
+	if json.Unmarshal(data, &object) != nil {
+		return false
+	}
+	switch out.(type) {
+	case *wireResponse:
+		for _, key := range []string{"View", "Count", "Ticket", "Session"} {
+			if value, ok := object[key]; ok && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+				return false
+			}
+		}
+		if value, ok := object["Error"]; ok && !seedWireString(value) {
+			return false
+		}
+		if value, ok := object["Ticket"]; ok && !seedWireObject(value, "Token CreatedAt", "Token CreatedAt", "Token CreatedAt") {
+			return false
+		}
+		if value, ok := object["Session"]; ok && !seedWireObject(value, "Token LeaseFor", "Token LeaseFor", "Token") {
+			return false
+		}
+	case *wireRequest:
+		var operation string
+		if json.Unmarshal(object["Operation"], &operation) != nil {
+			return false
+		}
+		allowed, required := "", "Version Operation Namespace"
+		switch operation {
+		case "seed-reserve":
+			allowed = "Version Operation ID Namespace"
+		case "seed-begin", "seed-finish":
+			allowed = "Version Operation ID Namespace Token"
+			required += " Token"
+		case "seed-install":
+			allowed = "Version Operation ID Namespace Token Seeds"
+			required += " Token Seeds"
+		default:
+			return true
+		}
+		if !seedWireObject(data, allowed, required, "Operation Namespace Token") {
+			return false
+		}
+		if value, ok := object["ID"]; ok {
+			if !seedWireObject(value, "Namespace Schema Key", "Namespace Schema Key", "Namespace Schema Key") {
+				return false
+			}
+			var id ID
+			if json.Unmarshal(value, &id) != nil || id != (ID{}) {
+				return false
+			}
+		}
+	}
+	return true
+}
+func seedWireString(value []byte) bool {
+	value = bytes.TrimSpace(value)
+	if len(value) == 0 || value[0] != '"' {
+		return false
+	}
+	var text string
+	return json.Unmarshal(value, &text) == nil
+}
+func seedWireObject(data []byte, allowed, required, stringFields string) bool {
+	var object map[string]json.RawMessage
+	if json.Unmarshal(data, &object) != nil || object == nil {
+		return false
+	}
+	for key, value := range object {
+		if !strings.Contains(" "+allowed+" ", " "+key+" ") || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return false
+		}
+		if strings.Contains(" "+stringFields+" ", " "+key+" ") && !seedWireString(value) {
+			return false
+		}
+	}
+	for _, key := range strings.Fields(required) {
+		if _, ok := object[key]; !ok {
+			return false
+		}
+	}
+	return true
 }
 func exactKeys(data []byte, fields string, children map[string]string) bool {
 	var object map[string]json.RawMessage
@@ -132,7 +217,29 @@ func exactSeedArray(data []byte) bool {
 		return false
 	}
 	return jsonArrayBound(data, MaxSeedBatch, func(value []byte) bool {
-		return exactKeys(value, "ID Policy Value", map[string]string{"ID": "Namespace Schema Key", "Policy": "FreshFor ExpireAfter Tags Paths"})
+		if !exactKeys(value, "ID Policy Value", map[string]string{"ID": "Namespace Schema Key", "Policy": "FreshFor ExpireAfter Tags Paths"}) {
+			return false
+		}
+		var object map[string]json.RawMessage
+		if json.Unmarshal(value, &object) != nil || len(object) != 3 {
+			return false
+		}
+		if !seedWireObject(object["ID"], "Namespace Schema Key", "Namespace Schema Key", "Namespace Schema Key") {
+			return false
+		}
+		// Optional nil label slices have a canonical JSON null representation.
+		var policy map[string]json.RawMessage
+		if json.Unmarshal(object["Policy"], &policy) != nil || policy == nil {
+			return false
+		}
+		for _, key := range []string{"FreshFor", "ExpireAfter"} {
+			raw, ok := policy[key]
+			if !ok || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+				return false
+			}
+		}
+		raw, ok := object["Value"]
+		return ok && (bytes.Equal(bytes.TrimSpace(raw), []byte("null")) || seedWireString(raw))
 	})
 }
 func jsonMedia(header string) bool {

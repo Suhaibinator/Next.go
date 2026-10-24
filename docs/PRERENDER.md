@@ -169,8 +169,9 @@ documented in the main README.
 
 ## Shared build seeds and regeneration
 
-This increment is under implementation and qualification. The following is its
-current contract; full shared-prerender end-to-end qualification is pending.
+This bounded subset is implemented with native, browser and executable
+verification. Actual-cloud and operational release gates remain open; see
+[the qualification scope](#shared-prerender-verification-october-24-2026-utc).
 
 Set `PrerenderPolicy.Shared: true` and configure `Config.SharedCache` to opt an
 ordinary public route into the shared authority. Keep the same public-output
@@ -210,12 +211,28 @@ Tickets expire after 30 days. The reference backends retain at most 128 pending
 tickets (reserving another evicts the oldest), allow 16 active import sessions
 and give each session five minutes. An import batch contains at most 128 values
 and 1 MiB of serialized value bytes; a session admits at most 10,000 distinct
-values and 32 MiB before ordinary capacity/byte admission. Individual snapshots
-must also fit the shared codec's 1-MiB actual-JSON limit. Existing retained
+values and 32 MiB before ordinary capacity/byte admission. An ordinary valid
+build render that exceeds the narrower shared-codec or 1-MiB actual-JSON
+admission bounds is skipped. Bootstrap still consumes its ticket, including
+when every seed is skipped; normal runtime rendering can serve a valid page
+uncached. Malformed private manifests, build bindings and ticket syntax still
+fail startup validation. Existing retained
 generations or active load leases win over a seed; import does not overwrite
 them. Limits may leave only part of a build retained. Interrupted sessions do
 not survive authority restart, and consumed tickets are never restored as new
-permissions.
+permissions. Ticket/session quotas are global to a backend, across namespaces;
+bounded ticket and session-key metadata is additional to ordinary entry-capacity
+and `MaxBytes` accounting. The typed import helper also bounds aggregate
+metadata and encoded envelopes before consuming a ticket.
+
+Import is not a transaction across all chunks. Earlier accepted chunks can
+remain published when a later chunk, deadline or final cleanup fails. Startup
+reports that error, and restarting cannot replay the consumed ticket. Within a
+session each offered key is recorded once, including keys rejected by expiry or
+capacity, so retrying a batch cannot later refill an evicted/rejected hole.
+Unknown or expired sessions accept zero entries; they do not create replacement
+permission. A successful import can therefore admit zero or fewer entries than
+the artifact contains. Runtime requests load missing entries normally.
 
 Acknowledged expiration or stale marking revokes **all outstanding tickets and
 sessions in the selected namespace**, even when no current key matches the
@@ -224,6 +241,42 @@ publishing an invalidated generation through a future cold start. A zero-match
 invalidation is meaningful. An unknown, consumed, expired or revoked ticket
 skips seed import and lets runtime loading proceed; transport and protocol
 errors fail startup, rather than silently adopting local embedded HTML.
+
+An authority outage or authentication/protocol failure during build aborts the
+build before generators run. During startup it aborts startup; inspect the
+wrapped `reserve shared prerender build` or `initialize shared prerender seeds`
+error, restore authority connectivity/credentials, and retry. Session-capacity
+errors can be retried after active imports finish or their five-minute leases
+expire. Do not delete a durable authority directory merely to retry a deployment:
+that discards cached generations and outstanding build permissions. A ticket
+lost to quota eviction, consumption or invalidation is safely skipped; rebuild
+online to obtain a new opportunity to seed, or let normal requests regenerate.
+
+Custom servers should use `nextgo.NewContext(startupCtx, config)` with their own
+startup deadline/cancellation. That context controls construction, including
+static membership enumeration and shared bootstrap RPCs; it does not control
+later requests or completion work. Cancel it after construction returns, and
+use `App.Close` with a fresh bounded shutdown context when serving ends.
+`New(config)` retains the default bounded startup behavior. The generated server
+creates its signal context before construction, so SIGINT/SIGTERM can interrupt
+startup network work as well as serving.
+
+```go
+startup, stop := context.WithTimeout(signalCtx, 30*time.Second)
+app, err := nextgo.NewContext(startup, config)
+stop()
+if err != nil {
+    return err
+}
+// Serve app; after HTTP shutdown, drain completion work with app.Close.
+```
+
+Cancellation can race an authority commit: an import may be partially published
+or its ticket consumed even though construction returns an error. A retry must
+use normal startup, which safely skips a consumed ticket, rather than manually
+replaying artifact values. Import-session cleanup uses an independent best-effort
+500-ms deadline; unknown sessions cannot publish and abandoned live sessions
+expire at their existing deadline.
 
 Shared seed keys bind the final build, effective configuration, route pattern
 and canonical encoded path. Their host-independent binding differs from the
@@ -270,3 +323,51 @@ so an ordinary build needs no cache service. The process-only
 `NEXTGO_DEMO_SHARED_PRERENDER_FAIL=true` flag makes that demonstration loader
 fail; it is not a request query parameter and must be absent for a successful
 build.
+
+The stock Dockerfile builds the demo with local prerendering by default. For an
+online shared build, make the authority reachable from the trusted build
+environment and inject its credential as a build secret or private environment
+variable. Do not place tokens in Docker `ARG`/`ENV` declarations, image layers,
+source control or public assets. A host CLI can cross-build the standalone
+Linux executable while running its prerender probe on the host:
+
+```sh
+# Keep the same private shared-cache environment from the preceding example.
+mkdir -p ./dist
+go build -o ./dist/nextgo ./cmd/nextgo
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+  ./dist/nextgo build --out ./dist/demo-linux ./examples/demo
+```
+
+Select `GOARCH` for the target machine, package the resulting `server` with
+the runtime CA certificates if the authority uses HTTPS, and supply endpoint,
+credential and opt-in again at runtime. A Docker build with a private online
+authority needs explicit secret/network plumbing; the stock recipe does not
+provide that automatically. There is no runtime source-tree dependency or
+reason to copy the build credential into the image.
+
+### Shared-prerender verification (October 24, 2026 UTC)
+
+The frozen implementation passes full native race/vet on Go 1.27.3 macOS arm64
+and Go 1.24.13 Linux arm64, matching core/lazy-module WASM builds/vet and route
+generation checks. Root integration includes 17 tests and 24 invalidation
+variants; six backend seed-audit tests and adversarial transport/batch checks
+exercise ticket fencing, authority-owned age, partial/rejected admission and
+startup cancellation. Standalone host and nonroot read-only Linux HTTP tests,
+both buffered/streaming mock Lambda modes, real file-authority seed recovery
+and held-live-work completion-drain checks pass. The mock Lambda worker waits
+for confirmed blocked completion work before polling `/next`.
+
+An actual online-build fixture passes 36 browser checks across host Chromium
+and Linux Firefox/WebKit/touch (9 + 27). It verifies useful build HTML before
+WASM, DOM identity after hydration, independent counters, navigation and
+acknowledged invalidation. Together with 305 existing production/shared-page/
+shared-data checks, the frozen source passes **341 checks / 3 existing
+Chromium-only protocol skips on other engines**. See
+[logs, earlier fixture failures and scope](SHARED_CACHE.md#shared-prerender-qualification-october-24-2026-utc).
+
+This evidence covers the implemented subset, not actual AWS, machine power
+loss, replicated/HA authorities, immutable release rollout or production
+load/soak. All 11 release gates remain open, and the
+[warm-local performance observation](PERFORMANCE.md#shared-prerender-observation-october-24-2026-utc)
+still exceeds the 6-MiB raw/1.6-MiB gzip WASM budgets.

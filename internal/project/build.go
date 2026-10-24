@@ -292,9 +292,9 @@ nextgo "` + framework + `"
 	if p.Configure != "" {
 		fmt.Fprintf(&b, "%s.Configure(&config)\n", aliases[p.Configure])
 	}
-	b.WriteString(`app,err:=nextgo.New(config);if err!=nil{log.Fatal(err)};if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}
+	b.WriteString(`ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
+app,err:=nextgo.NewContext(ctx,config);if err!=nil{log.Fatal(err)};if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}
 if *exportConfig{info,err:=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});if err!=nil{log.Fatal(err)};if err=json.NewEncoder(os.Stdout).Encode(info);err!=nil{log.Fatal(err)};return}
-ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
 if *prerenderOut!=""{buildCtx,cancel:=context.WithTimeout(ctx,90*time.Second);defer cancel();data,err:=app.BuildPrerender(buildCtx);if err!=nil{log.Fatal(err)};if err=os.WriteFile(*prerenderOut,data,0600);err!=nil{log.Fatal(err)};return}
 if *pathConfig{if err:=json.NewEncoder(os.Stdout).Encode(app.Paths());err!=nil{log.Fatal(err)};return}
 if *staticPaths{enumeration,cancel:=context.WithTimeout(ctx,30*time.Second);defer cancel();paths,err:=app.StaticPathsForDomain(enumeration,*exportDomain);if err!=nil{log.Fatal(err)};encoder:=json.NewEncoder(os.Stdout);encoder.SetEscapeHTML(false);if err=encoder.Encode(paths);err!=nil{log.Fatal(err)};return}

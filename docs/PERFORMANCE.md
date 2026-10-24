@@ -9,6 +9,10 @@ These are measurements of this framework before and after one change. They are
 not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
+The latest recorded sample is the
+[shared-prerender observation](#shared-prerender-observation-october-24-2026-utc).
+Earlier reports remain historical measurements of their specific artifacts.
+
 ## Measured WASM and startup improvement
 
 Measured on 2026-10-23 UTC with Go 1.27.3 (`darwin/arm64`), Chrome
@@ -478,7 +482,7 @@ shared-cache performance, heap/RSS, cold/device or Next.js comparison results.
 
 ## Shared rendered-page observation (October 24, 2026 UTC)
 
-The [current core observation](benchmarks/shared-pages-go1.27.3-macos-arm64.json)
+The [then-current core observation](benchmarks/shared-pages-go1.27.3-macos-arm64.json)
 records **8,162,036 raw bytes / 2,119,557 gzip-9 bytes**, SHA-256
 `c4da65f544272a747791507b413034f79bad979e953cbcaa393e7799ced06b44`.
 Shared snapshot serialization, head reconstruction and invalidation remain
@@ -492,3 +496,29 @@ port 3011 observed `/uploads` readiness of 62–70 ms (median 64 ms), with a
 no workload isolation or CPU/network throttling. This does not measure shared
 page-cache latency/throughput, heap/RSS, cold/device behavior or a production/
 Next.js comparison.
+
+
+## Shared-prerender observation (October 24, 2026 UTC)
+
+The [shared-prerender report](benchmarks/shared-prerender-go1.27.3-macos-arm64.json)
+records **8,162,036 raw bytes / 2,119,562 gzip-9 bytes**, SHA-256
+`06c662c4fc2f77b2810025eb4221ee2b584e3333306f9b11f1174ab7c882d5b0`.
+Build-seed admission and regeneration remain native-only; the sample reuses
+the existing Go counter islands. These artifact bytes do not isolate the
+marginal cost of that feature. Both the **6-MiB raw and 1.6-MiB gzip-9 budgets
+still fail**.
+
+The report uses Go 1.27.3 (`darwin/arm64`), Chromium 156.0.8078.4, Node 25.7.0
+and Apple M4 Max/Darwin 27.0.0. Ten new contexts in one browser process against
+the warm development preview on port 3011 observed `/shared-prerender/alpha`
+hydration readiness of **59–80 ms (median 66 ms)** and a **6,815,744-byte** WASM
+linear-memory capacity. All recorded asset bodies came from browser responses.
+
+Qualification workloads were running concurrently; there was no CPU/network
+throttling or workload isolation. The path also differs from the preceding
+`/uploads` observations, and the browser process can reuse compiled code.
+These timings support no improvement or regression comparison. Linear-memory
+capacity is not live heap, peak memory or process RSS. This observation does
+not measure shared-cache throughput/latency, production cold starts, mobile
+devices, representative networks, field behavior or Next.js performance, and
+does not satisfy a production performance gate.

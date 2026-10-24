@@ -10,8 +10,9 @@ task_results=$(mktemp -d "$task_root/.nextgo-test-results/crossbrowser/container
 printf 'Browser results: %s\n' "$task_results"
 docker build --target artifact --output "type=local,dest=$task_artifacts" .
 docker build --target workspace-artifact --output "type=local,dest=$task_artifacts/workspace" .
+docker build --target static-browser-test -t nextgo-static-browser-test:local .
 docker run --rm --init --network none --shm-size=1g \
-  -v "$task_root:/src:ro" -v "$task_artifacts:/artifact:ro" \
+  -v "$task_artifacts:/artifact:ro" \
   -v "$task_results:/results" -w /src \
   -e NEXTGO_E2E_WORKSPACE_BINARY=/artifact/workspace/server -e NEXTGO_E2E_SERVER_BINARY=/artifact/server -e NEXTGO_E2E_RESULTS=/results \
-  mcr.microsoft.com/playwright:v1.64.1-noble npm run test:crossbrowser -- "$@"
+  nextgo-static-browser-test:local npm run test:crossbrowser -- "$@"

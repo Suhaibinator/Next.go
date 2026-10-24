@@ -126,6 +126,7 @@ type Config struct {
 	// PrerenderBuildMode is for the CLI build probe, never a public server.
 	PrerenderBuildMode bool
 	prerenderDeferred  bool
+	startupContext     context.Context
 	// EarlyScripts are trusted classic dependencies shared by every document.
 	// They execute in parser order before the Go bootstrap.
 	EarlyScripts []scripts.Script
@@ -256,7 +257,40 @@ func validateRouteLayers(r Route) error {
 	return nil
 }
 
+// New constructs an application with the default bounded startup policy.
+// Use NewContext to cancel startup enumeration or shared-seed network work.
 func New(c Config) (*App, error) {
+	ctx := c.startupContext
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return NewContext(ctx, c)
+}
+
+// NewContext bounds construction by ctx. It is a startup context, not the
+// lifetime context for later requests or completion work. Canceling construction
+// can have an unknown shared import outcome; consumed build tickets never replay.
+func NewContext(ctx context.Context, c Config) (*App, error) {
+	if ctx == nil {
+		return nil, errors.New("nextgo: startup context required")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	c.startupContext = ctx
+	app, err := newApp(c)
+	if err == nil && !c.prerenderDeferred {
+		// Locale children retain this context until their wrapper finishes the
+		// grouped import. A ready application must not retain startup values.
+		for _, scope := range app.prerenderAllScopes() {
+			scope.app.config.startupContext = nil
+		}
+		app.config.startupContext = nil
+	}
+	return app, err
+}
+
+func newApp(c Config) (*App, error) {
 	var earlyErr error
 	c.EarlyScripts, earlyErr = freezeEarlyScripts(c.EarlyScripts)
 	if earlyErr != nil {
@@ -382,6 +416,9 @@ func New(c Config) (*App, error) {
 	}
 	a.handler = httpx.Compression(a.handler)
 	if err := a.initPrerenderRuntime(); err != nil {
+		return nil, err
+	}
+	if err := c.startupContext.Err(); err != nil {
 		return nil, err
 	}
 	var err error

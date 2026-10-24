@@ -99,14 +99,18 @@ func (a *App) initSharedPrerenderSeeds(manifest prerenderManifest, scopes []prer
 			value := cachedPage{Page: Page{Title: p.Title, Description: p.Description, Meta: maps.Clone(p.Meta), document: &p.Document, preparedHead: &renderedHead{elements: p.Head, markup: p.HeadHTML}}, HTML: p.HTML, GeneratedAt: p.GeneratedAt, Prerendered: true}
 			dto, err := encodeSharedPage(value, binding)
 			if err != nil {
-				return fmt.Errorf("nextgo: encode shared prerender seed: %w", err)
+				// A valid private build render can exceed the shared codec's
+				// narrower admission limits. Skip retention rather than breaking
+				// the application; normal rendering keeps its existing validation.
+				// Bootstrap still consumes the ticket, including an empty batch.
+				continue
 			}
 			groups[identity] = append(groups[identity], shared.Seed[sharedPageSnapshot]{Key: binding, Value: dto, Policy: sharedPagePolicy(route.Cache, route.Cache.Lifetime, prerenderDecodedPath(p.Path))})
 		}
 	}
 	// Consume even empty/admission-skipped batches. A used build artifact must
 	// never become a future opportunity to refill an invalidated/evicted hole.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(a.config.startupContext, 30*time.Second)
 	defer cancel()
 	for _, scope := range slices.Sorted(maps.Keys(stores)) {
 		if tickets[scope] == "" {

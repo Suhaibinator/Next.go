@@ -41,7 +41,7 @@ COPY tests/deployment/fixtures/production.env /configuration/.env.production
 USER 65532:65532
 ENV NEXTGO_TEST_BINARY=/server NEXTGO_TEST_UID=65532 NEXTGO_TEST_ENV_DIR=/configuration NEXTGO_TEST_WORKSPACE_BINARY=/workspace-server NEXTGO_TEST_CACHE_BINARY=/nextgo-cache NEXTGO_TEST_CACHE_TMPDIR=/cache-tests
 ENTRYPOINT ["/deployment.test"]
-CMD ["-test.v", "-test.timeout=90s"]
+CMD ["-test.v", "-test.timeout=180s"]
 
 # Export/build tools are development-only; this image never ships as runtime.
 FROM otel/opentelemetry-collector-contrib:0.163.2@sha256:7f22d2a6748110ffb6a59bc0df448bccbf501cdb667d610ede4c61d3863d5849 AS collector

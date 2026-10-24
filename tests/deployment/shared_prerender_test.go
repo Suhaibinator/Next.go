@@ -108,11 +108,20 @@ func seedFixtureConfig(endpoint, generation string, fail bool, fresh time.Durati
 			return []nextgo.Params{{"slug": "alpha"}, {"slug": "beta"}}, nil
 		},
 			Page: func(c *nextgo.Context) (nextgo.Page, error) {
-				if fail {
+				effective, unavailable := generation, fail
+				if path := os.Getenv("NEXTGO_TEST_SEED_SOURCE_FILE"); path != "" {
+					data, err := os.ReadFile(path)
+					var source seedSource
+					if err != nil || json.Unmarshal(data, &source) != nil {
+						return nextgo.Page{}, errors.New("seed fixture source unreadable")
+					}
+					effective, unavailable = source.Generation, source.Fail
+				}
+				if unavailable {
 					return nextgo.Page{}, errors.New("seed fixture source unavailable")
 				}
-				title := "Seed " + c.Params["slug"] + " " + generation
-				return nextgo.Page{Title: title, Description: "Generation " + generation, Meta: map[string]string{"seed-generation": generation}, Metadata: seo.Metadata{Language: "en", Direction: "ltr", OpenGraph: seo.OpenGraph{Title: title, Type: "article"}}, Body: ui.El("article", nil, ui.El("h1", nil, ui.Text(c.Params["slug"])), ui.El("code", ui.Attrs{"data-seed-generation": ""}, ui.Text(generation)), counter.View(counter.Props{Label: "Seed counter", Initial: 3}))}, nil
+				title := "Seed " + c.Params["slug"] + " " + effective
+				return nextgo.Page{Title: title, Description: "Generation " + effective, Meta: map[string]string{"seed-generation": effective}, Metadata: seo.Metadata{Language: "en", Direction: "ltr", OpenGraph: seo.OpenGraph{Title: title, Type: "article"}}, Body: ui.El("article", nil, ui.El("h1", nil, ui.Text(c.Params["slug"])), ui.El("code", ui.Attrs{"data-seed-generation": ""}, ui.Text(effective)), counter.View(counter.Props{Label: "Seed counter", Initial: 3}))}, nil
 			}, Layouts: []nextgo.LayoutFunc{func(_ *nextgo.Context, n ui.Node) (ui.Node, error) {
 				return ui.El("main", ui.Attrs{"data-seed-layout": ""}, n), nil
 			}},
@@ -188,6 +197,16 @@ func seedChild(t *testing.T, endpoint, artifact, generation string, fail bool, f
 	})
 	return p
 }
+func closeSeedChild(p *process) {
+	select {
+	case <-p.done:
+		return
+	default:
+	}
+	_ = p.cmd.Process.Kill()
+	<-p.done
+}
+
 func seedHTTPChild(t *testing.T, endpoint, artifact, generation string, fail bool, fresh time.Duration) (*process, string) {
 	t.Helper()
 	addr := address(t)
@@ -420,6 +439,7 @@ func seedLambdaEvents(t *testing.T, mode, endpoint, artifact string, events []se
 	}))
 	defer runtime.Close()
 	worker := seedChild(t, endpoint, artifact, "source-offline", true, time.Hour, "AWS_LAMBDA_RUNTIME_API="+strings.TrimPrefix(runtime.URL, "http://"), "NEXTGO_LAMBDA_RESPONSE_MODE="+mode)
+	defer closeSeedChild(worker) // release an outstanding /next before runtime.Close on a test failure
 	select {
 	case <-done:
 	case <-worker.done:
@@ -451,5 +471,355 @@ func TestSharedPrerenderLambdaExecutable(t *testing.T) {
 			seedLambdaEvents(t, mode, endpoint, artifact, []seedLambdaEvent{{"/seed/beta", "build-lambda", 200}, {"/seed/alpha", "", 500}}, nil)
 			authority.stop(t)
 		})
+	}
+}
+
+type seedSource struct {
+	Generation string
+	Fail       bool
+}
+
+func writeSeedSource(t *testing.T, path, generation string, fail bool) {
+	t.Helper()
+	data, err := json.Marshal(seedSource{Generation: generation, Fail: fail})
+	if err != nil {
+		t.Fatal(err)
+	}
+	staging := path + ".next"
+	if err := os.WriteFile(staging, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(staging, path); err != nil {
+		t.Fatal(err)
+	}
+}
+
+type seedCommittedPage struct {
+	Format      int               `json:"format"`
+	Binding     string            `json:"binding"`
+	HTML        string            `json:"html"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	Meta        map[string]string `json:"meta"`
+	Document    nextgo.Document   `json:"document"`
+	Head        []seo.Element     `json:"head"`
+	GeneratedAt time.Time         `json:"generatedAt"`
+	Prerendered bool              `json:"prerendered"`
+}
+type seedAcceptedCommit struct {
+	ID   shared.ID
+	Page seedCommittedPage
+}
+
+type seedRefreshFence struct {
+	started chan string
+	permit  chan struct{}
+	next    chan struct{}
+	began   atomic.Bool
+	closed  atomic.Bool
+}
+
+func (f *seedRefreshFence) release() {
+	if f.closed.CompareAndSwap(false, true) {
+		close(f.permit)
+	}
+}
+
+// The observer forwards to the actual file-backed authority. It observes the
+// accepted publication itself; it never supplies a loader or repairs a read.
+func seedRecordingProxy(t *testing.T, target string, allowed *atomic.Bool, fence *seedRefreshFence) (*httptest.Server, <-chan seedAcceptedCommit, <-chan shared.ID) {
+	t.Helper()
+	committed := make(chan seedAcceptedCommit, 8)
+	released := make(chan shared.ID, 8)
+	transport := &http.Transport{DisableKeepAlives: true}
+	t.Cleanup(transport.CloseIdleConnections)
+	client := &http.Client{Timeout: 5 * time.Second, Transport: transport}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := io.ReadAll(io.LimitReader(r.Body, (2<<20)+1))
+		if err != nil {
+			t.Error(err)
+			w.WriteHeader(503)
+			return
+		}
+		var operation struct {
+			Operation string
+			ID        shared.ID
+			Value     []byte
+		}
+		if err := json.Unmarshal(data, &operation); err != nil {
+			t.Error(err)
+			w.WriteHeader(503)
+			return
+		}
+		if (operation.Operation == "commit" || operation.Operation == "release" || operation.Operation == "discard") && !allowed.Load() {
+			t.Errorf("shared prerender %s began before Runtime API accepted its response", operation.Operation)
+		}
+		if (operation.Operation == "commit" || operation.Operation == "release" || operation.Operation == "discard") && fence.began.CompareAndSwap(false, true) {
+			fence.started <- operation.Operation
+			select {
+			case <-fence.permit:
+			case <-r.Context().Done():
+				w.WriteHeader(503)
+				return
+			}
+		}
+		request, err := http.NewRequestWithContext(r.Context(), "POST", target, bytes.NewReader(data))
+		if err != nil {
+			t.Error(err)
+			w.WriteHeader(503)
+			return
+		}
+		request.Header = r.Header.Clone()
+		response, err := client.Do(request)
+		if err != nil {
+			t.Error("authority forwarding failed")
+			w.WriteHeader(503)
+			return
+		}
+		payload, err := io.ReadAll(io.LimitReader(response.Body, (2<<20)+1))
+		response.Body.Close()
+		if err != nil {
+			t.Error(err)
+			w.WriteHeader(503)
+			return
+		}
+		if response.StatusCode == 200 {
+			if operation.Operation == "commit" {
+				var result struct{ View *shared.View }
+				if err := json.Unmarshal(payload, &result); err != nil {
+					t.Error(err)
+				}
+				if result.View != nil && result.View.Found {
+					var page seedCommittedPage
+					if err := json.Unmarshal(operation.Value, &page); err != nil {
+						t.Error(err)
+					}
+					select {
+					case committed <- seedAcceptedCommit{ID: operation.ID, Page: page}:
+					default:
+						t.Error("too many seed fixture publications")
+					}
+				}
+			} else if operation.Operation == "release" || operation.Operation == "discard" {
+				select {
+				case released <- operation.ID:
+				default:
+					t.Error("too many seed fixture retirements")
+				}
+			}
+		}
+		for key, values := range response.Header {
+			w.Header()[key] = append([]string(nil), values...)
+		}
+		w.WriteHeader(response.StatusCode)
+		_, _ = w.Write(payload)
+	}))
+	t.Cleanup(server.Close)
+	return server, committed, released
+}
+func verifySeedCommit(t *testing.T, commit seedAcceptedCommit, generation string) {
+	t.Helper()
+	page := commit.Page
+	if page.Format != 1 || page.Prerendered || page.Binding != commit.ID.Key || page.GeneratedAt.IsZero() || page.Meta["seed-generation"] != generation || page.Title != "Seed alpha "+generation || page.Description != "Generation "+generation || page.Document.Language != "en" || page.Document.Direction != "ltr" || !strings.Contains(page.HTML, `data-seed-generation="">`+generation+"</code>") || !strings.Contains(page.HTML, `aria-label="Seed counter"`) {
+		t.Errorf("accepted refresh did not publish one complete runtime snapshot: %+v", page)
+	}
+	found := false
+	for _, element := range page.Head {
+		if element.Tag == "meta" && element.Attrs["property"] == "og:title" && element.Attrs["content"] == page.Title {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("accepted runtime snapshot lost structured OpenGraph head")
+	}
+}
+func TestSharedPrerenderLambdaRefreshOrderingExecutable(t *testing.T) {
+	for _, mode := range []string{"buffered", "streaming"} {
+		for _, fail := range []bool{false, true} {
+			name := "healthy"
+			if fail {
+				name = "failure-hard-expiry-recovery"
+			}
+			t.Run(mode+"/"+name, func(t *testing.T) {
+				const fresh = time.Second
+				dir, addr := durableDirectory(t), address(t)
+				authority, backend := openDurableCacheAt(t, dir, addr)
+				defer authority.stop(t)
+				var allowed atomic.Bool
+				allowed.Store(true)
+				fence := &seedRefreshFence{started: make(chan string, 1), permit: make(chan struct{}), next: make(chan struct{}, 1)}
+				defer fence.release()
+				proxy, committed, released := seedRecordingProxy(t, "http://"+addr, &allowed, fence)
+				artifact := buildSeedFixture(t, proxy.URL, "build-stale", fresh)
+				source := filepath.Join(filepath.Dir(artifact), "source.json")
+				writeSeedSource(t, source, "runtime-next", fail)
+				// Ticket age, not app startup time, controls seed freshness. No authority
+				// lookup is used here; doing so could acquire a lease and hide a broken job.
+				time.Sleep(fresh + 100*time.Millisecond)
+				allowed.Store(false)
+				events := 2
+				if fail {
+					events = 3
+				}
+				var issued, reports atomic.Int32
+				done := make(chan struct{})
+				runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.HasSuffix(r.URL.Path, "/next") {
+						index := int(issued.Add(1)) - 1
+						if index >= events {
+							if index == events {
+								close(done)
+							}
+							<-r.Context().Done()
+							return
+						}
+						if index == 1 {
+							select {
+							case fence.next <- struct{}{}:
+							default:
+							}
+							if fail {
+								select {
+								case <-released:
+								default:
+									t.Error("Lambda requested another invocation before failed seeded refresh retired its lease")
+								}
+								n, err := backend.MarkStale(r.Context(), "demo", shared.Selector{Kind: "path", Value: "/seed/alpha"}, time.Millisecond)
+								if err != nil || n != 1 {
+									t.Error("clip failed seed generation hard deadline", n, err)
+								}
+								time.Sleep(3 * time.Millisecond)
+							} else {
+								select {
+								case result := <-committed:
+									verifySeedCommit(t, result, "runtime-next")
+								default:
+									t.Error("Lambda requested next invocation before accepted whole-snapshot refresh publication")
+								}
+							}
+						}
+						if index == 2 {
+							select {
+							case <-released:
+							default:
+								t.Error("failed hard-expiry load did not retire its ownership before the next event")
+							}
+							writeSeedSource(t, source, "runtime-recovered", false)
+						}
+						w.Header().Set("Lambda-Runtime-Aws-Request-Id", strconv.Itoa(index))
+						w.Header().Set("Lambda-Runtime-Deadline-Ms", strconv.FormatInt(time.Now().Add(5*time.Second).UnixMilli(), 10))
+						_ = json.NewEncoder(w).Encode(map[string]any{"version": "2.0", "rawPath": "/seed/alpha", "headers": map[string]string{"host": "seed.example.test"}, "requestContext": map[string]any{"domainName": "seed.example.test", "http": map[string]string{"method": "GET", "path": "/seed/alpha"}}})
+						return
+					}
+					data, err := io.ReadAll(io.LimitReader(r.Body, 2<<20))
+					if err != nil {
+						t.Error(err)
+					}
+					var envelope httpEnvelope
+					var payload []byte
+					if mode == "buffered" {
+						if err := json.Unmarshal(data, &envelope); err != nil {
+							t.Error(err)
+						}
+						payload = []byte(envelope.Body)
+						if envelope.Base64 {
+							payload, err = base64.StdEncoding.DecodeString(envelope.Body)
+							if err != nil {
+								t.Error(err)
+							}
+						}
+					} else {
+						split := bytes.Index(data, make([]byte, 8))
+						if split < 0 {
+							t.Error("missing seed refresh stream delimiter")
+							w.WriteHeader(500)
+							return
+						}
+						if err := json.Unmarshal(data[:split], &envelope); err != nil {
+							t.Error(err)
+						}
+						payload = data[split+8:]
+					}
+					index := int(reports.Add(1)) - 1
+					if index >= events {
+						t.Error("unexpected seed refresh Lambda response")
+						w.WriteHeader(500)
+						return
+					}
+					expectedStatus, expectedGeneration, expectedSource, expectedCache := 200, "build-stale", "build", "stale"
+					if index == 1 {
+						if fail {
+							expectedStatus = 500
+							expectedGeneration = ""
+							expectedSource = ""
+							expectedCache = ""
+						} else {
+							expectedGeneration = "runtime-next"
+							expectedSource = "runtime"
+							expectedCache = "fresh"
+						}
+					}
+					if index == 2 {
+						expectedGeneration = "runtime-recovered"
+						expectedSource = "runtime"
+						expectedCache = "miss"
+					}
+					if envelope.StatusCode != expectedStatus || sharedEnvelopeHeader(envelope.Headers, "X-Nextgo-Prerender") != expectedSource || sharedEnvelopeHeader(envelope.Headers, "X-Nextgo-Cache") != expectedCache {
+						t.Errorf("seed refresh event%d status/provenance/cache got%d/%s/%s want%d/%s/%s: %s", index, envelope.StatusCode, sharedEnvelopeHeader(envelope.Headers, "X-Nextgo-Prerender"), sharedEnvelopeHeader(envelope.Headers, "X-Nextgo-Cache"), expectedStatus, expectedSource, expectedCache, payload)
+					}
+					if expectedStatus == 200 {
+						for _, part := range []string{"<title>Seed alpha " + expectedGeneration + "</title>", `data-seed-generation="">` + expectedGeneration + "</code>", `aria-label="Seed counter"`} {
+							if !bytes.Contains(payload, []byte(part)) {
+								t.Errorf("seed refresh event%d missing%s", index, part)
+							}
+						}
+					} else if bytes.Contains(payload, []byte("build-stale")) || !bytes.Contains(payload, []byte("Something went wrong")) {
+						t.Error("hard-expiry failure served the old seed or lost generic error")
+					}
+					// Permit work only at the acceptance boundary. The next-event checks above
+					// inspect the recorded publication/retirement before delivering a read.
+					allowed.Store(true)
+					w.WriteHeader(202)
+				}))
+				defer runtime.Close()
+				worker := seedChild(t, proxy.URL, artifact, "runtime-next", false, fresh, "NEXTGO_TEST_SEED_SOURCE_FILE="+source, "AWS_LAMBDA_RUNTIME_API="+strings.TrimPrefix(runtime.URL, "http://"), "NEXTGO_LAMBDA_RESPONSE_MODE="+mode)
+				defer closeSeedChild(worker) // close the long poll before deferred runtime cleanup
+				// Keep confirmed live completion work blocked before it reaches the
+				// authority. A worker that polls /next without draining cannot pass
+				// merely because its callback happened to finish quickly.
+				select {
+				case <-fence.started:
+				case <-worker.done:
+					t.Fatalf("seed completion never began: %v\n%s", worker.err, worker.logs.String())
+				case <-time.After(10 * time.Second):
+					t.Fatal("seed completion never reached publication/retirement fence", worker.logs.String())
+				}
+				select {
+				case <-fence.next:
+					t.Error("Lambda requested /next while confirmed completion work remained blocked")
+				case <-time.After(100 * time.Millisecond):
+				}
+				fence.release()
+				select {
+				case <-done:
+				case <-worker.done:
+					t.Fatalf("seed refresh worker stopped: %v\n%s", worker.err, worker.logs.String())
+				case <-time.After(20 * time.Second):
+					t.Fatal("seed refresh runtime flow timed out", worker.logs.String())
+				}
+				worker.stop(t)
+				if reports.Load() != int32(events) {
+					t.Fatal("missing seed refresh reports", reports.Load(), events)
+				}
+				if fail {
+					select {
+					case result := <-committed:
+						verifySeedCommit(t, result, "runtime-recovered")
+					default:
+						t.Error("recovered source never published a complete new generation")
+					}
+				}
+			})
+		}
 	}
 }

@@ -424,9 +424,9 @@ invalidation bus for arbitrary process-local caches.
 
 ## Shared prerender admission
 
-This increment is under implementation and qualification. Full shared-prerender
-end-to-end qualification is pending; the durable-cache results below describe
-the preceding feature set.
+This bounded subset is implemented with native, browser and real-process
+verification. The [verification scope](#verification-scope) distinguishes current
+checks from preceding increments and the remaining production release gates.
 
 An ordinary route can opt into `PrerenderPolicy.Shared: true` with
 `Config.SharedCache`. Build must reach the authenticated authority **before any
@@ -439,7 +439,12 @@ offline seed-adoption mode.
 Generation age begins at the backend's reservation time. Startup does not trust
 builder timestamps or renew the seed's lifetime. Existing values and live load
 leases take precedence, and expired/oversized/capacity-rejected snapshots may
-be omitted. Unknown, expired, consumed or revoked tickets skip import and allow
+be omitted. An ordinary valid build render that exceeds the narrower shared
+codec or 1-MiB actual-JSON admission limits is skipped, and its ticket is still
+consumed even when no seed is admitted. Normal runtime rendering can serve that
+valid page uncached. Malformed private manifests, build bindings and ticket
+syntax still fail startup validation.
+Unknown, expired, consumed or revoked tickets skip import and allow
 ordinary runtime loading; authority transport/protocol errors fail startup.
 This is optional cold-start seeding, not durable application data or a queue.
 
@@ -452,6 +457,16 @@ Published seed values and acknowledged ticket reservation/consumption/revocation
 are retained by the optional file backend. A memory authority loses them at
 restart and denies unknown tickets; a new deployment reserves a new ticket.
 
+The ticket/session quotas apply to the entire backend, across namespaces.
+Their bounded metadata is separate from ordinary entry `Capacity`/`MaxBytes`
+accounting. The typed helper validates the complete set's keys, policies and
+aggregate metadata/encoding budgets before consuming a ticket, then sends
+bounded chunks. This is not an all-or-nothing import: earlier chunks may be
+retained if a later chunk or cleanup fails. Each offered key is remembered once
+within a session, even if expiry or capacity rejects it; retries never refill
+it. An unknown/expired session accepts zero values. Consumption also occurs for
+empty or oversized-only sets, preventing a later cold start from refilling holes.
+
 Expiration and stale marking revoke every pending ticket and active import
 session in the namespace, across schemas, **even if the selector matches zero
 published entries**. This broad fence prevents a later process from restoring
@@ -459,6 +474,24 @@ a build predating a backing-data invalidation. Use acknowledged
 `ExpireCache`/`MarkCacheStale`; legacy process-local revalidation does not contact
 the authority. A successful build ticket is a trusted-writer capability; keep
 the embedded private artifact and cache service out of public static handlers.
+
+Build reservation failures and runtime import/cleanup failures are returned to
+the caller and abort build/startup. They may follow a committed operation with
+an unknown acknowledgement or partially published chunks. Restore service or
+credentials and retry startup; a consumed ticket then skips import safely.
+At the 16-session capacity, finish other imports or wait for their five-minute
+expiry. A new online build can reserve a new seed opportunity. Deleting the
+authority directory discards the cache and pending permissions, rather than
+repairing a failed rollout.
+
+Custom servers can bound startup enumeration and bootstrap network work with
+`nextgo.NewContext(ctx, config)`. Its context controls construction only; cancel
+it after success and close the application with a fresh bounded `App.Close`
+context after HTTP serving ends. `New(config)` keeps default bounded startup,
+and generated binaries create a signal context before construction. Cancellation
+can have a partially committed/consumed-ticket outcome; retry normal startup.
+Session cleanup is best effort with an independent 500-ms deadline and does not
+restore the consumed ticket.
 
 Shared prerender keys bind final build/configuration, route pattern and canonical
 encoded path independently of the runtime host, as required by
@@ -588,6 +621,12 @@ keys. Shared prerender admission persists pending tickets and their consumption;
 only published seed values persist, not active import sessions. WAL format 2
 is written on the first seed mutation; an existing format-1 journal can be
 upgraded, while older executables cannot read the new seed-bearing format.
+The migration compacts atomically under the same private lock and disk bounds.
+It does not downgrade when tickets are consumed or expire. To roll back to an
+older executable, keep the newer authority serving compatible clients or
+explicitly discard/recompute the whole cache under an operator-approved
+recovery procedure; do not replace the WAL with an older backup. Wire v3 also
+requires a coordinated client/service upgrade; old clients fail closed.
 
 Mutations are journaled and synchronized before successful acknowledgement and
 before adopting their candidate in-memory state. Frames have bounds/checksums;
@@ -661,6 +700,49 @@ responsibilities; this image does not add replication or HA.
 
 ## Verification scope
 
+### Shared-prerender qualification (October 24, 2026 UTC)
+
+The frozen Go source passes full native race tests and vet on Go 1.27.3/macOS
+arm64 and Go 1.24.13/Linux arm64, matching core/lazy-module WASM builds and vet,
+generation checks and both standalone production app/cache builds. Full host
+and nonroot, read-only Linux HTTP executable suites pass, together with buffered
+and streaming **mock** Lambda Runtime API suites. Real file-authority tests
+exercise seed admission/recovery and cancellation; a live-work latch proves
+the mock Lambda worker does not poll `/next` while confirmed completion work
+remains blocked.
+
+Root integration coverage includes 17 tests and 24 invalidation variants;
+backend seed audit coverage includes six tests, plus transport and adversarial
+batch tests. These cover online reservation before generation, authority-owned
+age, ticket consumption/revocation, repeated deployments, rejected/partial
+admission, deadline/cancellation behavior and protocol failures. The online-build
+browser fixture passes **36 checks: 9 host Chromium and 27 Linux Firefox,
+WebKit and touch WebKit**. It builds with a live authority before starting the
+app and verifies meaningful build HTML, DOM-preserving Go hydration, independent
+counters, navigation, native invalidation and reload behavior.
+
+The same frozen source also passes the existing **241 production + 36 shared-page
++ 28 shared-data checks**. The combined result is **341 passes / 3 existing
+Chromium-only protocol skips on other engines**, counting each final suite once.
+Playwright WebKit/touch coverage is not certification of every Safari/device.
+
+Logs are retained under
+`.nextgo-test-results/qualification/shared-prerender/`. Earlier attempts using
+unmigrated protocol-v2 fixtures remain in `*unmigrated-fixture.log`; the corrected
+v3 fixture and observers were rerun successfully. Browser container wrappers
+now use image-owned source/dependencies and the independent cache artifact,
+avoiding a host bind mount's invalid VCS metadata. The final results above are
+the completed runs after those fixture corrections.
+
+These are working-tree checks of the bounded implemented subset. They do not
+establish actual AWS/IAM/cloud cold starts, physical machine power-loss or media
+recovery, replication/HA, network partitions, immutable release rollout,
+representative load/soak, performance or independent security qualification.
+All 11 [release gates](PARITY.md) remain open. The latest
+[warm-local performance observation](PERFORMANCE.md#shared-prerender-observation-october-24-2026-utc)
+also leaves both WASM size budgets exceeded.
+
+### Preceding durable-file qualification (October 24, 2026 UTC)
 
 The durable-file increment passes full native race/vet on Go 1.27.3 macOS and
 Go 1.24.13 Linux, matching core/module WASM checks and generation checks, both
@@ -790,7 +872,7 @@ assertions pass. These working-tree results do not close any production release
 gate or establish full Next.js capability parity.
 
 
-### Shared-page qualification (October 24, 2026 UTC)
+### Preceding shared-page qualification (October 24, 2026 UTC)
 
 The frozen shared-page source passes full native race/vet on
 Go 1.27.3/macOS arm64 and Go 1.24.13/Linux arm64, matching core/module WASM tests

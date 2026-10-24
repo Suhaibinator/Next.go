@@ -49,13 +49,13 @@ func TestDiscoveryAndGeneratedEntrypoint(t *testing.T) {
 		t.Fatal(source)
 	}
 	configured := strings.Index(source, ".Configure(&config)")
-	constructed := strings.Index(source, "nextgo.New(config)")
+	constructed := strings.Index(source, "nextgo.NewContext(ctx,config)")
 	if configured == -1 || constructed <= configured {
 		t.Fatal("configuration hook must run before app construction")
 	}
 	lambda := strings.Index(source, `if os.Getenv("AWS_LAMBDA_RUNTIME_API")`)
-	if initialized := strings.Index(source, "signal.NotifyContext"); lambda <= initialized || !strings.Contains(source, "serverless.Run(ctx,app)") {
-		t.Fatal("Lambda runtime must use the initialized shutdown context")
+	if initialized := strings.Index(source, "signal.NotifyContext"); initialized < 0 || constructed <= initialized || lambda <= initialized || !strings.Contains(source, "serverless.Run(ctx,app)") {
+		t.Fatal("construction and Lambda runtime must use the initialized shutdown context")
 	}
 	if !strings.Contains(source, "app.Close(shutdown)") || !strings.Contains(source, "app.Close(drain)") {
 		t.Fatal("generated server must drain completion work on both deployment paths")

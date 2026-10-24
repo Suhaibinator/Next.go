@@ -64,7 +64,7 @@ function proxy(request, response, target, headers, bytes, observed) {
         if (incoming.statusCode !== 200 || size > 2 << 20) return;
         try {
           const result = JSON.parse(Buffer.concat(parts).toString('utf8'));
-          if (result.Version === 2 && result.View && observed.ID?.Schema === 'demo-pages-v1' && ['begin', 'begin-stale'].includes(observed.Operation)) {
+          if (result.Version === 3 && result.View && observed.ID?.Schema === 'demo-pages-v1' && ['begin', 'begin-stale'].includes(observed.Operation)) {
             for (const path of observed.Policy?.Paths || []) {
               if (scopes.size < 32 || scopes.has(path)) scopes.set(path, { ID: observed.ID, Policy: observed.Policy });
             }
@@ -115,7 +115,7 @@ for (let attempt = 0; attempt < 600 && !stopping; attempt++) {
     const health = await Promise.all(Object.values(replicas).map(authority => fetch(`http://${authority}/api/health`)));
     await Promise.all(health.map(response => response.arrayBuffer()));
     if (health.every(response => response.status === 200)) {
-      const cache = await fetch(cacheURL, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ Version: 2, Operation: 'expire', Namespace: 'demo', Selector: { Kind: 'all', Value: '' } }) });
+      const cache = await fetch(cacheURL, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ Version: 3, Operation: 'expire', Namespace: 'demo', Selector: { Kind: 'all', Value: '' } }) });
       await cache.arrayBuffer();
       if (cache.status === 200) { ready = true; break; }
     }
