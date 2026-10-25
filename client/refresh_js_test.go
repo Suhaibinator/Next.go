@@ -23,6 +23,7 @@ type refreshFixture struct {
 	functions   []js.Func
 	reloads     int
 	nodes       []js.Value
+	onBodySet   func(string, string)
 }
 
 func refreshEnvironment(t *testing.T) *refreshFixture {
@@ -53,7 +54,14 @@ func refreshEnvironment(t *testing.T) *refreshFixture {
 		return value
 	}))
 	body.Set("hasAttribute", f.fn(func(_ js.Value, args []js.Value) any { _, ok := f.attrs[args[0].String()]; return ok }))
-	body.Set("setAttribute", f.fn(func(_ js.Value, args []js.Value) any { f.attrs[args[0].String()] = args[1].String(); return nil }))
+	body.Set("setAttribute", f.fn(func(_ js.Value, args []js.Value) any {
+		name, value := args[0].String(), args[1].String()
+		f.attrs[name] = value
+		if f.onBodySet != nil {
+			f.onBodySet(name, value)
+		}
+		return nil
+	}))
 	body.Set("removeAttribute", f.fn(func(_ js.Value, args []js.Value) any { delete(f.attrs, args[0].String()); return nil }))
 	f.status = js.Global().Get("Object").New()
 	f.status.Set("textContent", "unrelated error")

@@ -769,7 +769,7 @@ The core is 164,623 raw / 37,713 gzip-9 bytes larger than the zones observation.
 Code and Data hashes both changed, so this comparison does not isolate a cause
 or establish a timing/RSS result. Both reference core budgets still fail.
 
-### Independent-zone source increment: qualification pending
+### Independent-zone evidence: frozen V2 subset; V3 pending
 
 The current source adds `zones release`, `zones ingress` and `zones ingress-build`
 with native `ZoneRelease`/`ZoneIngress` APIs. A selected release has fixed public
@@ -778,9 +778,13 @@ ingress snapshot chooses one active release for pages/APIs/actions and named
 retained releases for exact old asset URLs. This permits an operator to stage
 one application separately, retain its predecessor, and construct a rollback
 snapshot without importing its peer into a shared application executable.
-The intended separate-module/SDK and unchanged-peer build/runtime behavior
-still needs the final source-frozen qualification; it is not inferred from the
-sample or source declarations. [Contract](INDEPENDENT_ZONES.md).
+Frozen V2 production artifacts now have scoped qualification: host independent
+zones pass 39 browser cases; both Linux SDKs pass 100 each (52 independent-zone
+plus 48 refresh-production cases), with no browser failures/skips/flaky results.
+The Linux 200 are repeated per-SDK executions, not 200 distinct features.
+Native race/vet and all four WASM modes pass on host Go 1.27.3 and Linux
+Go 1.24.13/1.27.3. V2 is bound to runtime manifest `8d252c0f…` and full source
+`8dcd222a…`; it does not qualify later V3 edits. [Contract](INDEPENDENT_ZONES.md).
 
 The operator supplies exact trusted backend origins, network/TLS policy and
 cutover/retention procedures. Private compatibility headers and artifact hashes
@@ -797,9 +801,41 @@ Managed metadata/images/locales/prerender, alternate asset prefixes, aggregate
 static publication, protocol upgrades and real cloud rollout are outside this
 first independent-release slice.
 
-New release/ingress/compiler and production-gating changes are **unqualified**
-until their own final matrix completes. Existing local HMR results above remain
-historical. The remote workflow for checkpoint `76211b8` fails the strict
+V2 host refresh development passes 39 cases; its production browsers pass 12
+and its production Node transport cases pass four. Linux production separately
+passes 228 legacy executable and 4 loader/9 independent deployment/13 aggregate
+zone cases per SDK. Linux development/mixed qualification remains incomplete; the
+V2 production successes do not supply it. The served V2 core is 8,260,348 raw /
+2,125,763 Node gzip-9 bytes, with development implementations absent in that
+artifact; both size budgets still fail. Source/evidence is retained under
+`.nextgo-test-results/qualification/independent-zones-edge/`.
+
+Exact remote `ec7bc3` attempt 1 ([run 40191917049](https://github.com/Suhaibinator/Next.go/actions/runs/40191917049))
+finishes **six jobs passing/two failing**, without retries or cancellations.
+Go 1.24 fails its development-WASM accessible-recovery assertion; the broad
+browser job fails a touch-WebKit location zero-request assertion (956 passes,
+one failure/three skips in that cross-engine group). Recorded traffic is marked
+prefetch to `/photos/one`; its initiating event remains unproven. Later steps
+skipped after either failure are not coverage. Refresh and both independent-zone
+remote jobs pass for that exact head, not the later worktree.
+
+V3 changes recovery-control/marker publication and authoritative-204 cleanup;
+the viewport edit only joins test-fixture workers before releasing globals,
+not production viewport behavior. Targeted V3 qualification passes **1,054
+test/subtest records plus one intentional module skip and four vets per SDK**:
+host Go 1.27.3/Node 25.7.0 and Linux Go 1.24.13/Node 22.23.3. Both are ARM64;
+Linux is not the literal remote AMD64 environment. The unit-only report is
+`refresh-publication-final/qualification-final.json` (SHA-256 `f9f3f986…`),
+bound to runtime `28ffc6ff…`/source `0011fe43…`; it includes no native/app/browser
+build. A separate archived six-step V3 CLI/generation/demo/refresh/static build
+passes. Actual V3 demo core bytes are 8,260,348 raw/2,125,761 gzip-9 (both budgets
+fail); refresh core is 6,268,844/1,687,488 (raw passes, gzip fails), without a
+performance-improvement claim. The 56-case test-isolation matrix passes all
+four engines on exact old V2 artifact `bfd1bb21…`; it is not V3 runtime or CI
+trigger-cause proof. Fresh V3 host HMR/production and Linux development checks
+are running; mixed and remote qualification remain pending. V2 and the failed
+remote head are distinct.
+Historical HMR results above remain distinct. The remote workflow for checkpoint `76211b8` fails the strict
 Chromium BFCache assertion; the unresolved failure is not cured by comparative
 diagnostics or the older `bb62d65` green workflow. No all-green immutable CI,
 full R15 parity, production maturity or actual AWS claim follows. This update

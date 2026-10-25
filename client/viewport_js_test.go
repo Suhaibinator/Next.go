@@ -5,6 +5,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 	"syscall/js"
 	"testing"
@@ -17,6 +18,13 @@ type viewportTestEnvironment struct {
 	c                           *viewportController
 	navigator, connection, root js.Value
 	functions                   []js.Func
+	workers                     []<-chan struct{}
+	barriers                    []viewportTestBarrier
+}
+
+type viewportTestBarrier struct {
+	stop chan struct{}
+	done <-chan struct{}
 }
 
 func viewportTestFixture(t *testing.T) *viewportTestEnvironment {
@@ -40,6 +48,38 @@ func viewportTestFixture(t *testing.T) *viewportTestEnvironment {
 	t.Cleanup(func() {
 		f.c.active = false
 		f.c.disposed = true
+		f.c.queue = nil
+		deadline := time.NewTimer(time.Second)
+		defer deadline.Stop()
+		// Disposal releases callback barriers even if their entry wait failed.
+		// Join their helpers before workers and before restoring fixture globals.
+		for _, barrier := range f.barriers {
+			close(barrier.stop)
+		}
+		for _, barrier := range f.barriers {
+			select {
+			case <-barrier.done:
+			case <-deadline.C:
+				t.Fatal("viewport fixture barrier helper did not physically exit")
+			}
+		}
+		// Keep wake open while an already admitted iteration can still signal.
+		// Every fixture-owned worker must exit before globals/functions change.
+		for _, stopped := range f.workers {
+			select {
+			case <-stopped:
+			case f.c.wake <- struct{}{}:
+			case <-deadline.C:
+				t.Fatal("viewport fixture worker did not accept shutdown")
+			}
+		}
+		for _, stopped := range f.workers {
+			select {
+			case <-stopped:
+			case <-deadline.C:
+				t.Fatal("viewport fixture worker did not physically exit")
+			}
+		}
 		close(f.c.wake)
 		doc, win, currentURL, routeManifest, draftFrozen, prefetches, cacheEpoch = oldDoc, oldWin, oldURL, oldManifest, oldDraft, oldPending, oldEpoch
 		for _, fn := range f.functions {
@@ -47,6 +87,36 @@ func viewportTestFixture(t *testing.T) *viewportTestEnvironment {
 		}
 	})
 	return f
+}
+func (f *viewportTestEnvironment) rectangleBarrier(entered <-chan struct{}) <-chan struct{} {
+	stop, done, release := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	f.barriers = append(f.barriers, viewportTestBarrier{stop: stop, done: done})
+	go func() {
+		defer close(done)
+		defer close(release)
+		select {
+		case <-entered:
+		case <-stop:
+			return
+		}
+		for !f.c.disposed {
+			select {
+			case <-stop:
+				return
+			default:
+				runtime.Gosched()
+			}
+		}
+	}()
+	return release
+}
+func (f *viewportTestEnvironment) worker(index int) {
+	stopped := make(chan struct{})
+	f.workers = append(f.workers, stopped)
+	go func() {
+		defer close(stopped)
+		f.c.worker(index)
+	}()
 }
 func (f *viewportTestEnvironment) function(fn func(js.Value, []js.Value) any) js.Func {
 	v := js.FuncOf(fn)
@@ -158,6 +228,7 @@ func TestViewportLinkEligibilityAndBoundedAttemptLedger(t *testing.T) {
 func TestViewportWorkerSlotsRemainHeldUntilPhysicalCompletion(t *testing.T) {
 	f := viewportTestFixture(t)
 	f.c.scanning = true // isolate worker state from independent discovery
+	var cleanupEntered chan struct{}
 	canceled := 0
 	var completions []chan struct{}
 	for i := 0; i < 4; i++ {
@@ -172,10 +243,16 @@ func TestViewportWorkerSlotsRemainHeldUntilPhysicalCompletion(t *testing.T) {
 		for _, done := range completions {
 			close(done)
 		}
-		time.Sleep(5 * time.Millisecond)
+		if cleanupEntered != nil {
+			select {
+			case <-cleanupEntered:
+			case <-time.After(time.Second):
+				t.Error("controlled cleanup worker did not enter rectangle callback")
+			}
+		}
 	}()
 	for i := 0; i < viewportWorkers; i++ {
-		go f.c.worker(i)
+		f.worker(i)
 	}
 	f.c.signal()
 	viewportWait(t, func() bool { return f.c.flights[0].pending != nil && f.c.flights[1].pending != nil })
@@ -199,6 +276,15 @@ func TestViewportWorkerSlotsRemainHeldUntilPhysicalCompletion(t *testing.T) {
 	if len(f.c.queue) != 1 {
 		t.Fatal("cancellation released physical slot")
 	}
+	// The ordinary test's assertions are complete. Hold the actual worker
+	// inside its JS fixture callback while testing.T runs actual cleanup.
+	cleanupEntered = make(chan struct{})
+	releaseRectangle := f.rectangleBarrier(cleanupEntered)
+	candidate.node.Set("getBoundingClientRect", f.function(func(js.Value, []js.Value) any {
+		close(cleanupEntered)
+		<-releaseRectangle
+		return map[string]any{"top": 1, "left": 1, "bottom": 30, "right": 30}
+	}))
 }
 func TestViewportForegroundNavigationNeverWaitsForSpeculation(t *testing.T) {
 	f := viewportTestFixture(t)

@@ -172,6 +172,10 @@ func (c *refreshCoordinator) startBootstrap() {
 		c.startupLoading = false
 		if err == nil && response.StatusCode == 204 {
 			c.disabled, c.pending = true, nil
+			// An authoritative disabled response restores ordinary hydration,
+			// including after a failed startup and an explicit retry.
+			body.Call("removeAttribute", "data-nextgo-refresh-state")
+			body.Call("removeAttribute", "data-nextgo-refresh")
 			c.finishBootstrap()
 			return
 		}
@@ -216,10 +220,12 @@ func (c *refreshCoordinator) startBootstrap() {
 		// Do not hydrate old descriptors, reload, or retry automatically. SSE
 		// received while failed remains a bounded hint until an explicit retry
 		// has obtained the supervisor's current authoritative full table.
-		c.mark("startup-error")
 		c.startupMessage.Set("textContent", "Could not load current development modules. Server HTML is preserved. Retry loading Go or reload the page.")
 		c.startupScope.Root.Value.Call("setAttribute", "role", "alert")
 		c.startupRetry.Set("disabled", false)
+		// Publish only after recovery is usable. Go-backed DOM calls can
+		// reenter observers before this goroutine resumes.
+		c.mark("startup-error")
 	}()
 }
 
@@ -308,8 +314,8 @@ func (c *refreshCoordinator) run() {
 }
 func (c *refreshCoordinator) mark(phase string) {
 	body := doc.Get("body")
-	body.Call("setAttribute", "data-nextgo-refresh-state", phase)
 	body.Call("setAttribute", "data-nextgo-refresh", fmt.Sprint(c.current.Revision))
+	body.Call("setAttribute", "data-nextgo-refresh-state", phase)
 }
 func clearRefreshBuildError() {
 	status := doc.Call("getElementById", "nextgo-status")

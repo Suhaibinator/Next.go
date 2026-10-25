@@ -3,7 +3,8 @@
 `ZoneRelease` packages one application behind a fixed public identity;
 `ZoneIngress` routes a complete, immutable inventory of those endpoints.
 Applications can use separate Go modules and selected supported toolchains.
-This is an experimental source increment with new qualification pending. It
+This experimental increment has scoped frozen-V2 production proof; newer V3
+changes and development/mixed qualification remain pending. It
 does not establish full multi-zone parity, a production release, or real AWS
 operation. The earlier [aggregate zones](ZONES.md) API remains available and
 continues to build one shared native process.
@@ -311,10 +312,24 @@ durable data rollback or coordinated multi-region rollout is implemented.
 
 The sample's counters, typed action, process revisions and marker cookie are
 public synthetic data. They do not implement authentication or private tenant
-repositories. The intended A1→A2/B1-retained→A1 workflow, paired SDKs, old assets,
-HTTP/Lambda streaming, failure/unknown mutation outcomes and ingress restart
-must be qualified on the final frozen source; focused contract tests are not
-that matrix. New source qualification is pending.
+repositories. Frozen V2 host production passes 39 independent-zone browser cases. Each
+Linux SDK (Go 1.24.13/1.27.3) passes 52 independent-zone and 48 refresh-production
+browser cases, plus separate 228 legacy executable/4 loader/9 independent
+transport/13 aggregate-zone cases. The 200 Linux browser executions repeat the
+same matrix per SDK. These bounded artifacts qualify their actual rollout,
+retained assets and transport cases; they do not qualify later V3 source,
+incomplete development/mixed work, real TLS/cloud or release maturity.
+
+Exact remote `ec7bc3` run 40191917049 ends six jobs passing/two failing: a
+Go 1.24 development-WASM recovery assertion and one touch-WebKit location
+request assertion. Later skipped steps remain unqualified. V3 recovery
+publication/204 changes have targeted four-mode WASM/vet proof on host and
+Linux ARM64, not the remote AMD64 environment. Broader V3 HMR/production and
+remote checks remain pending; browser isolation on V2 artifacts is not V3
+runtime proof. Fresh V3 CLI/demo/refresh/static builds pass separately; the
+56-case isolation matrix passes on old V2 artifacts only. The viewport cleanup
+change is test-fixture-only.
+[Exact V3 targeted proof and remaining qualification](PARITY.md).
 
 The prior hot-refresh checkpoint `76211b8` retains a failed strict Chromium
 BFCache CI result. Its local 334/335 regression and comparative diagnostics do

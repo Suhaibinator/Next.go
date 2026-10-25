@@ -35,7 +35,14 @@ test('a retained Go subscription follows paths, queries, dynamic routes and hist
 });
 
 test('native fragment changes, replacement and traversal publish without fetching pages', async ({ page }) => {
-  await page.goto('/gallery'); await ready(page); await watch(page);
+  await page.goto('/gallery'); await ready(page);
+  // Keep this fragment/history test independent of speculative photo-link intent.
+  // Every X-Nextgo-Navigate request is still counted and must remain zero.
+  await page.getByRole('navigation', { name: 'Gallery photos', exact: true })
+    .getByRole('link').evaluateAll(links => {
+      links.forEach(link => link.setAttribute('data-nextgo-prefetch', 'false'));
+    });
+  await watch(page);
   let requests = 0;
   page.on('request', request => { if (request.headers()['x-nextgo-navigate'] === '1') requests++; });
   const link = page.getByRole('link', { name: 'Open coastal photo', exact: true });

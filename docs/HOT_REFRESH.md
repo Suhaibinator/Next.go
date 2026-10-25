@@ -266,11 +266,27 @@ or production operation. The historical framework matrix below uses the frozen
 1,007-input witness
 `84996b196f69f05aba872e46ab3630d9537f672ab4a5779006f039e35489ba92`.
 
-The newer cold-start recovery correction described above has passing focused
-checks in four runtime test modes. Its two new actual-browser cases are pending
-and are not added to the historical 88 Linux or 33 host development executions.
-Those earlier results do not qualify this later source increment or replace its
-new source-frozen matrix.
+The frozen V2 recovery source passes all four runtime test modes and 39 host
+development cases, including its added cold-start cases. V2 host production
+passes 12 browser/four Node transport cases; Linux production passes 48 browser
+cases per matching SDK. Those counts are separate from the historical 88 Linux/
+33 host development executions below. V2 Linux development/mixed work remains
+incomplete, so production results do not establish that qualification.
+
+Exact remote `ec7bc3` attempt 1 ends six jobs passing/two failing. Its refresh
+job passes 52 development/48 production browser cases and four Node cases, but
+Go 1.24's development-WASM recovery test fails; broad browser location also
+fails with recorded advisory prefetch traffic. V3 moves usable recovery controls
+before marker publication, clears stale markers on authoritative 204, and
+isolates that location fixture. Targeted V3 four-mode WASM/vet checks now pass
+on Go 1.27.3/Node 25 host and Go 1.24.13/Node 22 Linux ARM64, with 1,054 passing
+test/subtest records and one intentional module skip per SDK. These are not the
+literal failed remote AMD64 environment or broader V3 browser proof. The
+viewport-worker cleanup edit is only a test-fixture correction. Fresh V3 CLI/
+generation/demo/refresh/static builds pass separately. The 56-case browser
+isolation passes on old V2 artifacts, not V3 runtime; V3 host HMR/production and
+remote qualification remain pending. [Exact scope](PARITY.md).
+The older published-BFCache failure below remains separately unresolved.
 
 | Qualified scope | Result and boundary |
 | --- | --- |
