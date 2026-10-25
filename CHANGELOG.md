@@ -8,7 +8,57 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — explicit field validation, choice identity and transport factoring
+## Unreleased — native zones and trusted deployment context
+
+This bounded in-process composition increment has passing native/WASM,
+production, focused browser and final four-engine Linux development checks;
+it is not independent application release/deployment parity.
+
+- Added NewZones exact canonical-host/longest-literal-mount routing, trusted
+  Config.Zone()/CurrentZone metadata, independent App ownership and explicit
+  DocumentPaths document-navigation boundaries. Trusted tenant metadata is not
+  authentication. Page/API/action authorization remains application work.
+- Added cache/shared-namespace/tracer ownership checks, startup rollback,
+  bounded group close and child-aware Lambda telemetry flushing. Native
+  process globals and same-origin browser authority are not sandboxed.
+- Added strict zones.json v1, zones build/dev and one standalone binary from
+  four declarations/three application roots. One module/workspace/toolchain is
+  required; alternate asset CDNs, domain/nested-zone locales, aggregate static
+  export/prerender and independently released applications remain unsupported.
+  [Zone contract](docs/ZONES.md), [synthetic example](examples/zones/README.md).
+
+Both SDK full native race/vet (62 tested/166 no-test packages), matching
+core/mutation/module WASM tests/vet, eight generation checks and all three host
+production/Linux builds pass. Linux passes 48 zone browser, 228 legacy executable
+and 13 zone/CLI/adapter checks. Host passes 36 zone plus 23 separate static cases,
+228 legacy executable checks in 117.313 s and the final 13-check zone/CLI/adapter
+wrapper in 1.372 s without skips. Its primary browser run initially passes 334/335 with
+one masked Chromium BFCache NotRestoredReasons observation, then an unchanged
+strict nine-case subset and one full 335/335 repeat pass. The positive host
+record is 394, not all attempts green; the initial cause/stability remains open
+without an application change. Final host development Chromium passes one case
+in 52.7 s; two WebKit passes use an older harness. Final Linux development
+passes four Chromium/Firefox/WebKit/touch cases in 4.1 minutes, with no skips,
+flaky results or global errors. Each covers eight workflow phases and no-JS SSR;
+cleanup confirms CLI exit 0, no build directories and all 30 observed listeners
+closed. These are separate development results, not added to the host 394.
+The initial host copy filter omitted the production Go scripts package; a
+separate Linux overlay masked that source with a directory containing only the
+test runner. Helper-filter and mount-only corrections resolve those distinct
+setup failures without changing Node/Go application behavior.
+
+The [ordinary-demo size observation](docs/benchmarks/zones-phase-go1.27.3-macos-arm64.json)
+is **8,237,069 raw / 2,120,180 Node gzip-9 core bytes**; both size budgets fail.
+Four Code-section payloads match the preceding artifact, while Data hashes
+differ. No whole-file reproducibility, speed or causal-size claim follows.
+The synthetic tenant issuer is openly available and requires fresh checks per
+protected endpoint; it is not production account authentication. AWS execution
+still awaits approval, with no AWS actions performed. All **79 capability rows
+and 11 open release gates** remain tracked.
+
+## Source checkpoints, newest first
+
+### `c2ff5ce` — explicit field validation, choice identity and transport factoring
 
 This additive forms checkpoint has passing native/WASM, browser and executable
 checks for its bounded contracts. No release or production certification is
@@ -56,7 +106,11 @@ expectations and fixture-cleanup attempts remain retained as provenance.
 Module ABI 4, navigation 3 and action/action-view 1 are unchanged. All **79
 capability rows and 11 open release gates** remain tracked.
 
-## Source checkpoints, newest first
+The `c2ff5ce` remote workflow subsequently passes all five jobs: browser
+1,620 passes/three existing skips, streaming 280 and container 285 plus
+collector/smoke, alongside both SDK jobs. This is evidence for that source only,
+not the newer zones source. The older `502cbd9` container exit-23 failure and
+its unconfirmed cause remain preserved below.
 
 ### `20cb9d2` — CI smoke-pipe hardening
 

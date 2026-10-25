@@ -66,7 +66,9 @@ func TestExitedChildClearsProxyAndReportsFailure(t *testing.T) {
 		t.Fatal("browser did not receive a development error")
 	}
 	response := httptest.NewRecorder()
-	s.ServeHTTP(response, httptest.NewRequest("GET", "http://127.0.0.1:3000/", nil))
+	request := httptest.NewRequest("GET", "http://127.0.0.1:3000/", nil)
+	request.RemoteAddr = "127.0.0.1:40000"
+	s.ServeHTTP(response, request)
 	if response.Code != 503 || !strings.Contains(response.Body.String(), "Saving a fix rebuilds automatically") {
 		t.Fatalf("unexpected crashed-server response: %d %s", response.Code, response.Body.String())
 	}
@@ -75,7 +77,9 @@ func TestExitedChildClearsProxyAndReportsFailure(t *testing.T) {
 func TestInitialBuildErrorIsEscapedAndVisible(t *testing.T) {
 	s := &supervisor{authority: "127.0.0.1:3000", buildError: "compile failed: <bad source>"}
 	response := httptest.NewRecorder()
-	s.ServeHTTP(response, httptest.NewRequest("GET", "http://127.0.0.1:3000/", nil))
+	request := httptest.NewRequest("GET", "http://127.0.0.1:3000/", nil)
+	request.RemoteAddr = "127.0.0.1:40000"
+	s.ServeHTTP(response, request)
 	body := response.Body.String()
 	if response.Code != 503 || !strings.Contains(body, "compile failed: &lt;bad source&gt;") || strings.Contains(body, "<bad source>") {
 		t.Fatalf("initial compiler error was absent or unescaped: %d %s", response.Code, body)

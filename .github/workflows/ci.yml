@@ -27,6 +27,9 @@ jobs:
           go run ./cmd/nextgo generate --check ./examples/content
           go run ./cmd/nextgo generate --check ./examples/metadata-site
           go run ./cmd/nextgo generate --check ./examples/form-validation
+          go run ./cmd/nextgo generate --check ./examples/zones/marketing
+          go run ./cmd/nextgo generate --check ./examples/zones/blog
+          go run ./cmd/nextgo generate --check ./examples/zones/tenant
       - run: go test -race ./...
       - run: go vet ./...
       - uses: actions/setup-node@v4
@@ -48,6 +51,10 @@ jobs:
           go run ./cmd/nextgo export -out ./dist/content-static ./examples/content
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
       - run: go build -trimpath -o ./dist/nextgo-cache ./cmd/nextgo-cache
+      - name: Multi-zone standalone production build
+        run: |
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          ./dist/nextgo zones build -out ./dist/zones ./examples/zones/zones.json
       - name: Native HTTP, Lambda and durable cache process conformance
         shell: bash
         run: |
@@ -59,6 +66,8 @@ jobs:
         run: NEXTGO_TEST_BINARY="$PWD/dist/demo/server" node --test tests/seven-feature-lambda.test.mjs
       - name: Form validation through native HTTP and both Lambda modes
         run: NEXTGO_FORM_VALIDATION_BINARY="$PWD/dist/form-validation/server" npm run test:form-validation:deployment
+      - name: Multi-zone HTTP, Lambda, authority and publication conformance
+        run: NEXTGO_ZONES_BINARY="$PWD/dist/zones/server" NEXTGO_ZONES_CLI="$PWD/dist/nextgo" npm run test:zones:deployment
       - name: Standalone production smoke test
         shell: bash
         run: |
@@ -109,12 +118,18 @@ jobs:
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
           go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          ./dist/nextgo zones build -out ./dist/zones ./examples/zones/zones.json
       - name: Browser hydration and navigation through both local Lambda modes
         run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/lambda-demo/server" npm run test:lambda:browser
       - name: Managed metadata through native and static deployments
         run: NEXTGO_METADATA_SERVER_BINARY="$PWD/dist/metadata-site/server" NEXTGO_METADATA_STATIC_ROOT="$PWD/dist/metadata-static" npm run test:metadata-files
       - name: Form validation, native choices and lifecycle
         run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/form-validation/server" npm run test:form-validation
+      - name: Multi-zone rendering, navigation and tenant membership
+        run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/zones/server" npm run test:zones
+      - name: Multi-zone development rebuild and last-good recovery
+        run: NEXTGO_E2E_NEXTGO_BINARY="$PWD/dist/nextgo" npm run test:zones:dev
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

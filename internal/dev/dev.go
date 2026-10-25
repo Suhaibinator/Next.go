@@ -33,41 +33,58 @@ type supervisor struct {
 	assets         map[string]string
 	buildDirs      map[string]string
 	buildOrder     []string
+	buildAssets    map[string]map[string]string
+	buildOwners    map[string]map[string][]assetOwner
+	assetOwners    map[string][]assetOwner
+	currentOwners  map[string][]assetOwner
+	currentIDs     map[string]bool
 	listeners      map[chan string]bool
 	output         io.Writer
 	authority      string
+	zoneHosts      map[string]bool
+	controlHosts   map[string]bool
 	inspection     inspectionState
 }
 
 func Run(ctx context.Context, root, addr string, output io.Writer) error {
-	ctx, cancelRun := context.WithCancel(ctx)
-	defer cancelRun()
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return err
 	}
 	s := &supervisor{assets: map[string]string{}, listeners: map[chan string]bool{}, output: output}
+	return runSupervisor(ctx, s, addr, func(ctx context.Context) { s.watch(ctx, root) })
+}
+
+func runSupervisor(ctx context.Context, s *supervisor, addr string, watch func(context.Context)) error {
+	ctx, cancelRun := context.WithCancel(ctx)
+	defer cancelRun()
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 	s.authority = listener.Addr().String()
+	if s.zoneHosts != nil {
+		s.installControlHosts(addr)
+	}
 	server := &http.Server{Handler: s, ReadHeaderTimeout: 10 * time.Second}
 	watchDone := make(chan struct{})
-	go func() { defer close(watchDone); s.watch(ctx, root) }()
+	shutdownDone := make(chan struct{})
+	go func() { defer close(watchDone); watch(ctx) }()
 	go func() {
+		defer close(shutdownDone)
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_ = server.Shutdown(shutdown)
 	}()
-	fmt.Fprintf(output, "Next.go development: http://%s\n", listener.Addr())
+	fmt.Fprintf(s.output, "Next.go development: http://%s\n", listener.Addr())
 	err = server.Serve(listener)
 	cancelRun()
 	<-watchDone
 	// Shutdown permits ordinary responses to finish, but event streams can live
 	// indefinitely. Close those connections when the supervisor itself exits.
 	_ = server.Close()
+	<-shutdownDone
 	if err == http.ErrServerClosed {
 		return nil
 	}
@@ -79,8 +96,13 @@ func Run(ctx context.Context, root, addr string, output io.Writer) error {
 // rebinding from an attacker-controlled browser origin.
 func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !s.allowedHost(r.Host) {
-		http.Error(w, "unrecognized development host", http.StatusForbidden)
-		return
+		s.mu.Lock()
+		dir, _ := s.assetRequestLocked(r)
+		s.mu.Unlock()
+		if dir == "" {
+			http.Error(w, "unrecognized development host", http.StatusForbidden)
+			return
+		}
 	}
 	if r.URL.Path == InspectionPath {
 		s.inspect(w, r)
@@ -88,23 +110,22 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/_nextgo/events" {
+		if !s.allowedInspectionRequest(r) {
+			http.Error(w, "development events require a local same-origin request", http.StatusForbidden)
+			return
+		}
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", "GET")
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		s.events(w, r)
 		return
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	s.mu.Lock()
 	proxy := s.proxy
-	var assetDir string
-	assetPath := r.URL.Path
-	// Versioned development assets are public. Keep their generation available
-	// even when a new build changes its base/asset mount before a document loads.
-	if index := strings.Index(assetPath, "/_nextgo/"); index >= 0 {
-		assetPath = assetPath[index:]
-		parts := strings.Split(strings.TrimPrefix(assetPath, "/_nextgo/"), "/")
-		if len(parts) > 1 {
-			assetDir = s.assets[parts[0]]
-		}
-	}
+	assetDir, assetPath := s.assetRequestLocked(r)
 	buildError := s.buildError
 	s.mu.Unlock()
 	if assetDir != "" {
@@ -115,6 +136,10 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if proxy == nil {
+		if !s.allowedInspectionRequest(r) {
+			http.Error(w, "development status requires a local same-origin request", http.StatusForbidden)
+			return
+		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(503)
 		message := "Building application…"
@@ -128,6 +153,13 @@ func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *supervisor) allowedHost(authority string) bool {
+	s.mu.Lock()
+	if s.zoneHosts != nil {
+		allowed := s.allowedZoneHostLocked(authority)
+		s.mu.Unlock()
+		return allowed
+	}
+	s.mu.Unlock()
 	boundHost, boundPort, err := net.SplitHostPort(s.authority)
 	if err != nil {
 		return false
@@ -171,6 +203,11 @@ func (s *supervisor) events(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	s.listeners[ch] = true
 	id, buildError, generation := s.id, s.buildError, s.generation
+	built := r.URL.Query().Get("build")
+	current := built == id || s.currentIDs[built]
+	if s.zoneHosts != nil {
+		current = s.currentIDs[built] && runtimeHostMatches(s.currentOwners[built], r.Host)
+	}
 	s.mu.Unlock()
 	defer func() { s.mu.Lock(); delete(s.listeners, ch); s.mu.Unlock() }()
 	_, _ = io.WriteString(w, ": connected\n\n")
@@ -178,7 +215,7 @@ func (s *supervisor) events(w http.ResponseWriter, r *http.Request) {
 		data, _ := json.Marshal(buildError)
 		fmt.Fprintf(w, "event: build-error\ndata: %s\n\n", data)
 	}
-	if built := r.URL.Query().Get("build"); id != "" && (built != id || r.URL.Query().Get("generation") != generation) {
+	if id != "" && (!current || r.URL.Query().Get("generation") != generation) {
 		_, _ = io.WriteString(w, "event: reload\ndata: \"updated\"\n\n")
 	}
 	flush.Flush()
@@ -244,6 +281,14 @@ func (s *supervisor) exited(c *child) bool {
 }
 
 func start(ctx context.Context, build *project.Build, root string, output io.Writer) (*child, *url.URL, error) {
+	return startWithArgs(ctx, build, root, output, nil)
+}
+
+func startWithArgs(ctx context.Context, build *project.Build, root string, output io.Writer, extra []string) (*child, *url.URL, error) {
+	return startWithEnvironment(ctx, build, root, output, extra, os.Environ())
+}
+
+func startWithEnvironment(ctx context.Context, build *project.Build, root string, output io.Writer, extra, ambient []string) (*child, *url.URL, error) {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, nil, err
@@ -255,8 +300,9 @@ func start(ctx context.Context, build *project.Build, root string, output io.Wri
 		return nil, nil, err
 	}
 	generation := hex.EncodeToString(token)
-	cmd := exec.Command(build.Binary, "-addr", addr, "-env-dir", root, "-env-mode", "development", "-dev-generation", generation)
-	cmd.Env = append(os.Environ(), "AWS_LAMBDA_RUNTIME_API=")
+	args := []string{"-addr", addr, "-env-dir", root, "-env-mode", "development", "-dev-generation", generation}
+	cmd := exec.Command(build.Binary, append(args, extra...)...)
+	cmd.Env = developmentEnvironment(ambient)
 	cmd.Stdout = output
 	cmd.Stderr = output
 	if err = cmd.Start(); err != nil {
@@ -289,10 +335,39 @@ func start(ctx context.Context, build *project.Build, root string, output io.Wri
 	}
 }
 
+func developmentEnvironment(ambient []string) []string {
+	return append(append([]string(nil), ambient...), "AWS_LAMBDA_RUNTIME_API=")
+}
+
 func (s *supervisor) watch(ctx context.Context, root string) {
+	s.watchBuilds(ctx, developmentBuild{
+		root: root, watcher: &project.SourceWatcher{},
+		compile: func(ctx context.Context) (*project.Build, error) { return project.Compile(ctx, root, true, s.output) },
+		start: func(ctx context.Context, build *project.Build, _ *developmentPublication) (*child, *url.URL, error) {
+			return start(ctx, build, root, s.output)
+		},
+	})
+}
+
+type sourceWatcher interface {
+	Fingerprint(context.Context, string) (string, error)
+}
+
+type developmentBuild struct {
+	root, source string
+	watcher      sourceWatcher
+	compile      func(context.Context) (*project.Build, error)
+	start        func(context.Context, *project.Build, *developmentPublication) (*child, *url.URL, error)
+	validate     func(*project.Build) (*developmentPublication, error)
+}
+
+func (s *supervisor) watchBuilds(ctx context.Context, target developmentBuild) {
 	var active *child
 	var published *project.Build
-	watcher := &project.SourceWatcher{}
+	source := target.source
+	if source == "" {
+		source = target.root
+	}
 	defer func() {
 		active.stop()
 		s.mu.Lock()
@@ -300,6 +375,12 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 		s.buildDirs = make(map[string]string)
 		s.assets = make(map[string]string)
 		s.buildOrder = nil
+		s.buildAssets = nil
+		s.buildOwners = nil
+		s.assetOwners = nil
+		s.currentOwners = nil
+		s.currentIDs = nil
+		s.proxy = nil
 		s.mu.Unlock()
 		for _, dir := range dirs {
 			if err := os.RemoveAll(dir); err != nil {
@@ -316,11 +397,11 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 		if s.exited(active) {
 			active = nil
 		}
-		fingerprint, err := watcher.Fingerprint(ctx, root)
+		fingerprint, err := target.watcher.Fingerprint(ctx, source)
 		if err != nil {
 			fingerprint += "|error:" + err.Error()
 		}
-		envFingerprint, envErr := environment.Fingerprint(root, environment.Development)
+		envFingerprint, envErr := environment.Fingerprint(target.root, environment.Development)
 		if envErr != nil {
 			envFingerprint = "error:" + envErr.Error()
 		}
@@ -341,51 +422,79 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 				compiled := published == nil || published.Fingerprint != sourceFingerprint
 				if compiled {
 					fmt.Fprintln(s.output, "Building Go server and WASM…")
-					build, buildErr = project.Compile(ctx, root, true, s.output)
+					build, buildErr = target.compile(ctx)
 				} else {
 					fmt.Fprintln(s.output, "Restarting with updated environment…")
 					build = published
 				}
 				if buildErr == nil {
-					// Generation is part of this build. Its published Go source must
-					// not trigger a second rebuild/reload on the next poll.
-					lastAttempt = build.Fingerprint + "|" + envFingerprint
-					var next *child
-					var target *url.URL
-					next, target, buildErr = start(ctx, build, root, s.output)
-					if buildErr == nil {
-						current, currentErr := environment.Fingerprint(root, environment.Development)
-						if currentErr != nil || current != envFingerprint {
-							next.stop()
-							buildErr = fmt.Errorf("environment changed during build; rebuilding latest settings")
+					var publication *developmentPublication
+					if build == nil {
+						buildErr = fmt.Errorf("compiler returned no development build")
+					} else if target.validate != nil {
+						publication, buildErr = target.validate(build)
+					}
+					if buildErr != nil {
+						if compiled && build != nil {
+							_ = os.RemoveAll(build.Dir)
 						}
-					}
-					if buildErr != nil && compiled {
-						_ = os.RemoveAll(build.Dir)
-					}
-					if buildErr == nil {
-						graph := publicInspectionGraph(build.Project)
-						proxy := httputil.NewSingleHostReverseProxy(target)
-						proxy.ErrorLog = log.New(s.output, "proxy: ", 0)
-						s.mu.Lock()
-						s.proxy = proxy
-						s.id = build.ID
-						s.generation = next.generation
-						s.buildError = ""
-						s.inspection.graph = graph
-						s.inspectionTransitionLocked("ready", "")
-						expired := s.retainBuildLocked(build.ID, build.Dir)
-						s.mu.Unlock()
-						previous := active
-						active = next
-						published = build
-						s.publish("reload", build.ID)
-						fmt.Fprintln(s.output, "Build ready:", build.ID)
-						// Existing responses finish before the previous process exits.
-						previous.stop()
-						for _, dir := range expired {
-							if err := os.RemoveAll(dir); err != nil {
-								fmt.Fprintln(s.output, "Remove expired development build:", err)
+					} else {
+						// Generation is part of this build. Its published Go source must
+						// not trigger a second rebuild/reload on the next poll.
+						lastAttempt = build.Fingerprint + "|" + envFingerprint
+						var next *child
+						var destination *url.URL
+						next, destination, buildErr = target.start(ctx, build, publication)
+						if buildErr == nil {
+							current, currentErr := environment.Fingerprint(target.root, environment.Development)
+							if currentErr != nil || current != envFingerprint {
+								next.stop()
+								buildErr = fmt.Errorf("environment changed during build; rebuilding latest settings")
+							}
+						}
+						if buildErr != nil && compiled {
+							_ = os.RemoveAll(build.Dir)
+						}
+						if buildErr == nil {
+							graph := publicBuildInspectionGraph(build)
+							proxy := httputil.NewSingleHostReverseProxy(destination)
+							proxy.ErrorLog = log.New(s.output, "proxy: ", 0)
+							s.mu.Lock()
+							s.proxy = proxy
+							s.id = build.ID
+							s.generation = next.generation
+							s.buildError = ""
+							if publication != nil {
+								s.zoneHosts = publication.hosts
+								s.currentOwners = publication.owners
+							}
+							s.inspection.graph = graph
+							s.inspectionTransitionLocked("ready", "")
+							var owners map[string][]assetOwner
+							if publication != nil {
+								owners = publication.owners
+							}
+							retentionID := build.ID
+							if publication != nil {
+								retentionID = next.generation
+							}
+							expired := s.retainBuildRuntimeLocked(retentionID, build.Dir, developmentAssets(build), owners)
+							s.currentIDs = make(map[string]bool)
+							for id := range developmentAssets(build) {
+								s.currentIDs[id] = true
+							}
+							s.mu.Unlock()
+							previous := active
+							active = next
+							published = build
+							s.publish("reload", build.ID)
+							fmt.Fprintln(s.output, "Build ready:", build.ID)
+							// Existing responses finish before the previous process exits.
+							previous.stop()
+							for _, dir := range expired {
+								if err := os.RemoveAll(dir); err != nil {
+									fmt.Fprintln(s.output, "Remove expired development build:", err)
+								}
 							}
 						}
 					}

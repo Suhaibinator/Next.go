@@ -33,7 +33,8 @@ type Manifest struct {
 	// Rules identifies server routing policy without exposing conditions/origins.
 	Rules    string `json:"rules,omitempty"`
 	Parallel string `json:"parallel,omitempty"`
-	// Documents conservatively bypass SPA interception for external rule paths.
+	// Documents conservatively bypass SPA interception for external rule paths
+	// and explicitly declared full-document subtrees. They use route grammar.
 	Documents []string `json:"documents,omitempty"`
 }
 

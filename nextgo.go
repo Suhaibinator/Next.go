@@ -143,6 +143,7 @@ type Config struct {
 	PrerenderBuildMode bool
 	prerenderDeferred  bool
 	startupContext     context.Context
+	zoneInfo           *ZoneInfo
 	// EarlyScripts are trusted classic dependencies shared by every document.
 	// They execute in parser order before the Go bootstrap.
 	EarlyScripts []scripts.Script
@@ -168,6 +169,9 @@ type Config struct {
 	localeScope   *localeScope
 	TrailingSlash bool
 	BasePath      string
+	// DocumentPaths declares logical literal subtrees that use full-document
+	// links instead of framework navigation. It does not mount HTTP handlers.
+	DocumentPaths []string
 	AssetPrefix   string
 	Routes        []Route
 	NotFound      PageFunc
@@ -311,7 +315,7 @@ func NewContext(ctx context.Context, c Config) (*App, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	c.startupContext = ctx
+	c.startupContext = bindConfigZone(ctx, c)
 	app, err := newApp(c)
 	if err == nil && !c.prerenderDeferred {
 		// Locale children retain this context until their wrapper finishes the
@@ -326,6 +330,9 @@ func NewContext(ctx context.Context, c Config) (*App, error) {
 
 func newApp(c Config) (*App, error) {
 	if err := normalizeConfigPhase(&c); err != nil {
+		return nil, err
+	}
+	if err := freezeDocumentPaths(&c); err != nil {
 		return nil, err
 	}
 	var earlyErr error
@@ -428,14 +435,14 @@ func newApp(c Config) (*App, error) {
 	if err := a.initInterceptions(); err != nil {
 		return nil, err
 	}
-	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev}
+	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, Documents: documentPathPatterns(c.DocumentPaths)}
 	manifest.Draft = c.Draft != nil
 	manifest.Scripts = earlyScriptsIdentity(c.EarlyScripts)
 	manifest.Prerender = a.prerenderIdentity()
 	if c.localeScope != nil {
 		manifest.Locale = c.localeScope.identity()
 	}
-	manifest.Cache = configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest()))
+	manifest.Cache = configurationZonePolicy(configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest())), c.Zone())
 	manifest.Rules = a.rulesIdentity()
 	manifest.Parallel = a.parallelIdentity()
 	for _, rules := range [][]compiledRule{a.redirects, a.rewrites} {
@@ -497,6 +504,9 @@ func match(pattern, path string) (map[string]string, bool) {
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if a.config.zoneInfo != nil || r.Context().Value(zoneContextKey{}) != nil {
+		r = r.WithContext(bindConfigZone(r.Context(), a.config))
+	}
 	if a.config.Tracing != nil {
 		a.config.Tracing.ServeHTTP(w, r, a.serveRequest)
 		return

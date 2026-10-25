@@ -463,6 +463,7 @@ func (a *App) RevalidateTag(tag string) { a.config.Cache.ExpireTag(tag) }
 func (a *App) RevalidatePath(path string) { a.config.Cache.ExpirePathPrefix(path) }
 
 func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[string]string, query url.Values, route Route) (cachedPage, error) {
+	ctx = a.bindZoneContext(ctx)
 	partial := route.Prerender != nil && route.Prerender.Partial
 	if partial {
 		ctx = a.publicShellContext(ctx)

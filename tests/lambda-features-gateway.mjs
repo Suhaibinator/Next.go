@@ -8,7 +8,22 @@ const requestLimit = 1 << 20, transportLimit = 8 << 20, preludeLimit = 16 << 10;
 const queueLimit = 32, invocationTimeout = 15_000;
 const excludedHeaders = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
 
-export async function startLambdaGateway({binary, mode, port}) {
+export async function startLambdaGateway({binary, mode, port, allowedHosts, workerArgs = []}) {
+  // Test operators may opt into a small exact authority set. This does not
+  // resolve those names or trust forwarded headers; all sockets stay loopback.
+  // Capture a copy before any async startup so callers cannot widen it later.
+  const requestedHosts = allowedHosts === undefined ? [`127.0.0.1:${port}`] : allowedHosts;
+  assert.ok(Array.isArray(requestedHosts) && requestedHosts.length > 0 && requestedHosts.length <= 32, 'invalid fixture allowedHosts');
+  const hosts = Array.from({length: requestedHosts.length}, (_, index) => requestedHosts[index]);
+  const authority = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?::[1-9][0-9]{0,4})?$/;
+  assert.ok(hosts.every(host => typeof host === 'string' && host.length <= 259 && authority.test(host) && (!host.includes(':') || Number(host.slice(host.lastIndexOf(':') + 1)) <= 65535)), 'invalid fixture allowedHosts');
+  assert.ok(hosts.reduce((bytes, host) => bytes + host.length, 0) <= 4096 && new Set(hosts).size === hosts.length, 'invalid fixture allowedHosts');
+  const acceptedHosts = new Set(hosts);
+  // Optional trusted literal argv permits a Node echo worker to read a script
+  // from noexec temporary storage. Production executables keep empty argv.
+  assert.ok(Array.isArray(workerArgs) && workerArgs.length <= 16, 'invalid fixture workerArgs');
+  const args = Array.from({length: workerArgs.length}, (_, index) => workerArgs[index]);
+  assert.ok(args.every(arg => typeof arg === 'string' && arg.length <= 4096 && !arg.includes('\0')) && args.reduce((bytes, arg) => bytes + Buffer.byteLength(arg), 0) <= 4096, 'invalid fixture workerArgs');
   let poll, active, sequence = 0, stopping = false, logs = '';
   const queue = [], sockets = new Set();
   const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('AWS_LAMBDA_') && !key.startsWith('NEXTGO_LAMBDA_') && !key.startsWith('NEXTGO_DEMO_') && key !== 'NEXTGO_ENV_DIR'));
@@ -90,7 +105,7 @@ export async function startLambdaGateway({binary, mode, port}) {
   await new Promise((resolve, reject) => {runtime.once('error', reject); runtime.listen(0, '127.0.0.1', resolve);});
   // Playwright terminates the fixture's entire process group. Give each worker
   // its own group so close() sends exactly one signal and awaits physical exit.
-  const child = spawn(binary, [], {cwd: '/', detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: {
+  const child = spawn(binary, args, {cwd: '/', shell: false, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: {
     ...environment, AWS_LAMBDA_RUNTIME_API: `127.0.0.1:${runtime.address().port}`, NEXTGO_LAMBDA_RESPONSE_MODE: mode,
     NEXTGO_DEMO_BASE_PATH: '/lambda-features', NEXTGO_DEMO_ASSET_PREFIX: '/lambda-assets', NEXTGO_DEMO_CSP: 'true',
     NEXTGO_DEMO_COOKIE_ALLOW_INSECURE: 'true',
@@ -111,7 +126,7 @@ export async function startLambdaGateway({binary, mode, port}) {
   const gateway = createServer({maxHeaderSize: 16 << 10}, async (request, response) => {
     try {
       if (stopping) {rejectHTTP(response, 503, 'Fixture stopping'); return;}
-      if (request.headers.host !== `127.0.0.1:${port}` || !request.url.startsWith('/') || request.url.startsWith('//') || request.url.length > 8192) {rejectHTTP(response, 400, 'Invalid local authority or URL'); return;}
+      if (!acceptedHosts.has(request.headers.host) || !request.url.startsWith('/') || request.url.startsWith('//') || request.url.length > 8192) {rejectHTTP(response, 400, 'Invalid local authority or URL'); return;}
       if (request.url === '/_fixture/lambda/ready') {response.writeHead(200, {'Content-Type': 'text/plain', 'Cache-Control': 'no-store'}); response.end(mode); return;}
       if (queue.length >= queueLimit) {rejectHTTP(response, 503, 'Local Lambda queue full'); return;}
       const chunks = []; let size = 0;

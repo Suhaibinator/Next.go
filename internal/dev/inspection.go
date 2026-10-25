@@ -129,13 +129,21 @@ func (s *supervisor) allowedInspectionRequest(r *http.Request) bool {
 	if ip == nil || !ip.IsLoopback() {
 		return false
 	}
-	host, _, err := net.SplitHostPort(r.Host)
-	if err != nil || !s.allowedHost(r.Host) {
+	if !s.allowedHost(r.Host) {
 		return false
 	}
-	ip = net.ParseIP(host)
-	if !strings.EqualFold(host, "localhost") && (ip == nil || !ip.IsLoopback()) {
-		return false
+	s.mu.Lock()
+	zoned := s.zoneHosts != nil
+	s.mu.Unlock()
+	if !zoned {
+		host, _, err := net.SplitHostPort(r.Host)
+		if err != nil {
+			return false
+		}
+		ip = net.ParseIP(host)
+		if !strings.EqualFold(host, "localhost") && (ip == nil || !ip.IsLoopback()) {
+			return false
+		}
 	}
 	origins := r.Header.Values("Origin")
 	if len(origins) > 1 || len(origins) == 1 && origins[0] != "http://"+r.Host {
@@ -147,6 +155,62 @@ func (s *supervisor) allowedInspectionRequest(r *http.Request) bool {
 	default:
 		return false
 	}
+}
+
+// Zone graphs project only bounded public declarations and route/component
+// metadata. Native roots/imports, tenant values and configuration stay private.
+func publicBuildInspectionGraph(build *project.Build) InspectionGraph {
+	if build == nil || build.Zones == nil {
+		if build == nil {
+			return publicInspectionGraph(nil)
+		}
+		return publicInspectionGraph(build.Project)
+	}
+	b := inspectionGraphBuilder{graph: InspectionGraph{Nodes: []InspectionNode{}, Edges: []InspectionEdge{}}, budget: maxInspectionNodes * 8}
+	projects := make(map[string]*project.Project, len(build.ZoneProjects))
+	for _, p := range build.ZoneProjects {
+		if p != nil {
+			projects[p.Root] = p
+		}
+	}
+	for _, zone := range build.Zones.Zones {
+		if !b.step() {
+			break
+		}
+		name := b.publicString(zone.ID)
+		pattern := zone.BasePath
+		if pattern == "" {
+			pattern = "/"
+		}
+		pattern = b.publicString(pattern)
+		if name == "" || pattern == "" {
+			continue
+		}
+		id := b.node(InspectionNode{Kind: "zone", Name: name, Pattern: pattern})
+		p := projects[zone.Root]
+		if p == nil {
+			b.graph.Truncated = true
+			continue
+		}
+		b.wrappers, b.slots = map[string]string{}, map[string]string{}
+		for _, route := range p.Routes {
+			if b.budget <= 0 {
+				b.graph.Truncated = true
+				break
+			}
+			b.edge(id, b.route(route, 0), "route")
+		}
+		for _, component := range p.Components {
+			if !b.step() {
+				break
+			}
+			name := b.publicString(component.Name)
+			if name != "" {
+				b.edge(id, b.node(InspectionNode{Kind: "component", Name: name, Lazy: component.Lazy}), "component")
+			}
+		}
+	}
+	return b.graph
 }
 
 // Inspection never serializes project structures. Source paths, import names,

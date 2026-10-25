@@ -153,15 +153,19 @@ func (a *App) prerenderIdentity() string {
 	return hex.EncodeToString(sum[:])
 }
 func (a *App) prerenderScopes() []prerenderScope {
+	defaultHost := "prerender.invalid"
+	if zone := a.config.Zone(); zone.Host != "" {
+		defaultHost = zone.Host
+	}
 	if a.locales == nil {
-		return []prerenderScope{{a, "prerender.invalid"}}
+		return []prerenderScope{{a, defaultHost}}
 	}
 	var scopes []prerenderScope
 	for _, s := range a.locales.mounts {
 		if !s.alias {
 			host := s.host
 			if host == "" {
-				host = "prerender.invalid"
+				host = defaultHost
 			}
 			scopes = append(scopes, prerenderScope{s.app, host})
 		}

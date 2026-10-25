@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "zones": [
+    {"id": "marketing", "host": "127.0.0.1:4230", "basePath": "", "app": "./marketing"},
+    {"id": "blog", "host": "127.0.0.1:4230", "basePath": "/blog", "app": "./blog"},
+    {"id": "alpha", "host": "alpha.example.test", "basePath": "", "tenant": "alpha", "app": "./tenant"},
+    {"id": "beta", "host": "beta.example.test", "basePath": "", "tenant": "beta", "app": "./tenant"}
+  ]
+}

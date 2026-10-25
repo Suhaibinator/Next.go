@@ -86,6 +86,7 @@ func materializePage(value cachedPage, route Route) (Page, error) {
 func (a *App) requestRegionResolver(c *Context, route Route) ui.RegionResolver {
 	input, params, query := c.Request.Clone(c.Context), maps.Clone(c.Params), cloneQuery(c.Query)
 	return func(ctx context.Context, name string, props json.RawMessage) (ui.Node, error) {
+		ctx = a.bindZoneContext(ctx)
 		fn := route.Regions[name]
 		if fn == nil {
 			return nil, fmt.Errorf("nextgo: unregistered request region %q", name)
@@ -104,6 +105,7 @@ func (shellContext) Value(any) any { return nil }
 
 func (a *App) publicShellContext(ctx context.Context) context.Context {
 	public := context.Context(shellContext{ctx})
+	public = a.bindZoneContext(public)
 	public = paths.WithContext(public, a.paths)
 	public = context.WithValue(public, publicContextKey{}, a.config.Public)
 	public = context.WithValue(public, cacheProfileContextKey{}, a.profiles)
@@ -122,6 +124,9 @@ func (a *App) publicShellRequest(input *http.Request, ctx context.Context) *http
 	// application-mutated forms, TLS, trailers and transport fields.
 	url := *input.URL
 	request := &http.Request{Method: http.MethodGet, URL: &url, Header: make(http.Header), Body: http.NoBody, Host: "prerender.invalid", Proto: "HTTP/1.1", ProtoMajor: 1, ProtoMinor: 1}
+	if zone := a.config.Zone(); zone.Host != "" {
+		request.Host = zone.Host
+	}
 	if a.config.localeScope != nil && a.config.localeScope.host != "" {
 		request.Host = a.config.localeScope.host
 	}

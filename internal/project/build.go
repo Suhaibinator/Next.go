@@ -24,9 +24,17 @@ const framework = "github.com/Suhaibinator/Next.go"
 type Build struct {
 	Dir, Binary, ID, Fingerprint string
 	Project                      *Project // Exact discovery metadata used by this successful build.
+	ZoneProjects                 []*Project
+	ZoneAssets                   map[string]string
+	ZoneRuntimeIDs               map[string]string
+	Zones                        *ZonesManifest
 }
 
 func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Build, error) {
+	return compile(ctx, root, dev, output, true)
+}
+
+func compile(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender bool) (*Build, error) {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return nil, err
@@ -38,6 +46,9 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	p, err := Discover(root)
 	if err != nil {
 		return nil, err
+	}
+	if !allowPrerender && hasPrerenderFiles(p) {
+		return nil, fmt.Errorf("zones v1 does not support prerender declarations; no capture or seed reservation was executed")
 	}
 	coreTags, moduleTags, err := browserBuildTags(ctx, p.Root)
 	if err != nil {
@@ -253,7 +264,7 @@ func wasmSupport(ctx context.Context, appRoot string) ([]byte, error) {
 	return os.ReadFile(filepath.Join(strings.TrimSpace(string(root)), "lib", "wasm", "wasm_exec.js"))
 }
 
-func serverSource(p *Project, id string, dev bool) string {
+func serverImports(p *Project) map[string]bool {
 	imports := map[string]bool{}
 	for _, r := range projectRoutes(p.Routes) {
 		for _, slot := range r.Slots {
@@ -303,6 +314,28 @@ func serverSource(p *Project, id string, dev bool) string {
 			imports[handler] = true
 		}
 	}
+	return imports
+}
+
+func writeConfigConstruction(b *strings.Builder, p *Project, aliases map[string]string, id string, dev bool) {
+	fmt.Fprintf(b, "config:=nextgo.Config{Assets:assets,BuildID:%q,Dev:%t,", id, dev)
+	if p.NotFound != "" {
+		fmt.Fprintf(b, "NotFound:%s.NotFound,", aliases[p.NotFound])
+	}
+	for _, handler := range []struct{ field, imp string }{{"Unauthorized", p.Unauthorized}, {"Forbidden", p.Forbidden}} {
+		if handler.imp != "" {
+			fmt.Fprintf(b, "%s:%s.%s,", handler.field, aliases[handler.imp], handler.field)
+		}
+	}
+	b.WriteString("Routes:[]nextgo.Route{\n")
+	for _, r := range p.Routes {
+		writeRoute(b, r, aliases, p.NotFound)
+	}
+	b.WriteString("}}\n")
+}
+
+func serverSource(p *Project, id string, dev bool) string {
+	imports := serverImports(p)
 	keys := make([]string, 0, len(imports))
 	for key := range imports {
 		keys = append(keys, key)
@@ -322,20 +355,8 @@ nextgo "` + framework + `"
 		fmt.Fprintf(&b, "%s %q\n", alias, key)
 	}
 	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");flag.Parse();exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{log.Fatal(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
-	fmt.Fprintf(&b, "config:=nextgo.Config{Assets:assets,BuildID:%q,Dev:%t,", id, dev)
-	if p.NotFound != "" {
-		fmt.Fprintf(&b, "NotFound:%s.NotFound,", aliases[p.NotFound])
-	}
-	for _, handler := range []struct{ field, imp string }{{"Unauthorized", p.Unauthorized}, {"Forbidden", p.Forbidden}} {
-		if handler.imp != "" {
-			fmt.Fprintf(&b, "%s:%s.%s,", handler.field, aliases[handler.imp], handler.field)
-		}
-	}
-	b.WriteString("Routes:[]nextgo.Route{\n")
-	for _, r := range p.Routes {
-		writeRoute(&b, r, aliases, p.NotFound)
-	}
-	b.WriteString("}}\nconfig.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
+	writeConfigConstruction(&b, p, aliases, id, dev)
+	b.WriteString("config.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
 	writeMetadataSources(&b, p, aliases)
 	if p.Configure != "" {
 		fmt.Fprintf(&b, "%s.Configure(&config)\n", aliases[p.Configure])

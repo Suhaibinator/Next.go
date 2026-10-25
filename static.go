@@ -26,6 +26,7 @@ func (a *App) StaticPaths(ctx context.Context) ([]string, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("nextgo: StaticPaths requires a context")
 	}
+	ctx = a.bindZoneContext(ctx)
 	if a.locales != nil {
 		return a.locales.staticPaths(ctx, "")
 	}
@@ -116,7 +117,7 @@ func (a *App) StaticPathsForDomain(ctx context.Context, domain string) ([]string
 	if a.locales == nil {
 		return nil, fmt.Errorf("nextgo: static export domain requires configured locale domains")
 	}
-	return a.locales.staticPaths(ctx, domain)
+	return a.locales.staticPaths(a.bindZoneContext(ctx), domain)
 }
 
 func enumerateParams(ctx context.Context, load StaticParamsFunc) ([]Params, error) {

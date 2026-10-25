@@ -27,7 +27,10 @@
     "test:lambda:browser": "node scripts/test-browser.mjs --config tests/lambda-features.config.mjs",
     "test:metadata-files": "node scripts/test-browser.mjs --config tests/metadata-files.config.mjs",
     "test:form-validation": "node scripts/test-browser.mjs --config tests/form-validation.config.mjs",
-    "test:form-validation:deployment": "node --test tests/form-validation-deployment.test.mjs"
+    "test:form-validation:deployment": "node --test tests/form-validation-deployment.test.mjs",
+    "test:zones": "node scripts/test-browser.mjs --config tests/zones.config.mjs",
+    "test:zones:dev": "node scripts/test-browser.mjs --config tests/zones-dev.config.mjs",
+    "test:zones:deployment": "node --test tests/zones-deployment.gateway.test.mjs tests/zones-deployment.test.mjs tests/zones-deployment.cli.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

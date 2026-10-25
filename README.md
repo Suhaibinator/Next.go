@@ -16,11 +16,17 @@ has passing native/WASM, focused example and final Linux metadata/CSS browser
 checks for its bounded contracts. These are scoped results, recorded separately
 in [the inventory](docs/PARITY.md), not full release qualification.
 
-The current forms checkpoint adds choice/field validation and mutation
+The preceding forms checkpoint adds choice/field validation and mutation
 factoring. It passes both SDK/native/WASM and executable checks, 394 host
 browser checks (335 primary, 36 forms, 23 separate static) and 48 Linux
 four-engine form checks. The AWS qualification scaffold has offline tests only,
 with cloud execution awaiting explicit approval.
+
+The new zones checkpoint composes exact-host/path-selected native applications
+with explicit full-document boundaries and trusted tenant metadata. Native/WASM,
+production, focused browser and four-engine Linux development checks pass for
+this bounded subset. This is one-process composition, not independent application
+releases or production tenant authentication. See [zones](docs/ZONES.md).
 
 ## Run the example
 
@@ -804,6 +810,28 @@ to its browser fixture. The Lambda helper drives a local Runtime API gateway;
 its browser results do not establish actual AWS behavior or qualify a different
 binary. [Metadata setup](examples/metadata-site/README.md) documents build/export
 and mounted/CDN settings.
+
+## Multiple applications behind one server
+
+```sh
+go run ./cmd/nextgo zones dev -addr 127.0.0.1:4230 ./examples/zones/zones.json
+go run ./cmd/nextgo zones build -out ./dist/zones ./examples/zones/zones.json
+./dist/zones/server -addr 127.0.0.1:4230
+```
+
+Visit the marketing root and `/blog` at `http://127.0.0.1:4230`. The manifest
+also reuses one tenant source for two exact hosts. `NewZones` selects canonical
+Host plus longest literal mount, owns each application's assets/cache/tracer
+lifetime and exposes `Config.Zone()`/`CurrentZone` as trusted deployment context.
+That context is not a user identity: the [synthetic tenant sample](examples/zones/README.md)
+checks its openly issued demo sessions independently on pages, APIs and actions.
+
+Same-zone links retain the application's runtime; crossing `DocumentPaths`
+loads a new document. One module/workspace/toolchain is required, alternate
+asset CDNs/domain locales and aggregate export/prerender are unsupported, and
+same-origin applications share browser authority. [Zone ownership and CLI limits](docs/ZONES.md)
+describe startup host overrides and shutdown. Independent releases/deployments,
+real ingress and production tenant isolation remain open requirements.
 
 ## Using the framework in another module
 
