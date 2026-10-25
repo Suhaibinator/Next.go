@@ -740,6 +740,15 @@ unfinished.
 
 ## Rendering and navigation architecture
 
+An experimental [offline contract foundation](docs/OFFLINE.md) describes explicit
+saved anonymous public snapshots, complete byte inventories and bounded
+generation reservations. Native `App.PrepareOffline` explicitly captures allowed
+public pages through middleware and a final response-admission gate; it does not
+create a complete asset catalog or install an endpoint automatically. There is
+no service-worker registration or compiler/browser-storage integration yet;
+T16 remains Missing. It cannot preserve authenticated current state or authorize
+mutation replay.
+
 ```mermaid
 flowchart LR
     Request[HTTP request] --> Route[Generated Go route table]

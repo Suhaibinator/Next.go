@@ -296,6 +296,9 @@ func (e *uncacheable) Error() string { return "uncacheable render" }
 
 func (a *App) loadPage(c *Context, route Route, w http.ResponseWriter, span *telemetry.Span) (Page, int) {
 	span.Cache("disabled")
+	if capture, ok := c.Value(offlineCaptureKey{}).(*offlineCapture); ok {
+		return a.captureOffline(c, route, w, capture)
+	}
 	if len(route.Regions) > 0 && c.Value(prerenderCaptureKey{}) == nil {
 		w.Header().Set("X-Nextgo-Request-Regions", "1")
 		w.Header().Set("Cache-Control", "private, no-store")
@@ -463,7 +466,7 @@ func (a *App) RevalidateTag(tag string) { a.config.Cache.ExpireTag(tag) }
 func (a *App) RevalidatePath(path string) { a.config.Cache.ExpirePathPrefix(path) }
 
 func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[string]string, query url.Values, route Route) (cachedPage, error) {
-	ctx = a.bindZoneContext(ctx)
+	ctx = a.offlinePublicContext(a.bindZoneContext(ctx))
 	partial := route.Prerender != nil && route.Prerender.Partial
 	if partial {
 		ctx = a.publicShellContext(ctx)

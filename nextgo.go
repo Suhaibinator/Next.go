@@ -473,7 +473,7 @@ func newApp(c Config) (*App, error) {
 		}
 		a.handler = c.Middleware[i](a.handler)
 	}
-	a.handler = httpx.Compression(a.handler)
+	a.handler = offlineResponseCompression(a, a.handler, httpx.Compression(a.handler))
 	if err := a.initPrerenderRuntime(); err != nil {
 		return nil, err
 	}
@@ -575,6 +575,11 @@ func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
 	a.handler.ServeHTTP(w, r)
 }
 func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
+	if capture := offlineCaptureFor(r); capture != nil && !a.offlineRequestValid(r, capture) {
+		capture.err = ErrOfflineAdmission
+		http.Error(w, "Offline preparation refused", http.StatusInternalServerError)
+		return
+	}
 	if refreshing, _ := r.Context().Value(actionViewRequestKey{}).(bool); refreshing {
 		if err := a.actionViewTarget(r, 0); err != nil {
 			http.Error(w, "Refreshed action target is unavailable", http.StatusConflict)
@@ -857,6 +862,10 @@ func (a *App) respond(w http.ResponseWriter, r *http.Request, p Page, status int
 	telemetry.Handle(w, r, telemetry.Info{Name: "nextgo.render"}, func(w http.ResponseWriter, r *http.Request) { a.respondPage(w, r, p, status) })
 }
 func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status int) {
+	if capture := offlineCaptureFor(r); capture != nil && capture.fallback {
+		respondOfflineFallback(w, capture, status)
+		return
+	}
 	a.draftResponse(w, r)
 	if flag, _ := r.Context().Value(parallelRequestKey{}).(bool); flag || ruleSensitive(r.Context()) {
 		w.Header().Set("Cache-Control", "private, no-store")
@@ -951,7 +960,11 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		status = 500
 	}
 	w.Header().Set(navigation.ConfigurationHeader, a.configurationID)
-	w.Header().Add("Vary", "X-Nextgo-Navigate, X-Nextgo-Stream, X-Nextgo-Purpose")
+	// A native offline capture is a constructed, non-negotiating HTML GET.
+	// Preserve all application Vary fields; omit only this framework addition.
+	if offlineCaptureFor(r) == nil {
+		w.Header().Add("Vary", "X-Nextgo-Navigate, X-Nextgo-Stream, X-Nextgo-Purpose")
+	}
 	if status != 200 || w.Header().Get("Cache-Control") == "" {
 		if len(w.Header().Values("Set-Cookie")) > 0 || status == http.StatusUnauthorized || status == http.StatusForbidden || status == http.StatusServiceUnavailable {
 			w.Header().Set("Cache-Control", "private, no-store")

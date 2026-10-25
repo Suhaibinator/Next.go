@@ -8,6 +8,27 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — offline document preparation foundation
+
+- Add experimental `offline` policies, owned catalogs, complete-inventory
+  verification, persisted-time freshness checks and reservations charging
+  active, previous and staging generations. Native catalog codecs stay outside
+  the browser import graph.
+- Add `App.PrepareOffline` for explicit saved-anonymous-public documents. It
+  constructs anonymous requests, discards caller/middleware identity values,
+  renders read-only public pages and checks complete buffered responses after
+  middleware unwinds. The fallback contains escaped title/description text;
+  its application body, head and runtime are omitted.
+- Keep worker registration, compiler asset capture, browser storage, offline
+  navigation and mutation recovery unfinished. T16 remains Missing; these APIs
+  do not enable an offline application. See [the contract](docs/OFFLINE.md).
+- Root/offline native race tests and vet pass on Go 1.24.13 and 1.27.3,
+  with 951 passing test/subtest records per SDK. Portable WASM tests, vet and
+  dependency-boundary checks pass with matching toolchains.
+- Preserve running CI checkpoints when a new push arrives. Allow the streaming
+  job 45 minutes, including a bounded 30-minute browser/dependency installation;
+  its preceding attempt exhausted the former 15-minute job limit before tests.
+
 ## Unreleased — JSON validation dependency boundary
 
 - Move the duplicate-key/lexical validator into `internal/wirejson/scan`, whose
