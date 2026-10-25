@@ -43,6 +43,7 @@ type Scope struct {
 	closed                 bool
 	selectionCleanup       bool
 	locationCleanup        bool
+	linkStatusCleanup      bool
 	taskContext            context.Context
 	taskWorkers            int
 }
@@ -174,5 +175,5 @@ func (s *Scope) active() bool {
 // contracts before a runtime containing them can be retired in place.
 func refreshScopeSupported(s *Scope) bool {
 	return s != nil && !s.closed && s.lifetime == nil && len(s.children) == 0 &&
-		len(s.keyedLists) == 0 && !s.selectionCleanup && !s.locationCleanup
+		len(s.keyedLists) == 0 && !s.selectionCleanup && !s.locationCleanup && !s.linkStatusCleanup
 }

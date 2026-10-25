@@ -111,6 +111,10 @@ func Configure(config *nextgo.Config) {
 		}
 	}
 	for i := range config.Routes {
+		// Link feedback demonstrates a real complete public navigation-cache hit.
+		if config.Routes[i].Pattern == "/link-status/one" {
+			config.Routes[i].Cache = &nextgo.CachePolicy{TTL: time.Minute}
+		}
 		if config.Routes[i].Pattern == "/preview" {
 			config.Routes[i].Cache = &nextgo.CachePolicy{TTL: 10 * time.Second}
 		}

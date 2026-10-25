@@ -50,7 +50,7 @@ var lazyRetryScope *Scope
 
 var lazySlots = make(chan struct{}, 2)
 
-const moduleABI = 4
+const moduleABI = 5
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
@@ -304,7 +304,7 @@ func installModuleHost() {
 					result = fmt.Sprintf("module bridge: %v", failure)
 				}
 			}()
-			if refreshFrozen() && name != "register" && name != "state" && name != "refreshEnabled" {
+			if refreshFrozen() && name != "register" && name != "state" && name != "refreshEnabled" && name != "unobserveLinkStatus" {
 				return errRefreshFrozen.Error()
 			}
 			return run(args)
@@ -341,6 +341,8 @@ func installModuleHost() {
 	bind("mutation", mutationHostPromise)
 	bind("actionFence", func([]js.Value) any { beginFrameworkAction(); return "" })
 	bind("state", func([]js.Value) any { return moduleSnapshot() })
+	bind("observeLinkStatus", observeLinkStatusHost)
+	bind("unobserveLinkStatus", unobserveLinkStatusHost)
 	bind("navigate", func(args []js.Value) any {
 		var options NavigationOptions
 		if err := json.Unmarshal([]byte(args[1].String()), &options); err != nil {

@@ -240,7 +240,7 @@ func runDocument() {
 		}
 		e.Call("preventDefault")
 		saveScroll()
-		startNavigationOptions(u.Get("href").String(), false, js.Undefined(), NavigationOptions{Transition: linkTransition(link), Replace: link.Call("getAttribute", "data-nextgo-replace").String() == "true"})
+		startLinkNavigation(u.Get("href").String(), false, js.Undefined(), NavigationOptions{Transition: linkTransition(link), Replace: link.Call("getAttribute", "data-nextgo-replace").String() == "true"}, link)
 	})
 	for _, event := range []string{"pointerover", "focusin"} {
 		listen(doc, event, func(e js.Value) {
@@ -572,7 +572,9 @@ func cancelPendingNavigation() {
 	skipViewTransition()
 	stopNavigationStream()
 	clearStreamRetry()
+	linkID := linkNavigationID
 	if cancelNavigation == nil {
+		finishLinkNavigation(linkID)
 		return
 	}
 	cancelNavigation()
@@ -580,6 +582,7 @@ func cancelPendingNavigation() {
 	navigationID++
 	doc.Call("getElementById", "nextgo-app").Call("removeAttribute", "aria-busy")
 	doc.Call("getElementById", "nextgo-status").Set("hidden", true)
+	finishLinkNavigation(linkID)
 }
 
 func startNavigation(target string, pop bool, state js.Value) {
@@ -591,6 +594,10 @@ func startNavigationMode(target string, pop bool, state js.Value, replace bool) 
 }
 
 func startNavigationOptions(target string, pop bool, state js.Value, options NavigationOptions) {
+	startLinkNavigation(target, pop, state, options, js.Undefined())
+}
+
+func startLinkNavigation(target string, pop bool, state js.Value, options NavigationOptions, source js.Value) {
 	if draftFrozen || refreshFrozen() {
 		return
 	}
@@ -620,6 +627,11 @@ func startNavigationOptions(target string, pop bool, state js.Value, options Nav
 	status.Set("hidden", false)
 	status.Set("textContent", "Loading…")
 	doc.Call("getElementById", "nextgo-app").Call("setAttribute", "aria-busy", "true")
+	beginLinkNavigation(id, source)
+	if id != navigationID || ctx.Err() != nil {
+		cancel()
+		return
+	}
 	if !staticExport() {
 		go loadNavigationFallback(ctx, target, id)
 	}
@@ -630,6 +642,10 @@ func startNavigationOptions(target string, pop bool, state js.Value, options Nav
 			return
 		}
 		cancelNavigation = nil
+		finishLinkNavigation(id)
+		if id != navigationID {
+			return
+		}
 		doc.Call("getElementById", "nextgo-app").Call("removeAttribute", "aria-busy")
 		if err != nil {
 			// A failed pop must not leave the address bar describing the old view.
@@ -694,6 +710,12 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 	}()
 	key := requestURL(target)
 	data, cached := pageCache.get(key)
+	if !cached || data.Shell != "" {
+		waitLinkNavigation(id)
+		if id != navigationID || ctx.Err() != nil {
+			return context.Canceled
+		}
+	}
 	var hint *shellResumeHint
 	if !cached {
 		if pending := prefetches[key]; pending != nil && pending.viewport {
@@ -785,7 +807,11 @@ func commitNavigation(ctx context.Context, target string, pop bool, state js.Val
 		if data.ShellRef && data.shellEpoch != cacheEpoch {
 			return fmt.Errorf("cached shell was invalidated before navigation commit")
 		}
-		return commit(parsed, root, data, target, pop, state, replace)
+		if err := commit(parsed, root, data, target, pop, state, replace); err != nil {
+			return err
+		}
+		finishLinkNavigation(id)
+		return nil
 	})
 }
 

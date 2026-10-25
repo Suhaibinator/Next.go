@@ -250,6 +250,9 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 					return e
 				}
 				streamed = true
+				if id != navigationID || ctx.Err() != nil {
+					return context.Canceled
+				}
 				streamShellCommittedID = id
 				session, err = newNavigationStream(id, data)
 				if err != nil {

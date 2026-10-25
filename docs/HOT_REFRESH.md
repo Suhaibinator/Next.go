@@ -9,8 +9,13 @@ use the existing rebuild and full-document reload path.
 This is a bounded experimental development feature with the scoped qualification
 recorded below. It does not provide full Fast Refresh, React/Next.js source
 compatibility, arbitrary Go heap migration, or production hot swapping. The
-normal production module entrypoint and navigation-v3/module-ABI4 contracts
-remain separate from the version-1 development extension.
+normal production module entrypoint and navigation-v3/module-ABI5 contracts
+remain separate from the version-1 development extension. ABI 5 adds
+[per-anchor link-status forwarding](LINK_STATUS.md) alongside resource epochs.
+Rebuild the eager core, every lazy module and the development entries together
+from the same framework revision and selected Go SDK. Mixed ABI 4/5 artifacts
+are rejected; reusing an older core, module or development entry is unsupported.
+Historical ABI 3/4 checkpoint evidence below does not qualify the ABI 5 increment.
 Development gating controls activation; shared Go library paths can still be
 linked into production WASM. This does not claim zero production payload cost
 or that all development implementation code is absent from those binaries.
@@ -162,15 +167,15 @@ runtime cause a full-document fallback. Cleanup can still produce physical work
 that must drain before retirement. A timeout never abandons an old runtime and
 starts a second one in the same document.
 
-Effects/providers, child/keyed scopes, and location/selection subscriptions do
-not yet have transfer contracts. Generic forms and file/password/radio/select/
-textarea controls are outside the supported preservation slice. The current
+Effects/providers, child/keyed scopes, and location/selection/link-status
+subscriptions do not yet have transfer contracts. Generic forms and
+file/password/radio/select/textarea controls are outside the supported preservation slice. The current
 coordinator checks retained node identity, root/parent ownership, and unchanged
 focus/value/checked/selection state for bounded standalone text/checkbox inputs;
 it does not recreate browser control state after arbitrary markup replacement.
-Registered scope-owned lifetimes, effects, children and location/selection
-observers are rejected by the known ownership checks. Manually constructed
-unscoped lifetimes, arbitrary heap references and asynchronous work cannot all be discovered;
+Registered scope-owned lifetimes, effects, children and location/selection/
+link-status observers are rejected by the known ownership checks. Manually
+constructed unscoped lifetimes, arbitrary heap references and asynchronous work cannot all be discovered;
 components using them must not opt in. This is not automatic detection of every
 unsupported lifetime.
 

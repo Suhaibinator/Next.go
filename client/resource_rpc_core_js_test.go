@@ -116,13 +116,19 @@ func TestResourceModuleABIRejectsOldRegistrationBeforeMount(t *testing.T) {
 	lazyModules = map[string]*lazyState{"resourcepanel": {loading: true, descriptor: LazyModule{Epoch: epoch}, exports: js.Undefined()}}
 	installModuleHost()
 	host := win.Get(moduleBridgeName)
-	if host.Get("version").Int() != 4 {
-		t.Fatal("module ABI freshness contract not raised")
+	if host.Get("version").Int() != 5 {
+		t.Fatal("module ABI link-status contract not raised")
 	}
-	if result := host.Call("register", "resourcepanel", epoch, 3, js.Global().Get("Object").New()).String(); result != "incompatible module generation" {
-		t.Fatal("old ABI accepted", result)
-	}
-	if lazyModules["resourcepanel"].exports.Truthy() {
-		t.Fatal("old exports were installed")
+	for _, oldABI := range []int{4, 3} {
+		// Each legacy registration starts from fresh state, so rejection of one
+		// version cannot mask installation by the next attempt.
+		state := &lazyState{loading: true, descriptor: LazyModule{Epoch: epoch}, exports: js.Undefined()}
+		lazyModules = map[string]*lazyState{"resourcepanel": state}
+		if result := host.Call("register", "resourcepanel", epoch, oldABI, js.Global().Get("Object").New()).String(); result != "incompatible module generation" {
+			t.Fatal("old ABI accepted", oldABI, result)
+		}
+		if !state.exports.IsUndefined() {
+			t.Fatal("old exports were installed", oldABI)
+		}
 	}
 }

@@ -1,10 +1,19 @@
 {
-  "version": 1,
+  "version": 2,
   "tools": [
     {
-      "name": "Go design tokens",
+      "name": "Go token normalizer",
+      "command": ["go", "-C", "{project}", "run", "{inputs}/tools/tokens/main.go"],
+      "inputs": ["styles/tokens.json", "tools/tokens"],
+      "outputs": ["tokens.json"],
+      "intermediate": true,
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "Go stylesheet renderer",
       "command": ["go", "-C", "{project}", "run", "{inputs}/tools/styles/main.go"],
-      "inputs": ["styles", "tools/styles"],
+      "inputs": ["styles/main.css", "tools/styles"],
+      "dependencies": {"tokens": "Go token normalizer"},
       "outputs": ["style.css"],
       "timeoutSeconds": 120
     }

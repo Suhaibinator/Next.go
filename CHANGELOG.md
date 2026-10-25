@@ -8,6 +8,32 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — scoped link feedback and explicit asset dependencies
+
+- Add `Scope.ObserveLinkStatus` for one owned anchor, including immediate
+  synchronization, commit/supersession cleanup and a shared 512-observer bound.
+  Eager and lazy modules use paired ABI 5; resource invalidation epochs remain
+  mandatory. Retained-layout examples keep duplicate-destination links distinct.
+- Add asset-manifest v2 dependency aliases and private intermediate outputs.
+  Sequential topological execution uses verified per-consumer copies with a
+  shared bounded copy ledger. The Go token/CSS example now has two actual stages
+  and publishes only `style.css`; version 1 retains independent-tool behavior.
+- Both SDKs pass 15 targeted native/WASM/vet commands and separate production
+  artifact checks. The final per-link browser fixtures pass 60 cases per SDK
+  across four engines; initial fixture failures remain recorded in
+  [link feedback](docs/LINK_STATUS.md). Selected existing core/location/lazy/stream
+  regressions pass 128 cases per SDK, and static hosts pass 12 per SDK: 400
+  browser executions on the pre-readiness-change producers. Four Node transport
+  cases per SDK check native/local buffered/local streaming/static delivery;
+  they do not instantiate WASM or contact AWS. Thirty-three CI-helper checks
+  pass separately; remote workflow execution is not implied.
+- Align lazy-host readiness with committed `CurrentLocation`, permitting idle
+  link observers in valid saved/fallback native documents without enabling SPA
+  routing. All four WASM personalities and vets pass on both SDKs; this later
+  change has no fresh full browser, HMR or offline campaign. Development-watch
+  and complete deployment/release qualification remain open. These bounded
+  additions do not complete the capability inventory or close release gates.
+
 ## Unreleased — experimental managed offline public editions
 
 - Add a production compiler path for native `app/offline.go` policies, a separate

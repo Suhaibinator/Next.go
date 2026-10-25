@@ -1,12 +1,13 @@
 //go:build !js
 
-// A build-time Go hook: no JavaScript runtime or package installer is needed.
+// A build-time Go renderer: its tokens come from a declared private dependency.
 package main
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -34,9 +35,17 @@ func transform(ctx context.Context, w buildassets.Workspace) error {
 		return err
 	}
 	var tokens struct{ Accent, Background, Ink string }
-	data, err := os.ReadFile(filepath.Join(w.Inputs, "styles", "tokens.json"))
+	input, err := os.Open(filepath.Join(w.Dependencies(), "tokens", "tokens.json"))
 	if err != nil {
 		return err
+	}
+	defer input.Close()
+	data, err := io.ReadAll(io.LimitReader(input, 4097))
+	if err != nil {
+		return err
+	}
+	if len(data) > 4096 {
+		return fmt.Errorf("normalized design tokens exceed 4 KiB")
 	}
 	if err := json.Unmarshal(data, &tokens); err != nil {
 		return err

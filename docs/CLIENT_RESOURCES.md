@@ -139,10 +139,13 @@ failure text. Loader panics become a generic error without panic-value disclosur
 Framework action dispatch and settlement invalidate resources along with the
 navigation cache, including failed/aborted mutation transports: a transport error
 does not prove server rollback. The core forwards an invalidation epoch to loaded
-lazy modules. This mandatory freshness propagation raises the module ABI from 3
-to 4. Old/new mixed ABI hosts and modules fail their handshake before mounting;
-rebuild and deploy the paired core and lazy assets together. The host shares the
-original DOM reference with its module, including the private first-observed
+lazy modules. The resource checkpoint raised the module ABI from 3 to 4 for this
+mandatory freshness propagation. Those results remain historical. Current ABI 5
+also carries [per-anchor link-status forwarding](LINK_STATUS.md), retaining the
+same mandatory freshness rule. Mixed ABI hosts and modules fail their handshake
+before mounting; rebuild and deploy the core, every lazy module and development
+entries together from the same framework revision and selected Go SDK. The host
+shares the original DOM reference with its module, including the private first-observed
 origin marker; JSON snapshots carry the current invalidation epoch. Resource
 payloads and Go objects remain in their own WASM runtimes. Unchanged module epochs do not invalidate again. `Refresh`
 also applies the document cache fence. `client.InvalidateResources()` explicitly

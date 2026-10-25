@@ -119,10 +119,13 @@ See [combined confirmation/view semantics](ACTION_VIEWS.md). The 193-check
 generated-action matrix below describes the preceding ordinary-call subset.
 Generated wrappers now inherit the implemented native `Result.Cookies` output
 and the core typed-dispatch FIFO without a second transport. The historical
-cookie/dispatch matrix used ABI 3; current paired bundles require ABI 4 for
-[resource invalidation](CLIENT_RESOURCES.md). See
-[native cookies](NATIVE_COOKIES.md) and [dispatch](MUTATION_DISPATCH.md). Current
-SDK/deployment checks and all 55 cookie checks pass; the corrected affected
+cookie/dispatch matrix used ABI 3; ABI 4 subsequently added mandatory
+[resource invalidation](CLIENT_RESOURCES.md). Current paired bundles require
+ABI 5 for [per-anchor link-status forwarding](LINK_STATUS.md). Rebuild the core,
+every lazy module and development entries together from the same framework
+revision and selected Go SDK. See [native cookies](NATIVE_COOKIES.md) and
+[dispatch](MUTATION_DISPATCH.md). The cookie/dispatch checkpoint's SDK/deployment
+checks and all 55 cookie checks pass; its corrected affected
 browser record is 342/342, including all 75 action-view checks. A separate native
 JavaScript CDP reproduction's underlying cause remains unresolved. Complete
 production qualification, identity/revocation and ordinary-call refresh behavior

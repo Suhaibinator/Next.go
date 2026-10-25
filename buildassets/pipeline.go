@@ -18,6 +18,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Suhaibinator/Next.go/internal/wirejson"
 )
 
 const ManifestName = "nextgo.assets.json"
@@ -30,8 +32,9 @@ const (
 	maxLog      = 64 << 10
 )
 
-// Pipeline describes independent tools. Outputs are exact public file paths;
-// directories and globs are not output declarations. Inputs may be directories.
+// Pipeline describes build tools. Version 1 tools are independent; version 2
+// permits explicit dependency snapshots and nonpublished intermediates. Outputs
+// are exact file paths; directories/globs are not outputs. Inputs may be directories.
 type Pipeline struct {
 	Version int    `json:"version"`
 	Tools   []Tool `json:"tools"`
@@ -44,6 +47,10 @@ type Tool struct {
 	Outputs        []string          `json:"outputs"`
 	Env            map[string]string `json:"env,omitempty"`
 	TimeoutSeconds int               `json:"timeoutSeconds,omitempty"`
+	// Version 2 only. Aliases name isolated snapshots of declared predecessors.
+	Dependencies map[string]string `json:"dependencies,omitempty"`
+	// Intermediate verifies outputs without adding them to the public result.
+	Intermediate bool `json:"intermediate,omitempty"`
 	// Transform is an alternative to Command for Go callers. It must cooperate
 	// with context cancellation. JSON manifests only support Command.
 	Transform func(context.Context, Workspace) error `json:"-"`
@@ -53,6 +60,13 @@ type Tool struct {
 // External tools receive these directories through NEXTGO_ASSET_* environment
 // variables and {inputs}, {outputs}, {project} argv substitutions.
 type Workspace struct{ Project, Inputs, Outputs string }
+
+// Dependencies names version 2's private dependency snapshot directory. Only
+// explicitly declared aliases exist beneath it. Version 1 does not create it.
+// A method preserves the existing three-field Workspace struct shape.
+func (w Workspace) Dependencies() string {
+	return filepath.Join(filepath.Dir(w.Inputs), "dependencies")
+}
 
 // WorkspaceFromEnv lets a small Go executable implement a typed asset hook.
 func WorkspaceFromEnv() (Workspace, error) {
@@ -77,6 +91,9 @@ func Load(root string) (pipeline Pipeline, present bool, err error) {
 	data, present, err := manifest(root)
 	if err != nil || !present {
 		return pipeline, present, err
+	}
+	if err = wirejson.Unique(data); err != nil {
+		return pipeline, true, fmt.Errorf("%s: duplicate or malformed JSON keys", ManifestName)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
@@ -121,8 +138,8 @@ func manifest(root string) ([]byte, bool, error) {
 }
 
 func validate(p Pipeline) error {
-	if p.Version != 1 {
-		return fmt.Errorf("asset pipeline version must be 1")
+	if p.Version != 1 && p.Version != 2 {
+		return fmt.Errorf("asset pipeline version must be 1 or 2")
 	}
 	if len(p.Tools) > 64 {
 		return fmt.Errorf("asset pipeline exceeds 64 tools")
@@ -155,23 +172,21 @@ func validate(p Pipeline) error {
 				return fmt.Errorf("asset input: %w", err)
 			}
 		}
+		if p.Version == 1 && (t.Intermediate || len(t.Dependencies) != 0) {
+			return fmt.Errorf("asset tool dependencies and intermediates require version 2")
+		}
+		localOutputs, localDirectories := map[string]bool{}, map[string]string{}
 		for _, output := range t.Outputs {
 			if err := safePath(output, true); err != nil {
 				return fmt.Errorf("asset output: %w", err)
 			}
-			key := strings.ToLower(output)
-			for old := range outputs {
-				if old == key || strings.HasPrefix(old, key+"/") || strings.HasPrefix(key, old+"/") {
-					return fmt.Errorf("asset output collision: %s", output)
-				}
+			if err := declaredOutput(output, localOutputs, localDirectories); err != nil {
+				return err
 			}
-			outputs[key] = true
-			for parent := filepath.ToSlash(filepath.Dir(output)); parent != "."; parent = filepath.ToSlash(filepath.Dir(parent)) {
-				key := strings.ToLower(parent)
-				if old, ok := directories[key]; ok && old != parent {
-					return fmt.Errorf("asset directory case collision: %s", parent)
+			if !t.Intermediate {
+				if err := declaredOutput(output, outputs, directories); err != nil {
+					return err
 				}
-				directories[key] = parent
 			}
 		}
 		for key, value := range t.Env {
@@ -179,6 +194,10 @@ func validate(p Pipeline) error {
 				return fmt.Errorf("invalid asset tool environment key %q", key)
 			}
 		}
+	}
+	if p.Version == 2 {
+		_, err := dependencyOrder(p)
+		return err
 	}
 	return nil
 }
@@ -226,6 +245,10 @@ func Run(ctx context.Context, p Pipeline, options Options) (_ *Result, err error
 	if err := validate(p); err != nil {
 		return nil, err
 	}
+	if p.Version == 2 {
+		p = cloneGraphPipeline(p)
+	}
+
 	root, err := filepath.Abs(options.Root)
 	if err != nil {
 		return nil, err
@@ -251,19 +274,45 @@ func Run(ctx context.Context, p Pipeline, options Options) (_ *Result, err error
 	if err = os.Mkdir(public, 0755); err != nil {
 		return nil, err
 	}
-	for i, tool := range p.Tools {
+	order := make([]int, len(p.Tools))
+	for i := range order {
+		order[i] = i
+	}
+	if p.Version == 2 {
+		order, err = dependencyOrder(p)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var verified map[int]string
+	var graphQuota *quota
+	if p.Version == 2 {
+		verified = make(map[int]string)
+		graphQuota = &quota{}
+	}
+	for _, i := range order {
+		tool := p.Tools[i]
 		if err = ctx.Err(); err != nil {
 			return nil, err
 		}
 		work := filepath.Join(stage, fmt.Sprintf("tool-%03d", i))
 		w := Workspace{root, filepath.Join(work, "inputs"), filepath.Join(work, "outputs")}
-		for _, dir := range []string{w.Inputs, w.Outputs} {
+		directories := []string{w.Inputs, w.Outputs}
+		if p.Version == 2 {
+			directories = append(directories, w.Dependencies())
+		}
+		for _, dir := range directories {
 			if err = os.MkdirAll(dir, 0700); err != nil {
 				return nil, err
 			}
 		}
 		if err = snapshot(ctx, root, w.Inputs, tool.Inputs); err != nil {
 			return nil, fmt.Errorf("asset tool %q inputs: %w", tool.Name, err)
+		}
+		if p.Version == 2 {
+			if err = snapshotDependencies(ctx, p, tool, verified, w.Dependencies(), graphQuota); err != nil {
+				return nil, fmt.Errorf("asset tool %q dependencies: %w", tool.Name, err)
+			}
 		}
 		seconds := tool.TimeoutSeconds
 		if seconds == 0 {
@@ -273,7 +322,7 @@ func Run(ctx context.Context, p Pipeline, options Options) (_ *Result, err error
 		if tool.Transform != nil {
 			err = tool.Transform(toolCtx, w)
 		} else {
-			err = command(toolCtx, tool, w, work, options.Log)
+			err = command(toolCtx, tool, w, work, options.Log, p.Version == 2)
 		}
 		if err == nil {
 			err = toolCtx.Err()
@@ -282,8 +331,24 @@ func Run(ctx context.Context, p Pipeline, options Options) (_ *Result, err error
 		if err != nil {
 			return nil, fmt.Errorf("asset tool %q: %w", tool.Name, err)
 		}
-		if err = collect(ctx, w.Outputs, public, tool.Outputs); err != nil {
+		if p.Version == 1 {
+			if err = collect(ctx, w.Outputs, public, tool.Outputs); err != nil {
+				return nil, fmt.Errorf("asset tool %q outputs: %w", tool.Name, err)
+			}
+			continue
+		}
+		canonical := filepath.Join(work, "verified")
+		if err = os.Mkdir(canonical, 0700); err != nil {
+			return nil, err
+		}
+		if err = collectWithQuota(ctx, w.Outputs, canonical, tool.Outputs, graphQuota); err != nil {
 			return nil, fmt.Errorf("asset tool %q outputs: %w", tool.Name, err)
+		}
+		verified[i] = canonical
+		if !tool.Intermediate {
+			if err = collectWithQuota(ctx, canonical, public, tool.Outputs, graphQuota); err != nil {
+				return nil, fmt.Errorf("asset tool %q publication: %w", tool.Name, err)
+			}
 		}
 	}
 	digest, err := digestTree(ctx, public)
@@ -294,8 +359,12 @@ func Run(ctx context.Context, p Pipeline, options Options) (_ *Result, err error
 	return &Result{Dir: public, Digest: digest}, nil
 }
 
-func command(ctx context.Context, tool Tool, w Workspace, dir string, log io.Writer) error {
-	replace := strings.NewReplacer("{inputs}", w.Inputs, "{outputs}", w.Outputs, "{project}", w.Project)
+func command(ctx context.Context, tool Tool, w Workspace, dir string, log io.Writer, graph bool) error {
+	pairs := []string{"{inputs}", w.Inputs, "{outputs}", w.Outputs, "{project}", w.Project}
+	if graph {
+		pairs = append(pairs, "{dependencies}", w.Dependencies())
+	}
+	replace := strings.NewReplacer(pairs...)
 	args := make([]string, len(tool.Command))
 	for i, arg := range tool.Command {
 		args[i] = replace.Replace(arg)
@@ -308,6 +377,9 @@ func command(ctx context.Context, tool Tool, w Workspace, dir string, log io.Wri
 		env[key] = replace.Replace(value)
 	}
 	env["NEXTGO_ASSET_PROJECT_DIR"], env["NEXTGO_ASSET_INPUT_DIR"], env["NEXTGO_ASSET_OUTPUT_DIR"] = w.Project, w.Inputs, w.Outputs
+	if graph {
+		env["NEXTGO_ASSET_DEPENDENCY_DIR"] = w.Dependencies()
+	}
 	keys := make([]string, 0, len(env))
 	for key := range env {
 		keys = append(keys, key)

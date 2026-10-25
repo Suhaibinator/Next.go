@@ -142,6 +142,12 @@ func snapshot(ctx context.Context, source, destination string, inputs []string) 
 }
 
 func collect(ctx context.Context, source, destination string, outputs []string) error {
+	return collectWithQuota(ctx, source, destination, outputs, &quota{})
+}
+
+// The v2 graph shares one ledger across canonical outputs, dependency copies
+// and public copies. The v1 collector retains its original per-tree quota.
+func collectWithQuota(ctx context.Context, source, destination string, outputs []string, q *quota) error {
 	declared, found := map[string]bool{}, map[string]bool{}
 	for _, output := range outputs {
 		declared[output] = true
@@ -151,7 +157,6 @@ func collect(ctx context.Context, source, destination string, outputs []string) 
 		return err
 	}
 	defer root.Close()
-	q := &quota{}
 	err = fs.WalkDir(root.FS(), ".", func(name string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

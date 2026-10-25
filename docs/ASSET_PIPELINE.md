@@ -50,11 +50,16 @@ in argv and configured environment values:
 | `{outputs}` | `NEXTGO_ASSET_OUTPUT_DIR` | An initially empty directory for generated files. |
 | `{project}` | `NEXTGO_ASSET_PROJECT_DIR` | The original application directory, useful for installed executables or configuration resolution. |
 
-Inputs are copied independently for each tool. Tools cannot consume another
-tool's output as an implicit dependency. Implement a multi-step transformation
-inside one adapter executable when, for example, Sass output must pass through
-PostCSS. Write only final declared files in `{outputs}` and keep intermediates
-in your adapter's working directory.
+Version 1 copies inputs independently for each tool and publishes every
+verified output. It cannot consume another tool's outputs implicitly. A
+version-1 adapter can implement its own multistep transformation.
+
+[Version 2 dependency chains](ASSET_DEPENDENCIES.md) add explicitly aliased
+upstream snapshots and `intermediate: true` outputs that remain private to the
+build generation. A consumer reads `{dependencies}/alias/output.css` or uses
+`Workspace.Dependencies()`; each dependency is independently copied and charged
+to a shared graph budget. Tools still exit after one build and run without an
+implicit shell. The framework does not install any selected tool distribution.
 
 ## Typed Go hooks
 

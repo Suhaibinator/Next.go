@@ -55,11 +55,14 @@ already accepted operation retains its physical lease until settlement.
 Freezing does not prove active writes rolled back. Component contexts still
 control their own queued/active work.
 
-Lazy modules use bridge **ABI 4** to delegate both ordinary and combined typed
+Lazy modules use bridge **ABI 5** to delegate both ordinary and combined typed
 operations to the same core queue and receive resource invalidation epochs.
-The original FIFO checkpoint used ABI 3; rebuild all modules with the core when
-upgrading. See [client resources](CLIENT_RESOURCES.md). Immediately before dispatch, the core
-synchronously probes the originating module's context, closing the gap before
+ABI 5 also carries [per-anchor link status](LINK_STATUS.md). The original FIFO
+checkpoint used ABI 3; the resource-invalidation checkpoint used ABI 4. Those
+results retain their historical scope. Rebuild the core, all lazy modules and
+development entries together from the same framework revision and selected Go
+SDK when upgrading. See [client resources](CLIENT_RESOURCES.md). Immediately
+before dispatch, the core synchronously probes the originating module's context, closing the gap before
 its abort watcher is installed. Validation callbacks remain retained until the
 physical host operation settles; queued cancellation cannot free a callback
 that the host might still invoke. Module/version compatibility remains guarded;

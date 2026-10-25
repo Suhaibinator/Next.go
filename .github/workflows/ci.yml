@@ -375,6 +375,219 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
+  link-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --init --cpus 2 --memory 4g --memory-swap 4g --pids-limit 768 --shm-size 512m
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '1'
+      GOFLAGS: -p=1
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - name: Ensure Git checkout metadata
+        run: |
+          if ! command -v git >/dev/null; then
+            apt-get update
+            apt-get install --yes --no-install-recommends git
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Own LinkStatus artifacts and evidence outside checkout
+        shell: bash
+        run: |
+          set -eu
+          link_root=$(mktemp -d "$RUNNER_TEMP/nextgo-link-status-ci.XXXXXX")
+          export NEXTGO_LINK_STATUS_CI="$link_root"
+          node --input-type=module <<'NODE'
+          import {realpath} from 'node:fs/promises';
+          import {isAbsolute, relative, sep} from 'node:path';
+          const root = await realpath(process.env.NEXTGO_LINK_STATUS_CI);
+          const checkout = await realpath(process.env.GITHUB_WORKSPACE);
+          const rel = relative(checkout, root);
+          if (!(isAbsolute(rel) || rel === '..' || rel.startsWith('..' + sep))) throw Error('LinkStatus output must be outside checkout');
+          NODE
+          mkdir -p "$link_root/go-cache" "$link_root/mod-cache" "$link_root/browser"
+          {
+            echo "NEXTGO_LINK_STATUS_CI=$link_root"
+            echo "GOCACHE=$link_root/go-cache"
+            echo "GOMODCACHE=$link_root/mod-cache"
+            echo "NEXTGO_E2E_SERVER_BINARY=$link_root/demo/server"
+            echo "NEXTGO_LINK_STATUS_PROCESS_PROOF=$link_root/process-proof.json"
+            echo "NEXTGO_E2E_RESULTS=$link_root/browser"
+            echo "PLAYWRIGHT_JSON_OUTPUT_FILE=$link_root/report.json"
+          } >> "$GITHUB_ENV"
+      - name: Build one CLI and the native demo artifact
+        timeout-minutes: 25
+        shell: bash
+        run: |
+          set -eu
+          go build -trimpath -o "$NEXTGO_LINK_STATUS_CI/nextgo" ./cmd/nextgo
+          "$NEXTGO_LINK_STATUS_CI/nextgo" build -out "$NEXTGO_LINK_STATUS_CI/demo" ./examples/demo
+          chmod 0500 "$NEXTGO_LINK_STATUS_CI/nextgo" "$NEXTGO_E2E_SERVER_BINARY"
+          echo "NEXTGO_LINK_STATUS_SERVER_SHA256=$(sha256sum "$NEXTGO_E2E_SERVER_BINARY" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+      - name: LinkStatus fixed browser matrix and native cleanup proof
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -eu
+          node scripts/test-browser.mjs --config=tests/link-status.config.mjs --reporter=line,json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          import {constants} from 'node:fs';
+          import {join} from 'node:path';
+          const root = process.env.NEXTGO_LINK_STATUS_CI;
+          async function readJSON(name, cap) {
+            const path = join(root, name), before = await fs.lstat(path);
+            if (!before.isFile() || before.isSymbolicLink() || before.size > cap) throw Error('Unsafe or oversized LinkStatus proof');
+            const file = await fs.open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+            try {
+              const opened = await file.stat();
+              if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw Error('LinkStatus proof changed before read');
+              const bytes = Buffer.alloc(before.size + 1);
+              let count = 0;
+              while (count < bytes.length) {
+                const read = await file.read(bytes, count, bytes.length - count, null);
+                if (!read.bytesRead) break;
+                count += read.bytesRead;
+              }
+              const after = await file.stat();
+              if (count !== before.size || after.size !== before.size || after.mtimeMs !== before.mtimeMs) throw Error('LinkStatus proof changed during read');
+              return JSON.parse(bytes.subarray(0, count).toString('utf8'));
+            } finally { await file.close(); }
+          }
+          const report = await readJSON('report.json', 16 * 1024 * 1024);
+          if (report.stats?.expected !== 60 || report.stats.unexpected !== 0 || report.stats.flaky !== 0 || report.stats.skipped !== 0 || !Array.isArray(report.errors) || report.errors.length) throw Error('LinkStatus matrix must complete exactly 60 expected tests without skips, flakes or errors');
+          const counts = new Map(['chromium', 'firefox', 'webkit', 'webkit-touch'].map(name => [`link-status-${name}`, 0]));
+          const pending = (report.suites || []).map(suite => [suite, 0]);
+          let visited = 0;
+          while (pending.length) {
+            const [suite, depth] = pending.pop();
+            if (++visited > 4096 || depth > 16) throw Error('LinkStatus report traversal limit');
+            for (const spec of suite.specs || []) for (const test of spec.tests || []) {
+              if (++visited > 4096) throw Error('LinkStatus report traversal limit');
+              if (!counts.has(test.projectName) || test.expectedStatus !== 'passed' || test.status !== 'expected' || test.results?.length !== 1 || test.results[0].status !== 'passed' || test.results[0].retry !== 0) throw Error('LinkStatus requires one passing attempt for every declared test');
+              counts.set(test.projectName, counts.get(test.projectName) + 1);
+            }
+            for (const child of suite.suites || []) pending.push([child, depth + 1]);
+          }
+          if ([...counts.values()].some(count => count !== 15)) throw Error('LinkStatus requires 15 passing tests in each of four projects');
+          const proof = await readJSON('process-proof.json', 1024 * 1024);
+          if (proof.binary !== process.env.NEXTGO_E2E_SERVER_BINARY || proof.sha256 !== process.env.NEXTGO_LINK_STATUS_SERVER_SHA256 || !Number.isSafeInteger(proof.pid) || proof.pid < 1 || proof.spawned !== true || proof.closed !== true || proof.joined !== true || proof.cwdRemoved !== true || proof.code !== 0 || proof.signal !== null || proof.killSent !== false || proof.failure !== '') throw Error('LinkStatus native process cleanup or artifact proof failed');
+          console.log('LinkStatus: 60 expected passes; native artifact and graceful cleanup verified.');
+          NODE
+      - name: Collect bounded LinkStatus failure metadata
+        if: failure()
+        shell: bash
+        run: |
+          if [ -z "${NEXTGO_LINK_STATUS_CI:-}" ]; then
+            echo 'Failure occurred before an owned evidence root was initialized.'
+            exit 0
+          fi
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs/promises';
+          import {constants} from 'node:fs';
+          import {basename, isAbsolute, join, relative, resolve, sep} from 'node:path';
+          const root = await fs.realpath(process.env.NEXTGO_LINK_STATUS_CI);
+          const rel = relative(await fs.realpath(process.env.GITHUB_WORKSPACE), root);
+          const info = await fs.lstat(root);
+          if (!(isAbsolute(rel) || rel === '..' || rel.startsWith('..' + sep)) ||
+              !basename(root).startsWith('nextgo-link-status-ci.') || !info.isDirectory() ||
+              info.isSymbolicLink() || (info.mode & 0o077) || info.uid !== process.getuid()) throw Error('Refused a foreign evidence root');
+          const out = join(root, 'failure');
+          await fs.mkdir(out, {mode: 0o700});
+          const report = {version: 1, purpose: 'link-status-ci-failure', copied: [], omitted: [],
+            payloadLimit: 25 * 1024 * 1024, manifestLimit: 65536};
+          let total = 0, testReport;
+          async function copy(path, name, cap) {
+            let file;
+            try {
+              const before = await fs.lstat(path);
+              if (!before.isFile() || before.isSymbolicLink()) throw Error('nonregular-or-symlink');
+              if (before.size > cap) throw Error('file-byte-limit');
+              file = await fs.open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+              const opened = await file.stat();
+              if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw Error('changed-before-read');
+              const bytes = Buffer.alloc(before.size + 1);
+              let count = 0;
+              while (count < bytes.length) {
+                const read = await file.read(bytes, count, bytes.length - count, null);
+                if (!read.bytesRead) break;
+                count += read.bytesRead;
+              }
+              const after = await file.stat();
+              if (count !== before.size || after.size !== before.size || after.mtimeMs !== before.mtimeMs) throw Error('changed-during-read');
+              if (total + count > report.payloadLimit) throw Error('total-byte-limit');
+              await fs.writeFile(join(out, name), bytes.subarray(0, count), {flag: 'wx', mode: 0o600});
+              total += count; report.copied.push({path: name, bytes: count});
+              return bytes.subarray(0, count);
+            } catch (error) {
+              report.omitted.push({path: name, reason: String(error.code || error.message).slice(0,128)});
+            } finally { await file?.close(); }
+          }
+          testReport = await copy(join(root, 'report.json'), 'report.json', 16 * 1024 * 1024);
+          await copy(join(root, 'process-proof.json'), 'process-proof.json', 1024 * 1024);
+          try {
+            if (!testReport) throw Error('bounded-report-unavailable');
+            const parsed = JSON.parse(testReport.toString('utf8')), failures = [];
+            const pending = (parsed.suites || []).map(suite => [suite, 0]);
+            let visited = 0;
+            while (pending.length) {
+              const [suite, depth] = pending.pop();
+              if (++visited > 4096 || depth > 16) throw Error('report-traversal-limit');
+              for (const spec of suite.specs || []) for (const test of spec.tests || []) for (const result of test.results || []) {
+                if (++visited > 4096) throw Error('report-traversal-limit');
+                if (test.status === 'unexpected' && ['failed', 'timedOut'].includes(result.status)) {
+                  const time = Date.parse(result.startTime);
+                  if (!Number.isSafeInteger(time)) throw Error('invalid-failure-time');
+                  failures.push({time, result});
+                }
+              }
+              for (const child of suite.suites || []) pending.push([child, depth + 1]);
+            }
+            failures.sort((a,b) => a.time - b.time);
+            const attachments = failures[0]?.result.attachments || [];
+            const traces = attachments.filter(item => item.name === 'trace' && item.contentType === 'application/zip');
+            if (traces.length !== 1) throw Error('first-failure-trace-unavailable-or-ambiguous');
+            const path = traces[0].path, browser = join(root, 'browser');
+            if (typeof path !== 'string' || !isAbsolute(path) || path.length > 2048 || resolve(path) !== path) throw Error('invalid-trace-path');
+            const rel = relative(browser, path), parts = rel.split(sep);
+            if (isAbsolute(rel) || parts.includes('..') || parts.length < 2 || parts.length > 6 || parts.at(-1) !== 'trace.zip') throw Error('trace-outside-owned-results');
+            let parent = browser;
+            for (const part of ['', ...parts.slice(0,-1)]) {
+              if (part) parent = join(parent, part);
+              const info = await fs.lstat(parent);
+              if (!info.isDirectory() || info.isSymbolicLink()) throw Error('unsafe-trace-parent');
+            }
+            await copy(path, 'first-failure-trace.zip', 8 * 1024 * 1024);
+          } catch (error) {
+            report.omitted.push({path: 'first-failure-trace.zip', reason: String(error.code || error.message).slice(0,128)});
+          }
+          report.payloadBytes = total;
+          const manifest = JSON.stringify(report, null, 2) + '\n';
+          if (Buffer.byteLength(manifest) > report.manifestLimit) throw Error('Manifest byte limit');
+          await fs.writeFile(join(out, 'collection.json'), manifest, {flag: 'wx', mode: 0o600});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: failure() && env.NEXTGO_LINK_STATUS_CI != ''
+        with:
+          name: link-status-failure-metadata
+          path: ${{ env.NEXTGO_LINK_STATUS_CI }}/failure/
+          if-no-files-found: warn
+          retention-days: 7
   container:
     runs-on: ubuntu-latest
     steps:

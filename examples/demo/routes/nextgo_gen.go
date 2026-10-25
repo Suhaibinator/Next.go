@@ -188,6 +188,18 @@ func LazyStream() string { return "/lazy/stream" }
 // Lifecycle constructs the application path for page /lifecycle.
 func Lifecycle() string { return "/lifecycle" }
 
+// LinkStatus constructs the application path for page /link-status.
+func LinkStatus() string { return "/link-status" }
+
+// LinkStatusOne constructs the application path for page /link-status/one.
+func LinkStatusOne() string { return "/link-status/one" }
+
+// LinkStatusStream constructs the application path for page /link-status/stream.
+func LinkStatusStream() string { return "/link-status/stream" }
+
+// LinkStatusTwo constructs the application path for page /link-status/two.
+func LinkStatusTwo() string { return "/link-status/two" }
+
 // Locale constructs the application path for page /locale.
 func Locale() string { return "/locale" }
 

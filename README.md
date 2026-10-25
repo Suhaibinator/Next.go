@@ -611,7 +611,11 @@ outputs enter the successful generation; ordinary Go applications need no
 Node/tooling manifest. Commands run with the user's privileges, not in an OS
 sandbox. The [Go token/CSS example](examples/css-pipeline) and
 [asset-pipeline contract](docs/ASSET_PIPELINE.md) cover hooks, bounds, cache
-policy and static-host responsibilities.
+policy and static-host responsibilities. Manifest v2 adds explicit dependency
+aliases and private intermediate outputs: the example normalizes token JSON,
+then renders only the final stylesheet. Dependencies run in stable topological
+order from isolated verified copies; imports are not inferred. See
+[asset dependency chains](docs/ASSET_DEPENDENCIES.md) for bounds and compatibility.
 
 The static exporter supports concrete pages, bounded parameter enumeration and deterministic locale subpaths. Broader static-generation semantics remain partial:
 
@@ -788,10 +792,39 @@ ready/failed/invalidated state, explicit `Load`/`Retry`, owned SSR seeds and
 bounded public reuse/deduplication. A zero public TTL disables both reuse and
 sharing; positive TTL is an application promise of request-independent data.
 There is no implicit request or automatic retry. Core/lazy invalidation epochs
-now require **module ABI 4**: rebuild and publish every module with its core.
+introduced module ABI 4. The current paired core/lazy bridge requires
+**module ABI 5**, which retains those epochs and adds per-link observers: rebuild
+and publish every module with its core.
 Try `/resources` and read [resource ownership and privacy](docs/CLIENT_RESOURCES.md).
 
 `client.CurrentLocation` reads the committed browser address. `scope.ObserveLocation` synchronizes a Go island immediately and after committed path, query, and fragment changes, with automatic cleanup and no speculative or unchanged-refresh notifications. See [navigation and subscriptions](docs/NAVIGATION.md) for the API and lifecycle contract.
+
+`scope.ObserveLinkStatus(link, callback)` reports pending navigation for one
+connected anchor owned by that scope. It synchronizes immediately and cleans up
+with the scope; two anchors sharing a destination have separate identity:
+
+```go
+if _, err := scope.ObserveLinkStatus(link, func(status client.LinkStatus) {
+    text := ""
+    if status.Pending { text = "Loading…" }
+    hint.Text(text)
+}); err != nil {
+    return err
+}
+```
+
+Only the latest intercepted click can be pending. Complete cached commits can
+skip pending; streamed shells settle at commit while deferred content keeps its
+own loading state. Try `/link-status`; see [link feedback](docs/LINK_STATUS.md)
+for ownership, the shared 512-observer bound and development reload limits.
+Before the later native-document readiness change, targeted four-engine checks
+passed 60 link cases, 128 selected core/location/lazy/streaming regressions and
+12 static-host cases per SDK: 400 browser executions. The readiness change has
+separate matching core/module/development WASM tests and vet, not a rerun of that
+browser matrix. It permits idle observation in valid saved/fallback native
+documents without enabling SPA routing. Development-watch, full HMR/offline
+integration and broader deployment/release qualification remain open.
+
 
 Development polls Go/module files and public assets throughout the application module, debounces edits, compiles both targets, and switches the proxy only after a successful server startup. The default SSE workflow reloads the browser after successful full builds and displays build errors while the last successful application keeps serving. If the application process exits unexpectedly, development reports the failure; saving a source change rebuilds it. Source changes during compilation discard the mixed build and trigger another development cycle. Workspace modules and local replacements are watched along with matched embed inputs; see [workspace handling](docs/WORKSPACES.md). Development retains the active generation and seven predecessors, expires older owned assets/directories, and cleans owned generations on exit. Crash leftovers are disposable. Production staging output is removed after the binary is exported.
 

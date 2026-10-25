@@ -115,14 +115,22 @@ retain their documented fallback. See [deployment](DEPLOYMENT.md),
 ## Independent identities and negotiation
 
 Module ABI **4** was introduced at `467ba2f` because resource invalidation epochs
-are mandatory core/module state. Rebuild all core and lazy artifacts together;
-older bundles fail ABI negotiation. A corrected late-hydration path prevents old
-SSR DOM from adopting a pre-mutation resource seed; the preceding behavior fails
-its browser counterfactual. The newer phase/metadata/content/MIME batch leaves
-ABI 4, navigation 3 and action/action-view 1 unchanged. Current SDK and browser
-evidence is recorded in [the changelog](../CHANGELOG.md); those scoped checks do
-not establish released-version migration or production qualification.
+became mandatory core/module state. That checkpoint corrected late hydration so
+old SSR DOM could not adopt a pre-mutation resource seed; the preceding behavior
+fails its browser counterfactual. The subsequent phase/metadata/content/MIME
+checkpoint kept ABI 4, navigation 3 and action/action-view 1 unchanged.
 Historical cookie/dispatch checkpoints remain ABI 3.
+
+The link-status increment uses module ABI **5** for
+[per-anchor pending-navigation subscriptions](LINK_STATUS.md), while retaining
+mandatory resource epochs. Rebuild the eager core, every lazy module and all
+development entries together from the same framework revision and selected Go
+SDK, including its paired runtime support. Mixed older/newer bridge assets fail
+registration; reusing only an older module or development entry is unsupported.
+Navigation remains 3, action/action-view remains 1 and the private development
+extension remains 1. Historical ABI 3/4 SDK and browser evidence in
+[the changelog](../CHANGELOG.md) retains its original scope; it does not qualify
+ABI 5 or establish released-version migration or production readiness.
 
 These numbers are separate compatibility boundaries. A number in one row does
 not imply support for the same number in another row.
@@ -136,8 +144,8 @@ not imply support for the same number in another row.
 | Public partial shell | `X-Nextgo-Shell-Protocol: 1`, opaque shell generation, bounded stale lifetime. | Shell reuse requires explicit capability plus exact compatible shell/configuration; request-time regions are freshly rendered. It grants no authorization. See [partial prerendering](PARTIAL_PRERENDERING.md). |
 | Typed actions | `X-Nextgo-Action-Protocol: 1` plus explicit revision in `/_nextgo/actions/<name>/<revision>` and `X-Nextgo-Action-Revision`. | Unsupported sent protocol/revision returns 409 before handler execution; a removed revision is 404. Native forms may omit negotiation headers and still use their explicitly versioned URL. |
 | Combined mutation/view | `X-Nextgo-Action-View: 1`, `application/x-nextgo-action-view+json`, frame `version: 1`, action build/configuration/draft preflight. | Incompatible preflight is rejected before mutation. After a confirmed result, a view error does not undo or disprove the write; reconcile the view separately, never replay the confirmed mutation. |
-| Eager/lazy browser bridge | Module ABI **4**, descriptor epoch plus SHA-256 digest/length and content-addressed module name; resource invalidation epochs are mandatory. | Cross-generation/ABI registration fails. Publish/rebuild all modules with the core; SSR remains available when a lazy component fails. Old-origin DOM cannot reseed invalidated resources. There is no supported independently upgraded module plugin ABI. |
-| Asset-tool manifest | `nextgo.assets.json` version **1**; declared native commands/hooks, inputs and public outputs. | Unsupported/invalid manifests fail build preparation. Tool versions and dependencies are application build inputs; changing them requires regeneration and checksum review. Tools execute with trusted native authority. See [asset pipeline](ASSET_PIPELINE.md). |
+| Eager/lazy browser bridge | Module ABI **5**, descriptor epoch plus SHA-256 digest/length and content-addressed module name; resource epochs and per-anchor link-status forwarding are part of the core/module contract. | Cross-generation/ABI registration fails. Rebuild/publish the core, all lazy modules and development entries together with paired SDK runtime support; SSR remains available when a lazy component fails. Old-origin DOM cannot reseed invalidated resources. There is no supported independently upgraded module plugin ABI. |
+| Asset-tool manifest | `nextgo.assets.json` versions **1** and **2**; v1 retains independent input snapshots and publication of every verified output. V2 adds explicit dependency snapshots and intermediate outputs excluded from public publication. | Unsupported/invalid manifests fail build preparation. Tool versions and dependencies are application build inputs; changing them requires regeneration and checksum review. Tools execute with trusted native authority; staging is not an OS sandbox, and the framework installs no tools. See [asset pipeline](ASSET_PIPELINE.md). |
 | Development inspection | Read-only protocol version **1**, bounded public graph/status metadata, loopback-only access policy. | Inspection consumers must check schema version; node IDs are scoped to a graph rather than persistent cross-build identities. This development endpoint is absent from production servers. See [inspection](DEV_INSPECTION.md). |
 | Native startup phase | `Config.Phase` selects development, production, prerender or static export before the unchanged Configure hook. No browser phase field. | Unset programmatic phase follows existing native mode flags; unknown or conflicting modes fail construction. Export has separate cache ownership and does not import production prerender snapshots/tickets. See [phases](CONFIG_PHASES.md). |
 | Managed public metadata | Six fixed root filenames, frozen validated public bytes, optional Robots/Sitemap/Manifest startup factories. | Static/factory collisions and invalid source/format/size fail before serving. Paths use global BasePath rather than locale/CDN prefixes. Explicit head manifest/icons override defaults; these files cannot depend on page middleware for privacy. See [metadata files](../metadatafiles/README.md). |
