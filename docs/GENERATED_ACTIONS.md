@@ -111,17 +111,20 @@ refresh. Ordinary callers add no automatic retry or refreshed/streamed UI.
 
 New `FooAndRefresh`/`FooMultipartAndRefresh` wrappers forward the opt-in
 `Contract.CallAndRefresh`/`CallMultipartAndRefresh` APIs and return
-`mutation.RefreshResponse[FooOutput]`. This explicit action-view subset passes
+`mutation.RefreshResponse[FooOutput]`. The preceding action-view checkpoint passed
 75 focused cases plus 179 affected host regressions, both SDK native/WASM and
 host/Linux executable checks. Its nil top-level error confirms mutation data even
 when `View.Err` reports a view failure; never repeat a confirmed write to fix UI.
 See [combined confirmation/view semantics](ACTION_VIEWS.md). The 193-check
 generated-action matrix below describes the preceding ordinary-call subset.
-Generated wrappers now inherit the in-progress native `Result.Cookies` output
+Generated wrappers now inherit the implemented native `Result.Cookies` output
 and core typed-dispatch FIFO/ABI 3 without a second transport. See
-[native cookies](NATIVE_COOKIES.md) and [dispatch](MUTATION_DISPATCH.md). Full
-current-phase qualification, identity/revocation and ordinary-call refresh
-behavior remain open; prior matrices are historical.
+[native cookies](NATIVE_COOKIES.md) and [dispatch](MUTATION_DISPATCH.md). Current
+SDK/deployment checks and all 55 cookie checks pass; the corrected affected
+browser record is 342/342, including all 75 action-view checks. A separate native
+JavaScript CDP reproduction's underlying cause remains unresolved. Complete
+production qualification, identity/revocation and ordinary-call refresh behavior
+remain open; prior matrices are historical.
 
 ## App-owned native registration
 

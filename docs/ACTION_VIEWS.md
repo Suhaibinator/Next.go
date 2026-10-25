@@ -1,11 +1,15 @@
 # Typed mutation confirmation with a fresh view
 
 The base action-view subset has the preceding scoped qualification below.
-The new native-cookie/FIFO/ABI-3 phase is under implementation/qualification;
-no full application-build matrix is claimed for that phase. It adds
+The native-cookie/FIFO/ABI-3 phase has passing SDK and host/Linux deployment
+checks. Its corrected affected browser record passes 342/342, including all
+75 action-view checks. A separate native JavaScript reproduction retains the
+underlying CDP observation as an open diagnostic issue.
+See [current phase evidence](NATIVE_COOKIES.md#current-evidence). It adds
 an explicit action call that carries typed mutation confirmation and fresh
-server-rendered UI through one POST response. Existing `Call` and
-`CallMultipart` behavior is unchanged. No full action/parity or production
+server-rendered UI through one POST response. Ordinary `Call` and
+`CallMultipart` retain explicit refresh semantics and now share the dispatch
+FIFO. No full action/parity or production
 qualification claim follows from this contract.
 
 ## Keep confirmation separate from view success
@@ -104,8 +108,8 @@ native progressive form redirects.
 ## Cookies, draft state and private output
 
 Native `actions.Result.Cookies` and typed `mutation.Result[O].Cookies` now
-stage validated native cookie output without JSON exposure. This new phase is
-under qualification. The request-local jar can pass those handler cookies, POST
+stage validated native cookie output without JSON exposure. All 55 cookie
+checks pass. The request-local jar can pass those handler cookies, POST
 middleware effects and fresh page updates into same-response authorization.
 See [native cookie controls and session limits](NATIVE_COOKIES.md). Result-based
 cookie output is distinct from page `nextgo.Context.SetCookie`; full identity,
@@ -175,8 +179,9 @@ browser reuse, but cannot reorder or roll back database writes. Application
 state outside the replaced DOM still needs its own concurrency policy.
 The new [typed dispatch FIFO](MUTATION_DISPATCH.md) serializes ordinary and
 combined typed transport across eager/lazy callers. Enqueueing alone does not
-fence the active view; snapshots/fences start at actual dispatch. That new queue
-is under qualification. Arbitrary generic Fetch and server/database work are
+fence the active view; snapshots/fences start at actual dispatch. Corrected FIFO
+fixtures pass, alongside the 342-case affected matrix. A separate native
+JavaScript CDP observation's cause remains open. Arbitrary generic Fetch and server/database work are
 not serialized by it.
 
 Before commit, caller cancellation stops its view. At the synchronous commit
@@ -200,6 +205,22 @@ counter. Its public counter is process-local and resets on restart. It includes
 an intentional mutation failure and a separate deferred-view failure to show
 that confirmed writes and UI refresh outcomes differ. No application JavaScript
 or durable storage is added.
+
+The current cookie/FIFO checkpoint passes all **75 action-view browser checks**
+on host Chromium/native WebKit and Linux Firefox/WebKit/touch, without skips.
+They are included in the **342/342 affected browser matrix** in
+[current phase evidence](NATIVE_COOKIES.md#current-evidence), alongside both SDK
+native/WASM and host/Linux deployment checks. `npm run test:action-view` runs
+four bounded wire-observer unit tests before browser checks; those unit tests
+pass on host and Linux and are not added to the browser count.
+
+The preceding 326/327 observer result remains historical diagnostic evidence.
+An exact native JavaScript Uint8Array control reproduced the CDP observation
+without a Go handler or DOM commit, leaving the underlying cause open. The
+corrected passive observer checks genuine bounded upstream frames/EOF on the
+same flight, preserving strict Go EOF, success receipt, UI/head/history/counter
+and JSON 422/409 assertions. It does not rewrite, refetch or mock a response.
+An extra 20/20 Chromium repeat passes separately; it is not added to 342.
 
 ### Preceding action-view qualification
 
@@ -246,7 +267,7 @@ remain under `.nextgo-test-results/qualification/action-view/`. Fresh final
 deployment and browser checks pass after those fixture corrections; the earlier
 failed attempts remain separate evidence.
 
-The [current artifact startup observation](PERFORMANCE.md#action-view-artifact-observation-october-25-2026-utc)
+The [preceding artifact startup observation](PERFORMANCE.md#action-view-artifact-observation-october-25-2026-utc)
 records 8,537,436 raw / 2,203,698 gzip-9 WASM bytes. Both reference size budgets
 fail; the measured startup and memory capacities do not establish action
 latency/throughput, production performance or RSS.

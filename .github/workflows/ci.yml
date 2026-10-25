@@ -30,8 +30,11 @@ jobs:
         with:
           node-version: '22'
       - name: Go WASM client unit tests
-        shell: bash
-        run: GOOS=js GOARCH=wasm go test -exec="$(go env GOROOT)/lib/wasm/go_js_wasm_exec" ./client ./mutation
+        run: sh scripts/test-wasm.sh
+      - name: Go WASM core and module vet
+        run: |
+          GOOS=js GOARCH=wasm go vet ./client ./mutation
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client
       - run: go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
       - run: go run ./cmd/nextgo build -out ./dist/workspace ./examples/workspace/site
       - run: go build -trimpath -o ./dist/nextgo-cache ./cmd/nextgo-cache
@@ -116,6 +119,8 @@ jobs:
         run: npm run test:viewport
       - name: Generated action callers and progressive native forms
         run: npm run test:generated-actions
+      - name: Native session cookies and shared typed mutation dispatch
+        run: npm run test:cookie-dispatch
       - name: Confirmed mutations and streamed refreshed UI
         run: npm run test:action-view
       - uses: actions/upload-artifact@v4
@@ -160,6 +165,8 @@ jobs:
         run: sh ./scripts/test-viewport-container.sh
       - name: Generated action Linux browser conformance
         run: sh ./scripts/test-generated-actions-container.sh
+      - name: Native session cookies and typed dispatch Linux conformance
+        run: sh ./scripts/test-cookie-dispatch-container.sh
       - name: Combined action and refreshed view Linux conformance
         run: sh ./scripts/test-action-view-container.sh
       - name: Official OTLP collector integration

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { readerToken, adminToken } from './access-fixture.mjs';
 
-const origin = 'http://127.0.0.1:4190';
+const origin = 'http://127.0.0.1:4194';
 const loginPath = '/_nextgo/actions/session/login/v1', logoutPath = '/_nextgo/actions/session/logout/v1';
 const optimisticPath = '/_nextgo/actions/optimistic-increment/v1', viewPath = '/_nextgo/actions/view/save/v1';
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
@@ -19,10 +19,22 @@ async function held(request, key, phase = 'body') {
 }
 async function records(request, trace) { return (await (await request.get(`${origin}/_fixture/cookie/records`)).json()).filter(record => record.trace === trace); }
 function posts(actual, suffix) { return actual.filter(record => record.method === 'POST' && (!suffix || new URL(record.path, origin).pathname.endsWith(suffix))); }
-async function submit(page, button, suffix, expected = 200) {
+function assertResponseProtocol(response, expected = 200) {
+  expect(response.status()).toBe(expected); expect(response.headers()['x-nextgo-action-protocol']).toBe('1'); expect(response.headers()['x-nextgo-action-revision']).toBe('v1');
+}
+function assertWireProtocol(record, expected) {
+  expect(!!record).toBe(true); expect(record.status).toBe(expected); expect(record.protocolOne).toBe(true); expect(record.revisionOne).toBe(true);
+}
+async function submit(page, button, suffix, expected = 200, wire) {
   const waiting = page.waitForResponse(response => new URL(response.url()).pathname.endsWith(suffix) && response.request().method() === 'POST');
   await button.click(); const response = await waiting;
-  expect(response.status()).toBe(expected); expect(response.headers()['x-nextgo-action-protocol']).toBe('1'); expect(response.headers()['x-nextgo-action-revision']).toBe('v1');
+  if (expected === 303) {
+    // WebKit's native redirect inspector omits custom protocol headers even
+    // from allHeaders(). Assert the actual upstream fields for every engine,
+    // then independently check browser status/location, cookies and fresh HTML.
+    expect(response.status()).toBe(303);
+    assertWireProtocol(posts(await records(wire.request, wire.trace), suffix).at(-1), 303);
+  } else assertResponseProtocol(response, expected);
   return response;
 }
 async function session(page, expected) {
@@ -143,12 +155,16 @@ test('typed FIFO keeps two optimistic intents while the second POST waits for th
   const trace = randomUUID(), firstKey = `${trace}-first`, secondKey = `${trace}-second`; await page.setExtraHTTPHeaders(extra(trace)); await page.goto('/optimistic'); await ready(page);
   const value = page.locator('[data-optimistic-value]'), pending = page.locator('[data-optimistic-pending]'), initial = await numeric(value);
   try {
-    await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': firstKey })); await submit(page, page.getByRole('button', { name: 'Add one', exact: true }), optimisticPath);
-    await held(request, firstKey); await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': secondKey }));
+    await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': firstKey }));
+    const firstResponse = page.waitForResponse(response => new URL(response.url()).pathname.endsWith(optimisticPath) && response.request().method() === 'POST');
+    void firstResponse.catch(() => {});
+    await page.getByRole('button', { name: 'Add one', exact: true }).click();
+    const first = await held(request, firstKey); assertWireProtocol(posts(await records(request, trace), optimisticPath).find(record => record.id === first.id), 200);
+    await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': secondKey }));
     await page.getByRole('button', { name: 'Add five', exact: true }).click();
     await expect(pending).toHaveText('Saving 2 changes…'); await expect(value).toHaveText(String(initial + 6));
     expect(posts(await records(request, trace), optimisticPath)).toHaveLength(1);
-    expect((await request.post(control('release', firstKey))).status()).toBe(200); const second = await held(request, secondKey);
+    expect((await request.post(control('release', firstKey))).status()).toBe(200); assertResponseProtocol(await firstResponse); const second = await held(request, secondKey);
     await expect(pending).toHaveText('Saving 1 change…'); await expect(value).toHaveText(String(initial + 6));
     const actual = posts(await records(request, trace), optimisticPath); expect(actual).toHaveLength(2); expect(actual[1].id).toBe(second.id); expect(actual[1].outstandingBefore).toBe(0);
     expect((await request.post(control('release', secondKey))).status()).toBe(200);
@@ -179,7 +195,8 @@ test('cancelling eight optimistic intents drops seven queued calls and reconcile
   const trace = randomUUID(), key = `${trace}-cancel`; await page.setExtraHTTPHeaders(extra(trace)); await page.goto('/optimistic'); await ready(page);
   const value = page.locator('[data-optimistic-value]'), pending = page.locator('[data-optimistic-pending]'), initial = await numeric(value);
   try {
-    await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': key })); await submit(page, page.getByRole('button', { name: 'Add one', exact: true }), optimisticPath); const first = await held(request, key);
+    await page.setExtraHTTPHeaders(extra(trace, { 'X-Fixture-Cookie-Gate': key })); await page.getByRole('button', { name: 'Add one', exact: true }).click(); const first = await held(request, key);
+    assertWireProtocol(posts(await records(request, trace), optimisticPath).find(record => record.id === first.id), 200);
     for (let index = 1; index < 8; index++) await page.getByRole('button', { name: 'Add one', exact: true }).click();
     await expect(pending).toHaveText('Saving 8 changes…'); await expect(value).toHaveText(String(initial + 8)); await expect(page.getByRole('button', { name: 'Add one', exact: true })).toBeDisabled();
     expect(posts(await records(request, trace), optimisticPath)).toHaveLength(1);
@@ -196,10 +213,10 @@ test.describe('native signed-cookie forms without JavaScript', () => {
     const trace = randomUUID(); await page.setExtraHTTPHeaders(extra(trace));
     for (const path of ['/cookie-session', '/scoped/fr/cookie-session/']) {
       await page.goto(path); await session(page, 'anonymous'); await credential(page).fill(adminToken);
-      const login = await submit(page, page.locator('[data-session-login]'), loginPath, 303); expect(login.headers().location).toBe(path);
+      const login = await submit(page, page.locator('[data-session-login]'), loginPath, 303, { request, trace }); expect(login.headers().location).toBe(path);
       await expect(page).toHaveURL(origin + path); await session(page, 'administrator'); await expect(credential(page)).toHaveValue('');
       const cookie = await scopedCookie(context, origin + path, path.startsWith('/scoped') ? '/scoped/fr/' : '/');
-      const logout = await submit(page, page.locator('[data-session-logout]'), logoutPath, 303); expect(logout.headers().location).toBe(path);
+      const logout = await submit(page, page.locator('[data-session-logout]'), logoutPath, 303, { request, trace }); expect(logout.headers().location).toBe(path);
       await expect(page).toHaveURL(origin + path); await session(page, 'anonymous'); expect((await context.cookies(origin + path)).some(value => value.name === cookie.name)).toBe(false);
     }
     expect(posts(await records(request, trace))).toHaveLength(4);

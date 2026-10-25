@@ -444,13 +444,18 @@ The new `CallAndRefresh`/`CallMultipartAndRefresh` contract methods and generate
 `FooAndRefresh` wrappers negotiate typed confirmation plus fresh server UI in
 one POST. A nil top-level error confirms `Data` even if `View.Err` reports a
 failed/superseded refresh: keep the data and reconcile separately, never repeat
-a confirmed mutation to repair its view. Existing `Call` APIs are unchanged.
-The bounded subset passes 75 focused cases plus 179 affected host regressions
+a confirmed mutation to repair its view. Ordinary `Call` APIs still return typed
+data without automatically refreshing the view; they now share the dispatch FIFO.
+The preceding action-view checkpoint passed 75 focused cases plus 179 affected host regressions
 (254 distinct local checks), both SDK native/WASM checks and host/Linux
 HTTP/both mock Lambda suites. Preceding matrices stay separate. Try `/action-view`
 and read [qualification, ownership, cookies and failure rules](docs/ACTION_VIEWS.md). Native
-result cookies and a document-wide typed-dispatch FIFO/ABI 3 are the next
-implemented additions under qualification. See [native cookies/session limits](docs/NATIVE_COOKIES.md)
+result cookies and a document-wide typed-dispatch FIFO/ABI 3 are implemented
+with scoped verification. Both SDK native/WASM and full host/Linux deployment
+checks pass; all 55 cookie cases pass. The corrected affected browser matrix
+passes 342/342, including 75 action-view checks. A native JavaScript CDP
+reproduction retains a separate underlying-cause investigation. See
+[native cookies/session limits](docs/NATIVE_COOKIES.md)
 and [dispatch/cancellation](docs/MUTATION_DISPATCH.md). Previous matrices do not
 qualify this new phase; complete session/revocation/refresh behavior remains open.
 

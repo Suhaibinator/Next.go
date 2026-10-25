@@ -1,5 +1,6 @@
 // Real native replicas and bounded byte-delay gates. No session credentials,
 // cookies, signing keys or action request bodies enter the observation records.
+// WebKit forbids port4190 before any network request;4194 is the public listener.
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
@@ -31,7 +32,7 @@ async function startCold() {
     spawnReplica(4193);
     for (let attempt = 0; attempt < 100; attempt++) {
       const ready = await new Promise(resolve => {
-        const request = requestHTTP({ hostname: '127.0.0.1', port: 4193, path: '/api/health', headers: { Host: '127.0.0.1:4190' }, timeout: 1000 }, response => { response.resume(); resolve(response.statusCode === 200); });
+        const request = requestHTTP({ hostname: '127.0.0.1', port: 4193, path: '/api/health', headers: { Host: '127.0.0.1:4194' }, timeout: 1000 }, response => { response.resume(); resolve(response.statusCode === 200); });
         request.on('error', () => resolve(false)); request.on('timeout', () => { request.destroy(); resolve(false); }); request.end();
       });
       if (ready) return;
@@ -50,7 +51,7 @@ function release(gate) {
   if (pending?.length && !gate.response.write(pending)) gate.response.once('drain', begin); else begin();
 }
 const gateway = createServer(async (request, response) => {
-  const url = new URL(request.url, 'http://127.0.0.1:4190');
+  const url = new URL(request.url, 'http://127.0.0.1:4194');
   if (url.pathname === '/_fixture/cookie/records' && request.method === 'GET') { json(response, 200, records); return; }
   if (url.pathname === '/_fixture/cookie/gate' && request.method === 'GET') {
     const gate = gates.get(url.searchParams.get('key'));
@@ -70,17 +71,19 @@ const gateway = createServer(async (request, response) => {
   const phase = request.headers['x-fixture-cookie-phase'] || 'body';
   const cold = request.headers['x-fixture-cookie-replica'] === 'cold';
   if (cold && !coldReady) { json(response, 503, { error: 'start the cold replica before routing to it' }); return; }
-  const headers = { ...request.headers, host: '127.0.0.1:4190', 'accept-encoding': 'identity' };
+  const headers = { ...request.headers, host: '127.0.0.1:4194', 'accept-encoding': 'identity' };
   for (const name of Object.keys(headers)) if (name.startsWith('x-fixture-cookie-')) delete headers[name];
   const action = request.method === 'POST' && url.pathname.includes('/_nextgo/actions/');
-  const record = { id: ++sequence, trace: typeof trace === 'string' ? trace.slice(0, 128) : '', method: request.method, path: url.pathname, status: 0, delivered: false, aborted: false, outstandingBefore: action ? activeActions.size : 0, hasSetCookie: false };
+  const record = { id: ++sequence, trace: typeof trace === 'string' ? trace.slice(0, 128) : '', method: request.method, path: url.pathname, status: 0, delivered: false, aborted: false, outstandingBefore: action ? activeActions.size : 0, hasSetCookie: false, protocolOne: false, revisionOne: false };
   if (action && activeActions.size >= 64) { json(response, 503, { error: 'fixture action capacity exceeded' }); return; }
   if (action) activeActions.add(record.id);
   if (action || /\/(cookie-session|optimistic|action-view)\/?$/.test(url.pathname)) { records.push(record); if (records.length > 128) records.shift(); }
   response.once('finish', () => { record.delivered = true; activeActions.delete(record.id); });
   response.once('close', () => { activeActions.delete(record.id); if (!response.writableEnded) record.aborted = true; });
   const upstream = requestHTTP({ hostname: '127.0.0.1', port: url.pathname.startsWith('/scoped') ? 4192 : cold ? 4193 : 4191, path: request.url, method: request.method, headers }, incoming => {
-    record.status = incoming.statusCode; record.hasSetCookie = !!incoming.headers['set-cookie']; response.writeHead(incoming.statusCode, incoming.headers);
+    record.status = incoming.statusCode; record.hasSetCookie = !!incoming.headers['set-cookie'];
+    record.protocolOne = incoming.headers['x-nextgo-action-protocol'] === '1'; record.revisionOne = incoming.headers['x-nextgo-action-revision'] === 'v1';
+    response.writeHead(incoming.statusCode, incoming.headers);
     incoming.on('error', () => response.destroy());
     const media = String(incoming.headers['content-type']);
     const wasm = typeof wasmKey === 'string' && wasmKey.length > 0 && wasmKey.length <= 128 && url.pathname.endsWith('/app.wasm') && incoming.statusCode === 200 && media.startsWith('application/wasm');
@@ -121,4 +124,4 @@ function shutdown(code = 0) {
 }
 gateway.once('error', error => { console.error(error.message); shutdown(1); });
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => shutdown());
-spawnReplica(4191); spawnReplica(4192, true); gateway.listen(4190, '127.0.0.1');
+spawnReplica(4191); spawnReplica(4192, true); gateway.listen(4194, '127.0.0.1');

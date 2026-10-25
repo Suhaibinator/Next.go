@@ -31,26 +31,34 @@ test('tentative changes render before confirmation and canonical server operatio
   await page.reload();await ready(page);await expect(value(page)).toHaveText(String(initial+2));
 });
 
-test('out-of-order responses retain later canonical results when the earlier intent confirms',async({page})=>{
+test('typed transport stays sequential while optimistic state retains both intents',async({page})=>{
   await page.goto('/optimistic');await ready(page);const initial=await count(page);
-  let release,started;let requests=0;const gate=new Promise(resolve=>{release=resolve});const sent=new Promise(resolve=>{started=resolve});
-  await page.route(action,async route=>{requests++;if(requests===1){const response=await route.fetch();started();await gate;await route.fulfill({response})}else await route.continue()});
-  await button(page,'Add one').click();await sent;
-  await button(page,'Add five').click();await expect(pending(page)).toHaveText('Saving 1 change…');
-  await expect(value(page)).toHaveText(String(initial+3));
-  release();await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial+3));
-  await page.reload();await ready(page);await expect(value(page)).toHaveText(String(initial+3));
+  let releaseFirst,releaseSecond,startedFirst,startedSecond;let requests=0;
+  const firstGate=new Promise(resolve=>{releaseFirst=resolve}),secondGate=new Promise(resolve=>{releaseSecond=resolve});
+  const firstSent=new Promise(resolve=>{startedFirst=resolve}),secondSent=new Promise(resolve=>{startedSecond=resolve});
+  await page.route(action,async route=>{const index=++requests,response=await route.fetch();if(index===1){startedFirst();await firstGate}else if(index===2){startedSecond();await secondGate}await route.fulfill({response})});
+  try{
+    await button(page,'Add one').click();await firstSent;
+    await button(page,'Add five').click();await expect(pending(page)).toHaveText('Saving 2 changes…');await expect(value(page)).toHaveText(String(initial+6));expect(requests).toBe(1);
+    releaseFirst();await secondSent;await expect(pending(page)).toHaveText('Saving 1 change…');await expect(value(page)).toHaveText(String(initial+6));expect(requests).toBe(2);
+    releaseSecond();await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial+3));
+    await page.reload();await ready(page);await expect(value(page)).toHaveText(String(initial+3));
+  }finally{releaseFirst();releaseSecond()}
 });
 
 test('a failed earlier intent rolls back without dropping the later successful operation',async({page})=>{
   await page.goto('/optimistic');await ready(page);const initial=await count(page);
-  let release,started;let requests=0;const gate=new Promise(resolve=>{release=resolve});const sent=new Promise(resolve=>{started=resolve});
-  await page.route(action,async route=>{requests++;if(requests===1){const response=await route.fetch();started();await gate;await route.fulfill({response})}else await route.continue()});
-  await button(page,'Try a rejected change').click();await sent;
-  await expect(value(page)).toHaveText(String(initial+1));
-  await button(page,'Add five').click();await expect(value(page)).toHaveText(String(initial+3));
-  release();await expect(page.locator('[data-optimistic-error]')).toContainText('Choose an amount');
-  await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial+2));
+  let releaseFirst,releaseSecond,startedFirst,startedSecond;let requests=0;
+  const firstGate=new Promise(resolve=>{releaseFirst=resolve}),secondGate=new Promise(resolve=>{releaseSecond=resolve});
+  const firstSent=new Promise(resolve=>{startedFirst=resolve}),secondSent=new Promise(resolve=>{startedSecond=resolve});
+  await page.route(action,async route=>{const index=++requests,response=await route.fetch();if(index===1){startedFirst();await firstGate}else if(index===2){startedSecond();await secondGate}await route.fulfill({response})});
+  try{
+    await button(page,'Try a rejected change').click();await firstSent;await expect(value(page)).toHaveText(String(initial+1));
+    await button(page,'Add five').click();await expect(pending(page)).toHaveText('Saving 2 changes…');await expect(value(page)).toHaveText(String(initial+6));expect(requests).toBe(1);
+    releaseFirst();await secondSent;await expect(page.locator('[data-optimistic-error]')).toContainText('Choose an amount');
+    await expect(pending(page)).toHaveText('Saving 1 change…');await expect(value(page)).toHaveText(String(initial+5));expect(requests).toBe(2);
+    releaseSecond();await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial+2));
+  }finally{releaseFirst();releaseSecond()}
 });
 
 test('transport failure rolls back the view and a retry can succeed',async({page})=>{
@@ -109,14 +117,16 @@ test('optimistic Go mutations preserve mounted, slash and locale deployment scop
 
 test('the pending-intent limit disables new changes and cancellation releases its capacity',async({page})=>{
   await page.goto('/optimistic');await ready(page);const initial=await count(page);
-  let release,all;let requests=0;const gate=new Promise(resolve=>{release=resolve});const sent=new Promise(resolve=>{all=resolve});
-  await page.route(action,async route=>{requests++;if(requests===8)all();await gate;await route.abort('failed')});
-  for(let i=0;i<8;i++)await button(page,'Add one').click();await sent;
-  await expect(pending(page)).toHaveText('Saving 8 changes…');await expect(value(page)).toHaveText(String(initial+8));
-  await expect(button(page,'Add one')).toBeDisabled();await expect(button(page,'Add five')).toBeDisabled();
-  await button(page,'Add one').evaluate(node=>node.click());expect(requests).toBe(8);
-  await button(page,'Cancel pending changes').click();release();
-  await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial));await expect(button(page,'Add one')).toBeEnabled();
+  let release,started,finished;let requests=0;const gate=new Promise(resolve=>{release=resolve}),sent=new Promise(resolve=>{started=resolve}),done=new Promise(resolve=>{finished=resolve});
+  await page.route(action,async route=>{requests++;started();await gate;try{await route.abort('failed')}finally{finished()}});
+  try{
+    for(let i=0;i<8;i++)await button(page,'Add one').click();await sent;
+    await expect(pending(page)).toHaveText('Saving 8 changes…');await expect(value(page)).toHaveText(String(initial+8));
+    await expect(button(page,'Add one')).toBeDisabled();await expect(button(page,'Add five')).toBeDisabled();
+    await button(page,'Add one').evaluate(node=>node.click());expect(requests).toBe(1);
+    await button(page,'Cancel pending changes').click();release();await done;
+    await expect(pending(page)).toHaveText('No pending changes.');await expect(value(page)).toHaveText(String(initial));await expect(button(page,'Add one')).toBeEnabled();expect(requests).toBe(1);
+  }finally{release()}
 });
 
 

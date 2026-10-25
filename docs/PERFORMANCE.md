@@ -10,14 +10,58 @@ not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
 The latest recorded browser sample is the
-[action-view artifact observation](#action-view-artifact-observation-october-25-2026-utc).
+[cookie/dispatch artifact observation](#cookie-dispatch-artifact-observation-october-25-2026-utc).
 The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
 measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
 
+## Cookie-dispatch artifact observation (October 25, 2026 UTC)
+
+The [actual startup report](benchmarks/cookie-dispatch-go1.27.3-macos-arm64.json)
+records the clean `d41ed6c` standalone artifact with Go 1.27.3/macOS arm64,
+Chromium 156.0.8078.4, Node 25.7.0 and Apple M4 Max. Ten fresh contexts in one
+browser process load `/prefetch` over warm loopback without CPU/network
+throttling. All ten record meaningful SSR, no browser errors and a real Go
+counter changing from 3 to 4 after timing. This is not a cookie-login or FIFO
+throughput measurement, nor a full release-qualification matrix.
+
+| Actual artifact observation | Bytes |
+| --- | ---: |
+| Decoded browser WASM response | 8,689,703 |
+| Level-9 gzip recompression | 2,234,084 |
+| Actual HTTP gzip body | 2,326,938 |
+| Exported memory capacity at instantiation | 4,915,200 |
+| Exported memory capacity at readiness | 6,815,744 |
+
+The WASM SHA-256 is
+`a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137`;
+the native server SHA-256 is
+`88d3eeed5541cd077e7ee5445de417bc2f3b0e40d2680a601f69839276aa0e07`.
+Build metadata records the owning module, stable generated main path and clean
+VCS revision. This artifact observation alone is not a general reproducible-build
+proof. Both **6-MiB raw / 1.6-MiB gzip-9 reference budgets still fail**.
+
+Browser navigation-to-ready is **118.9–142.8 ms, median 137.6 ms**. The distinct
+Node wall-clock window is **146.68–173.30 ms, median 166.03 ms**, including
+automation/polling overhead. The readiness timestamp is observed relative to
+the browser navigation performance origin. Fresh contexts share one browser
+process, so compiled-code reuse and default caching remain possible. No speed
+improvement/regression follows from comparisons with preceding observations.
+
+Memory capacities come from actual exported `WebAssembly.Memory` instances;
+they exclude JavaScript buffers and do not measure live heap, physical
+commitment, peak memory or RSS. Warm OS/server state, visible-link work and
+instrumentation do not represent cold/mobile/field startup, production load
+or competing-framework performance. Both release size/performance gaps remain.
+
+Repeat with the matching standalone server using
+`scripts/measure-production-startup.mjs`; the
+[documented command](#generated-action-artifact-observation-october-25-2026-utc)
+records actual response bytes, artifact identity and separate timing windows.
+
 ## Action-view artifact observation (October 25, 2026 UTC)
 
-The [actual production-loopback report](benchmarks/action-view-go1.27.3-macos-arm64.json)
+The preceding [actual production-loopback report](benchmarks/action-view-go1.27.3-macos-arm64.json)
 uses Go 1.27.3/macOS arm64, Chromium 156.0.8078.4, Node 25.7.0 and Apple M4 Max.
 Ten fresh contexts in one browser process load `/prefetch` from the frozen
 action-view artifact, with warm OS/server state, default browser caching,

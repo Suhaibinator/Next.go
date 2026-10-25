@@ -18,7 +18,8 @@
     "test:partial-shell": "node scripts/test-browser.mjs --config tests/partial-shell.config.mjs",
     "test:viewport": "node scripts/test-browser.mjs --config tests/viewport.config.mjs",
     "test:generated-actions": "node scripts/test-browser.mjs --config tests/generated-actions.config.mjs",
-    "test:action-view": "node scripts/test-browser.mjs --config tests/action-view.config.mjs"
+    "test:action-view": "node --test tests/action-view-wire-observer.test.mjs && node scripts/test-browser.mjs --config tests/action-view.config.mjs",
+    "test:cookie-dispatch": "node scripts/test-browser.mjs --config tests/cookie-dispatch.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

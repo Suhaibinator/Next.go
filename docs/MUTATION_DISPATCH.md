@@ -1,9 +1,11 @@
 # Document-wide typed mutation dispatch
 
-This phase is **under implementation/qualification**. A core-owned FIFO now
-coordinates typed action transport across eager and lazy Go callers. Final
-application-build/SDK/browser/deployment qualification is pending; preceding
-action-view matrices remain historical evidence.
+This implemented FIFO has scoped native/browser verification. It coordinates
+typed action transport across eager and lazy Go callers. Both SDK native/WASM and host
+deployment checks pass, as do corrected FIFO/optimistic fixtures. The affected
+browser record passes 342/342. A native JavaScript CDP reproduction still has
+an unresolved underlying cause. Preceding action-view matrices remain
+historical evidence.
 
 ## One active operation, 64 waiting positions
 
@@ -77,6 +79,9 @@ queue with extra delays or treating it as a runtime regression.
 Server transaction ordering/cancellation, durable idempotency, exactly-once
 delivery, transactional cookie/data publication and complete production
 concurrency/recovery/load/soak qualification remain open. No client queue can
-recall an unknown late server commit. Focused tests are being integrated; no
-final phase count or production-maturity claim is made here. All 79 capability
+recall an unknown late server commit. Both SDK and host/isolated-Linux deployment
+checks pass; the corrected affected browser record passes 342/342. The separate
+native JavaScript CDP reproduction's underlying cause remains open. See
+[current phase provenance](NATIVE_COOKIES.md#current-evidence).
+No full-release or production-maturity claim is made here. All 79 capability
 rows/11 release gates remain in [the inventory](PARITY.md).

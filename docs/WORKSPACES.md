@@ -22,21 +22,33 @@ Input hashing streams regular files with cancellation checks. The current limits
 
 Generated `.nextgo` output, Git metadata, dependency/output directories and ordinary hidden directories remain excluded from source polling. Explicit embed patterns may include otherwise excluded data, as Go permits; public assets retain their existing hidden-file rules. Workspace and local dependency sources are included in runtime build identities, but native server packages and loaders do not become browser imports. Native-only files should use build constraints or a blank `serveronly` import, as before.
 
-## Compiler overlay/reproducibility work in progress
+## Stable compiler overlays and discovery scope
 
-The next compiler increment is under implementation/qualification. It uses a
-private per-build overlay with stable virtual generated main-package/source
+The compiler now uses a private per-build overlay with stable virtual generated main-package/source
 paths, while preserving the owning module, Main and VCS metadata in Go build
 information. A source-file target that drops that provenance is not the accepted
-contract. No full application-build/reproducibility matrix is claimed yet.
+contract. Focused same-input provenance/reproducibility fixtures pass on both
+SDKs; this is not a general production-binary reproducibility claim.
 
 Caller `GOFLAGS=-overlay=...` mappings must be merged with framework mappings,
 rather than silently replaced. Overlay JSON and backing files participate in
 input/watch tracking; paths follow the Go command's working-directory rules,
 not the directory containing the JSON file. Reserved generated-path collisions
-fail closed. This integration and its limits/tests are still being qualified;
-do not infer support for every overlay/workspace combination from the preceding
-workspace tests below.
+fail closed. Scoped tests and host/Linux deployment cover this integration;
+complete release qualification remains open. Do not infer support for every overlay or
+workspace combination.
+
+Route/action discovery still scans physical files and directory declarations.
+Overlaid bodies of existing files are supported by compilation, but virtual-only
+routes/actions and structural reshaping of action contracts are not discovered
+through the overlay. Keep structural declarations physical and rerun generation;
+compiler overlays do not replace AST discovery with a virtual filesystem.
+
+The scoped fixtures compare fixed VCS/inputs across sequential/concurrent
+physical generations, check Main/module/VCS provenance and all runtime assets,
+and exercise the original prerender snapshot. They pass on Go 1.27.3 and
+Go 1.24.13 with Git present. These are controlled compiler fixtures, not
+cross-checkout/OS/toolchain, production-age or immutable-release proof.
 
 The goal addresses timestamped generated-main-path/build-ID churn in WASM.
 Prerendered native artifacts also contain intentional generation ages, so

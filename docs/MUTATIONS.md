@@ -180,8 +180,11 @@ Its protocol, invalidation acknowledgement, cookie/draft handling, document
 ownership and limits are described in [ACTION_VIEWS.md](ACTION_VIEWS.md).
 Native typed results now expose [validated cookie output](NATIVE_COOKIES.md),
 and [document-wide FIFO dispatch](MUTATION_DISPATCH.md) coordinates typed JSON,
-multipart and combined calls. These additions are under implementation/
-qualification; the preceding 254-case action-view source does not qualify them.
+multipart and combined calls. Both SDK native/WASM and host/Linux deployment
+checks pass for these additions; all 55 cookie cases and the corrected 342-case
+affected browser matrix pass. A native JavaScript CDP reproduction leaves its
+underlying cause open, separately from the functional checks.
+The preceding 254-case action-view source does not qualify this phase.
 Generic Fetch/server transactions remain independent, and complete login/logout,
 session revocation and automatic ordinary-call refresh semantics remain open.
 

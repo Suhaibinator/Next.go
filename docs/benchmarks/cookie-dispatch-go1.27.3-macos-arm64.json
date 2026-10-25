@@ -1,0 +1,663 @@
+{
+  "date": "2026-10-25T02:40:50.877Z",
+  "origin": "http://127.0.0.1:3012",
+  "path": "/prefetch",
+  "artifact": {
+    "serverPath": "/private/tmp/nextgo-cookie-dispatch/server",
+    "serverSHA256": "88d3eeed5541cd077e7ee5445de417bc2f3b0e40d2680a601f69839276aa0e07",
+    "baseCommit": "d41ed6c1f0b80c064031816bbdbfda52a7b6be9a",
+    "goBuildInfo": "/private/tmp/nextgo-cookie-dispatch/server: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025023832-d41ed6c1f0b8\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=d41ed6c1f0b80c064031816bbdbfda52a7b6be9a\n\tbuild\tvcs.time=2026-10-25T02:38:32Z\n\tbuild\tvcs.modified=false"
+  },
+  "environment": {
+    "go": "/private/tmp/nextgo-cookie-dispatch/server: go1.27.3",
+    "browser": "156.0.8078.4",
+    "node": "v25.7.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "27.0.0",
+    "cpu": "Apple M4 Max"
+  },
+  "scope": "10 fresh Chromium contexts in one browser process, standalone production executable on loopback; warm OS/server with an HTML warmup, default browser caching and automatic visible-link work, no CPU/network throttling; browser process may reuse compiled code. Observational wrappers/body capture add instrumentation work. Not cold-field startup, live Go heap, peak memory, physical commitment, RSS or a competing-framework comparison.",
+  "method": {
+    "readiness": "MutationObserver timestamp of body data-nextgo-hydration=ready, relative to browser navigation performance time origin. elapsedMS is Node wall time from goto(waitUntil=commit) call through observed readiness; commitToReadyElapsedMS starts when that goto promise returns and includes automation/poll overhead.",
+    "memory": "Actual exported WebAssembly.Memory objects from resolved native instantiate/instantiateStreaming calls, invoked with Reflect.apply preserving receiver/arguments/return value. Capacities recorded at instantiation and readiness; references retained until context close.",
+    "bytes": "Decoded body bytes from each actual browser WASM response; SHA-256 and raw length over those bytes. gzip9 is Node zlib level9 recompression, not necessarily the HTTP encoding size. Resource Timing separately reports browser encoded/decoded body sizes. No artifact-refetch fallback.",
+    "ssr": "Meaningful heading, text, islands and disabled controls observed when the initial-ready marker parses, before hydration.",
+    "interaction": "Real Go counter clicked only after startup timing is recorded."
+  },
+  "warmup": {
+    "status": 200,
+    "htmlBytes": 9993,
+    "htmlSHA256": "f77aede590fdf8cf138d083682224d474fa59a7156527516964a5fd4b25b5b99"
+  },
+  "samples": [
+    {
+      "trial": 1,
+      "elapsedMS": 170.65887500000002,
+      "commitToReadyElapsedMS": 160.43879200000003,
+      "browserNavigationToReadyMS": 139.5,
+      "readyAtMS": 139.5,
+      "ssr": {
+        "atMS": 11.700000002980232,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 94.5,
+          "resolvedAtMS": 109,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.5,
+        "responseEndMS": 2.100000001490116
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 2,
+      "elapsedMS": 146.67620799999997,
+      "commitToReadyElapsedMS": 142.6360830000001,
+      "browserNavigationToReadyMS": 118.89999999850988,
+      "readyAtMS": 118.89999999850988,
+      "ssr": {
+        "atMS": 5.399999998509884,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 75.20000000298023,
+          "resolvedAtMS": 89.20000000298023,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.1000000014901161,
+        "responseEndMS": 1.2000000029802322
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 3,
+      "elapsedMS": 173.29812500000003,
+      "commitToReadyElapsedMS": 170.0859170000001,
+      "browserNavigationToReadyMS": 142.79999999701977,
+      "readyAtMS": 142.79999999701977,
+      "ssr": {
+        "atMS": 4.899999998509884,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 96.39999999850988,
+          "resolvedAtMS": 112.79999999701977,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1,
+        "responseEndMS": 1.2000000029802322
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 4,
+      "elapsedMS": 167.61558300000002,
+      "commitToReadyElapsedMS": 163.84300000000007,
+      "browserNavigationToReadyMS": 140.79999999701977,
+      "readyAtMS": 140.79999999701977,
+      "ssr": {
+        "atMS": 5.399999998509884,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 96,
+          "resolvedAtMS": 110.19999999552965,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.1999999955296516,
+        "responseEndMS": 1.3999999985098839
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 5,
+      "elapsedMS": 169.04883300000006,
+      "commitToReadyElapsedMS": 165.5741250000001,
+      "browserNavigationToReadyMS": 134.39999999850988,
+      "readyAtMS": 134.39999999850988,
+      "ssr": {
+        "atMS": 4.899999998509884,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 90.29999999701977,
+          "resolvedAtMS": 104.29999999701977,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.0999999940395355,
+        "responseEndMS": 1.1999999955296516
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 6,
+      "elapsedMS": 171.1836659999999,
+      "commitToReadyElapsedMS": 167.72420799999986,
+      "browserNavigationToReadyMS": 141.60000000149012,
+      "readyAtMS": 141.60000000149012,
+      "ssr": {
+        "atMS": 5.100000001490116,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 95.80000000447035,
+          "resolvedAtMS": 112.30000000447035,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.2000000029802322,
+        "responseEndMS": 1.3000000044703484
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 7,
+      "elapsedMS": 147.11087499999985,
+      "commitToReadyElapsedMS": 143.3260409999998,
+      "browserNavigationToReadyMS": 120.80000000447035,
+      "readyAtMS": 120.80000000447035,
+      "ssr": {
+        "atMS": 5.4000000059604645,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 77.80000000447035,
+          "resolvedAtMS": 91.90000000596046,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.3000000044703484,
+        "responseEndMS": 1.5
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 8,
+      "elapsedMS": 149.98124999999982,
+      "commitToReadyElapsedMS": 146.8833749999999,
+      "browserNavigationToReadyMS": 120.10000000149012,
+      "readyAtMS": 120.10000000149012,
+      "ssr": {
+        "atMS": 4.700000002980232,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 76.60000000149012,
+          "resolvedAtMS": 91,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1,
+        "responseEndMS": 1.1000000014901161
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 9,
+      "elapsedMS": 164.43545800000038,
+      "commitToReadyElapsedMS": 160.7761660000001,
+      "browserNavigationToReadyMS": 138.79999999701977,
+      "readyAtMS": 138.79999999701977,
+      "ssr": {
+        "atMS": 5.100000001490116,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 92.39999999850988,
+          "resolvedAtMS": 107.39999999850988,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1.2999999970197678,
+        "responseEndMS": 1.3999999985098839
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    },
+    {
+      "trial": 10,
+      "elapsedMS": 161.17883299999994,
+      "commitToReadyElapsedMS": 157.87804199999982,
+      "browserNavigationToReadyMS": 136.39999999850988,
+      "readyAtMS": 136.39999999850988,
+      "ssr": {
+        "atMS": 4.799999997019768,
+        "heading": "Prefetch when a Go link is visible",
+        "textCharacters": 977,
+        "islands": 2,
+        "disabledButtons": 4
+      },
+      "instantiations": [
+        {
+          "kind": "instantiate",
+          "startedAtMS": 93.10000000149012,
+          "resolvedAtMS": 107.20000000298023,
+          "linearMemoryBytes": [
+            4915200
+          ]
+        }
+      ],
+      "linearMemoryBytes": [
+        6815744
+      ],
+      "navigation": {
+        "startTimeMS": 0,
+        "responseStartMS": 1,
+        "responseEndMS": 1.1000000014901161
+      },
+      "resources": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "encodedBodyBytes": 2326938,
+          "decodedBodyBytes": 8689703
+        }
+      ],
+      "assets": [
+        {
+          "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+          "file": "app.wasm",
+          "sha256": "a9e0e67e159919b31cf467432c118d61a59c79b4e958f7c300a1d6347820f137",
+          "raw": 8689703,
+          "gzip9": 2234084,
+          "contentEncoding": "gzip",
+          "bodySource": "browser-response",
+          "resourceTiming": {
+            "url": "http://127.0.0.1:3012/_nextgo/fadff7872144d851bfb5/app.wasm",
+            "encodedBodyBytes": 2326938,
+            "decodedBodyBytes": 8689703
+          }
+        }
+      ],
+      "interaction": {
+        "label": "Prefetch companion",
+        "before": 3,
+        "after": 4,
+        "measuredAfterReadiness": true
+      },
+      "errors": []
+    }
+  ],
+  "medianReadyMS": 166.0255205000002,
+  "medianBrowserNavigationToReadyMS": 137.59999999776483,
+  "medianCommitToReadyElapsedMS": 160.60747900000007,
+  "referenceBudgets": {
+    "coreRawBytes": 6291456,
+    "coreGzipBytes": 1677721,
+    "result": "FAIL; release performance gate remains open"
+  }
+}

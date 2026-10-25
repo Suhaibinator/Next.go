@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createServer, request as requestHTTP } from 'node:http';
+import { createActionViewWireObserver } from './action-view-wire-observer.mjs';
 
 const output = join(process.env.NEXTGO_E2E_ROOT, 'action-view');
 await mkdir(output, { recursive: true });
@@ -74,6 +75,17 @@ const gateway = createServer((request, response) => {
       return;
     }
     const stream = String(incoming.headers['content-type']).startsWith('application/x-nextgo-action-view+json');
+    if (stream && incoming.statusCode === 200 && request.method === 'POST' && url.pathname.endsWith(endpoint)) {
+      // Independently observe the SAME original upstream chunks. This listener
+      // neither writes, pauses nor transforms them; existing gates/pipes alone
+      // own forwarding. Only bounded framing metadata survives in the record.
+      const observer = createActionViewWireObserver(); let ended = false;
+      Object.defineProperty(record, 'wire', { enumerable: true, get: () => observer.snapshot() });
+      incoming.on('data', chunk => observer.feed(chunk));
+      incoming.on('end', () => { ended = true; observer.end(); });
+      incoming.on('error', () => observer.fail());
+      incoming.on('close', () => { if (!ended) observer.fail(); });
+    }
     if (typeof gateKey !== 'string' || gateKey.length === 0 || gateKey.length > 128 || !['result', 'shell'].includes(phase) || !stream || incoming.statusCode !== 200 || request.method !== 'POST' || !url.pathname.endsWith(endpoint)) { incoming.pipe(response); return; }
     if (gates.size >= 8 || gates.has(gateKey)) { incoming.destroy(); response.destroy(new Error('action-view gate capacity exceeded')); return; }
     // Reserve before reading any prefix so even responses whose first record

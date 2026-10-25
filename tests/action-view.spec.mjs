@@ -47,7 +47,6 @@ async function assertStreamedCounter(page, value) {
   await region.getByRole('button', { name: 'Increase Action view streamed counter', exact: true }).click();
   await expect(region.locator('[data-count]')).toHaveText(String(value + 1));
 }
-function frames(text) { return text.trim().split('\n').map(line => JSON.parse(line)); }
 
 test('SSR survives delayed WASM, then one JSON POST confirms data and refreshes HTML and metadata', async ({ page, request }) => {
   const trace = randomUUID(), wasmKey = `${trace}-wasm`, key = `${trace}-result`;
@@ -79,7 +78,14 @@ test('SSR survives delayed WASM, then one JSON POST confirms data and refreshes 
     expect(actual.filter(record => record.method === 'GET')).toHaveLength(1);
     expect(actual.filter(record => record.method === 'POST')).toHaveLength(1);
     expect(actual.find(record => record.method === 'POST').source).toBe('/action-view?delay=750ms');
-    const wire = frames(await response.text()); expect(wire[0].type).toBe('result'); expect(wire[1].type).toBe('shell'); expect(wire.at(-1).type).toBe('done'); expect(wire.some(frame => frame.type === 'chunk')).toBe(true);
+    // DevTools can discard a completed streaming response body even for an
+    // equivalent native JavaScript client. Check genuine wire framing/EOF on
+    // this exact flight, independently of the preceding Go UI/receipt checks.
+    await expect.poll(async () => (await records(request, trace)).find(record => record.id === flight.id)?.wire?.complete).toBe(true);
+    const finished = (await records(request, trace)).find(record => record.id === flight.id);
+    expect(finished.status).toBe(200); expect(finished.aborted).toBe(false); expect(finished.complete).toBe(true);
+    const wire = finished.wire; expect(wire.error).toBe(false); expect(wire.bytes).toBeGreaterThan(0); expect(wire.bytes).toBeLessThanOrEqual(8 << 20);
+    expect(wire.frameTypes[0]).toBe('result'); expect(wire.frameTypes[1]).toBe('shell'); expect(wire.frameTypes.at(-1)).toBe('done'); expect(wire.frameTypes).toContain('chunk'); expect(wire.frameTypes.length).toBeLessThanOrEqual(131); expect(wire.versions.every(version => version === 1)).toBe(true);
   } finally { await request.post(fixtureURL('release', wasmKey)); await request.post(fixtureURL('release', key)); }
 });
 
@@ -166,19 +172,19 @@ test('navigation cancels the exact held view flight without erasing its already 
   } finally { await request.post(fixtureURL('release', key)); }
 });
 
-test('a newer ordinary Go mutation fences an older held view instead of applying its stale shell', async ({ page, request }) => {
-  const trace = randomUUID(), key = `${trace}-superseded`; await page.setExtraHTTPHeaders(headers(trace)); await page.goto('/action-view?delay=750ms'); await ready(page);
+test('a typed mutation waits behind a held view and is never posted after its source island is disposed', async ({ page, request }) => {
+  const trace = randomUUID(), key = `${trace}-queued`; await page.setExtraHTTPHeaders(headers(trace)); await page.goto('/action-view?delay=750ms'); await ready(page);
   const initial = await number(ssrCount(page)), revision = await number(ssrRevision(page));
   try {
     await page.setExtraHTTPHeaders(headers(trace, { 'X-Fixture-Action-View-Gate': key, 'X-Fixture-Action-View-Phase': 'result' }));
     await post(page, jsonButton(page)); const first = await held(request, key, 'result');
     await page.setExtraHTTPHeaders(headers(trace)); await amount(page).fill('2');
-    const newer = await post(page, page.locator('[data-av-only]')); expect((await newer.json()).data.count).toBe(initial + 3);
-    await assertReceipt(page, initial + 3, revision + 2, { applied: false, status: 0 }); await expect(ssrCount(page)).toHaveText(String(initial));
-    await expect.poll(async () => (await records(request, trace)).some(record => record.id === first.id && record.aborted)).toBe(true);
-    await request.post(fixtureURL('release', key)); await page.locator('[data-av-refresh]').click();
-    await assertFresh(page, initial + 3, revision + 2); await assertStreamedCounter(page, initial + 3);
-    expect((await records(request, trace)).filter(record => record.method === 'POST')).toHaveLength(2);
+    await page.locator('[data-av-only]').click(); await expect(page.locator('[data-av-only]')).toBeDisabled();
+    await expect(ssrCount(page)).toHaveText(String(initial)); expect((await records(request, trace)).filter(record => record.method === 'POST')).toHaveLength(1);
+    expect((await request.post(fixtureURL('release', key))).status()).toBe(200);
+    await assertFresh(page, initial + 1, revision + 1); await assertReceipt(page, initial + 1, revision + 1); await assertStreamedCounter(page, initial + 1);
+    const actual = await records(request, trace); expect(actual.filter(record => record.method === 'POST')).toHaveLength(1);
+    expect(actual.find(record => record.id === first.id).aborted).toBe(false);
   } finally { await request.post(fixtureURL('release', key)); }
 });
 
