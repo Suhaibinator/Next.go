@@ -75,6 +75,11 @@ type fileReadResult struct {
 // FileReader. Its listener is removed before releasing the Go callback, including
 // setup failure and cancellation; queued events then have no owned listener.
 func (f File) Bytes(ctx context.Context, limit int64) (data []byte, readErr error) {
+	activity, err := beginRefreshActivity()
+	if err != nil {
+		return nil, err
+	}
+	defer activity.Done()
 	var cleanup func()
 	var reader js.Value
 	admitted := false

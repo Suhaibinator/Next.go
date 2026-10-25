@@ -90,7 +90,7 @@ func TestInitialBuildErrorIsEscapedAndVisible(t *testing.T) {
 }
 
 func TestEventsReplayCurrentBuildAndErrors(t *testing.T) {
-	s := &supervisor{authority: "127.0.0.1:3000", id: "new", buildError: "compile failed", listeners: map[chan string]bool{}}
+	s := &supervisor{authority: "127.0.0.1:3000", id: "new", buildError: "compile failed", proxy: &httputil.ReverseProxy{}, listeners: map[chan string]bool{}}
 	ctx, cancel := context.WithCancel(context.Background())
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/_nextgo/events?build=old", nil).WithContext(ctx)

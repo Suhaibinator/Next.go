@@ -3,6 +3,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"syscall/js"
@@ -42,6 +43,8 @@ type Scope struct {
 	closed                 bool
 	selectionCleanup       bool
 	locationCleanup        bool
+	taskContext            context.Context
+	taskWorkers            int
 }
 
 // Require fails hydration if expected server markup is absent. It does not create nodes.
@@ -75,6 +78,11 @@ func (s *Scope) On(el Element, event string, fn func(Event)) {
 			}
 		}()
 		if s.active() {
+			lease, err := beginRefreshActivity()
+			if err != nil {
+				return nil
+			}
+			defer lease.Done()
 			fn(Event{args[0]})
 		}
 		return nil
@@ -150,7 +158,7 @@ func (s *Scope) ownsElement(node js.Value, includeRoot bool) bool {
 
 // active suppresses callbacks once any owning component begins disposal.
 func (s *Scope) active() bool {
-	if s == nil {
+	if s == nil || moduleRefreshHandlersFrozen() || refreshFrozen() {
 		return false
 	}
 	for owner := s; owner != nil; owner = owner.parent {
@@ -159,4 +167,12 @@ func (s *Scope) active() bool {
 		}
 	}
 	return true
+}
+
+// Refresh initially supports explicit state cells and plain scoped listeners.
+// Effects, providers, child scopes and keyed ownership need separate transfer
+// contracts before a runtime containing them can be retired in place.
+func refreshScopeSupported(s *Scope) bool {
+	return s != nil && !s.closed && s.lifetime == nil && len(s.children) == 0 &&
+		len(s.keyedLists) == 0 && !s.selectionCleanup && !s.locationCleanup
 }

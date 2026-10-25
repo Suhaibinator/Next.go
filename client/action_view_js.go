@@ -193,7 +193,9 @@ func ActionView(ctx context.Context, target string, request FetchOptions, valida
 		}
 	}
 	activeActionView = owner
+	callerActivity := retainRefreshActivity()
 	stopCaller := context.AfterFunc(ctx, func() {
+		defer callerActivity.Done()
 		owner.mu.Lock()
 		defer owner.mu.Unlock()
 		if !owner.detached {
@@ -201,7 +203,9 @@ func ActionView(ctx context.Context, target string, request FetchOptions, valida
 		}
 	})
 	defer func() {
-		stopCaller()
+		if stopCaller() {
+			callerActivity.Done()
+		}
 		cancel()
 		if activeActionView == owner {
 			activeActionView = nil

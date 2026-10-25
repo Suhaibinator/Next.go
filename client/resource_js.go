@@ -255,6 +255,16 @@ func (r *AsyncResource) Load() error {
 	if !r.active() {
 		return ErrResourceClosed
 	}
+	activity, activityErr := beginRefreshActivity()
+	if activityErr != nil {
+		return activityErr
+	}
+	workerOwnsActivity := false
+	defer func() {
+		if !workerOwnsActivity {
+			activity.Done()
+		}
+	}()
 	r.source.store.mu.Lock()
 	sourceClosed := r.source.store.closed || r.source.closed
 	r.source.store.mu.Unlock()
@@ -274,7 +284,9 @@ func (r *AsyncResource) Load() error {
 		cancel()
 		return nil
 	}
+	workerOwnsActivity = true
 	go func() {
+		defer activity.Done()
 		body, err := r.source.Read(ctx)
 		cancel()
 		if !r.active() || sequence != r.sequence {

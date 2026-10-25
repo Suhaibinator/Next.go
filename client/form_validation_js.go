@@ -54,6 +54,7 @@ type fieldValidationAttempt[T any] struct {
 	ready, composing   bool
 }
 type fieldValidationJob[T any] struct {
+	activity *refreshActivityLease
 	owner    *FieldValidator[T]
 	attempt  *fieldValidationAttempt[T]
 	permit   *fieldValidationLease
@@ -650,8 +651,18 @@ func (v *FieldValidator[T]) pump() {
 		}
 		return
 	}
+	activity, err := beginRefreshActivity()
+	if err != nil {
+		_ = permit.release()
+		v.waiting = nil
+		a.stopTimers()
+		a.cancel()
+		_ = a.ticket.Cancel()
+		return
+	}
 	input, err := a.ticket.Start()
 	if err != nil {
+		activity.Done()
 		_ = permit.release()
 		if v.waiting == a {
 			v.waiting = nil
@@ -667,6 +678,7 @@ func (v *FieldValidator[T]) pump() {
 		return
 	}
 	if !v.active() || v.sequence != a.sequence {
+		activity.Done()
 		_ = a.ticket.Fail()
 		_ = permit.release()
 		a.stopTimers()
@@ -674,7 +686,7 @@ func (v *FieldValidator[T]) pump() {
 		return
 	}
 	v.waiting = nil
-	job := &fieldValidationJob[T]{owner: v, attempt: a, permit: permit}
+	job := &fieldValidationJob[T]{owner: v, attempt: a, permit: permit, activity: activity}
 	v.running = job
 	job.callback = js.FuncOf(func(js.Value, []js.Value) any { job.settle(); return nil })
 	fieldValidationCallbacks++
@@ -706,6 +718,7 @@ func (job *fieldValidationJob[T]) settle() {
 		return
 	}
 	job.finished = true
+	defer job.activity.Done()
 	v, a := job.owner, job.attempt
 	defer func() {
 		a.stopTimers()

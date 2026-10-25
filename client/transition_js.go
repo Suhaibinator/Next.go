@@ -25,15 +25,40 @@ func linkTransition(link js.Value) TransitionOptions {
 }
 
 func installMotionPreference() {
+	_ = installMotionPreferenceOwned()
+}
+
+// Module runtimes must detach browser callbacks before their Go main returns.
+func installMotionPreferenceOwned() (stop func()) {
+	stop = func() {}
 	defer func() { _ = recover() }()
 	if win.Get("matchMedia").Type() == js.TypeFunction {
 		preference := win.Call("matchMedia", "(prefers-reduced-motion: reduce)")
-		listen(preference, "change", func(e js.Value) {
-			if e.Get("matches").Bool() {
+		callback := js.FuncOf(func(_ js.Value, args []js.Value) any {
+			if !moduleRefreshHandlersFrozen() && !refreshFrozen() && len(args) > 0 && args[0].Get("matches").Bool() {
 				skipViewTransition()
 			}
+			return nil
 		})
+		attached := false
+		defer func() {
+			if !attached {
+				callback.Release()
+			}
+		}()
+		preference.Call("addEventListener", "change", callback)
+		attached = true
+		stopped := false
+		stop = func() {
+			if stopped {
+				return
+			}
+			preference.Call("removeEventListener", "change", callback)
+			stopped = true
+			callback.Release()
+		}
 	}
+	return stop
 }
 
 func skipViewTransition() {
@@ -70,8 +95,10 @@ func reducedMotion() (reduced bool) {
 // callbacks only when the browser has settled the promise. Animation rejection
 // (including skipTransition or duplicate CSS names) is a normal fallback.
 func observeTransition(promise js.Value, settled func()) {
+	lease := retainRefreshActivity()
 	var success, failure js.Func
 	finish := func() {
+		defer lease.Done()
 		defer success.Release()
 		defer failure.Release()
 		settled()
@@ -98,6 +125,11 @@ func Transition(ctx context.Context, options TransitionOptions, update func() er
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	lease, err := beginRefreshActivity()
+	if err != nil {
+		return err
+	}
+	defer lease.Done()
 	skipViewTransition()
 	done := make(chan error, 1)
 	updated := false

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/Suhaibinator/Next.go/environment"
 	"github.com/Suhaibinator/Next.go/internal/prerenderid"
@@ -28,13 +29,25 @@ type Build struct {
 	ZoneAssets                   map[string]string
 	ZoneRuntimeIDs               map[string]string
 	Zones                        *ZonesManifest
+	DevRefresh                   *DevRefreshBuild
 }
 
 func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Build, error) {
-	return compile(ctx, root, dev, output, true)
+	build, err := compileApplication(ctx, root, dev, output, true, dev)
+	if dev && errors.Is(err, errDevRefreshProofChanged) && ctx.Err() == nil {
+		fmt.Fprintln(output, "Development refresh proof changed; rebuilding for a document reload…")
+		return compileApplication(ctx, root, dev, output, true, false)
+	}
+	return build, err
 }
 
 func compile(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender bool) (*Build, error) {
+	// Aggregate zones retain ordinary reloads until their independent runtime
+	// tables and effective per-zone startup capabilities have been qualified.
+	return compileApplication(ctx, root, dev, output, allowPrerender, false)
+}
+
+func compileApplication(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender, allowRefresh bool) (*Build, error) {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return nil, err
@@ -87,7 +100,25 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 			return nil, err
 		}
 	}
-	modules, err := compileLazy(ctx, p, buildDir, fingerprint, moduleTags, output)
+	var support []byte
+	var refresh *devRefreshPlan
+	if dev && allowRefresh && hasRefreshComponents(p) {
+		support, err = wasmSupport(ctx, p.Root)
+		if err != nil {
+			return nil, err
+		}
+		refresh, err = prepareDevRefresh(ctx, p, buildDir, coreTags, moduleTags, support)
+		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
+			// An unavailable proof changes only the refresh optimization. Never
+			// infer eligibility from a partial graph or prevent an ordinary build.
+			fmt.Fprintln(output, "Development refresh compiler proof unavailable; using document reloads.")
+			refresh = nil
+		}
+	}
+	modules, err := compileLazyRefresh(ctx, p, buildDir, fingerprint, moduleTags, output, refresh)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +126,11 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	if err = os.MkdirAll(clientDir, 0755); err != nil {
 		return nil, err
 	}
-	if err = writeGo(filepath.Join(clientDir, "main.go"), clientSource(p, modules)); err != nil {
+	compatibility := ""
+	if refresh != nil {
+		compatibility = refresh.compatibility
+	}
+	if err = writeGo(filepath.Join(clientDir, "main.go"), clientSourceRefresh(p, modules, compatibility)); err != nil {
 		return nil, err
 	}
 	if err := validateBrowserGraph(ctx, p, clientDir, coreTags); err != nil {
@@ -115,12 +150,18 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	if err != nil {
 		return nil, err
 	}
-	support, err := wasmSupport(ctx, p.Root)
-	if err != nil {
-		return nil, err
+	if support == nil {
+		support, err = wasmSupport(ctx, p.Root)
+		if err != nil {
+			return nil, err
+		}
+	}
+	runtimeBootstrap := bootstrap
+	if refresh != nil {
+		runtimeBootstrap = devRefreshBootstrapBridge + "\n" + bootstrap
 	}
 	// All bytes published under immutable runtime URLs participate in the ID.
-	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules)+generatedAssetIdentity(generatedAssets), support, bootstrap)
+	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules)+generatedAssetIdentity(generatedAssets), support, runtimeBootstrap)
 	serverDir := filepath.Join(buildDir, "server")
 	assets := filepath.Join(serverDir, "assets")
 	runtimeDir := filepath.Join(assets, "_nextgo", id)
@@ -138,7 +179,7 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	if err = os.WriteFile(filepath.Join(runtimeDir, "wasm_exec.js"), support, 0644); err != nil {
 		return nil, err
 	}
-	if err = os.WriteFile(filepath.Join(runtimeDir, "boot.js"), []byte(bootstrap), 0644); err != nil {
+	if err = os.WriteFile(filepath.Join(runtimeDir, "boot.js"), []byte(runtimeBootstrap), 0644); err != nil {
 		return nil, err
 	}
 	public := filepath.Join(assets, "public")
@@ -162,7 +203,7 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	if err = os.WriteFile(filepath.Join(private, "prerender.json"), []byte("{}"), 0600); err != nil {
 		return nil, err
 	}
-	if err = writeGo(filepath.Join(serverDir, "main.go"), serverSource(p, id, dev)); err != nil {
+	if err = writeGo(filepath.Join(serverDir, "main.go"), serverSource(p, id, dev, refresh != nil)); err != nil {
 		return nil, err
 	}
 	binary := filepath.Join(buildDir, "server-bin")
@@ -239,8 +280,15 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	if finalInputFingerprint != inputFingerprint {
 		return nil, fmt.Errorf("sources changed during discovery or generation; retrying on the next development cycle (or rerun build)")
 	}
+	if err := refresh.validate(ctx, p, coreTags, moduleTags); err != nil {
+		return nil, err
+	}
+	refreshMetadata, err := refresh.build(id, modules)
+	if err != nil {
+		return nil, err
+	}
 	success = true
-	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p}, nil
+	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p, DevRefresh: refreshMetadata}, nil
 }
 
 func runtimeBuildID(wasm []byte, fingerprint string, support []byte, loader string) string {
@@ -334,7 +382,8 @@ func writeConfigConstruction(b *strings.Builder, p *Project, aliases map[string]
 	b.WriteString("}}\n")
 }
 
-func serverSource(p *Project, id string, dev bool) string {
+func serverSource(p *Project, id string, dev bool, refresh ...bool) string {
+	refreshEnabled := dev && len(refresh) == 1 && refresh[0]
 	imports := serverImports(p)
 	keys := make([]string, 0, len(imports))
 	for key := range imports {
@@ -354,7 +403,9 @@ nextgo "` + framework + `"
 		aliases[key] = alias
 		fmt.Fprintf(&b, "%s %q\n", alias, key)
 	}
-	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");flag.Parse();exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{log.Fatal(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
+	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");devReady:=flag.String(\"dev-ready\",\"\",\"owned development readiness output\");flag.Parse();")
+	fmt.Fprintf(&b, "if *devReady!=\"\"&&!%t{log.Fatal(\"development readiness is unavailable\")};", dev)
+	b.WriteString("exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{log.Fatal(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
 	writeConfigConstruction(&b, p, aliases, id, dev)
 	b.WriteString("config.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
 	writeMetadataSources(&b, p, aliases)
@@ -365,7 +416,13 @@ nextgo "` + framework + `"
 		fmt.Fprintf(&b, "config.ActionRegistrars=append(config.ActionRegistrars,%s.Register)\n", aliases[p.Import+"/actionrefs"])
 	}
 	b.WriteString(`ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
-app,err:=nextgo.NewContext(ctx,config);if err!=nil{log.Fatal(err)};if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}
+app,err:=nextgo.NewContext(ctx,config);if err!=nil{log.Fatal(err)};
+`)
+	if dev {
+		fmt.Fprintf(&b, `if *devReady!=""{func(){supported:=%t&&config.Dev&&config.Phase==nextgo.PhaseDevelopment&&app.Paths().AssetPrefix==""&&config.BuildID==%q&&config.DevGeneration==*devGeneration&&*devGeneration!="";data,err:=json.Marshal(struct{Version int `+"`json:\"version\"`"+`;Build string `+"`json:\"build\"`"+`;Generation string `+"`json:\"generation\"`"+`;Supported bool `+"`json:\"supported\"`"+`}{1,config.BuildID,config.DevGeneration,supported});if err!=nil{log.Print("development readiness unavailable");return};file,err:=os.OpenFile(*devReady,os.O_CREATE|os.O_EXCL|os.O_WRONLY,0600);if err!=nil{log.Print("development readiness unavailable");return};_,writeErr:=file.Write(data);closeErr:=file.Close();if writeErr!=nil||closeErr!=nil{log.Print("development readiness unavailable")}}()}
+`, refreshEnabled, id)
+	}
+	b.WriteString(`if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}
 if *exportConfig{info,err:=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});if err!=nil{log.Fatal(err)};if err=json.NewEncoder(os.Stdout).Encode(info);err!=nil{log.Fatal(err)};return}
 if *prerenderOut!=""{buildCtx,cancel:=context.WithTimeout(ctx,90*time.Second);defer cancel();data,err:=app.BuildPrerender(buildCtx);if err!=nil{log.Fatal(err)};if err=os.WriteFile(*prerenderOut,data,0600);err!=nil{log.Fatal(err)};return}
 if *pathConfig{if err:=json.NewEncoder(os.Stdout).Encode(app.Paths());err!=nil{log.Fatal(err)};return}
@@ -506,7 +563,12 @@ const bootstrap = `(async () => {
   if (body.dataset.nextgoDev) {
     const events = new EventSource('/_nextgo/events?build=' + encodeURIComponent(body.dataset.nextgoBuild) + '&generation=' + encodeURIComponent(body.dataset.nextgoDevGeneration || ''));
     events.addEventListener('reload', () => location.reload());
-    events.addEventListener('build-error', e => { status.hidden = false; status.textContent = 'Build failed: ' + JSON.parse(e.data); });
+    events.addEventListener('refresh', event => {
+      if (typeof globalThis.__nextgoRefresh === 'function') globalThis.__nextgoRefresh(event.data);
+      // Go installs this hook before fetching the latest manifest. Events that
+      // arrive while WASM is starting are covered by that initial fetch.
+    });
+    events.addEventListener('build-error', e => { status.setAttribute('data-nextgo-dev-build-error', ''); status.hidden = false; status.textContent = 'Build failed: ' + JSON.parse(e.data); });
   }
   (async () => {
     const go = new Go();
@@ -633,6 +695,10 @@ func projectRoutes(routes []Route) []Route {
 }
 
 func clientSource(p *Project, modules []lazyOutput) string {
+	return clientSourceRefresh(p, modules, "")
+}
+
+func clientSourceRefresh(p *Project, modules []lazyOutput, compatibility string) string {
 	var client strings.Builder
 	client.WriteString("package main\nimport (\n\"" + framework + "/client\"\n")
 	for i, c := range p.Components {
@@ -647,7 +713,14 @@ func clientSource(p *Project, modules []lazyOutput) string {
 		}
 	}
 	for _, module := range modules {
-		fmt.Fprintf(&client, "client.RegisterLazy(%q,client.LazyModule{File:%q,Digest:%q,Epoch:%q,Size:%d})\n", module.Name, module.File, module.Digest, module.Epoch, module.Size)
+		fmt.Fprintf(&client, "client.RegisterLazy(%q,client.LazyModule{File:%q,Digest:%q,Epoch:%q,Size:%d", module.Name, module.File, module.Digest, module.Epoch, module.Size)
+		if compatibility != "" && module.StateSchema != "" && module.DOMSchema != "" {
+			fmt.Fprintf(&client, ",StateSchema:%q,DOMSchema:%q", module.StateSchema, module.DOMSchema)
+		}
+		client.WriteString("})\n")
+	}
+	if compatibility != "" {
+		fmt.Fprintf(&client, "client.RegisterDevRefresh(%q)\n", compatibility)
 	}
 	client.WriteString("client.Run();select{}\n}\n")
 	return client.String()

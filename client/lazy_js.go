@@ -21,13 +21,28 @@ import (
 type LazyModule struct {
 	File, Digest, Epoch string
 	Size                int
+	// Development-only explicit state/DOM contracts. Production leaves them empty.
+	StateSchema, DOMSchema string
 }
 type lazyState struct {
-	descriptor LazyModule
-	ready      chan struct{}
-	exports    js.Value
-	err        error
-	loading    bool
+	descriptor          LazyModule
+	ready               chan struct{}
+	exports             js.Value
+	err                 error
+	loading             bool
+	runtime, runPromise js.Value
+	runDone             chan struct{}
+	runError            error
+	expectedStop        bool
+	url                 string
+	mounts              map[*Scope]*lazyMount
+}
+
+type lazyMount struct {
+	scope                         *Scope
+	root, opener, exports, parent js.Value
+	props                         string
+	handle                        int
 }
 
 var lazyModules = map[string]*lazyState{}
@@ -80,7 +95,9 @@ func lazyHydrate(scope *Scope, name string) {
 			hydrate()
 			return
 		}
-		result := state.exports.Call("mount", root, root.Call("getAttribute", "data-nextgo-props").String(), opener)
+		props := root.Call("getAttribute", "data-nextgo-props").String()
+		exports := state.exports
+		result := exports.Call("mount", root, props, opener)
 		if failure := result.Get("error"); failure.Type() == js.TypeString && failure.String() != "" {
 			root.Call("setAttribute", "data-nextgo-hydrated", "error")
 			report("Component hydration failed: " + failure.String())
@@ -88,10 +105,32 @@ func lazyHydrate(scope *Scope, name string) {
 			return
 		}
 		handle := result.Get("id").Int()
-		scope.Cleanup(func() { state.exports.Call("dispose", handle) })
+		trackLazyMount(state, scope, root, props, opener, exports, handle)
 		root.Call("setAttribute", "data-nextgo-hydrated", "true")
 		hydrate()
 	}()
+}
+
+func trackLazyMount(state *lazyState, scope *Scope, root js.Value, props string, opener, exports js.Value, handle int) {
+	if state.mounts == nil {
+		state.mounts = map[*Scope]*lazyMount{}
+	}
+	mount := &lazyMount{scope: scope, root: root, props: props, opener: opener, exports: exports, handle: handle, parent: root.Get("parentNode")}
+	state.mounts[scope] = mount
+	cleanup := func() {
+		delete(state.mounts, scope)
+		// The old cleanup must never call a successor runtime's mutable exports.
+		if !state.expectedStop {
+			exports.Call("dispose", handle)
+		}
+	}
+	// This is internal proxy ownership, including during a fenced replacement.
+	// Public Scope.Cleanup deliberately refuses application work while frozen.
+	if scope.closed {
+		cleanup()
+	} else {
+		scope.cleanup = append(scope.cleanup, cleanup)
+	}
 }
 func showLazyError(root js.Value) {
 	if lazyRetryScope != nil {
@@ -145,6 +184,9 @@ func loadLazyModule(name string, state *lazyState) error {
 		return ctx.Err()
 	}
 	target := deployment.RuntimeURL(doc.Get("body").Call("getAttribute", "data-nextgo-build").String()) + state.descriptor.File
+	if state.url != "" {
+		target = state.url
+	}
 	expected := win.Get("URL").New(target, win.Get("location").Get("href")).Get("href").String()
 	response, err := Fetch(ctx, target, FetchOptions{MaxBytes: int64(state.descriptor.Size), Redirect: "error"})
 	if err != nil {
@@ -157,25 +199,72 @@ func loadLazyModule(name string, state *lazyState) error {
 	if hex.EncodeToString(sum[:]) != state.descriptor.Digest {
 		return fmt.Errorf("module digest mismatch")
 	}
-	bytes := win.Get("Uint8Array").New(len(response.Body))
-	js.CopyBytesToJS(bytes, response.Body)
+	return instantiateLazyModule(ctx, name, state, response.Body, js.Undefined())
+}
+
+func instantiateLazyModule(ctx context.Context, name string, state *lazyState, body []byte, compiled js.Value) error {
 	runtime := win.Get("Go").New()
 	controller := win.Get("AbortController").New()
 	defer controller.Call("abort")
-	result, err := awaitBrowserPromise(ctx, win.Get("WebAssembly").Call("instantiate", bytes, runtime.Get("importObject")), controller)
-	if err != nil {
-		return err
+	var instance js.Value
+	if compiled.IsUndefined() || compiled.IsNull() {
+		bytes := win.Get("Uint8Array").New(len(body))
+		js.CopyBytesToJS(bytes, body)
+		result, err := awaitBrowserPromise(ctx, win.Get("WebAssembly").Call("instantiate", bytes, runtime.Get("importObject")), controller)
+		if err != nil {
+			return err
+		}
+		instance = result.Get("instance")
+	} else {
+		var err error
+		instance, err = awaitBrowserPromise(ctx, win.Get("WebAssembly").Call("instantiate", compiled, runtime.Get("importObject")), controller)
+		if err != nil {
+			return err
+		}
 	}
-	promise := runtime.Call("run", result.Get("instance"))
+	state.runtime = runtime
+	state.runDone = make(chan struct{})
+	managed := devRefreshEnabled() && state.descriptor.StateSchema != ""
+	var promise js.Value
+	if managed {
+		promise = win.Get("__nextgoDevRuntime").Call("start", runtime, instance)
+	} else {
+		promise = runtime.Call("run", instance)
+	}
+	state.runPromise = promise
 	// Keep settlement callbacks alive for the document lifetime. Returning main
 	// unexpectedly invalidates the module; active Go callbacks cannot be unloaded.
-	success := js.FuncOf(func(js.Value, []js.Value) any { state.err = fmt.Errorf("module runtime exited"); return nil })
-	failure := js.FuncOf(func(js.Value, []js.Value) any {
-		state.err = fmt.Errorf("module runtime failed")
-		report("A Go component runtime stopped. Reload the page.")
-		return nil
-	})
-	globalFunctions = append(globalFunctions, success, failure)
+	var success, failure js.Func
+	finished := false
+	settle := func(failed bool) {
+		if finished {
+			return
+		}
+		finished = true
+		if failed {
+			state.runError = fmt.Errorf("module runtime failed")
+		}
+		if !state.expectedStop {
+			state.err = fmt.Errorf("module runtime exited")
+			if failed {
+				state.err = state.runError
+				report("A Go component runtime stopped. Reload the page.")
+			}
+		}
+		close(state.runDone)
+		if managed {
+			success.Release()
+			failure.Release()
+		}
+		if managed && !state.expectedStop {
+			devRefresh.reload()
+		}
+	}
+	success = js.FuncOf(func(js.Value, []js.Value) any { settle(false); return nil })
+	failure = js.FuncOf(func(js.Value, []js.Value) any { settle(true); return nil })
+	if !managed {
+		globalFunctions = append(globalFunctions, success, failure)
+	}
 	promise.Call("then", success, failure)
 	if !state.exports.Truthy() {
 		return fmt.Errorf("module did not register its expected ABI")
@@ -187,7 +276,7 @@ func syncLazyModules() {
 		return
 	}
 	for _, state := range lazyModules {
-		if state.exports.Truthy() && state.err == nil {
+		if state.exports.Truthy() && state.err == nil && !state.expectedStop {
 			state.exports.Call("sync", moduleSnapshot())
 		}
 	}
@@ -209,6 +298,9 @@ func installModuleHost() {
 					result = fmt.Sprintf("module bridge: %v", failure)
 				}
 			}()
+			if refreshFrozen() && name != "register" && name != "state" && name != "refreshEnabled" {
+				return errRefreshFrozen.Error()
+			}
 			return run(args)
 		})
 		globalFunctions = append(globalFunctions, fn)
@@ -232,6 +324,11 @@ func installModuleHost() {
 		state.exports = exports
 		return ""
 	})
+	if devRefresh != nil {
+		bind("refreshEnabled", func([]js.Value) any {
+			return devRefreshEnabled() && devRefresh.initialized && refreshBridgeQualified() && deployment.AssetPrefix == ""
+		})
+	}
 	bind("skipTransition", func([]js.Value) any { skipViewTransition(); return "" })
 	bind("script", scriptHostPromise)
 	bind("actionView", actionViewHostPromise)

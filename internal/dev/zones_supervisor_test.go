@@ -32,6 +32,9 @@ var fixtureEnvMode = flag.String("env-mode", "", "development child fixture mode
 var fixtureGeneration = flag.String("dev-generation", "", "development child fixture generation")
 var fixtureZoneHosts = flag.String("zone-hosts", "", "development child fixture hosts")
 var fixtureLabel = flag.String("dev-test-label", "", "development child fixture label")
+var fixtureReadyPath = flag.String("dev-ready", "", "development child fixture readiness file")
+var fixtureRefreshSupported = flag.Bool("dev-test-refresh-supported", true, "development child fixture refresh capability")
+var fixtureSkipReady = flag.Bool("dev-test-skip-ready", false, "development child fixture missing readiness")
 
 func TestDevelopmentHTTPChildHelper(t *testing.T) {
 	if os.Getenv("NEXTGO_TEST_DEV_SUPERVISOR") != "1" {
@@ -40,6 +43,14 @@ func TestDevelopmentHTTPChildHelper(t *testing.T) {
 	if *fixtureEnvDir == "" || *fixtureEnvMode != "development" || *fixtureGeneration == "" {
 		os.Exit(71)
 	}
+	if *fixtureReadyPath != "" && !*fixtureSkipReady {
+		data, _ := json.Marshal(developmentReady{Version: 1, Build: *fixtureLabel, Generation: *fixtureGeneration, Supported: *fixtureRefreshSupported})
+		if file, err := os.OpenFile(*fixtureReadyPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600); err == nil {
+			_, _ = file.Write(data)
+			_ = file.Close()
+		}
+	}
+	var nativeRequests atomic.Int64
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	listener, err := net.Listen("tcp", *fixtureAddr)
@@ -55,6 +66,10 @@ func TestDevelopmentHTTPChildHelper(t *testing.T) {
 	server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Host != hosts["one"] && r.Host != hosts["two"] {
 			http.Error(w, "unknown fixture host", 421)
+			return
+		}
+		if r.URL.Path == "/__fixture/native-counter" {
+			fmt.Fprint(w, nativeRequests.Add(1))
 			return
 		}
 		fmt.Fprintf(w, "%s|%s", *fixtureLabel, r.Host)

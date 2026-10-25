@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,7 +77,7 @@ func TestZonesControlsRequireLoopbackPeerAndTrustedOrigin(t *testing.T) {
 }
 
 func TestZoneEventsRecognizeEachCurrentRuntimeAndHost(t *testing.T) {
-	s := &supervisor{id: "aggregate", generation: "generation", zoneHosts: map[string]bool{"one.example": true, "two.example": true}, currentIDs: map[string]bool{"one-runtime": true, "two-runtime": true}, currentOwners: map[string][]assetOwner{"one-runtime": {{host: "one.example"}}, "two-runtime": {{host: "two.example"}}}, listeners: map[chan string]bool{}}
+	s := &supervisor{id: "aggregate", generation: "generation", proxy: &httputil.ReverseProxy{}, zoneHosts: map[string]bool{"one.example": true, "two.example": true}, currentIDs: map[string]bool{"one-runtime": true, "two-runtime": true}, currentOwners: map[string][]assetOwner{"one-runtime": {{host: "one.example"}}, "two-runtime": {{host: "two.example"}}}, listeners: map[chan string]bool{}}
 	for _, tc := range []struct {
 		host, build, generation string
 		reload                  bool

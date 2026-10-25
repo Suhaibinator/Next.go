@@ -27,6 +27,7 @@ jobs:
           go run ./cmd/nextgo generate --check ./examples/content
           go run ./cmd/nextgo generate --check ./examples/metadata-site
           go run ./cmd/nextgo generate --check ./examples/form-validation
+          go run ./cmd/nextgo generate --check ./examples/refresh
           go run ./cmd/nextgo generate --check ./examples/zones/marketing
           go run ./cmd/nextgo generate --check ./examples/zones/blog
           go run ./cmd/nextgo generate --check ./examples/zones/tenant
@@ -48,8 +49,10 @@ jobs:
           go run ./cmd/nextgo build -out ./dist/content ./examples/content
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
           go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
+          go run ./cmd/nextgo build -out ./dist/refresh ./examples/refresh
           go run ./cmd/nextgo export -out ./dist/content-static ./examples/content
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
+          NEXTGO_REFRESH_BASE_PATH=/refresh NEXTGO_REFRESH_ASSET_PREFIX=/refresh-assets NEXTGO_REFRESH_PUBLIC_NOTE='Production fixture public note' go run ./cmd/nextgo export -out ./dist/refresh-static ./examples/refresh
       - run: go build -trimpath -o ./dist/nextgo-cache ./cmd/nextgo-cache
       - name: Multi-zone standalone production build
         run: |
@@ -66,6 +69,9 @@ jobs:
         run: NEXTGO_TEST_BINARY="$PWD/dist/demo/server" node --test tests/seven-feature-lambda.test.mjs
       - name: Form validation through native HTTP and both Lambda modes
         run: NEXTGO_FORM_VALIDATION_BINARY="$PWD/dist/form-validation/server" npm run test:form-validation:deployment
+      - name: Refresh sample production and static transport contract
+        timeout-minutes: 5
+        run: NEXTGO_REFRESH_SERVER_BINARY="$PWD/dist/refresh/server" NEXTGO_REFRESH_STATIC_ROOT="$PWD/dist/refresh-static" npm run test:refresh-production
       - name: Multi-zone HTTP, Lambda, authority and publication conformance
         run: NEXTGO_ZONES_BINARY="$PWD/dist/zones/server" NEXTGO_ZONES_CLI="$PWD/dist/nextgo" npm run test:zones:deployment
       - name: Standalone production smoke test
@@ -117,7 +123,9 @@ jobs:
           go run ./cmd/nextgo build -out ./dist/lambda-demo ./examples/demo
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
           go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
+          go run ./cmd/nextgo build -out ./dist/refresh ./examples/refresh
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
+          NEXTGO_REFRESH_BASE_PATH=/refresh NEXTGO_REFRESH_ASSET_PREFIX=/refresh-assets NEXTGO_REFRESH_PUBLIC_NOTE='Production fixture public note' go run ./cmd/nextgo export -out ./dist/refresh-static ./examples/refresh
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
           ./dist/nextgo zones build -out ./dist/zones ./examples/zones/zones.json
       - name: Browser hydration and navigation through both local Lambda modes
@@ -130,6 +138,30 @@ jobs:
         run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/zones/server" npm run test:zones
       - name: Multi-zone development rebuild and last-good recovery
         run: NEXTGO_E2E_NEXTGO_BINARY="$PWD/dist/nextgo" npm run test:zones:dev
+      - name: Opt-in lazy Go state refresh development contract
+        timeout-minutes: 60
+        run: |
+          mkdir -p .nextgo-test-results/refresh-qualification
+          PLAYWRIGHT_JSON_OUTPUT_FILE="$PWD/.nextgo-test-results/refresh-qualification/dev.json" NEXTGO_E2E_NEXTGO_BINARY="$PWD/dist/nextgo" npm run test:refresh-dev -- --reporter=list,json
+      - name: Refresh sample production and static browsers
+        timeout-minutes: 30
+        shell: bash
+        env:
+          NEXTGO_REFRESH_SERVER_BINARY: ${{ github.workspace }}/dist/refresh/server
+          NEXTGO_REFRESH_STATIC_ROOT: ${{ github.workspace }}/dist/refresh-static
+        run: |
+          mkdir -p .nextgo-test-results/refresh-qualification
+          for transport in http buffered streaming static; do
+            PLAYWRIGHT_JSON_OUTPUT_FILE="$PWD/.nextgo-test-results/refresh-qualification/production-$transport.json" NEXTGO_REFRESH_TRANSPORT="$transport" npm run test:refresh-production:browser -- --reporter=list,json
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refresh-qualification-json
+          path: .nextgo-test-results/refresh-qualification/*.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

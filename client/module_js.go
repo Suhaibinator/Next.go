@@ -60,6 +60,10 @@ func syncModule(raw string) error {
 // second router or document observer. Go values remain inside this instance;
 // only DOM references, JSON snapshots and numeric scope handles cross the ABI.
 func RunModule(name, epoch string) {
+	runModule(name, epoch, nil)
+}
+
+func runModule(name, epoch string, refresh *moduleRefreshRuntime) {
 	if !moduleMode {
 		panic("client.RunModule requires the generated nextgo_module build target")
 	}
@@ -70,9 +74,17 @@ func RunModule(name, epoch string) {
 	if err := syncModule(moduleHost.Call("state").String()); err != nil {
 		panic(err)
 	}
-	installMotionPreference()
+	if refresh == nil {
+		installMotionPreference()
+	} else {
+		refresh.stopMotion = installMotionPreferenceOwned()
+	}
 	exports := win.Get("Object").New()
 	bind := func(name string, fn func([]js.Value) any) {
+		if refresh != nil {
+			refresh.bind(exports, name, fn)
+			return
+		}
 		callback := js.FuncOf(func(_ js.Value, args []js.Value) (result any) {
 			defer func() {
 				if failure := recover(); failure != nil {
@@ -85,18 +97,47 @@ func RunModule(name, epoch string) {
 		exports.Set(name, callback)
 	}
 	bind("skipTransition", func([]js.Value) any {
+		if refresh != nil && refresh.frozen {
+			return "development refresh has frozen this module"
+		}
 		if activeTransition != nil {
 			skipTransition(activeTransition)
 		}
 		return ""
 	})
 	bind("sync", func(args []js.Value) any {
+		if refresh != nil && (refresh.frozen || len(args) != 1 || args[0].Type() != js.TypeString) {
+			return "development refresh module sync is unavailable"
+		}
 		if err := syncModule(args[0].String()); err != nil {
 			return err.Error()
 		}
 		return ""
 	})
 	bind("mount", func(args []js.Value) (result any) {
+		previousHandle := 0
+		var work *refreshActivityLease
+		if refresh != nil {
+			if refresh.frozen || len(args) != 3 && len(args) != 4 || args[0].Type() != js.TypeObject || args[0].IsNull() || args[1].Type() != js.TypeString {
+				return map[string]any{"error": "development refresh module mount is unavailable"}
+			}
+			if len(args) == 4 {
+				var err error
+				previousHandle, err = refreshSourceHandle(args[3])
+				if err != nil {
+					return map[string]any{"error": "invalid development refresh source handle"}
+				}
+			}
+			mounting := refreshModuleMounting
+			refreshModuleMounting = true
+			defer func() { refreshModuleMounting = mounting }()
+			var err error
+			work, err = beginRefreshActivity()
+			if err != nil {
+				return map[string]any{"error": "development refresh module mount is frozen"}
+			}
+			defer work.Done()
+		}
 		if err := syncModule(moduleHost.Call("state").String()); err != nil {
 			return map[string]any{"error": err.Error()}
 		}
@@ -106,8 +147,17 @@ func RunModule(name, epoch string) {
 		if mount == nil {
 			return map[string]any{"error": "module component is unregistered"}
 		}
+		if refresh != nil {
+			if err := bindRefreshScope(scope, nextModuleScope+1, args[1].String(), previousHandle); err != nil {
+				scope.dispose()
+				return map[string]any{"error": "development refresh scope identity differs"}
+			}
+		}
 		if err := mountScoped(scope, mount, json.RawMessage(args[1].String())); err != nil {
 			scope.dispose()
+			if refresh != nil {
+				return map[string]any{"error": "development refresh component mount failed"}
+			}
 			return map[string]any{"error": err.Error()}
 		}
 		nextModuleScope++
@@ -115,6 +165,9 @@ func RunModule(name, epoch string) {
 		return map[string]any{"id": nextModuleScope, "error": ""}
 	})
 	bind("dispose", func(args []js.Value) any {
+		if refresh != nil && (refresh.frozen || len(args) != 1 || args[0].Type() != js.TypeNumber) {
+			return "development refresh module disposal is unavailable"
+		}
 		id := args[0].Int()
 		if scope := moduleScopes[id]; scope != nil {
 			scope.dispose()
@@ -122,6 +175,9 @@ func RunModule(name, epoch string) {
 		}
 		return ""
 	})
+	if refresh != nil {
+		refresh.install(exports)
+	}
 	if failure := moduleHost.Call("register", name, epoch, moduleABI, exports).String(); failure != "" {
 		panic(failure)
 	}

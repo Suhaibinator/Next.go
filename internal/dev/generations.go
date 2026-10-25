@@ -54,8 +54,18 @@ func (s *supervisor) retainBuildRuntimeLocked(id, dir string, assets map[string]
 	}
 	s.buildOwners[id] = ownerCopy
 	for len(s.buildOrder) > retainedBuilds {
-		oldest := s.buildOrder[0]
-		s.buildOrder = s.buildOrder[1:]
+		index := -1
+		for i, key := range s.buildOrder {
+			if !s.pinnedBuilds[key] {
+				index = i
+				break
+			}
+		}
+		if index < 0 {
+			break
+		}
+		oldest := s.buildOrder[index]
+		s.buildOrder = append(s.buildOrder[:index], s.buildOrder[index+1:]...)
 		if old := s.buildDirs[oldest]; old != "" {
 			expired = append(expired, old)
 		}

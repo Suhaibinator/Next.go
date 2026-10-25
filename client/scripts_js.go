@@ -88,6 +88,11 @@ func loadScript(ctx context.Context, input scripts.Script, retry bool) (err erro
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	activity, err := beginRefreshActivity()
+	if err != nil {
+		return err
+	}
+	defer activity.Done()
 	checked, err := input.Check()
 	if err != nil {
 		return err
@@ -141,7 +146,9 @@ func loadScript(ctx context.Context, input scripts.Script, retry bool) (err erro
 	if state == nil {
 		state = &scriptLoad{declaration: checked, done: make(chan struct{}), promote: make(chan struct{}, 1), node: js.Undefined()}
 		scriptLoads[key] = state
+		workerActivity := retainRefreshActivity()
 		go func() {
+			defer workerActivity.Done()
 			defer close(state.done)
 			defer func() {
 				if failure := recover(); failure != nil {
@@ -175,8 +182,14 @@ func (s *Scope) Script(input scripts.Script, ready func(error)) error {
 		return fmt.Errorf("scripts: early declarations belong in Config.EarlyScripts")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	activity, err := beginRefreshActivity()
+	if err != nil {
+		cancel()
+		return err
+	}
 	s.Cleanup(cancel)
 	go func() {
+		defer activity.Done()
 		err := LoadScript(ctx, checked)
 		if ctx.Err() != nil || !s.active() {
 			return
@@ -430,8 +443,14 @@ func scriptHostPromise(args []js.Value) any {
 	var executor js.Func
 	executor = js.FuncOf(func(_ js.Value, promiseArgs []js.Value) any {
 		resolve, reject := promiseArgs[0], promiseArgs[1]
+		activity, err := beginRefreshActivity()
+		if err != nil {
+			reject.Invoke(err.Error())
+			return nil
+		}
 		raw, retry := args[0].String(), args[1].Bool()
 		go func() {
+			defer activity.Done()
 			s, err := scripts.Parse(raw)
 			if err == nil {
 				err = loadScript(context.Background(), s, retry)

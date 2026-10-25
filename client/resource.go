@@ -50,15 +50,16 @@ type resourceEntry struct {
 	cost    int
 }
 type resourceFlight struct {
-	source   *ResourceSource
-	ctx      context.Context
-	cancel   context.CancelFunc
-	done     chan struct{}
-	data     []byte
-	err      error
-	epoch    uint64
-	waiters  int
-	notified bool
+	refreshDone func()
+	source      *ResourceSource
+	ctx         context.Context
+	cancel      context.CancelFunc
+	done        chan struct{}
+	data        []byte
+	err         error
+	epoch       uint64
+	waiters     int
+	notified    bool
 }
 
 // ResourceStore is an explicitly owned, concurrency-safe bounded byte store.
@@ -197,8 +198,13 @@ func (r *ResourceSource) Read(ctx context.Context) ([]byte, error) {
 			s.mu.Unlock()
 			return nil, ErrResourceCapacity
 		}
+		refreshDone, err := beginResourceRefreshActivity()
+		if err != nil {
+			s.mu.Unlock()
+			return nil, err
+		}
 		loadCtx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
-		f = &resourceFlight{source: r, ctx: loadCtx, cancel: cancel, done: make(chan struct{}), epoch: s.epoch}
+		f = &resourceFlight{source: r, ctx: loadCtx, cancel: cancel, done: make(chan struct{}), epoch: s.epoch, refreshDone: refreshDone}
 		s.flights[f] = struct{}{}
 		if r.ttl > 0 {
 			s.shared[r] = f
@@ -231,6 +237,9 @@ func (r *ResourceSource) Read(ctx context.Context) ([]byte, error) {
 	return bytes.Clone(f.data), f.err
 }
 func (s *ResourceStore) run(f *resourceFlight, load func(context.Context) ([]byte, error)) {
+	if f.refreshDone != nil {
+		defer f.refreshDone()
+	}
 	var data []byte
 	var err error
 	func() {

@@ -8,4 +8,4 @@ GOOS=js GOARCH=wasm go test -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./clie
 # The private component target uses compile-time branches. Exercise its public
 # document-API forwarding separately from the core router's fixture tests.
 GOOS=js GOARCH=wasm go test -tags=nextgo_module -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./client \
-  -run '^(TestModuleTarget|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice)'
+  -run '^(TestModuleTarget|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice)'

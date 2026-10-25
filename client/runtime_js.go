@@ -54,6 +54,9 @@ func report(message string) {
 	status.Set("textContent", message)
 }
 func hydrate() {
+	if refreshFrozen() {
+		return
+	}
 	if err := hydrateScripts(); err != nil {
 		report("Invalid script declaration: " + err.Error())
 		doc.Get("body").Call("setAttribute", "data-nextgo-hydration", "error")
@@ -188,6 +191,13 @@ func Run() {
 		report("Invalid document attributes; reload the page")
 		return
 	}
+	if bootstrapDevRefresh(runDocument) {
+		return
+	}
+	runDocument()
+}
+
+func runDocument() {
 	installMotionPreference()
 	currentURL = win.Get("location").Get("href").String()
 	setLocation(currentURL)
@@ -284,6 +294,9 @@ func Replace(target string) error { return navigateTo(target, true) }
 // This is advisory: it does not report completion and may skip duplicate/full
 // queues. Refresh invalidates cached data and cancels pending prefetches.
 func Prefetch(target string) (err error) {
+	if refreshFrozen() {
+		return errRefreshFrozen
+	}
 	if moduleMode {
 		return moduleCall("prefetch", target)
 	}
@@ -304,6 +317,9 @@ func Prefetch(target string) (err error) {
 }
 
 func pageURL(target string) (u js.Value, err error) {
+	if refreshFrozen() {
+		return js.Undefined(), errRefreshFrozen
+	}
 	if currentURL == "" {
 		return js.Undefined(), fmt.Errorf("navigation runtime has not started")
 	}
@@ -374,6 +390,9 @@ func NavigateWithOptions(target string, options NavigationOptions) (err error) {
 // Refresh invalidates all prefetched data, cancels pending prefetches, and loads
 // the current route again without adding history or resetting scroll position.
 func Refresh() {
+	if refreshFrozen() {
+		return
+	}
 	if moduleMode {
 		_ = moduleCall("refresh")
 		return
@@ -388,6 +407,9 @@ func Refresh() {
 }
 
 func eligibleURL(u js.Value) bool {
+	if refreshFrozen() {
+		return false
+	}
 	if u.Get("origin").String() != win.Get("location").Get("origin").String() || (u.Get("protocol").String() != "http:" && u.Get("protocol").String() != "https:") {
 		return false
 	}
@@ -543,7 +565,7 @@ func startNavigationMode(target string, pop bool, state js.Value, replace bool) 
 }
 
 func startNavigationOptions(target string, pop bool, state js.Value, options NavigationOptions) {
-	if draftFrozen {
+	if draftFrozen || refreshFrozen() {
 		return
 	}
 	cancelActionView()

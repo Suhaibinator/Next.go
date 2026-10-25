@@ -31,6 +31,7 @@ type inputPlan struct {
 	GeneratedRoot            string
 	MetadataRoot             string
 	Overlays, OverlaySources map[string]string
+	Excluded                 map[string]bool // Exact compiler-proven refresh inputs only; nil for ordinary fingerprints.
 }
 
 // Go reports one JSON record per workspace main module. Select the module that
@@ -348,7 +349,7 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 	scanned := map[string]bool{}
 	var consume func(string, bool, bool) error
 	consume = func(name string, allowMissing, followLink bool) error {
-		if skipped[name] || seen[name] {
+		if skipped[name] || plan.Excluded[name] || seen[name] {
 			return nil
 		}
 		if err := ctx.Err(); err != nil {
@@ -447,7 +448,7 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			if skipped[name] {
+			if skipped[name] || plan.Excluded[name] {
 				return nil
 			}
 			relative, err := filepath.Rel(moduleRoot, name)

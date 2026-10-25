@@ -8,7 +8,70 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — native zones and trusted deployment context
+## Unreleased — experimental opt-in lazy Go state refresh
+
+Implemented a bounded development-only refresh contract with completed scoped
+native, WASM, browser and retirement verification. Full Fast Refresh parity,
+production hot swapping and release readiness are not claimed.
+
+- Lazy component manifests may opt into version-1 explicit state/DOM schemas.
+  A mount names its public instance with `Scope.RefreshInstance` and registers
+  bounded plain JSON cells using `client.NewRefreshState`. It does not capture
+  arbitrary application/private state or infer semantic schema compatibility.
+- Accepted replacement retires the previous managed Go module physically,
+  including successful Go main exit and paired development-bridge cleanup.
+  Unsupported/busy lifecycle or native/shared/core/eager/props/schema changes
+  require the conservative full-document fallback. Arbitrary Go/JavaScript
+  work cannot be forcibly reclaimed or discovered by this contract. Components
+  must use `Scope.Go` plus managed transports to own the whole worker through
+  actual return (64 workers per scope). The matching development shim
+  digest/private timer shape gates activation; unknown shims reload normally.
+- The isolated [refresh example](examples/refresh/README.md) contains two public
+  counters and native-instance diagnostics. Production/static artifacts retain
+  ordinary lazy execution and omit development replacement behavior.
+- CI scripts declare sample generation, production/static builds, bounded Node
+  transport fixtures, sequential development and four-engine production/static
+  checks. Their configuration is not proof they passed. Legacy jobs remain.
+
+Current host development passes **33** cases on Chromium/native WebKit/touch.
+Linux passes **88 unique cases**: 44 each with matching Go 1.24.13 and Go 1.27.3,
+across all four engines, without failures/skips/retries in the completed runs.
+The first stable-SDK attempt reached 38 before infrastructure interruption with
+exit 255/lost tmpfs; it remains incomplete diagnostic evidence and is excluded
+from 88. A fresh stable run passes all 44 in 9.7 minutes on the same frozen
+source; no functional fix is inferred from infrastructure recovery.
+
+Eight approved warm JSON archival checks (four per SDK) pass separately and
+are **not added to 88**. Their metadata records 16 actual old-Go runtime exits
+with exit 0 and an empty timer map before candidate execution. The initial
+list-only reporter discarded successful raw attachments. The supplement supplies
+raw metadata for those eight warm checks without changing assertions; it does
+not reconstruct discarded attachments for the 88. Final proof is retained at
+`.nextgo-test-results/qualification/refresh-wave/linux-dev/qualification-final.json`,
+SHA-256 `ebd991c42b99297945309dc02090fd38aa8765e51a9391847eb4c69c7db9cdfb`.
+All 1,007 runtime inputs remain unchanged. CI now retains bounded success JSON
+artifacts; its new configuration is not remote proof before the new source runs.
+
+Host and both Linux SDK full native race/vet (66 tested/173 no-test packages),
+matching core/mutation/module WASM tests and vet pass. Linux production passes
+**96 browser cases** (48 per SDK across HTTP, buffered/streaming local Lambda
+and static transports); zone/CLI/adapter checks pass **26**, and legacy
+executables pass **456**. Those are separate groups. Host production passes four
+Node transport cases and 12 Chromium cases. The legacy full host suite records
+**334 passes/one strict published-BFCache failure**, with no retry/skip/assertion
+change; it is not an all-green suite or a causal HMR failure finding.
+
+The [current size-only report](docs/benchmarks/refresh-phase-go1.27.3-macos-arm64.json)
+records **8,401,692 raw / 2,157,893 Node gzip-9 core bytes**; both eager budgets
+fail. It provides no startup/CPU/RSS or causal before/after claim. Production retains ordinary lazy execution:
+development activation is gated, but shared library paths can remain linked,
+so no zero-production-payload claim follows. See [the contract](docs/HOT_REFRESH.md)
+for bounded ownership, limits and exact evidence. All 79 capability rows and
+11 open release gates remain tracked; previous source/CI proofs remain distinct.
+
+## Source checkpoints, newest first
+
+### `bb62d65` — native zones and trusted deployment context
 
 This bounded in-process composition increment has passing native/WASM,
 production, focused browser and final four-engine Linux development checks;
@@ -56,7 +119,9 @@ protected endpoint; it is not production account authentication. AWS execution
 still awaits approval, with no AWS actions performed. All **79 capability rows
 and 11 open release gates** remain tracked.
 
-## Source checkpoints, newest first
+The separate `bb62d65` remote browser checkpoint records 1,672 passes with three
+existing skips. It belongs to this older zones source, not the subsequent
+refresh implementation or its qualification.
 
 ### `c2ff5ce` — explicit field validation, choice identity and transport factoring
 

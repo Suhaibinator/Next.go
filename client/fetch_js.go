@@ -78,6 +78,7 @@ type promiseResult struct {
 // when context cancellation lets the caller return first. Releasing them at
 // cancellation would let the browser call released Go functions later.
 func awaitBrowserPromise(ctx context.Context, promise, controller js.Value) (js.Value, error) {
+	activity := retainRefreshActivity()
 	settled := make(chan promiseResult, 1)
 	resolve := js.FuncOf(func(_ js.Value, args []js.Value) any {
 		settled <- promiseResult{value: args[0]}
@@ -98,8 +99,15 @@ func awaitBrowserPromise(ctx context.Context, promise, controller js.Value) (js.
 		settled <- promiseResult{err: errors.New(message)}
 		return nil
 	})
+	release := func() { resolve.Release(); reject.Release(); activity.Done() }
+	attached := false
+	defer func() {
+		if !attached {
+			release()
+		}
+	}()
 	promise.Call("then", resolve, reject)
-	release := func() { resolve.Release(); reject.Release() }
+	attached = true
 	select {
 	case result := <-settled:
 		release()
@@ -108,8 +116,8 @@ func awaitBrowserPromise(ctx context.Context, promise, controller js.Value) (js.
 		}
 		return result.value, result.err
 	case <-ctx.Done():
-		controller.Call("abort")
 		go func() { <-settled; release() }()
+		controller.Call("abort")
 		return js.Undefined(), ctx.Err()
 	}
 }
@@ -118,8 +126,13 @@ func awaitBrowserPromise(ctx context.Context, promise, controller js.Value) (js.
 // was requested. Native promise settlement, including reader cancellation,
 // separates that transport from the next server mutation.
 func awaitPhysicalBrowserPromise(ctx context.Context, promise, controller js.Value) (js.Value, error) {
-	stop := context.AfterFunc(ctx, func() { controller.Call("abort") })
-	defer stop()
+	abortActivity := retainRefreshActivity()
+	stop := context.AfterFunc(ctx, func() { defer abortActivity.Done(); controller.Call("abort") })
+	defer func() {
+		if stop() {
+			abortActivity.Done()
+		}
+	}()
 	value, err := awaitBrowserPromise(context.Background(), promise, controller)
 	if ctx.Err() != nil {
 		return value, context.Cause(ctx)
@@ -157,6 +170,11 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 	if err := ctx.Err(); err != nil {
 		return response, err
 	}
+	activity, activityErr := beginRefreshActivity()
+	if activityErr != nil {
+		return response, activityErr
+	}
+	defer activity.Done()
 	limit := options.MaxBytes
 	if limit == 0 {
 		limit = 8 << 20
@@ -291,7 +309,9 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 				reader.Call("releaseLock")
 				return
 			}
+			cleanupActivity := retainRefreshActivity()
 			go func() {
+				defer cleanupActivity.Done()
 				defer func() { _ = recover() }()
 				_, _ = awaitBrowserPromise(context.Background(), canceled, controller)
 				reader.Call("releaseLock")

@@ -1,6 +1,6 @@
 # Next.go
 
-A Go full-stack web framework with server-rendered HTML, file routes, nested layouts, interactive WebAssembly islands, explicit caching, server actions, streaming boundaries, typed metadata, and local image optimization. Application logic and browser interactions are written in Go. JavaScript is limited to Go's required runtime support and a small bootstrap/development reload bridge.
+A Go full-stack web framework with server-rendered HTML, file routes, nested layouts, interactive WebAssembly islands, explicit caching, server actions, streaming boundaries, typed metadata, and local image optimization. Application logic and browser interactions are written in Go. JavaScript is limited to Go's required runtime support and a small bootstrap/development bridge.
 
 **Experimental: feature parity and production maturity are unfinished.** The target is a Go alternative to Next.js, without React/JSX source compatibility. [The capability inventory and release gates](docs/PARITY.md) distinguish implemented subsets from remaining work. Native race tests, Chromium production/development/static-host suites and Firefox/WebKit production checks cover implemented subsets. Recorded integrated checks qualify their named source checkpoints; complete browser qualification, release security review, performance and operational release gates remain open.
 
@@ -22,11 +22,20 @@ browser checks (335 primary, 36 forms, 23 separate static) and 48 Linux
 four-engine form checks. The AWS qualification scaffold has offline tests only,
 with cloud execution awaiting explicit approval.
 
-The new zones checkpoint composes exact-host/path-selected native applications
+The preceding zones checkpoint composes exact-host/path-selected native applications
 with explicit full-document boundaries and trusted tenant metadata. Native/WASM,
 production, focused browser and four-engine Linux development checks pass for
 this bounded subset. This is one-process composition, not independent application
 releases or production tenant authentication. See [zones](docs/ZONES.md).
+
+Experimental development refresh is implemented for explicit public state
+cells in opted-in lazy components. Host development passes 33 checks; Linux
+passes 88 unique four-engine checks (44 each on Go 1.24.13 and Go 1.27.3),
+without failures, skips or retries in those completed runs. Eight separate warm
+JSON archival checks pass and are not added to the 88. It is not full Fast Refresh, arbitrary Go heap migration or
+production hot swapping. The separate legacy 335-case host suite records 334
+passes and one unresolved strict Chromium BFCache failure; no causal link or
+fix is inferred.
 
 ## Run the example
 
@@ -765,13 +774,44 @@ Try `/resources` and read [resource ownership and privacy](docs/CLIENT_RESOURCES
 
 `client.CurrentLocation` reads the committed browser address. `scope.ObserveLocation` synchronizes a Go island immediately and after committed path, query, and fragment changes, with automatic cleanup and no speculative or unchanged-refresh notifications. See [navigation and subscriptions](docs/NAVIGATION.md) for the API and lifecycle contract.
 
-Development polls Go/module files and public assets throughout the application module, debounces edits, compiles both targets, and switches the proxy only after a successful server startup. An SSE bridge reloads the browser on success and displays build errors while the last successful application keeps serving. If the application process exits unexpectedly, development reports the failure; saving a source change rebuilds it. Source changes during compilation discard the mixed build and trigger another development cycle. Workspace modules and local replacements are watched along with matched embed inputs; see [workspace handling](docs/WORKSPACES.md). Development retains the active generation and seven predecessors, expires older owned assets/directories, and cleans owned generations on exit. Crash leftovers are disposable. Production staging output is removed after the binary is exported.
+Development polls Go/module files and public assets throughout the application module, debounces edits, compiles both targets, and switches the proxy only after a successful server startup. The default SSE workflow reloads the browser after successful full builds and displays build errors while the last successful application keeps serving. If the application process exits unexpectedly, development reports the failure; saving a source change rebuilds it. Source changes during compilation discard the mixed build and trigger another development cycle. Workspace modules and local replacements are watched along with matched embed inputs; see [workspace handling](docs/WORKSPACES.md). Development retains the active generation and seven predecessors, expires older owned assets/directories, and cleans owned generations on exit. Crash leftovers are disposable. Production staging output is removed after the binary is exported.
 
 While development runs, `go run ./cmd/nextgo inspect -addr localhost:3000`
 reads a bounded public route/layout/slot/component graph and last-good build
 state. Access is loopback-only; it is read-only and absent from production.
 It exposes neither source nor environment/props. See
 [inspection policy and limits](docs/DEV_INSPECTION.md).
+
+### Experimental public state refresh
+
+The development-only contract declares a lazy component and author-owned state/
+DOM schemas in `component.json`:
+
+```json
+{"loading":"lazy","refresh":{"version":1,"stateSchema":"counter/v1","domSchema":"counter/v1"}}
+```
+
+Its mount names a stable public instance with `scope.RefreshInstance` and
+registers explicit `client.NewRefreshState` cells. Only bounded plain public
+JSON state is eligible; private values, closures, browser handles and arbitrary
+application state are not serialized. Schema identity is an application promise,
+not automatic semantic compatibility analysis.
+
+Replacement requires physical module
+retirement: managed work must drain, the old Go main must return successfully,
+and the paired development SDK bridge must clean up owned callbacks/timers.
+Start component workers with `scope.Go` and use managed transports; the whole
+worker remains owned until actual return, with at most 64 workers per scope.
+Go cannot preempt arbitrary goroutines, timers or JavaScript callbacks. Native/
+shared/core/eager/props/schema/configuration changes and unsupported or busy
+lifetimes take the document-reload fallback. Production/static output keeps
+ordinary lazy behavior, with no development replacement contract.
+
+Try the isolated [refresh sample](examples/refresh/README.md) using
+`go run ./cmd/nextgo dev ./examples/refresh`. [The detailed contract](docs/HOT_REFRESH.md)
+records state/DOM limits, private-shim gating, exact runtime retirement and
+remaining coverage. Unknown shims and unsupported work use full reload; no
+zero-cost production payload or general runtime-unloading guarantee is made.
 
 ## Tests
 
@@ -861,7 +901,7 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, advanced CSS tooling/module semantics and richer Markdown/component content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, complete qualification and broader coverage for opt-in lazy state refresh, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, advanced CSS tooling/module semantics and richer Markdown/component content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
 
 The [compatibility and upgrade policy](docs/COMPATIBILITY.md),
 [changelog](CHANGELOG.md) and [security-reporting status](SECURITY.md) describe

@@ -65,6 +65,7 @@ type Slot struct {
 type Component struct {
 	Name, Import string
 	Lazy         bool
+	Refresh      *ComponentRefresh
 }
 type Project struct {
 	Root, ModuleDir, ModulePath, Import, NotFound, Configure string
@@ -143,11 +144,11 @@ func Discover(root string) (*Project, error) {
 				return fmt.Errorf("put browser components in named subdirectories")
 			}
 			name := filepath.ToSlash(rel)
-			lazy, err := lazyComponent(filepath.Dir(path))
+			config, err := readComponentConfig(filepath.Dir(path))
 			if err != nil {
 				return fmt.Errorf("component %s: %w", name, err)
 			}
-			p.Components = append(p.Components, Component{Name: name, Import: imp + "/components/" + name, Lazy: lazy})
+			p.Components = append(p.Components, Component{Name: name, Import: imp + "/components/" + name, Lazy: config.Loading == "lazy", Refresh: config.Refresh})
 			return nil
 		})
 		if err != nil {

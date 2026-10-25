@@ -1,0 +1,598 @@
+{
+  "measuredAt": "2026-10-25T08:36:49.488Z",
+  "scope": "Size-only observation of the exact standalone Go 1.27.3 ordinary production examples/demo artifact, served from an empty task-owned working directory outside the checkout on assigned loopback port4237. Server environment contains PATH only, excluding demo/Lambda/env-dir configuration. Actual identity HTTP response bytes were measured without executing browser/WASM code. This is not timing, allocation, RSS, initial-page transfer, all-public-asset inventory, or a before/after causal comparison; lazy modules were explicitly fetched for size accounting.",
+  "measurementHTTP": {
+    "origin": "http://127.0.0.1:4237",
+    "ownedServerPID": 10958,
+    "requestAcceptEncoding": "identity",
+    "exactResponseURLVerified": true
+  },
+  "artifact": {
+    "nativePath": "/private/tmp/nextgo-refresh-final/demo/server",
+    "nativeSHA256": "ce9f9a4d0ea25e7d53428a8b13b68efafe31a74e84faff557a0fcf2f4175a8e1",
+    "nativeBytes": 38062162,
+    "goBuildInfo": "/private/tmp/nextgo-refresh-final/demo/server: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025073208-bb62d6517278+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=bb62d65172784d25e97313bdaa8b1f40c5af8413\n\tbuild\tvcs.time=2026-10-25T07:32:08Z\n\tbuild\tvcs.modified=true",
+    "measurementGitHEAD": "bb62d65172784d25e97313bdaa8b1f40c5af8413",
+    "runtimeBuildID": "ded8f822a78bb5095b56"
+  },
+  "environment": {
+    "node": "v25.7.0",
+    "zlib": "1.3.1-e00f703",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "27.0.0"
+  },
+  "document": {
+    "responseURL": "http://127.0.0.1:4237/",
+    "path": "/",
+    "contentType": "text/html; charset=utf-8",
+    "contentEncoding": "identity",
+    "cacheControl": "no-store",
+    "rawBytes": 10406,
+    "nodeGzip9Bytes": 3106,
+    "sha256": "b3e0b1e7ac6820c25fe46214fecd9024a9803d3fa4bba3aee5aff934d7b2a5e1"
+  },
+  "navigationManifest": {
+    "source": "Entity-decoded data-nextgo-navigation attribute in the actual root HTML response",
+    "rawBytes": 2786,
+    "nodeGzip9Bytes": 804,
+    "sha256": "0605caaf489f51bec47bd1d1f5e95c0097f5c0219726c45ae657134096fa3530",
+    "routeCount": 84,
+    "endpointCount": 9
+  },
+  "components": {
+    "method": "Current on-disk client_js.go/component.json inventory is recorded separately and is not a source-snapshot attestation for the native binary. Compiled lazy asset filenames are independently extracted from the exact served core WASM and fetched with filename-digest verification.",
+    "total": 20,
+    "eager": 17,
+    "lazy": 3,
+    "compiledLazyWasmAssetCount": 3,
+    "records": [
+      {
+        "name": "actionview",
+        "loading": "eager",
+        "clientSourceSHA256": "449984162b63a53a5c069405a734401121d6cb627ebb6f15ff012d1da8ea2ca6"
+      },
+      {
+        "name": "actionviewlazy",
+        "loading": "lazy",
+        "clientSourceSHA256": "1d68739f9c41e27a3b17bb7f100b8630771f1ce6fa9b64db841910b33e14c422",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "choiceform",
+        "loading": "eager",
+        "clientSourceSHA256": "f7fe186b260e04bea8304420387cc56b4b465ae35db3301994a9f5af0ee6acbb"
+      },
+      {
+        "name": "composition",
+        "loading": "eager",
+        "clientSourceSHA256": "6f6874eaee7fa016f391b8cebce48a44e5148b7f4359fd962ff420304cb1c348"
+      },
+      {
+        "name": "counter",
+        "loading": "eager",
+        "clientSourceSHA256": "042a9cb8a5bd1937842249ad07a8d6404298735bf4cf882f8633e09c437ef2f1"
+      },
+      {
+        "name": "fileform",
+        "loading": "eager",
+        "clientSourceSHA256": "dba62fe3ddb32bff093f35e90cd12392d3995a4c82c28883c985d627e4fb46b2"
+      },
+      {
+        "name": "generatedaction",
+        "loading": "eager",
+        "clientSourceSHA256": "4c8b2c86de1feac62d1d8ceed4503681a4dc6cb03c6d5278195202bc1748dcbf"
+      },
+      {
+        "name": "keyedlist",
+        "loading": "eager",
+        "clientSourceSHA256": "36462971643f3cde783459596393cfc0a20fd82bcb3f7b3356c3caa53a3c376a"
+      },
+      {
+        "name": "layoutstate",
+        "loading": "eager",
+        "clientSourceSHA256": "54a31e1b79b6868564a768c11ea53d1e073365926b341e681b2046613fe9d934"
+      },
+      {
+        "name": "lazycounter",
+        "loading": "lazy",
+        "clientSourceSHA256": "5ba9417122f4443ec9c25a28a797f5e10277e9495c3d5e490577905a089e4f1b",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "modal",
+        "loading": "eager",
+        "clientSourceSHA256": "c2eb9bebcd79abe55c6759988089fef34d6982ae5f9992109191b61b1b8ad0a1"
+      },
+      {
+        "name": "optimistic",
+        "loading": "eager",
+        "clientSourceSHA256": "cfdaa0828f87158d2500cd7ac01f65b968fcccca32982145ce2e587e5cbaee93"
+      },
+      {
+        "name": "profileform",
+        "loading": "eager",
+        "clientSourceSHA256": "cde671ac9b98de9dfb43f0a29dac2d4c9ec3ac3c3e446afd21286342327d790b"
+      },
+      {
+        "name": "resourcepanel",
+        "loading": "lazy",
+        "clientSourceSHA256": "58db3525dbf935a895d2091bc6483bbdecd102c1d16e85f14925630cae351bcb",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "scriptwidget",
+        "loading": "eager",
+        "clientSourceSHA256": "6c629466e91d121ba10b61fe8115c832bc2229bbf5ef7724f49baaad3ff65307"
+      },
+      {
+        "name": "selectionnav",
+        "loading": "eager",
+        "clientSourceSHA256": "7955397061bbdc8f3612518c661882de065745efcc95cd31aaf199835a377ff2"
+      },
+      {
+        "name": "sessionpanel",
+        "loading": "eager",
+        "clientSourceSHA256": "b4d4d64eadf989ace7738e50b8d3fb3f62de1eb34111b95b79cf7c83b925b142"
+      },
+      {
+        "name": "settings",
+        "loading": "eager",
+        "clientSourceSHA256": "59408f77cc24cf6fd7e8c622014a4d32691d23faee672e90bef3661dc27b6f22"
+      },
+      {
+        "name": "toolbox",
+        "loading": "eager",
+        "clientSourceSHA256": "293ebf2c4cffdff021a661c582975a09d59e2248a63e9904c432cae847f59806"
+      },
+      {
+        "name": "transitioncard",
+        "loading": "eager",
+        "clientSourceSHA256": "568d757bcba3fd3fc20a61a4da2afdd911287a65a9e252cb8cb5c0f81e560f22"
+      }
+    ]
+  },
+  "assets": [
+    {
+      "kind": "core-wasm",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/app.wasm",
+      "path": "/_nextgo/ded8f822a78bb5095b56/app.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 8401692,
+      "nodeGzip9Bytes": 2157893,
+      "sha256": "24e2fb5d212ea0f474ab6164af9b14da0608fec1a06e45c927927e795b4c6fd3",
+      "wasmSections": {
+        "code": {
+          "bytes": 5511225,
+          "sha256": "390278a4566ebac78d1d58bfa29e6cb653340f56671112511959962d86d0c7fc"
+        },
+        "data": {
+          "bytes": 2876432,
+          "sha256": "d9d6794164b1719db357cfe44d67073e43890b2be9f5e089671286b5eae164e7"
+        }
+      }
+    },
+    {
+      "kind": "go-runtime-support",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/wasm_exec.js",
+      "path": "/_nextgo/ded8f822a78bb5095b56/wasm_exec.js",
+      "contentType": "text/javascript; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 16992,
+      "nodeGzip9Bytes": 4348,
+      "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+    },
+    {
+      "kind": "bootstrap",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/boot.js",
+      "path": "/_nextgo/ded8f822a78bb5095b56/boot.js",
+      "contentType": "text/javascript; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 2592,
+      "nodeGzip9Bytes": 975,
+      "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+    },
+    {
+      "kind": "lazy-wasm",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/module-1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa.wasm",
+      "path": "/_nextgo/ded8f822a78bb5095b56/module-1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5426588,
+      "nodeGzip9Bytes": 1488462,
+      "sha256": "1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa",
+      "wasmSections": {
+        "code": {
+          "bytes": 3489322,
+          "sha256": "18c4f4f36a631d62ab5f73c8308c1a6d725ea15c216e8197e53f6e5430b7b7d5"
+        },
+        "data": {
+          "bytes": 1927053,
+          "sha256": "093eb06a96e36867a9f8fea5e05ac74c2f5b3fdb47024eddc54a91273e7060e9"
+        }
+      }
+    },
+    {
+      "kind": "lazy-wasm",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/module-416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610.wasm",
+      "path": "/_nextgo/ded8f822a78bb5095b56/module-416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5545630,
+      "nodeGzip9Bytes": 1517623,
+      "sha256": "416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610",
+      "wasmSections": {
+        "code": {
+          "bytes": 3572658,
+          "sha256": "b6444fd265a9e60571af1abe3762a1f83d21ac21486f7e8bb84f554ffccd31b5"
+        },
+        "data": {
+          "bytes": 1962499,
+          "sha256": "0eabb3b762dd1dbcb3bbdf9cfcee917460966529be23ab416aa05905fd68fb63"
+        }
+      }
+    },
+    {
+      "kind": "lazy-wasm",
+      "responseURL": "http://127.0.0.1:4237/_nextgo/ded8f822a78bb5095b56/module-f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4.wasm",
+      "path": "/_nextgo/ded8f822a78bb5095b56/module-f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5487829,
+      "nodeGzip9Bytes": 1502217,
+      "sha256": "f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4",
+      "wasmSections": {
+        "code": {
+          "bytes": 3522628,
+          "sha256": "781d142628043873e2d3e2108f8859cc19ab34d2554a584c83d7cdb5b60d704f"
+        },
+        "data": {
+          "bytes": 1954839,
+          "sha256": "adc87f30f89e22f9625b718cf3c5ac79665f3b695238aef357ce28e4efa81a4f"
+        }
+      }
+    },
+    {
+      "kind": "root-html-linked-asset",
+      "responseURL": "http://127.0.0.1:4237/assets/style.css",
+      "path": "/assets/style.css",
+      "contentType": "text/css; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": null,
+      "rawBytes": 8625,
+      "nodeGzip9Bytes": 2774,
+      "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+    }
+  ],
+  "totals": {
+    "runtimeRawBytes": 24881323,
+    "runtimeNodeGzip9Bytes": 6671518
+  },
+  "referenceBudgets": {
+    "coreRawBytes": 6291456,
+    "coreNodeGzip9Bytes": 1677721,
+    "coreRawPass": false,
+    "coreNodeGzip9Pass": false,
+    "result": "FAIL; release performance gate remains open"
+  },
+  "skippedExternalReferences": [],
+  "referenceComparison": {
+    "scope": "Observational comparison of recorded sizes and SHA-256 digests for two separately built native artifacts. The previous native artifact is not rerun here. No controlled build, timing, speed, allocation, RSS, transfer or causal claim is made. Code/Data hashes describe exact section payload bytes; matching Code alone would not establish identical behavior when Data differs.",
+    "beforeReport": "docs/benchmarks/zones-phase-go1.27.3-macos-arm64.json",
+    "beforeReportSHA256": "ff6bc1ecadea6c7cdb52b9e56a730654f04f7c4b74a6f24a1b6e530757d39919",
+    "beforeNativeSHA256": "ed686d5117ddffd0e8ddfcdeaef668c37d1802aad3a7db6db3705d4e2b479883",
+    "afterNativeSHA256": "ce9f9a4d0ea25e7d53428a8b13b68efafe31a74e84faff557a0fcf2f4175a8e1",
+    "beforeRuntimeBuildID": "ceca5773c9e8c64b0c4d",
+    "afterRuntimeBuildID": "ded8f822a78bb5095b56",
+    "core": {
+      "before": {
+        "path": "/_nextgo/ceca5773c9e8c64b0c4d/app.wasm",
+        "rawBytes": 8237069,
+        "nodeGzip9Bytes": 2120180,
+        "sha256": "bca5fa97bc869d996c6d4eb92936c591b7165e3f78cdcb9fe0ee30ada545302b",
+        "wasmSections": {
+          "code": {
+            "bytes": 5396393,
+            "sha256": "d50e3031a2dd72c604845c679a9355cf0c08cd4586fd27cfea540fe52b066ffc"
+          },
+          "data": {
+            "bytes": 2826962,
+            "sha256": "bc46dfc08d2fcc80070d5da800c09f666ee200df40e9723b5717c997d9b0da6e"
+          }
+        }
+      },
+      "after": {
+        "path": "/_nextgo/ded8f822a78bb5095b56/app.wasm",
+        "rawBytes": 8401692,
+        "nodeGzip9Bytes": 2157893,
+        "sha256": "24e2fb5d212ea0f474ab6164af9b14da0608fec1a06e45c927927e795b4c6fd3",
+        "wasmSections": {
+          "code": {
+            "bytes": 5511225,
+            "sha256": "390278a4566ebac78d1d58bfa29e6cb653340f56671112511959962d86d0c7fc"
+          },
+          "data": {
+            "bytes": 2876432,
+            "sha256": "d9d6794164b1719db357cfe44d67073e43890b2be9f5e089671286b5eae164e7"
+          }
+        }
+      },
+      "rawBytesDelta": 164623,
+      "nodeGzip9BytesDelta": 37713,
+      "codePayloadIdentical": false,
+      "dataPayloadIdentical": false
+    },
+    "lazyWasm": {
+      "method": "Unpaired asset inventories plus exact Code/Data payload multisets. Filenames change between builds; no unsupported component-to-file pairing is inferred.",
+      "before": [
+        {
+          "path": "/_nextgo/ceca5773c9e8c64b0c4d/module-1cd9a514c8d76b1338a486bb44ce4e7700d7bc90a54d660322cea583860c3344.wasm",
+          "rawBytes": 5361726,
+          "nodeGzip9Bytes": 1473105,
+          "sha256": "1cd9a514c8d76b1338a486bb44ce4e7700d7bc90a54d660322cea583860c3344",
+          "wasmSections": {
+            "code": {
+              "bytes": 3454174,
+              "sha256": "814ea396aa95b74d56304e111552991acc06a2923a0e89a0eae8fba740cba4ff"
+            },
+            "data": {
+              "bytes": 1897445,
+              "sha256": "dab5795a52b3b0ff017173e59ec5c8531626d86f4b564f646e23b58c4623caa4"
+            }
+          }
+        },
+        {
+          "path": "/_nextgo/ceca5773c9e8c64b0c4d/module-2c45bf8182245db1b20c1ea0ce75898556683211cc83491993fc0b23e063a805.wasm",
+          "rawBytes": 5231563,
+          "nodeGzip9Bytes": 1440098,
+          "sha256": "2c45bf8182245db1b20c1ea0ce75898556683211cc83491993fc0b23e063a805",
+          "wasmSections": {
+            "code": {
+              "bytes": 3365739,
+              "sha256": "a584a6889be2620d9d90ae367bbd6170a5d9cc5d6179852562edc31ec6a10c62"
+            },
+            "data": {
+              "bytes": 1856034,
+              "sha256": "24198eba13b57c990e371897c08363d4471f86a09442ace3063ff36c3a44d8ca"
+            }
+          }
+        },
+        {
+          "path": "/_nextgo/ceca5773c9e8c64b0c4d/module-8ef8b9a1edf03dd52a2cd7047ad9caed19a4e6564db797babac3dc0c12bc85b6.wasm",
+          "rawBytes": 5334298,
+          "nodeGzip9Bytes": 1464141,
+          "sha256": "8ef8b9a1edf03dd52a2cd7047ad9caed19a4e6564db797babac3dc0c12bc85b6",
+          "wasmSections": {
+            "code": {
+              "bytes": 3426701,
+              "sha256": "4d27d54a83121b81994f7182debb456a012edce7ba18811c67326fe5dad2c62b"
+            },
+            "data": {
+              "bytes": 1897571,
+              "sha256": "6f50ed9c8934c8dda31257cf998ab6344e198381bff3d3f14c7f3c8635e48126"
+            }
+          }
+        }
+      ],
+      "after": [
+        {
+          "path": "/_nextgo/ded8f822a78bb5095b56/module-1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa.wasm",
+          "rawBytes": 5426588,
+          "nodeGzip9Bytes": 1488462,
+          "sha256": "1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa",
+          "wasmSections": {
+            "code": {
+              "bytes": 3489322,
+              "sha256": "18c4f4f36a631d62ab5f73c8308c1a6d725ea15c216e8197e53f6e5430b7b7d5"
+            },
+            "data": {
+              "bytes": 1927053,
+              "sha256": "093eb06a96e36867a9f8fea5e05ac74c2f5b3fdb47024eddc54a91273e7060e9"
+            }
+          }
+        },
+        {
+          "path": "/_nextgo/ded8f822a78bb5095b56/module-416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610.wasm",
+          "rawBytes": 5545630,
+          "nodeGzip9Bytes": 1517623,
+          "sha256": "416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610",
+          "wasmSections": {
+            "code": {
+              "bytes": 3572658,
+              "sha256": "b6444fd265a9e60571af1abe3762a1f83d21ac21486f7e8bb84f554ffccd31b5"
+            },
+            "data": {
+              "bytes": 1962499,
+              "sha256": "0eabb3b762dd1dbcb3bbdf9cfcee917460966529be23ab416aa05905fd68fb63"
+            }
+          }
+        },
+        {
+          "path": "/_nextgo/ded8f822a78bb5095b56/module-f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4.wasm",
+          "rawBytes": 5487829,
+          "nodeGzip9Bytes": 1502217,
+          "sha256": "f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4",
+          "wasmSections": {
+            "code": {
+              "bytes": 3522628,
+              "sha256": "781d142628043873e2d3e2108f8859cc19ab34d2554a584c83d7cdb5b60d704f"
+            },
+            "data": {
+              "bytes": 1954839,
+              "sha256": "adc87f30f89e22f9625b718cf3c5ac79665f3b695238aef357ce28e4efa81a4f"
+            }
+          }
+        }
+      ],
+      "codePayloadMultisetIdentical": false,
+      "dataPayloadMultisetIdentical": false,
+      "totalRawBytesDelta": 532460,
+      "totalNodeGzip9BytesDelta": 130958
+    },
+    "runtimeSupportIdentical": true,
+    "bootstrapIdentical": false,
+    "applicationComponentSourceInventoryMatchesReference": true,
+    "totalRuntimeRawBytesDelta": 697451,
+    "totalRuntimeNodeGzip9BytesDelta": 168782,
+    "allWasmCodePayloadsIdenticalToReference": false,
+    "allWasmDataPayloadsIdenticalToReference": false,
+    "wasmSectionSizeAccounting": {
+      "scope": "Raw-byte decomposition across the complete four-WASM inventories. This is not function/feature causal attribution and does not decompose gzip changes.",
+      "before": {
+        "wasmFileBytes": 24164656,
+        "codePayloadBytes": 15643007,
+        "dataPayloadBytes": 8478012,
+        "otherFramingAndSectionBytes": 43637
+      },
+      "after": {
+        "wasmFileBytes": 24861739,
+        "codePayloadBytes": 16095833,
+        "dataPayloadBytes": 8720823,
+        "otherFramingAndSectionBytes": 45083
+      },
+      "delta": {
+        "wasmFileBytes": 697083,
+        "codePayloadBytes": 452826,
+        "dataPayloadBytes": 242811,
+        "otherFramingAndSectionBytes": 1446
+      },
+      "codePayloadMatchesByDigest": 0,
+      "dataPayloadMatchesByDigest": 0
+    }
+  },
+  "runtimeSupportVerification": {
+    "goVersion": "go version go1.27.3 darwin/arm64",
+    "SDKRelativePath": "lib/wasm/wasm_exec.js",
+    "SDKSupportSHA256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+    "servedSupportSHA256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+    "byteIdentical": true
+  },
+  "frozenRuntimeInputInventory": {
+    "path": ".nextgo-test-results/qualification/refresh-wave/runtime-inputs.json",
+    "manifestSHA256": "84996b196f69f05aba872e46ab3630d9537f672ab4a5779006f039e35489ba92",
+    "fileCount": 1007,
+    "scope": "Go/module/workspace/component/asset manifests, public trees, known native embeds and managed app-root metadata. Not a complete repository or SDK archive.",
+    "allListedFileBytesMatched": true,
+    "beforeAndAfterVerified": true,
+    "notACompleteRepositoryOrSDKArchive": true
+  },
+  "cliArtifact": {
+    "path": "/private/tmp/nextgo-refresh-final/nextgo",
+    "sha256": "7c0e06f36769a3dc38922dae6a1ee634ed0e6608352c43ce22c50bd79a0c6bec",
+    "rawBytes": 13377138,
+    "goBuildInfo": "/private/tmp/nextgo-refresh-final/nextgo: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/cmd/nextgo\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025073208-bb62d6517278+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=bb62d65172784d25e97313bdaa8b1f40c5af8413\n\tbuild\tvcs.time=2026-10-25T07:32:08Z\n\tbuild\tvcs.modified=true",
+    "role": "Prebuilt frozen CLI metadata only; the CLI was not invoked to build or modify an application."
+  },
+  "servedRuntimeInventory": {
+    "canonicalization": "SHA-256 of compact UTF-8 JSON.stringify(records), records sorted by path; keys and section payload records are stored below. Explicitly fetched lazy modules are included; HTML and linked public assets are excluded.",
+    "recordCount": 6,
+    "sha256": "aaef5e9c9dccfb5934a6b7e58c8c261404a6453f5b517e1c48231a39dc94d403",
+    "records": [
+      {
+        "kind": "core-wasm",
+        "path": "/_nextgo/ded8f822a78bb5095b56/app.wasm",
+        "rawBytes": 8401692,
+        "nodeGzip9Bytes": 2157893,
+        "sha256": "24e2fb5d212ea0f474ab6164af9b14da0608fec1a06e45c927927e795b4c6fd3",
+        "wasmSections": {
+          "code": {
+            "bytes": 5511225,
+            "sha256": "390278a4566ebac78d1d58bfa29e6cb653340f56671112511959962d86d0c7fc"
+          },
+          "data": {
+            "bytes": 2876432,
+            "sha256": "d9d6794164b1719db357cfe44d67073e43890b2be9f5e089671286b5eae164e7"
+          }
+        }
+      },
+      {
+        "kind": "bootstrap",
+        "path": "/_nextgo/ded8f822a78bb5095b56/boot.js",
+        "rawBytes": 2592,
+        "nodeGzip9Bytes": 975,
+        "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+      },
+      {
+        "kind": "lazy-wasm",
+        "path": "/_nextgo/ded8f822a78bb5095b56/module-1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa.wasm",
+        "rawBytes": 5426588,
+        "nodeGzip9Bytes": 1488462,
+        "sha256": "1afe649cd85693cf616993617fec8ae9d550025f61f432996f25245849bb4afa",
+        "wasmSections": {
+          "code": {
+            "bytes": 3489322,
+            "sha256": "18c4f4f36a631d62ab5f73c8308c1a6d725ea15c216e8197e53f6e5430b7b7d5"
+          },
+          "data": {
+            "bytes": 1927053,
+            "sha256": "093eb06a96e36867a9f8fea5e05ac74c2f5b3fdb47024eddc54a91273e7060e9"
+          }
+        }
+      },
+      {
+        "kind": "lazy-wasm",
+        "path": "/_nextgo/ded8f822a78bb5095b56/module-416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610.wasm",
+        "rawBytes": 5545630,
+        "nodeGzip9Bytes": 1517623,
+        "sha256": "416e20bc0d96c5e017eab56462ad0c9855660b28111312b32c297f035dbbc610",
+        "wasmSections": {
+          "code": {
+            "bytes": 3572658,
+            "sha256": "b6444fd265a9e60571af1abe3762a1f83d21ac21486f7e8bb84f554ffccd31b5"
+          },
+          "data": {
+            "bytes": 1962499,
+            "sha256": "0eabb3b762dd1dbcb3bbdf9cfcee917460966529be23ab416aa05905fd68fb63"
+          }
+        }
+      },
+      {
+        "kind": "lazy-wasm",
+        "path": "/_nextgo/ded8f822a78bb5095b56/module-f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4.wasm",
+        "rawBytes": 5487829,
+        "nodeGzip9Bytes": 1502217,
+        "sha256": "f7ec4214a8fa23ecbc68c8347c6010bbfdbc9eedaed828ae5a7b09aa44e73aa4",
+        "wasmSections": {
+          "code": {
+            "bytes": 3522628,
+            "sha256": "781d142628043873e2d3e2108f8859cc19ab34d2554a584c83d7cdb5b60d704f"
+          },
+          "data": {
+            "bytes": 1954839,
+            "sha256": "adc87f30f89e22f9625b718cf3c5ac79665f3b695238aef357ce28e4efa81a4f"
+          }
+        }
+      },
+      {
+        "kind": "go-runtime-support",
+        "path": "/_nextgo/ded8f822a78bb5095b56/wasm_exec.js",
+        "rawBytes": 16992,
+        "nodeGzip9Bytes": 4348,
+        "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+      }
+    ]
+  },
+  "measurementCompletion": {
+    "ownedPID": 10958,
+    "sigtermSent": true,
+    "exitEventAwaited": true,
+    "code": 0,
+    "signal": null,
+    "emptyOwnedCwdRemoved": true,
+    "note": "Only the spawned PID was signaled with SIGTERM; its exit event was awaited before the report was written. No user listener, application build or source file was changed."
+  },
+  "measurementMethod": {
+    "transport": "Native Node Fetch against the owned loopback server, Accept-Encoding: identity, redirect:error, exact response-URL equality and HTTP200 checked. No browser or WASM execution.",
+    "compression": "Node gzipSync(level:9) byte length for each complete fetched identity body. These are size observations, not measured wire-compression transfer or timing.",
+    "wasmSections": "Reused prior benchmark framing parser: validate WASM v1 header, read bounded unsigned LEB section lengths, and hash entire Code(id10) and Data(id11) payloads excluding section framing.",
+    "lazyCompleteness": "Every unique compiled module-<64hex>.wasm filename found in the actual served core was fetched. The discovered artifact count equals the separately recorded lazy component count; no fixed count was assumed.",
+    "sourceFreeze": "The exact1,007-entry input manifest digest and each listed regular file byte length/SHA256 were checked before and after measurement; AWS, environment-secret and Git metadata paths were excluded from traversal."
+  }
+}

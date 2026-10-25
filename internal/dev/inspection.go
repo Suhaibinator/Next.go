@@ -30,15 +30,17 @@ const (
 // Inspection is the bounded, public metadata snapshot served by nextgo dev.
 // Graph describes the last successful build, including while a rebuild fails.
 type Inspection struct {
-	Version    int             `json:"version"`
-	Revision   uint64          `json:"revision"`
-	State      string          `json:"state"`
-	Problem    string          `json:"problem,omitempty"`
-	BuildID    string          `json:"buildId,omitempty"`
-	Generation string          `json:"generation,omitempty"`
-	Serving    bool            `json:"serving"`
-	Stale      bool            `json:"stale"`
-	Graph      InspectionGraph `json:"graph"`
+	Version         int             `json:"version"`
+	Revision        uint64          `json:"revision"`
+	State           string          `json:"state"`
+	Problem         string          `json:"problem,omitempty"`
+	BuildID         string          `json:"buildId,omitempty"`
+	Generation      string          `json:"generation,omitempty"`
+	RefreshRevision uint64          `json:"refreshRevision"`
+	RefreshEnabled  bool            `json:"refreshEnabled"`
+	Serving         bool            `json:"serving"`
+	Stale           bool            `json:"stale"`
+	Graph           InspectionGraph `json:"graph"`
 }
 
 type InspectionGraph struct {
@@ -91,9 +93,14 @@ func (s *supervisor) inspectionSnapshot() Inspection {
 	if graph.Edges == nil {
 		graph.Edges = []InspectionEdge{}
 	}
-	return Inspection{Version: inspectionVersion, Revision: s.inspection.revision,
+	snapshot := Inspection{Version: inspectionVersion, Revision: s.inspection.revision,
 		State: state, Problem: s.inspection.problem, BuildID: s.id, Generation: s.generation,
 		Serving: s.proxy != nil, Stale: s.id != "" && state != "ready", Graph: graph}
+	if s.refresh != nil {
+		snapshot.RefreshEnabled = true
+		snapshot.RefreshRevision = s.refresh.Revision
+	}
+	return snapshot
 }
 
 func (s *supervisor) inspect(w http.ResponseWriter, r *http.Request) {
