@@ -156,3 +156,62 @@ commit outcome; use application transaction/idempotency and recovery policies.
 For shared Go input/output contracts, versioned endpoints and a WASM caller, see
 [typed mutation contracts](../docs/MUTATIONS.md). Existing untyped handlers remain
 available; typed binding still uses this router’s origin, body and effect rules.
+
+## Experimental native cookie results
+
+`actions.Result.Cookies` and native `mutation.Result[Output].Cookies` accept
+`[]*http.Cookie` as explicit HTTP output controls. They are excluded from JSON;
+ordinary typed calls retain the same data/redirect envelope and receive cookies
+through the browser's normal HTTP handling. Authentication, token generation,
+signing, persistence, revocation and session authorization remain application
+responsibilities. Browser components cannot create these native controls.
+
+For example, after an authenticated server-side operation:
+
+```go
+cookiePath, err := nextgo.URL(c.Context, "/")
+if err != nil {
+    return mutation.Result[Profile]{}, err
+}
+return mutation.Result[Profile]{
+    Data: profile,
+    Cookies: []*http.Cookie{{
+        Name: "session", Value: token, Path: cookiePath,
+        HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode,
+    }},
+}, nil
+```
+
+Choose an **explicit public `Path` for authentication/session cookies**, using
+the deployment URL helper when appropriate. The framework does not prepend the
+mount or locale automatically. An empty Path preserves standard browser
+default-path behavior for the action endpoint; it may not cover the intended
+page. `Domain` is validated as cookie syntax, but its authorization and intended
+scope are the application's responsibility; browser domain acceptance still
+applies. Same-name cookies with different paths or domains are permitted.
+
+The entire list is frozen and validated before publication: at most 32 cookies,
+8 KiB per rendered Set-Cookie value and 32 KiB total. Nil cookies, duplicate
+name/domain/path tuples (domain case and leading dots normalized), invalid Go
+cookie fields, control characters and non-rooted/backslash paths fail output
+validation. Ignored raw/unparsed metadata has a separate 8 KiB bound. `__Secure-`
+requires Secure; `__Host-` requires Secure, Path `/`, and no Domain.
+SameSite=None and partitioned cookies require Secure. Invalid SameSite values
+and out-of-range expiry years are rejected. Deletion uses normal MaxAge/Expires
+semantics and must select the same scope as the cookie being deleted.
+
+Cookies are staged together only after the handler succeeds, redirects and
+JSON encoding validate, and the existing `OnRevalidate` callback returns
+successfully. Responses with these cookies are private/no-store. A view renderer
+then sees the actual Set-Cookie headers before loading a fresh current view.
+Errors, malformed cookie lists, failed encoding, and invalid redirects publish
+none of the result's cookies and do not run invalidation callbacks. Existing
+view-only result size/JSON rejection still preserves its previously documented
+invalidation behavior while suppressing cookies. An invalidation-hook panic
+also suppresses the staged cookies.
+
+Output failure does **not** undo a backing mutation. It can leave an unknown
+outcome requiring application reconciliation before retry. Likewise, an already
+started response or a renderer/transport failure cannot roll back cookies sent
+to the browser. This is an experimental output-control contract, not a managed
+session or transaction system. Cookie validation diagnostics omit cookie values.

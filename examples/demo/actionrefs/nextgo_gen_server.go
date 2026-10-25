@@ -7,19 +7,29 @@ import (
 	"fmt"
 	actions "github.com/Suhaibinator/Next.go/actions"
 	a0 "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add"
-	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
+	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/session/login"
+	a2 "github.com/Suhaibinator/Next.go/examples/demo/actions/session/logout"
+	a3 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
 )
 
-var _ actionGeneration_5d137e7b666659383379aa866e5b0485caa8c858f1ec324e9079d16374ec423f
+var _ actionGeneration_08386bacedd864f9b76e3b2d8fc8cac92981b610e72e94170af0730ba3398dbb
 
 // Register binds generated contracts to the supplied app-owned router.
 func Register(router *actions.Router) {
 	if a0.Contract.Name() != "generated/add" || a0.Contract.Revision() != "v1" {
 		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "generated/add"))
 	}
-	if a1.Contract.Name() != "view/save" || a1.Contract.Revision() != "v1" {
+	if a1.Contract.Name() != "session/login" || a1.Contract.Revision() != "v1" {
+		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "session/login"))
+	}
+	if a2.Contract.Name() != "session/logout" || a2.Contract.Revision() != "v1" {
+		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "session/logout"))
+	}
+	if a3.Contract.Name() != "view/save" || a3.Contract.Revision() != "v1" {
 		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "view/save"))
 	}
 	a0.Contract.Bind(router, a0.Handle, a0.Options())
 	a1.Contract.Bind(router, a1.Handle, a1.Options())
+	a2.Contract.Bind(router, a2.Handle, a2.Options())
+	a3.Contract.Bind(router, a3.Handle, a3.Options())
 }

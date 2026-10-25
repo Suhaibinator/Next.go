@@ -5,6 +5,7 @@ package mutation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"syscall/js"
 
@@ -37,7 +38,7 @@ func (c Contract[I, O]) Call(ctx context.Context, input I, options ...CallOption
 		return zero, fmt.Errorf("nextgo: mutation requires a context and at most one options value")
 	}
 	if err := ctx.Err(); err != nil {
-		return zero, err
+		return zero, context.Cause(ctx)
 	}
 	opts, err := callOptions(options)
 	if err != nil {
@@ -75,7 +76,7 @@ func (c Contract[I, O]) CallMultipart(ctx context.Context, form *client.Multipar
 		return result, fmt.Errorf("nextgo: mutation requires a context and at most one options value")
 	}
 	if err := ctx.Err(); err != nil {
-		return result, err
+		return result, context.Cause(ctx)
 	}
 	opts, err := callOptions(options)
 	if err != nil {
@@ -130,18 +131,29 @@ func (c Contract[I, O]) callTransport(ctx context.Context, request client.FetchO
 	request.Headers["Accept"] = "application/json"
 	request.Headers[actionwire.ProtocolHeader] = actionwire.Protocol
 	request.Headers[actionwire.RevisionHeader] = c.revision
-	response, err := client.Fetch(ctx, expected, request)
+	var decoded Response[O]
+	var validationErr error
+	err = client.DispatchMutation(ctx, expected, request, func(response client.Response) error {
+		if response.URL != expected {
+			validationErr = fmt.Errorf("%w: endpoint changed", ErrProtocol)
+		} else if !jsonMediaType(response.Header.Get("Content-Type")) {
+			validationErr = fmt.Errorf("%w: expected JSON", ErrProtocol)
+		} else {
+			decoded, validationErr = decode[O](response.StatusCode, response.Header.Get(actionwire.ProtocolHeader), response.Header.Get(actionwire.RevisionHeader), c.revision, response.Body)
+		}
+		return validationErr
+	})
+	if validationErr != nil {
+		return zero, validationErr
+	}
 	if err != nil {
+		if errors.Is(err, client.ErrMutationQueueFull) || errors.Is(err, client.ErrMutationQueueFrozen) {
+			return zero, err
+		}
 		if ctx.Err() != nil {
-			return zero, ctx.Err()
+			return zero, context.Cause(ctx)
 		}
 		return zero, fmt.Errorf("nextgo: mutation transport failed; reconcile before retrying: %w", err)
 	}
-	if response.URL != expected {
-		return zero, fmt.Errorf("%w: endpoint changed", ErrProtocol)
-	}
-	if !jsonMediaType(response.Header.Get("Content-Type")) {
-		return zero, fmt.Errorf("%w: expected JSON", ErrProtocol)
-	}
-	return decode[O](response.StatusCode, response.Header.Get(actionwire.ProtocolHeader), response.Header.Get(actionwire.RevisionHeader), c.revision, response.Body)
+	return decoded, nil
 }

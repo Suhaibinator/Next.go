@@ -56,8 +56,13 @@ func beginFrameworkAction() {
 	invalidateCache()
 }
 func installActionViewLifecycle() {
-	listen(win, "pagehide", func(js.Value) { actionViewFrozen = true; cancelActionView() })
-	listen(win, "pageshow", func(js.Value) { actionViewFrozen = false })
+	listen(win, "pagehide", func(js.Value) { actionViewFrozen = true; coreMutationQueue().freeze(); cancelActionView() })
+	listen(win, "pageshow", func(js.Value) {
+		actionViewFrozen = false
+		if !draftFrozen {
+			coreMutationQueue().reopen()
+		}
+	})
 }
 func actionHistoryEntry() string {
 	state := win.Get("history").Get("state")
@@ -73,10 +78,10 @@ func (o *actionViewOwner) check() error {
 	detached := o.detached
 	o.mu.Unlock()
 	if err := o.ctx.Err(); err != nil {
-		return err
+		return context.Cause(o.ctx)
 	}
 	if !detached && o.caller.Err() != nil {
-		return o.caller.Err()
+		return context.Cause(o.caller)
 	}
 	if activeActionView != o || frameworkActionSequence != o.sequence || navigationID != o.navigation || currentURL != o.source || win.Get("location").Get("href").String() != o.source || draftFrozen || actionViewFrozen || documentDraft() != o.draft || documentConfiguration() != o.configuration || doc.Get("body").Call("getAttribute", "data-nextgo-build").String() != o.build || actionHistoryEntry() != o.history {
 		return fmt.Errorf("action view was superseded")
@@ -156,7 +161,17 @@ func ActionView(ctx context.Context, target string, request FetchOptions, valida
 		return outcome, fmt.Errorf("action view requires context and result validator")
 	}
 	if err = ctx.Err(); err != nil {
-		return outcome, err
+		return outcome, context.Cause(ctx)
+	}
+	release, queueErr := coreMutationQueue().acquire(ctx)
+	if queueErr != nil {
+		return outcome, queueErr
+	}
+	defer release()
+	if request.beforeMutationDispatch != nil {
+		if err := request.beforeMutationDispatch(); err != nil {
+			return outcome, err
+		}
 	}
 	if currentURL == "" || staticExport() || draftFrozen || actionViewFrozen || !frameworkActionRequest(target, "POST") {
 		return outcome, fmt.Errorf("action view is unavailable for this document or endpoint")
@@ -226,6 +241,7 @@ func ActionView(ctx context.Context, target string, request FetchOptions, valida
 	request.Redirect = "error"
 	request.MaxBytes = actionview.MaxBytes
 	request.skipActionFence = true
+	request.physicalSettlement = true
 	var response Response
 	var buffered []byte
 	var decoder actionview.Decoder

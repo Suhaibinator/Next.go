@@ -29,6 +29,7 @@ func clearDraftRetry() {
 }
 
 func freezeDraftDocument() {
+	coreMutationQueue().freeze()
 	first := !draftFrozen
 	draftFrozen = true
 	syncLazyModules()
@@ -102,6 +103,9 @@ func resumeDraftDocument() {
 		}
 		restoreDraftStatus(status)
 		draftFrozen = false
+		if !actionViewFrozen {
+			coreMutationQueue().reopen()
+		}
 		syncLazyModules()
 		doc.Get("body").Call("removeAttribute", "data-nextgo-frozen")
 		restoreDraftFocus()

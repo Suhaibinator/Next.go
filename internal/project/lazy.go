@@ -74,8 +74,12 @@ func compileLazy(ctx context.Context, p *Project, buildDir, epoch, tagsFlag stri
 		if err := validateBrowserGraph(ctx, p, dir, tagsFlag); err != nil {
 			return nil, err
 		}
+		target, overlay, err := generatedEntryOverlay(ctx, p.Root, dir, fmt.Sprintf("module-%d", i))
+		if err != nil {
+			return nil, err
+		}
 		path := filepath.Join(dir, "module.wasm")
-		if err := run(ctx, p.Root, output, []string{"GOOS=js", "GOARCH=wasm"}, "build", tagsFlag, "-trimpath", "-ldflags=-s -w", "-o", path, dir); err != nil {
+		if err := run(ctx, p.Root, output, []string{"GOOS=js", "GOARCH=wasm"}, "build", tagsFlag, "-overlay="+overlay, "-trimpath", "-ldflags=-s -w", "-o", path, target); err != nil {
 			return nil, err
 		}
 		data, err := os.ReadFile(path)

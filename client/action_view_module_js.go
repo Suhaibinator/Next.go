@@ -28,6 +28,18 @@ type moduleActionViewResult struct {
 }
 
 func actionViewFromHost(ctx context.Context, target string, request FetchOptions, validate func(Response) error) (outcome ActionViewOutcome, err error) {
+	return mutationFromHost(ctx, target, request, validate, "actionView")
+}
+
+func dispatchMutationFromHost(ctx context.Context, target string, request FetchOptions, validate func(Response) error) error {
+	// A confirmed ordinary mutation has no remaining view phase. Any failure
+	// after source validation cannot turn that accepted result back into an
+	// unknown mutation outcome.
+	_, err := mutationFromHost(ctx, target, request, validate, "mutation")
+	return err
+}
+
+func mutationFromHost(ctx context.Context, target string, request FetchOptions, validate func(Response) error, method string) (outcome ActionViewOutcome, err error) {
 	confirmed := false
 	defer func() {
 		if failure := recover(); failure != nil {
@@ -48,7 +60,7 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 		return outcome, fmt.Errorf("nextgo: action view requires a context and validator")
 	}
 	if err := ctx.Err(); err != nil {
-		return outcome, err
+		return outcome, context.Cause(ctx)
 	}
 	if request.Multipart != nil && request.Body != nil {
 		return outcome, fmt.Errorf("nextgo: multipart and byte body are mutually exclusive")
@@ -81,12 +93,22 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 				result = validationErr.Error()
 			}
 		}()
+		// A queued dispatch probes the source synchronously after acquiring
+		// core's lease. The asynchronous AbortSignal watcher may not have run
+		// yet, so this check must not depend on it or consume result validation.
+		if len(args) == 1 && args[0].IsNull() {
+			if ctx.Err() != nil {
+				validationErr = context.Cause(ctx)
+				return validationErr.Error()
+			}
+			return ""
+		}
 		if validated {
 			return "nextgo: module action result validator called twice"
 		}
 		validated = true
 		if ctx.Err() != nil {
-			validationErr = ctx.Err()
+			validationErr = context.Cause(ctx)
 			return validationErr.Error()
 		}
 		if len(args) != 1 || args[0].Type() != js.TypeString || len(args[0].String()) > 128<<10 {
@@ -114,7 +136,7 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 		}
 	}()
 	controller := win.Get("AbortController").New()
-	promise := moduleHost.Call("actionView", target, string(metadata), body, validator, controller.Get("signal"))
+	promise := moduleHost.Call(method, target, string(metadata), body, validator, controller.Get("signal"))
 	if promise.Type() != js.TypeObject || promise.IsNull() || promise.Get("then").Type() != js.TypeFunction {
 		return outcome, fmt.Errorf("nextgo: invalid action view host promise")
 	}
@@ -138,11 +160,11 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 	}
 	if promiseErr != nil {
 		if confirmed {
-			outcome.Err = promiseErr
+			outcome.Err = moduleMutationContextError(ctx, promiseErr)
 			return outcome, nil
 		}
 		if ctx.Err() != nil {
-			return outcome, ctx.Err()
+			return outcome, context.Cause(ctx)
 		}
 		return outcome, promiseErr
 	}
@@ -156,19 +178,13 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 	}
 	outcome.Applied, outcome.Status = result.Applied, result.Status
 	if result.Error != "" {
-		outcome.Err = fmt.Errorf("%s", result.Error)
-		if ctx.Err() != nil && result.Error == ctx.Err().Error() {
-			outcome.Err = ctx.Err()
-		}
+		outcome.Err = moduleMutationContextError(ctx, fmt.Errorf("%s", result.Error))
 	}
 	if result.PreError != "" {
 		if confirmed {
-			outcome.Err = fmt.Errorf("%s", result.PreError)
+			outcome.Err = moduleMutationContextError(ctx, fmt.Errorf("%s", result.PreError))
 		} else {
-			if ctx.Err() != nil {
-				return outcome, ctx.Err()
-			}
-			return outcome, fmt.Errorf("%s", result.PreError)
+			return outcome, moduleMutationContextError(ctx, fmt.Errorf("%s", result.PreError))
 		}
 	}
 	if !confirmed {
@@ -177,9 +193,30 @@ func actionViewFromHost(ctx context.Context, target string, request FetchOptions
 	return outcome, nil
 }
 
+func moduleMutationContextError(ctx context.Context, err error) error {
+	switch err.Error() {
+	case ErrMutationQueueFull.Error():
+		return ErrMutationQueueFull
+	case ErrMutationQueueFrozen.Error():
+		return ErrMutationQueueFrozen
+	}
+	if ctx.Err() != nil && (err.Error() == ctx.Err().Error() || err.Error() == context.Canceled.Error() || err.Error() == context.DeadlineExceeded.Error() || err.Error() == context.Cause(ctx).Error()) {
+		return context.Cause(ctx)
+	}
+	return err
+}
+
 // actionViewHostPromise runs only in the core runtime. Promise settlement is
 // the physical lifetime boundary for both the source validator and abort hook.
 func actionViewHostPromise(args []js.Value) any {
+	return mutationHostOperation(args, true)
+}
+
+func mutationHostPromise(args []js.Value) any {
+	return mutationHostOperation(args, false)
+}
+
+func mutationHostOperation(args []js.Value, refresh bool) any {
 	var executor js.Func
 	executor = js.FuncOf(func(_ js.Value, promises []js.Value) any {
 		resolve, reject := promises[0], promises[1]
@@ -213,7 +250,14 @@ func actionViewHostPromise(args []js.Value) any {
 				}
 			}()
 			request := FetchOptions{Method: metadata.Method, Headers: metadata.Headers, MaxBytes: metadata.MaxBytes, Cache: metadata.Cache, Redirect: metadata.Redirect, browserBody: args[2]}
-			outcome, err := ActionView(ctx, args[0].String(), request, func(response Response) error {
+			request.beforeMutationDispatch = func() error {
+				result := args[3].Invoke(js.Null())
+				if result.Type() != js.TypeString || result.String() != "" {
+					return fmt.Errorf("nextgo: module mutation dispatch rejected")
+				}
+				return nil
+			}
+			validate := func(response Response) error {
 				encoded, err := json.Marshal(response)
 				if err != nil {
 					return err
@@ -223,7 +267,14 @@ func actionViewHostPromise(args []js.Value) any {
 					return fmt.Errorf("nextgo: module action result rejected")
 				}
 				return nil
-			})
+			}
+			var outcome ActionViewOutcome
+			var err error
+			if refresh {
+				outcome, err = ActionView(ctx, args[0].String(), request, validate)
+			} else {
+				err = DispatchMutation(ctx, args[0].String(), request, validate)
+			}
 			result := moduleActionViewResult{Applied: outcome.Applied, Status: outcome.Status}
 			if err != nil {
 				result.PreError = err.Error()

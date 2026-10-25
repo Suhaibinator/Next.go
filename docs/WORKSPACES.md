@@ -22,6 +22,27 @@ Input hashing streams regular files with cancellation checks. The current limits
 
 Generated `.nextgo` output, Git metadata, dependency/output directories and ordinary hidden directories remain excluded from source polling. Explicit embed patterns may include otherwise excluded data, as Go permits; public assets retain their existing hidden-file rules. Workspace and local dependency sources are included in runtime build identities, but native server packages and loaders do not become browser imports. Native-only files should use build constraints or a blank `serveronly` import, as before.
 
+## Compiler overlay/reproducibility work in progress
+
+The next compiler increment is under implementation/qualification. It uses a
+private per-build overlay with stable virtual generated main-package/source
+paths, while preserving the owning module, Main and VCS metadata in Go build
+information. A source-file target that drops that provenance is not the accepted
+contract. No full application-build/reproducibility matrix is claimed yet.
+
+Caller `GOFLAGS=-overlay=...` mappings must be merged with framework mappings,
+rather than silently replaced. Overlay JSON and backing files participate in
+input/watch tracking; paths follow the Go command's working-directory rules,
+not the directory containing the JSON file. Reserved generated-path collisions
+fail closed. This integration and its limits/tests are still being qualified;
+do not infer support for every overlay/workspace combination from the preceding
+workspace tests below.
+
+The goal addresses timestamped generated-main-path/build-ID churn in WASM.
+Prerendered native artifacts also contain intentional generation ages, so
+stable compiler paths do not imply byte-identical native binaries or complete
+checkout/toolchain-independent release reproducibility. G07 remains open.
+
 ## Verification and remaining work
 
 [Native tests](../internal/project/inputs_test.go) cover workspace module selection, nested ownership, local/alternate-file replacements, missing targets, error recovery, symlink inputs, embed patterns/exclusions, cancellation and file limits. A real native/WASM compile fixture proves that sibling server-only embedded data stays outside the browser binary. [Browser tests](../tests/workspace.spec.mjs) compare initial SSR node identity, run the sibling-module Go counter, and navigate/history-traverse without reloading the document. [Development checks](../tests/workspace-dev.spec.mjs) edit a sibling Go file and embedded text, retain the last working browser state during errors and recover from broken manifests. [Executable tests](../tests/deployment/workspace_test.go) run the source-independent workspace sample over native HTTP and both mock Lambda response modes; the Linux fixture runs non-root with a read-only filesystem.

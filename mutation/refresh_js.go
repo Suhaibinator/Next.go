@@ -35,7 +35,7 @@ func (c Contract[I, O]) CallAndRefresh(ctx context.Context, input I, options ...
 		return result, fmt.Errorf("nextgo: mutation requires a context and at most one options value")
 	}
 	if err = ctx.Err(); err != nil {
-		return
+		return result, context.Cause(ctx)
 	}
 	opts, err := callOptions(options)
 	if err != nil {
@@ -66,7 +66,7 @@ func (c Contract[I, O]) CallMultipartAndRefresh(ctx context.Context, form *clien
 		return result, fmt.Errorf("nextgo: mutation requires a context and at most one options value")
 	}
 	if err = ctx.Err(); err != nil {
-		return
+		return result, context.Cause(ctx)
 	}
 	opts, err := callOptions(options)
 	if err != nil {

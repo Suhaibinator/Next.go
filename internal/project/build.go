@@ -50,8 +50,12 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	if err != nil {
 		return nil, err
 	}
-	buildDir := filepath.Join(p.Root, ".nextgo", fmt.Sprintf("build-%d", time.Now().UnixNano()))
-	if err = os.MkdirAll(buildDir, 0755); err != nil {
+	generations := filepath.Join(p.Root, ".nextgo")
+	if err = os.MkdirAll(generations, 0755); err != nil {
+		return nil, err
+	}
+	buildDir, err := os.MkdirTemp(generations, "build-")
+	if err != nil {
 		return nil, err
 	}
 	success := false
@@ -74,8 +78,14 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	if err := validateBrowserGraph(ctx, p, clientDir, coreTags); err != nil {
 		return nil, err
 	}
+	// Stable virtual packages retain module/VCS provenance without leaking the
+	// private generation directory into compiler identity or source filenames.
+	clientTarget, clientOverlay, err := generatedEntryOverlay(ctx, p.Root, clientDir, "client")
+	if err != nil {
+		return nil, err
+	}
 	wasm := filepath.Join(buildDir, "app.wasm")
-	if err = run(ctx, p.Root, output, []string{"GOOS=js", "GOARCH=wasm"}, "build", coreTags, "-trimpath", "-ldflags=-s -w", "-o", wasm, clientDir); err != nil {
+	if err = run(ctx, p.Root, output, []string{"GOOS=js", "GOARCH=wasm"}, "build", coreTags, "-overlay="+clientOverlay, "-trimpath", "-ldflags=-s -w", "-o", wasm, clientTarget); err != nil {
 		return nil, err
 	}
 	data, err := os.ReadFile(wasm)
@@ -133,7 +143,11 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	if !dev && hasPrerenderFiles(p) {
 		// Execute build-time application code on the host, even for a Linux target.
 		probe := filepath.Join(buildDir, "prerender-probe")
-		if err = run(ctx, p.Root, output, []string{"GOOS=" + runtime.GOOS, "GOARCH=" + runtime.GOARCH}, "build", "-trimpath", "-ldflags=-s -w", "-o", probe, serverDir); err != nil {
+		serverTarget, serverOverlay, overlayErr := generatedEntryOverlay(ctx, p.Root, serverDir, "server")
+		if overlayErr != nil {
+			return nil, overlayErr
+		}
+		if err = run(ctx, p.Root, output, []string{"GOOS=" + runtime.GOOS, "GOARCH=" + runtime.GOARCH}, "build", "-overlay="+serverOverlay, "-trimpath", "-ldflags=-s -w", "-o", probe, serverTarget); err != nil {
 			return nil, err
 		}
 		artifact := filepath.Join(private, "prerender.json")
@@ -175,7 +189,14 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 			return nil, err
 		}
 	}
-	if err = run(ctx, p.Root, output, nil, "build", "-trimpath", "-ldflags=-s -w", "-o", binary, serverDir); err != nil {
+	serverTarget, serverOverlay, err := generatedEntryOverlay(ctx, p.Root, serverDir, "server")
+	if err != nil {
+		return nil, err
+	}
+	if err = run(ctx, p.Root, output, nil, "build", "-overlay="+serverOverlay, "-trimpath", "-ldflags=-s -w", "-o", binary, serverTarget); err != nil {
+		return nil, err
+	}
+	if err := validateGeneratedVirtualRoot(p.Root); err != nil {
 		return nil, err
 	}
 	finalFingerprint, err := fingerprintExceptContext(ctx, p.Root, "")

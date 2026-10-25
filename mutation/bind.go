@@ -5,6 +5,7 @@ package mutation
 import (
 	"encoding/json"
 	"mime"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -15,6 +16,8 @@ type Result[O any] struct {
 	Data                            O
 	Redirect                        string
 	RevalidateTags, RevalidatePaths []string
+	// Cookies are native HTTP output controls, never part of typed JSON data.
+	Cookies []*http.Cookie `json:"-"`
 }
 
 type BindOptions[I any] struct {
@@ -68,12 +71,22 @@ func (c Contract[I, O]) Bind(router *actions.Router, handler func(*actions.Conte
 		if err != nil {
 			return actions.Result{}, err
 		}
+		// Snapshot native controls before an application-defined data marshaler
+		// can change the handler's cookie objects or their metadata backing slice.
+		cookies := make([]*http.Cookie, len(result.Cookies))
+		for i, cookie := range result.Cookies {
+			if cookie != nil {
+				copyCookie := *cookie
+				copyCookie.Unparsed = append([]string(nil), cookie.Unparsed...)
+				cookies[i] = &copyCookie
+			}
+		}
 		// Force a present data field even for nil/interface outputs. The router
 		// still stages serialization and revalidation before writing success.
 		data, err := json.Marshal(result.Data)
 		if err != nil {
 			return actions.Result{}, err
 		}
-		return actions.Result{Data: json.RawMessage(data), Redirect: result.Redirect, RevalidateTags: result.RevalidateTags, RevalidatePaths: result.RevalidatePaths}, nil
+		return actions.Result{Data: json.RawMessage(data), Redirect: result.Redirect, RevalidateTags: result.RevalidateTags, RevalidatePaths: result.RevalidatePaths, Cookies: cookies}, nil
 	})
 }

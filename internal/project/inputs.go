@@ -24,7 +24,11 @@ type moduleFile struct {
 	Replace []moduleReplacement
 }
 type moduleInfo struct{ Dir, Path, GoMod string }
-type inputPlan struct{ Roots, Files []string }
+type inputPlan struct {
+	Roots, Files             []string
+	GeneratedRoot            string
+	Overlays, OverlaySources map[string]string
+}
 
 // Go reports one JSON record per workspace main module. Select the module that
 // owns this application rather than assuming the stream contains one record.
@@ -159,6 +163,12 @@ func resolveInputs(ctx context.Context, root string) (inputPlan, error) {
 			first = err
 		}
 	}
+	plan.GeneratedRoot = filepath.Join(canonicalInput(root), ".nextgo", "generated")
+	record(validateGeneratedVirtualRoot(canonicalInput(root)))
+	overlay, overlayErr := readCallerOverlay(ctx, root)
+	plan.Files = append(plan.Files, overlay.Files...)
+	plan.Overlays, plan.OverlaySources = overlay.Replace, overlay.Sources
+	record(overlayErr)
 	data, err := goInputJSON(ctx, root, "env", "-json", "GOMOD", "GOWORK")
 	if err != nil {
 		return plan, err
@@ -251,8 +261,31 @@ func (w *SourceWatcher) Fingerprint(ctx context.Context, root string) (string, e
 		for _, dir := range w.previous.Roots {
 			addUnique(&plan.Roots, dir)
 		}
+		seenFiles := make(map[string]bool, len(plan.Files)+len(w.previous.Files))
+		for _, file := range plan.Files {
+			seenFiles[file] = true
+		}
 		for _, file := range w.previous.Files {
-			addUnique(&plan.Files, file)
+			if !seenFiles[file] {
+				seenFiles[file] = true
+				plan.Files = append(plan.Files, file)
+			}
+		}
+		if plan.Overlays == nil {
+			plan.Overlays = map[string]string{}
+		}
+		if plan.OverlaySources == nil {
+			plan.OverlaySources = map[string]string{}
+		}
+		for from, to := range w.previous.Overlays {
+			if _, ok := plan.Overlays[from]; !ok {
+				plan.Overlays[from] = to
+			}
+		}
+		for from, to := range w.previous.OverlaySources {
+			if _, ok := plan.OverlaySources[from]; !ok {
+				plan.OverlaySources[from] = to
+			}
 		}
 	} else {
 		w.previous = plan
@@ -371,6 +404,24 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 	}
 	sort.Strings(plan.Roots)
 	sort.Strings(plan.Files)
+	if plan.GeneratedRoot != "" {
+		kind := byte('M')
+		info, err := os.Lstat(plan.GeneratedRoot)
+		if err != nil && !os.IsNotExist(err) {
+			return "", err
+		}
+		if err == nil {
+			kind = 'F'
+			if info.IsDir() {
+				kind = 'D'
+			} else if info.Mode()&os.ModeSymlink != 0 {
+				kind = 'L'
+			}
+		}
+		if err := record(plan.GeneratedRoot, kind, 0); err != nil {
+			return "", err
+		}
+	}
 	for _, file := range plan.Files {
 		if err := consume(file, true, true); err != nil {
 			return "", err
@@ -413,7 +464,8 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 			if err := consume(name, false, !publicAsset); err != nil {
 				return err
 			}
-			if ext == ".go" && !scanned[name] {
+			_, overlaid := overlayBacking(plan.Overlays, name)
+			if ext == ".go" && !scanned[name] && !overlaid {
 				scanned[name] = true
 				file, err := os.Open(name)
 				if err != nil {
@@ -440,8 +492,37 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 			return "", err
 		}
 	}
+	overlaySources := make([]string, 0, len(plan.OverlaySources))
+	for name := range plan.OverlaySources {
+		overlaySources = append(overlaySources, name)
+	}
+	sort.Strings(overlaySources)
+	for _, name := range overlaySources {
+		backing := plan.OverlaySources[name]
+		file, err := os.Open(backing)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		data, err := io.ReadAll(inputReader{ctx, io.LimitReader(file, maxInputFile+1)})
+		_ = file.Close()
+		if err != nil {
+			return "", err
+		}
+		if len(data) > maxInputFile {
+			return "", fmt.Errorf("overlaid Go source exceeds build input limit")
+		}
+		for _, pattern := range embeddedPatterns(name, data) {
+			if len(embeds) >= 10000 {
+				return "", fmt.Errorf("build inputs exceed 10000 embed patterns")
+			}
+			embeds = append(embeds, struct{ dir, pattern string }{filepath.Dir(name), pattern})
+		}
+	}
 	for _, embed := range embeds {
-		if err := expandEmbedded(embed.dir, embed.pattern, func(name string) error { return consume(name, false, false) }); err != nil {
+		if err := expandEmbeddedOverlay(embed.dir, embed.pattern, plan.Overlays, func(name string) error { return consume(name, false, false) }); err != nil {
 			return "", err
 		}
 	}

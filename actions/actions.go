@@ -49,6 +49,9 @@ type Result struct {
 	Redirect        string   `json:"redirect,omitempty"`
 	RevalidateTags  []string `json:"-"`
 	RevalidatePaths []string `json:"-"`
+	// Cookies stage native HTTP Set-Cookie values on successful output. Prefer an
+	// explicit public Path; an empty Path keeps browser action-URL defaults.
+	Cookies []*http.Cookie `json:"-"`
 }
 
 type Handler func(*Context) (Result, error)
@@ -299,6 +302,13 @@ func (r *Router) serve(w http.ResponseWriter, req *http.Request, render func(htt
 		r.handleError(w, req, err)
 		return
 	}
+	cookieHeaders, err := prepareCookieHeaders(result.Cookies)
+	if err != nil {
+		// Cookie output may follow a committed backing mutation. Do not expose
+		// cookie values or claim database rollback when output validation fails.
+		r.resultError(w, req, err, true)
+		return
+	}
 	if result.Redirect != "" && !safeRedirect(result.Redirect) {
 		r.resultError(w, req, errors.New("action returned an unsafe redirect"), view)
 		return
@@ -318,18 +328,31 @@ func (r *Router) serve(w http.ResponseWriter, req *http.Request, render func(htt
 		r.resultError(w, req, err, view)
 		return
 	}
+	var viewErr error
+	if view {
+		if len(encoded) > actionview.MaxResult {
+			viewErr = errors.New("actions: successful action view result exceeds byte limit; mutation may have committed")
+		} else if err := wirejson.Unique(encoded); err != nil {
+			viewErr = errors.New("actions: successful action view result contains ambiguous JSON; mutation may have committed")
+		}
+	}
 	if r.options.OnRevalidate != nil && (len(result.RevalidateTags) > 0 || len(result.RevalidatePaths) > 0) {
 		r.options.OnRevalidate(append([]string(nil), result.RevalidateTags...), append([]string(nil), result.RevalidatePaths...))
 	}
+	if viewErr != nil {
+		r.resultError(w, req, viewErr, true)
+		return
+	}
+	// Publish the complete cookie set only after output validation and a
+	// successful invalidation callback. A fresh-view renderer sees these actual
+	// response headers when constructing its cookie jar.
+	for _, header := range cookieHeaders {
+		w.Header().Add("Set-Cookie", header)
+	}
+	if len(cookieHeaders) > 0 {
+		w.Header().Set("Cache-Control", "private, no-store")
+	}
 	if view {
-		if len(encoded) > actionview.MaxResult {
-			r.resultError(w, req, errors.New("actions: successful action view result exceeds byte limit; mutation may have committed"), true)
-			return
-		}
-		if err := wirejson.Unique(encoded); err != nil {
-			r.resultError(w, req, errors.New("actions: successful action view result contains ambiguous JSON; mutation may have committed"), true)
-			return
-		}
 		render(w, req, ViewSuccess{Encoded: append([]byte(nil), encoded...), Redirect: result.Redirect, RevalidateTags: append([]string(nil), result.RevalidateTags...), RevalidatePaths: append([]string(nil), result.RevalidatePaths...)})
 		return
 	}

@@ -85,6 +85,9 @@ func Composition() string { return "/composition" }
 // CompositionDetails constructs the application path for page /composition/details.
 func CompositionDetails() string { return "/composition/details" }
 
+// CookieSession constructs the application path for page /cookie-session.
+func CookieSession() string { return "/cookie-session" }
+
 // DocsByPath constructs the application path for page /docs/*path.
 func DocsByPath(p DocsByPathParams) (string, error) {
 	return routeinfo.BuildPath("/docs/*path", map[string][]string{"path": p.Path})

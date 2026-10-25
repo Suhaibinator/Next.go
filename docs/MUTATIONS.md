@@ -178,9 +178,12 @@ regressions (254 distinct local checks), both SDK native/WASM checks and
 host/Linux executable suites. It is not full D10 or production qualification.
 Its protocol, invalidation acknowledgement, cookie/draft handling, document
 ownership and limits are described in [ACTION_VIEWS.md](ACTION_VIEWS.md).
-Native typed action contexts/results still lack managed cookie mutation controls;
-the new jar handles POST-middleware/page effects. Login/logout, automatic refresh
-from action cookies and sequential client dispatch remain open D02/D10 work.
+Native typed results now expose [validated cookie output](NATIVE_COOKIES.md),
+and [document-wide FIFO dispatch](MUTATION_DISPATCH.md) coordinates typed JSON,
+multipart and combined calls. These additions are under implementation/
+qualification; the preceding 254-case action-view source does not qualify them.
+Generic Fetch/server transactions remain independent, and complete login/logout,
+session revocation and automatic ordinary-call refresh semantics remain open.
 
 ## Verification and remaining work
 

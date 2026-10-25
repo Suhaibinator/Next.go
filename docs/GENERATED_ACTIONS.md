@@ -117,8 +117,11 @@ host/Linux executable checks. Its nil top-level error confirms mutation data eve
 when `View.Err` reports a view failure; never repeat a confirmed write to fix UI.
 See [combined confirmation/view semantics](ACTION_VIEWS.md). The 193-check
 generated-action matrix below describes the preceding ordinary-call subset.
-Generated wrappers do not add handler cookie mutation APIs or sequential
-dispatch; those remain open alongside complete login/logout/refresh behavior.
+Generated wrappers now inherit the in-progress native `Result.Cookies` output
+and core typed-dispatch FIFO/ABI 3 without a second transport. See
+[native cookies](NATIVE_COOKIES.md) and [dispatch](MUTATION_DISPATCH.md). Full
+current-phase qualification, identity/revocation and ordinary-call refresh
+behavior remain open; prior matrices are historical.
 
 ## App-owned native registration
 

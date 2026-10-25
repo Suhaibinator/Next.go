@@ -35,6 +35,7 @@ The example includes:
 | `/features` | JSON action, progressive HTML form, navigation/refresh controls |
 | `/generated-actions` | Discovered typed JSON/multipart actions, native forms and explicit snapshot refresh |
 | `/action-view` | Typed confirmation followed by a fresh streamed view in one POST |
+| `/cookie-session` | In-progress native action cookies, signed-session login/logout and fresh authorization |
 | `/lifecycle` | Bounded request completion callbacks |
 | `/cache` | Server fresh/stale/hard-expiry snapshots and strict mutation publication |
 | `/shared-cache` | Optional authenticated shared JSON data across app processes; background refresh and stale marking |
@@ -448,8 +449,10 @@ The bounded subset passes 75 focused cases plus 179 affected host regressions
 (254 distinct local checks), both SDK native/WASM checks and host/Linux
 HTTP/both mock Lambda suites. Preceding matrices stay separate. Try `/action-view`
 and read [qualification, ownership, cookies and failure rules](docs/ACTION_VIEWS.md). Native
-typed action cookie mutation/login/logout controls and sequential client
-dispatch remain required work; the current jar covers middleware/page effects.
+result cookies and a document-wide typed-dispatch FIFO/ABI 3 are the next
+implemented additions under qualification. See [native cookies/session limits](docs/NATIVE_COOKIES.md)
+and [dispatch/cancellation](docs/MUTATION_DISPATCH.md). Previous matrices do not
+qualify this new phase; complete session/revocation/refresh behavior remains open.
 
 ## Streaming, metadata, images, and static export
 

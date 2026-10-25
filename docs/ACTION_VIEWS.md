@@ -1,6 +1,8 @@
 # Typed mutation confirmation with a fresh view
 
-This implemented subset has the scoped qualification below. It adds
+The base action-view subset has the preceding scoped qualification below.
+The new native-cookie/FIFO/ABI-3 phase is under implementation/qualification;
+no full application-build matrix is claimed for that phase. It adds
 an explicit action call that carries typed mutation confirmation and fresh
 server-rendered UI through one POST response. Existing `Call` and
 `CallMultipart` behavior is unchanged. No full action/parity or production
@@ -101,12 +103,13 @@ native progressive form redirects.
 
 ## Cookies, draft state and private output
 
-The native `actions.Context`/`actions.Result` API currently has **no managed
-cookie mutation control for typed handlers**. Cookie processing below covers
-outer POST middleware and fresh page-response effects, not handler-driven
-login/logout. Page `nextgo.Context.SetCookie` does not imply an equivalent
-action-context method. Native action cookie controls and their login/logout/
-automatic-refresh semantics remain required future work under D02/D10.
+Native `actions.Result.Cookies` and typed `mutation.Result[O].Cookies` now
+stage validated native cookie output without JSON exposure. This new phase is
+under qualification. The request-local jar can pass those handler cookies, POST
+middleware effects and fresh page updates into same-response authorization.
+See [native cookie controls and session limits](NATIVE_COOKIES.md). Result-based
+cookie output is distinct from page `nextgo.Context.SetCookie`; full identity,
+revocation and automatic ordinary-call refresh semantics remain open.
 
 A request-local jar tracks known `Set-Cookie` updates only. Incoming Cookie
 values and their order are preserved; no missing original path attributes are
@@ -170,8 +173,11 @@ draft and page-freeze state. A newer action dispatch fences older UI; navigation
 history changes or freezing can supersede it. An old settlement may invalidate
 browser reuse, but cannot reorder or roll back database writes. Application
 state outside the replaced DOM still needs its own concurrency policy.
-Ordinary action calls can still dispatch concurrently. UI fencing is not a
-sequential client-dispatch queue; that capability remains future work.
+The new [typed dispatch FIFO](MUTATION_DISPATCH.md) serializes ordinary and
+combined typed transport across eager/lazy callers. Enqueueing alone does not
+fence the active view; snapshots/fences start at actual dispatch. That new queue
+is under qualification. Arbitrary generic Fetch and server/database work are
+not serialized by it.
 
 Before commit, caller cancellation stops its view. At the synchronous commit
 boundary, transport detaches from caller cleanup so replacing the calling island
@@ -180,7 +186,7 @@ bounded by the original 30-second budget and the same ownership fences, not a
 new unlimited lifetime. Existing streamed retry/reconciliation is separate
 from submitting the action again.
 
-Lazy Go/WASM modules use bridge ABI 2 to delegate transport, typed-result
+The new phase uses lazy Go/WASM bridge ABI 3 to delegate transport, typed-result
 validation and document commit to the core runtime. Module callbacks remain
 retained until the physical host operation settles; cancellation cannot free a
 callback that the host may still call. This does not create another router or
@@ -195,9 +201,9 @@ an intentional mutation failure and a separate deferred-view failure to show
 that confirmed writes and UI refresh outcomes differ. No application JavaScript
 or durable storage is added.
 
-### Current qualification
+### Preceding action-view qualification
 
-The final browser subset passes **254 distinct local checks**: 75 focused
+The preceding action-view source passes **254 distinct local checks**: 75 focused
 combined-action cases (15 host Chromium + 15 host WebKit + 15 Linux Firefox +
 15 Linux WebKit + 15 Linux touch) with no skips, plus 179 selected host
 forms/mutation/optimistic/location/lazy/script-CSP/transition/production
@@ -252,12 +258,12 @@ action-view source; subsequent remote results remain separate. No whole-CI or
 production-release pass is inferred from the local matrix.
 
 Inline server closures, durable idempotency/transaction coordination, complete
-single-response form/state integration, sequential client dispatch, native
-action cookie mutation/login/logout controls, authorization/session management and
+single-response form/state integration, production dispatch/cookie/session
+conformance, durable revocation/key rotation, authorization/session management and
 production/network/cloud/load/soak qualification remain future work. D10 stays
 partial and all 79 capability rows/11 release gates remain tracked in
 [the inventory](PARITY.md).
 
 The target includes [Next.js's documented action cookie updates and UI refresh](https://nextjs.org/docs/app/getting-started/mutating-data#cookies).
-The current Go cookie transport does not complete that capability; it is not
-waived or removed from the inventory.
+The new native-cookie/session subset does not complete that capability or D16;
+remaining semantics and qualification stay in the inventory.

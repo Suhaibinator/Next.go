@@ -16,11 +16,13 @@ import (
 // A zero MaxBytes limits responses to 8 MiB. Body is sent unchanged.
 type FetchOptions struct {
 	// These fields are internal to the document-owned module/action transport.
-	browserBody     js.Value
-	skipActionFence bool
-	Method          string
-	Headers         map[string]string
-	Body            []byte
+	browserBody            js.Value
+	skipActionFence        bool
+	physicalSettlement     bool
+	beforeMutationDispatch func() error
+	Method                 string
+	Headers                map[string]string
+	Body                   []byte
 	// Multipart supplies native FormData, mutually exclusive with Body and a
 	// caller-supplied Content-Type (the browser supplies its boundary).
 	Multipart *Multipart
@@ -112,6 +114,19 @@ func awaitBrowserPromise(ctx context.Context, promise, controller js.Value) (js.
 	}
 }
 
+// Typed dispatch cannot release its shared queue lease merely because abort
+// was requested. Native promise settlement, including reader cancellation,
+// separates that transport from the next server mutation.
+func awaitPhysicalBrowserPromise(ctx context.Context, promise, controller js.Value) (js.Value, error) {
+	stop := context.AfterFunc(ctx, func() { controller.Call("abort") })
+	defer stop()
+	value, err := awaitBrowserPromise(context.Background(), promise, controller)
+	if ctx.Err() != nil {
+		return value, context.Cause(ctx)
+	}
+	return value, err
+}
+
 // Fetch performs a browser HTTP request without importing net/http. Call it
 // from a goroutine: blocking a synchronous JavaScript event callback prevents
 // browser Promises from completing. Context cancellation aborts the request;
@@ -175,12 +190,20 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 	}
 	controller := js.Global().Get("AbortController").New()
 	complete := false
+	var physicalBody js.Value
+	readerCreated := false
 	// Abort incomplete/error exits, including synchronous browser API panics.
 	// Aborting after EOF can turn a consumed response into ERR_ABORTED in
 	// Chromium instead of allowing its normal request-finished notification.
 	defer func() {
 		if !complete {
 			controller.Call("abort")
+			if options.physicalSettlement && !readerCreated && !physicalBody.IsUndefined() && !physicalBody.IsNull() {
+				func() {
+					defer func() { _ = recover() }()
+					_, _ = awaitBrowserPromise(context.Background(), physicalBody.Call("cancel"), controller)
+				}()
+			}
 		}
 	}()
 	headers := js.Global().Get("Headers").New()
@@ -220,7 +243,14 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 			defer invalidateCache()
 		}
 	}
-	result, err := awaitBrowserPromise(ctx, js.Global().Call("fetch", target, init), controller)
+	await := awaitBrowserPromise
+	if options.physicalSettlement {
+		await = awaitPhysicalBrowserPromise
+	}
+	result, err := await(ctx, js.Global().Call("fetch", target, init), controller)
+	if options.physicalSettlement && result.Type() == js.TypeObject && !result.IsNull() {
+		physicalBody = result.Get("body")
+	}
 	if err != nil {
 		return response, err
 	}
@@ -249,12 +279,18 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 		return response, nil
 	}
 	reader := body.Call("getReader")
+	readerCreated = true
 	defer func() {
 		defer func() { _ = recover() }()
 		if !complete {
 			// Stop reading immediately, and retain callbacks until cancellation
 			// settles. Cleanup must never delay return of the caller's ctx.Err.
 			canceled := reader.Call("cancel")
+			if options.physicalSettlement {
+				_, _ = awaitBrowserPromise(context.Background(), canceled, controller)
+				reader.Call("releaseLock")
+				return
+			}
 			go func() {
 				defer func() { _ = recover() }()
 				_, _ = awaitBrowserPromise(context.Background(), canceled, controller)
@@ -266,7 +302,7 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 	}()
 	var received int64
 	for {
-		chunk, readErr := awaitBrowserPromise(ctx, reader.Call("read"), controller)
+		chunk, readErr := await(ctx, reader.Call("read"), controller)
 		if readErr != nil {
 			return response, readErr
 		}

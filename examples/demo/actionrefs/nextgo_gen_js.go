@@ -7,11 +7,13 @@ import (
 	"context"
 	client "github.com/Suhaibinator/Next.go/client"
 	a0 "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add"
-	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
+	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/session/login"
+	a2 "github.com/Suhaibinator/Next.go/examples/demo/actions/session/logout"
+	a3 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
 	mutation "github.com/Suhaibinator/Next.go/mutation"
 )
 
-var _ actionGeneration_5d137e7b666659383379aa866e5b0485caa8c858f1ec324e9079d16374ec423f
+var _ actionGeneration_08386bacedd864f9b76e3b2d8fc8cac92981b610e72e94170af0730ba3398dbb
 
 // GeneratedAdd calls the existing typed contract without automatic navigation or retry.
 func GeneratedAdd(ctx context.Context, input GeneratedAddInput, options ...mutation.CallOptions) (mutation.Response[GeneratedAddOutput], error) {
@@ -33,22 +35,62 @@ func GeneratedAddMultipartAndRefresh(ctx context.Context, form *client.Multipart
 	return a0.Contract.CallMultipartAndRefresh(ctx, form, options...)
 }
 
+// SessionLogin calls the existing typed contract without automatic navigation or retry.
+func SessionLogin(ctx context.Context, input SessionLoginInput, options ...mutation.CallOptions) (mutation.Response[SessionLoginOutput], error) {
+	return a1.Contract.Call(ctx, input, options...)
+}
+
+// SessionLoginMultipart delegates multipart transport to the existing typed contract.
+func SessionLoginMultipart(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.Response[SessionLoginOutput], error) {
+	return a1.Contract.CallMultipart(ctx, form, options...)
+}
+
+// SessionLoginAndRefresh preserves typed confirmation independently of its fresh view.
+func SessionLoginAndRefresh(ctx context.Context, input SessionLoginInput, options ...mutation.CallOptions) (mutation.RefreshResponse[SessionLoginOutput], error) {
+	return a1.Contract.CallAndRefresh(ctx, input, options...)
+}
+
+// SessionLoginMultipartAndRefresh delegates the combined multipart action and fresh view.
+func SessionLoginMultipartAndRefresh(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.RefreshResponse[SessionLoginOutput], error) {
+	return a1.Contract.CallMultipartAndRefresh(ctx, form, options...)
+}
+
+// SessionLogout calls the existing typed contract without automatic navigation or retry.
+func SessionLogout(ctx context.Context, input SessionLogoutInput, options ...mutation.CallOptions) (mutation.Response[SessionLogoutOutput], error) {
+	return a2.Contract.Call(ctx, input, options...)
+}
+
+// SessionLogoutMultipart delegates multipart transport to the existing typed contract.
+func SessionLogoutMultipart(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.Response[SessionLogoutOutput], error) {
+	return a2.Contract.CallMultipart(ctx, form, options...)
+}
+
+// SessionLogoutAndRefresh preserves typed confirmation independently of its fresh view.
+func SessionLogoutAndRefresh(ctx context.Context, input SessionLogoutInput, options ...mutation.CallOptions) (mutation.RefreshResponse[SessionLogoutOutput], error) {
+	return a2.Contract.CallAndRefresh(ctx, input, options...)
+}
+
+// SessionLogoutMultipartAndRefresh delegates the combined multipart action and fresh view.
+func SessionLogoutMultipartAndRefresh(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.RefreshResponse[SessionLogoutOutput], error) {
+	return a2.Contract.CallMultipartAndRefresh(ctx, form, options...)
+}
+
 // ViewSave calls the existing typed contract without automatic navigation or retry.
 func ViewSave(ctx context.Context, input ViewSaveInput, options ...mutation.CallOptions) (mutation.Response[ViewSaveOutput], error) {
-	return a1.Contract.Call(ctx, input, options...)
+	return a3.Contract.Call(ctx, input, options...)
 }
 
 // ViewSaveMultipart delegates multipart transport to the existing typed contract.
 func ViewSaveMultipart(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.Response[ViewSaveOutput], error) {
-	return a1.Contract.CallMultipart(ctx, form, options...)
+	return a3.Contract.CallMultipart(ctx, form, options...)
 }
 
 // ViewSaveAndRefresh preserves typed confirmation independently of its fresh view.
 func ViewSaveAndRefresh(ctx context.Context, input ViewSaveInput, options ...mutation.CallOptions) (mutation.RefreshResponse[ViewSaveOutput], error) {
-	return a1.Contract.CallAndRefresh(ctx, input, options...)
+	return a3.Contract.CallAndRefresh(ctx, input, options...)
 }
 
 // ViewSaveMultipartAndRefresh delegates the combined multipart action and fresh view.
 func ViewSaveMultipartAndRefresh(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.RefreshResponse[ViewSaveOutput], error) {
-	return a1.Contract.CallMultipartAndRefresh(ctx, form, options...)
+	return a3.Contract.CallMultipartAndRefresh(ctx, form, options...)
 }
