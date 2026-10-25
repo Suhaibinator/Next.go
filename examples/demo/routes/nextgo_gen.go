@@ -11,6 +11,9 @@ func Index() string { return "/" }
 // About constructs the application path for page /about.
 func About() string { return "/about" }
 
+// ActionView constructs the application path for page /action-view.
+func ActionView() string { return "/action-view" }
+
 // ApiHeaderPolicy constructs the application path for HTTP endpoint /api/header-policy.
 func ApiHeaderPolicy() string { return "/api/header-policy" }
 

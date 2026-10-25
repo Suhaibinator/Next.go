@@ -36,7 +36,7 @@ var lazySlots = make(chan struct{}, 2)
 var lazyEpoch = regexp.MustCompile(`^[a-f0-9]{64}$`)
 var lazyFile = regexp.MustCompile(`^module-[a-f0-9]{64}\.wasm$`)
 
-const moduleABI = 1
+const moduleABI = 2
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
@@ -235,6 +235,8 @@ func installModuleHost() {
 	})
 	bind("skipTransition", func([]js.Value) any { skipViewTransition(); return "" })
 	bind("script", scriptHostPromise)
+	bind("actionView", actionViewHostPromise)
+	bind("actionFence", func([]js.Value) any { beginFrameworkAction(); return "" })
 	bind("state", func([]js.Value) any { return moduleSnapshot() })
 	bind("navigate", func(args []js.Value) any {
 		var options NavigationOptions

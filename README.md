@@ -34,6 +34,7 @@ The example includes:
 | `/posts?fail=1` | Route error boundary |
 | `/features` | JSON action, progressive HTML form, navigation/refresh controls |
 | `/generated-actions` | Discovered typed JSON/multipart actions, native forms and explicit snapshot refresh |
+| `/action-view` | Typed confirmation followed by a fresh streamed view in one POST |
 | `/lifecycle` | Bounded request completion callbacks |
 | `/cache` | Server fresh/stale/hard-expiry snapshots and strict mutation publication |
 | `/shared-cache` | Optional authenticated shared JSON data across app processes; background refresh and stale marking |
@@ -436,6 +437,20 @@ tests/vet pass on both SDKs, alongside host/Linux executable suites. The measure
 both reference size budgets; remote CI retains its separate failed action step.
 See [conventions, provenance and startup guarantees](docs/GENERATED_ACTIONS.md).
 
+### Confirm an action and refresh its view
+
+The new `CallAndRefresh`/`CallMultipartAndRefresh` contract methods and generated
+`FooAndRefresh` wrappers negotiate typed confirmation plus fresh server UI in
+one POST. A nil top-level error confirms `Data` even if `View.Err` reports a
+failed/superseded refresh: keep the data and reconcile separately, never repeat
+a confirmed mutation to repair its view. Existing `Call` APIs are unchanged.
+The bounded subset passes 75 focused cases plus 179 affected host regressions
+(254 distinct local checks), both SDK native/WASM checks and host/Linux
+HTTP/both mock Lambda suites. Preceding matrices stay separate. Try `/action-view`
+and read [qualification, ownership, cookies and failure rules](docs/ACTION_VIEWS.md). Native
+typed action cookie mutation/login/logout controls and sequential client
+dispatch remain required work; the current jar covers middleware/page effects.
+
 ## Streaming, metadata, images, and static export
 
 Set `Page.Stream: true` and describe a deferred server boundary:
@@ -684,7 +699,7 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and one-response refreshed/streamed mutations, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
 
 The optimized reference build still has a multi-megabyte Go WASM runtime; see [measured sizes and performance limits](docs/PERFORMANCE.md). Loading and compiling it takes time; useful SSR and ordinary links are available first. DOM access uses `syscall/js`, an experimental API outside Go's compatibility guarantee. CPU-heavy Go work can block the browser main thread. These are real tradeoffs of this implementation, not features hidden by the framework. See the [Go WebAssembly guide](https://go.dev/wiki/WebAssembly) and [`syscall/js` documentation](https://pkg.go.dev/syscall/js).
 

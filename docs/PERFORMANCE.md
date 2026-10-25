@@ -10,14 +10,57 @@ not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
 The latest recorded browser sample is the
-[generated-action artifact observation](#generated-action-artifact-observation-october-25-2026-utc).
+[action-view artifact observation](#action-view-artifact-observation-october-25-2026-utc).
 The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
 measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
 
+## Action-view artifact observation (October 25, 2026 UTC)
+
+The [actual production-loopback report](benchmarks/action-view-go1.27.3-macos-arm64.json)
+uses Go 1.27.3/macOS arm64, Chromium 156.0.8078.4, Node 25.7.0 and Apple M4 Max.
+Ten fresh contexts in one browser process load `/prefetch` from the frozen
+action-view artifact, with warm OS/server state, default browser caching,
+automatic visible-link work and no CPU/network throttling. Qualification work
+was running concurrently. This measures artifact startup, not a mutation's
+latency or streamed-view throughput.
+
+| Artifact measurement | Bytes |
+| --- | ---: |
+| Actual decoded WASM response | 8,537,436 |
+| Node zlib level-9 recompression | 2,203,698 |
+| Actual HTTP gzip body, browser Resource Timing | 2,294,584 |
+| Actual exported memory capacity at instantiation | 4,849,664 |
+| Actual exported memory capacity at readiness | 6,815,744 |
+
+The WASM SHA-256 is
+`7e0b6d6ec76b75b360526fab888ce32a81c9de4936af08e289a4da256c920fcd`;
+the native server SHA-256 is
+`5a12042d9f96ce965821cca099040609493c42619706c1145f1660b8d9157285`.
+Both the **6-MiB raw and 1.6-MiB gzip-9 budgets fail**. Recompressed gzip-9 bytes
+are a separate measurement from the actual HTTP encoding.
+
+Browser navigation-to-ready is **202.2–285.3 ms, median 235.25 ms**. The separate
+Node wall-clock window is **255.18–356.86 ms, median 290.41 ms** and includes
+automation/polling overhead. The browser timestamp uses the hydration-ready
+MutationObserver and navigation performance origin. Concurrent qualification,
+compiled-code reuse and observation overhead prevent an isolated speed or
+regression claim against earlier reports.
+
+Exported `WebAssembly.Memory` capacities are observed from native instantiation;
+they are not live heap, peak memory, physical commitment or RSS. JavaScript
+buffers and instrumentation work remain separate. These warm-loopback samples
+do not establish cold/device/field performance, application allocation bounds,
+Next.js parity or a production performance gate.
+
+Use the existing [reproduction command](#generated-action-artifact-observation-october-25-2026-utc)
+with the matching binary to run `scripts/measure-production-startup.mjs` again.
+Preserve the artifact/toolchain and distinguish browser timestamps from Node
+wall time when interpreting a result.
+
 ## Generated-action artifact observation (October 25, 2026 UTC)
 
-The [recorded production-loopback report](benchmarks/generated-actions-go1.27.3-macos-arm64.json)
+The preceding [production-loopback report](benchmarks/generated-actions-go1.27.3-macos-arm64.json)
 uses the frozen generated-action server, Go 1.27.3/macOS arm64, Chromium
 156.0.8078.4, Node 25.7.0 and Apple M4 Max. It records ten fresh contexts in one
 browser process on `/prefetch`, with warm OS/server state, default browser

@@ -539,6 +539,12 @@ func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
 	a.handler.ServeHTTP(w, r)
 }
 func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
+	if refreshing, _ := r.Context().Value(actionViewRequestKey{}).(bool); refreshing {
+		if err := a.actionViewTarget(r, 0); err != nil {
+			http.Error(w, "Refreshed action target is unavailable", http.StatusConflict)
+			return
+		}
+	}
 	if a.config.PrerenderBuildMode && r.Context().Value(prerenderCaptureKey{}) == nil {
 		http.Error(w, "build probe cannot serve public requests", 503)
 		return

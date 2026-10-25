@@ -7,10 +7,11 @@ import (
 	"context"
 	client "github.com/Suhaibinator/Next.go/client"
 	a0 "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add"
+	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
 	mutation "github.com/Suhaibinator/Next.go/mutation"
 )
 
-var _ actionGeneration_c10387269298df409dc788209443cb9342c9c34d9ba33ca64aad282b6579ec34
+var _ actionGeneration_5d137e7b666659383379aa866e5b0485caa8c858f1ec324e9079d16374ec423f
 
 // GeneratedAdd calls the existing typed contract without automatic navigation or retry.
 func GeneratedAdd(ctx context.Context, input GeneratedAddInput, options ...mutation.CallOptions) (mutation.Response[GeneratedAddOutput], error) {
@@ -20,4 +21,34 @@ func GeneratedAdd(ctx context.Context, input GeneratedAddInput, options ...mutat
 // GeneratedAddMultipart delegates multipart transport to the existing typed contract.
 func GeneratedAddMultipart(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.Response[GeneratedAddOutput], error) {
 	return a0.Contract.CallMultipart(ctx, form, options...)
+}
+
+// GeneratedAddAndRefresh preserves typed confirmation independently of its fresh view.
+func GeneratedAddAndRefresh(ctx context.Context, input GeneratedAddInput, options ...mutation.CallOptions) (mutation.RefreshResponse[GeneratedAddOutput], error) {
+	return a0.Contract.CallAndRefresh(ctx, input, options...)
+}
+
+// GeneratedAddMultipartAndRefresh delegates the combined multipart action and fresh view.
+func GeneratedAddMultipartAndRefresh(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.RefreshResponse[GeneratedAddOutput], error) {
+	return a0.Contract.CallMultipartAndRefresh(ctx, form, options...)
+}
+
+// ViewSave calls the existing typed contract without automatic navigation or retry.
+func ViewSave(ctx context.Context, input ViewSaveInput, options ...mutation.CallOptions) (mutation.Response[ViewSaveOutput], error) {
+	return a1.Contract.Call(ctx, input, options...)
+}
+
+// ViewSaveMultipart delegates multipart transport to the existing typed contract.
+func ViewSaveMultipart(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.Response[ViewSaveOutput], error) {
+	return a1.Contract.CallMultipart(ctx, form, options...)
+}
+
+// ViewSaveAndRefresh preserves typed confirmation independently of its fresh view.
+func ViewSaveAndRefresh(ctx context.Context, input ViewSaveInput, options ...mutation.CallOptions) (mutation.RefreshResponse[ViewSaveOutput], error) {
+	return a1.Contract.CallAndRefresh(ctx, input, options...)
+}
+
+// ViewSaveMultipartAndRefresh delegates the combined multipart action and fresh view.
+func ViewSaveMultipartAndRefresh(ctx context.Context, form *client.Multipart, options ...mutation.CallOptions) (mutation.RefreshResponse[ViewSaveOutput], error) {
+	return a1.Contract.CallMultipartAndRefresh(ctx, form, options...)
 }

@@ -10,8 +10,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Suhaibinator/Next.go/internal/accesscontrol"
+	"github.com/Suhaibinator/Next.go/internal/actionview"
 	"github.com/Suhaibinator/Next.go/internal/actionwire"
 	"github.com/Suhaibinator/Next.go/internal/paths"
+	"github.com/Suhaibinator/Next.go/internal/wirejson"
 	"html/template"
 	"io"
 	"log"
@@ -217,6 +219,15 @@ func validName(name string) bool {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.serve(w, req, nil, false)
+}
+
+func (r *Router) serve(w http.ResponseWriter, req *http.Request, render func(http.ResponseWriter, *http.Request, ViewSuccess), view bool) {
+	var tracked *viewResponseWriter
+	if view {
+		tracked = &viewResponseWriter{ResponseWriter: w}
+		w = tracked
+	}
 	w.Header().Set(actionwire.ProtocolHeader, actionwire.Protocol)
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -224,12 +235,23 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			r.options.LogError(req, fmt.Errorf("panic: %v", recovered))
-			r.fail(w, req, 500, &Error{Code: "internal_error", Message: "The action could not be completed."})
+			if !view || !tracked.started {
+				message := "The action could not be completed."
+				if view {
+					message = viewUnknownOutcome
+				}
+				r.fail(w, req, 500, &Error{Code: "internal_error", Message: message})
+			}
 		}
 		if req.MultipartForm != nil {
 			_ = req.MultipartForm.RemoveAll()
 		}
 	}()
+	if view && render == nil {
+		r.options.LogError(req, errors.New("actions: ServeWithView requires a renderer"))
+		r.fail(w, req, 500, &Error{Code: "internal_error", Message: viewUnknownOutcome})
+		return
+	}
 	if req.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		r.fail(w, req, 405, &Error{Code: "method_not_allowed", Message: "Actions require POST."})
@@ -278,13 +300,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if result.Redirect != "" && !safeRedirect(result.Redirect) {
-		r.handleError(w, req, errors.New("action returned an unsafe redirect"))
+		r.resultError(w, req, errors.New("action returned an unsafe redirect"), view)
 		return
 	}
 	if result.Redirect != "" {
 		result.Redirect, err = paths.FromContext(req.Context()).URL(result.Redirect)
 		if err != nil {
-			r.handleError(w, req, err)
+			r.resultError(w, req, err, view)
 			return
 		}
 	}
@@ -293,11 +315,23 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	response := Response{Data: result.Data, Redirect: result.Redirect}
 	encoded, err := json.Marshal(response)
 	if err != nil {
-		r.handleError(w, req, err)
+		r.resultError(w, req, err, view)
 		return
 	}
 	if r.options.OnRevalidate != nil && (len(result.RevalidateTags) > 0 || len(result.RevalidatePaths) > 0) {
 		r.options.OnRevalidate(append([]string(nil), result.RevalidateTags...), append([]string(nil), result.RevalidatePaths...))
+	}
+	if view {
+		if len(encoded) > actionview.MaxResult {
+			r.resultError(w, req, errors.New("actions: successful action view result exceeds byte limit; mutation may have committed"), true)
+			return
+		}
+		if err := wirejson.Unique(encoded); err != nil {
+			r.resultError(w, req, errors.New("actions: successful action view result contains ambiguous JSON; mutation may have committed"), true)
+			return
+		}
+		render(w, req, ViewSuccess{Encoded: append([]byte(nil), encoded...), Redirect: result.Redirect, RevalidateTags: append([]string(nil), result.RevalidateTags...), RevalidatePaths: append([]string(nil), result.RevalidatePaths...)})
+		return
 	}
 	if wantsJSON(req) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")

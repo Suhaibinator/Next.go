@@ -226,7 +226,7 @@ func buildConstraint(file *ast.File) string {
 }
 
 func actionSymbols(a Action) []string {
-	return []string{a.Symbol, a.Symbol + "Multipart", a.Symbol + "Path", a.Symbol + "Input", a.Symbol + "Output"}
+	return []string{a.Symbol, a.Symbol + "Multipart", a.Symbol + "AndRefresh", a.Symbol + "MultipartAndRefresh", a.Symbol + "Path", a.Symbol + "Input", a.Symbol + "Output"}
 }
 func validateActions(actions []Action) error {
 	names := map[string]bool{}

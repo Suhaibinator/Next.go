@@ -15,9 +15,12 @@ import (
 // credentials, follows browser redirects, and observes browser CORS rules.
 // A zero MaxBytes limits responses to 8 MiB. Body is sent unchanged.
 type FetchOptions struct {
-	Method  string
-	Headers map[string]string
-	Body    []byte
+	// These fields are internal to the document-owned module/action transport.
+	browserBody     js.Value
+	skipActionFence bool
+	Method          string
+	Headers         map[string]string
+	Body            []byte
 	// Multipart supplies native FormData, mutually exclusive with Body and a
 	// caller-supplied Content-Type (the browser supplies its boundary).
 	Multipart *Multipart
@@ -206,11 +209,16 @@ func fetchBrowser(ctx context.Context, target string, options FetchOptions, onHe
 		}
 		init["body"] = form
 	}
+	if !options.browserBody.IsUndefined() && !options.browserBody.IsNull() {
+		init["body"] = options.browserBody
+	}
 	if frameworkActionRequest(target, method) {
 		// Discard reuse on dispatch and settlement, including failures: an
 		// aborted/failed transport does not prove a mutation was rolled back.
-		invalidateCache()
-		defer invalidateCache()
+		if !options.skipActionFence {
+			beginFrameworkAction()
+			defer invalidateCache()
+		}
 	}
 	result, err := awaitBrowserPromise(ctx, js.Global().Call("fetch", target, init), controller)
 	if err != nil {

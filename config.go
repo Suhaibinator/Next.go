@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Suhaibinator/Next.go/cache"
+	"github.com/Suhaibinator/Next.go/internal/actionview"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/paths"
 	"github.com/Suhaibinator/Next.go/internal/postresponse"
@@ -51,6 +52,10 @@ func (a *App) serveConfigured(w http.ResponseWriter, r *http.Request) bool {
 	if a.config.Actions != nil && strings.HasPrefix(r.URL.Path, "/_nextgo/actions/") {
 		telemetry.SetRoute(r.Context(), "/_nextgo/actions/:action")
 		if a.redirectCanonical(w, r) {
+			return true
+		}
+		if len(r.Header.Values(actionview.Header)) > 0 {
+			telemetry.Handle(w, r, telemetry.Info{Name: "nextgo.action"}, a.serveActionView)
 			return true
 		}
 		telemetry.Handle(w, r, telemetry.Info{Name: "nextgo.action"}, http.StripPrefix("/_nextgo/actions/", a.config.Actions).ServeHTTP)

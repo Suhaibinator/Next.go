@@ -116,6 +116,8 @@ jobs:
         run: npm run test:viewport
       - name: Generated action callers and progressive native forms
         run: npm run test:generated-actions
+      - name: Confirmed mutations and streamed refreshed UI
+        run: npm run test:action-view
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -158,6 +160,8 @@ jobs:
         run: sh ./scripts/test-viewport-container.sh
       - name: Generated action Linux browser conformance
         run: sh ./scripts/test-generated-actions-container.sh
+      - name: Combined action and refreshed view Linux conformance
+        run: sh ./scripts/test-action-view-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

@@ -165,6 +165,23 @@ typed delta and count; the island confirms the delta or rejects its local intent
 Its progressive form also makes the sample's server dependency visible to the
 static exporter, which rejects publication instead of shipping broken controls.
 
+## Opt-in action confirmation and fresh UI
+
+`CallAndRefresh` and `CallMultipartAndRefresh` negotiate a single POST carrying
+confirmation followed by a fresh private view. `RefreshResponse[O]` embeds the
+ordinary typed response plus `View {Applied, Status, Err}`. Nil top-level error
+confirms data even when the view fails; do not resubmit a confirmed mutation to
+repair UI. Refresh/reconcile separately. Existing calls remain unchanged.
+
+This bounded action-view subset passes 75 focused cases and 179 affected host
+regressions (254 distinct local checks), both SDK native/WASM checks and
+host/Linux executable suites. It is not full D10 or production qualification.
+Its protocol, invalidation acknowledgement, cookie/draft handling, document
+ownership and limits are described in [ACTION_VIEWS.md](ACTION_VIEWS.md).
+Native typed action contexts/results still lack managed cookie mutation controls;
+the new jar handles POST-middleware/page effects. Login/logout, automatic refresh
+from action cookies and sequential client dispatch remain open D02/D10 work.
+
 ## Verification and remaining work
 
 Tests cover native binding, authorization before custom decoding, validation
@@ -185,7 +202,7 @@ on both SDKs, alongside host/Linux executable suites. The bundle-size budgets
 still fail, and remote CI retains its separately recorded action failures. See
 the generated-action qualification for failed-fixture provenance.
 
-Single-response refreshed/streamed UI,
+Complete action-view form/state and deployment semantics,
 automatic form-state mapping, transaction/idempotency adapters, richer auth
 integrations and full production/network/resource/cloud qualification remain
 open in [the parity inventory](PARITY.md). Next.js documents its server-function

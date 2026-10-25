@@ -5,13 +5,20 @@ package actionrefs
 
 import (
 	a0 "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add"
+	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
 )
 
 // Target adapters reference this generation-specific anchor. Mixed files fail compilation.
-type actionGeneration_c10387269298df409dc788209443cb9342c9c34d9ba33ca64aad282b6579ec34 struct{}
+type actionGeneration_5d137e7b666659383379aa866e5b0485caa8c858f1ec324e9079d16374ec423f struct{}
 
 type GeneratedAddInput = a0.Input
 type GeneratedAddOutput = a0.Output
 
 // GeneratedAddPath returns an application-relative path; apply nextgo.URL for HTML forms.
 func GeneratedAddPath() string { return a0.Contract.Path() }
+
+type ViewSaveInput = a1.Input
+type ViewSaveOutput = a1.Output
+
+// ViewSavePath returns an application-relative path; apply nextgo.URL for HTML forms.
+func ViewSavePath() string { return a1.Contract.Path() }

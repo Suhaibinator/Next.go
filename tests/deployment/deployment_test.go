@@ -272,19 +272,31 @@ func selfHostedExecutable(t *testing.T, base string, slash bool) {
 	if !bytes.HasPrefix(coreData, []byte{0, 'a', 's', 'm'}) {
 		t.Fatal("invalid WASM")
 	}
-	moduleFile := lazyModuleRE.Find(coreData)
-	if moduleFile == nil {
+	moduleFiles := lazyModuleFiles(coreData)
+	if len(moduleFiles) == 0 {
 		t.Fatal("core has no lazy module descriptor")
 	}
-	response, err = client.Get(origin + assetPrefix + "/_nextgo/" + string(version[1]) + "/" + string(moduleFile))
-	if err != nil {
-		t.Fatal(err)
+	t.Logf("checking %d unique lazy WASM assets", len(moduleFiles))
+	if bytes.Contains(coreData, []byte(lazyCounterProof)) {
+		t.Fatal("lazy counter client implementation leaked into core")
 	}
-	if err := checkLazyModule(string(moduleFile), body(t, response)); err != nil {
-		t.Fatal(err)
+	legacyProof := false
+	for _, moduleFile := range moduleFiles {
+		response, err = client.Get(origin + assetPrefix + "/_nextgo/" + string(version[1]) + "/" + moduleFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		moduleData := body(t, response)
+		if err := checkLazyModule(moduleFile, moduleData); err != nil {
+			t.Fatal(err)
+		}
+		if response.StatusCode != 200 || !strings.Contains(response.Header.Get("Cache-Control"), "immutable") {
+			t.Fatal("module asset is not immutable", moduleFile, response.StatusCode, response.Header)
+		}
+		legacyProof = legacyProof || bytes.Contains(moduleData, []byte(lazyCounterProof))
 	}
-	if !strings.Contains(response.Header.Get("Cache-Control"), "immutable") {
-		t.Fatal("module asset is not immutable")
+	if !legacyProof {
+		t.Fatal("lazy counter client implementation absent from all lazy modules")
 	}
 
 	for _, token := range []string{"", readerToken, adminToken} {
@@ -501,8 +513,8 @@ func lambdaExecutableRuntimePolicy(t *testing.T, base string, slash bool, locali
 			optimisticStart := len(requests)
 			requests = append(requests, invocation{"/optimistic", "GET", ""}, invocation{"/_nextgo/actions/optimistic-increment/v1", "POST", ""}, invocation{"/_nextgo/actions/optimistic-increment/v1", "POST", ""}, invocation{"/optimistic", "GET", ""}, invocation{"/_nextgo/actions/optimistic-increment/v1", "POST", ""}, invocation{"/optimistic", "GET", ""})
 			requests = append(requests, invocation{"/lazy", "GET", ""})
-			expectedReports := int32(len(requests) + 2)
 			var mu sync.Mutex
+			legacyProof := false
 			var calls atomic.Int32
 			var reports atomic.Int32
 			all := make(chan struct{})
@@ -742,21 +754,32 @@ func lambdaExecutableRuntimePolicy(t *testing.T, base string, slash bool, locali
 					mu.Unlock()
 				case strings.HasSuffix(item.path, ".wasm"):
 					if strings.HasSuffix(item.path, "/app.wasm") {
-						module := lazyModuleRE.Find(payload)
-						if module == nil {
+						modules := lazyModuleFiles(payload)
+						if len(modules) == 0 {
 							fail(fmt.Errorf("core has no lazy descriptor"))
+							return
+						}
+						t.Logf("checking %d unique Lambda lazy WASM assets", len(modules))
+						if bytes.Contains(payload, []byte(lazyCounterProof)) {
+							fail(fmt.Errorf("lazy counter client implementation leaked into core"))
 							return
 						}
 						runtimeBase := strings.TrimSuffix(item.path, "app.wasm")
 						mu.Lock()
-						requests = append(requests, invocation{runtimeBase + string(module), "GET", ""})
+						for _, module := range modules {
+							requests = append(requests, invocation{runtimeBase + module, "GET", ""})
+						}
 						mu.Unlock()
 					} else if err := checkLazyModule(item.path, payload); err != nil {
 						fail(err)
 						return
+					} else if bytes.Contains(payload, []byte(lazyCounterProof)) {
+						mu.Lock()
+						legacyProof = true
+						mu.Unlock()
 					}
 
-					if !bytes.HasPrefix(payload, []byte{0, 'a', 's', 'm'}) || envelope.Headers["content-encoding"] != "gzip" {
+					if !bytes.HasPrefix(payload, []byte{0, 'a', 's', 'm'}) || envelope.Headers["content-encoding"] != "gzip" || !strings.Contains(envelope.Headers["cache-control"], "immutable") {
 						fail(fmt.Errorf("invalid WASM transport"))
 						return
 					}
@@ -840,6 +863,9 @@ func lambdaExecutableRuntimePolicy(t *testing.T, base string, slash bool, locali
 					}
 				}
 				w.WriteHeader(202)
+				mu.Lock()
+				expectedReports := int32(len(requests))
+				mu.Unlock()
 				if reports.Add(1) == expectedReports {
 					close(all)
 				}
@@ -856,6 +882,12 @@ func lambdaExecutableRuntimePolicy(t *testing.T, base string, slash bool, locali
 				t.Fatal("runtime timed out")
 			}
 			p.stop(t)
+			mu.Lock()
+			foundLegacyProof := legacyProof
+			mu.Unlock()
+			if !foundLegacyProof {
+				t.Fatal("lazy counter client implementation absent from all lazy modules")
+			}
 			if !strings.Contains(p.logs.String(), "demo completion callback: rendered /lifecycle") {
 				t.Fatal("completion work not drained")
 			}
@@ -868,9 +900,24 @@ func lambdaExecutableRuntimePolicy(t *testing.T, base string, slash bool, locali
 
 var lazyModuleRE = regexp.MustCompile(`module-[a-f0-9]{64}\.wasm`)
 
+const lazyCounterProof = "lazy-client-only-proof-7d91"
+
+func lazyModuleFiles(core []byte) []string {
+	seen := make(map[string]bool)
+	var files []string
+	for _, match := range lazyModuleRE.FindAll(core, -1) {
+		name := string(match)
+		if !seen[name] {
+			seen[name] = true
+			files = append(files, name)
+		}
+	}
+	return files
+}
+
 func checkLazyModule(name string, data []byte) error {
 	hash := sha256.Sum256(data)
-	if !strings.HasSuffix(name, fmt.Sprintf("module-%x.wasm", hash)) || !bytes.HasPrefix(data, []byte{0, 'a', 's', 'm'}) || !bytes.Contains(data, []byte("lazy-client-only-proof-7d91")) {
+	if !strings.HasSuffix(name, fmt.Sprintf("module-%x.wasm", hash)) || !bytes.HasPrefix(data, []byte{0, 'a', 's', 'm'}) {
 		return fmt.Errorf("invalid embedded lazy module %s", name)
 	}
 	return nil

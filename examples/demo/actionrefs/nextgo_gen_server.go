@@ -7,14 +7,19 @@ import (
 	"fmt"
 	actions "github.com/Suhaibinator/Next.go/actions"
 	a0 "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add"
+	a1 "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save"
 )
 
-var _ actionGeneration_c10387269298df409dc788209443cb9342c9c34d9ba33ca64aad282b6579ec34
+var _ actionGeneration_5d137e7b666659383379aa866e5b0485caa8c858f1ec324e9079d16374ec423f
 
 // Register binds generated contracts to the supplied app-owned router.
 func Register(router *actions.Router) {
 	if a0.Contract.Name() != "generated/add" || a0.Contract.Revision() != "v1" {
 		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "generated/add"))
 	}
+	if a1.Contract.Name() != "view/save" || a1.Contract.Revision() != "v1" {
+		panic(fmt.Errorf("generated action contract changed: %s; regenerate actionrefs", "view/save"))
+	}
 	a0.Contract.Bind(router, a0.Handle, a0.Options())
+	a1.Contract.Bind(router, a1.Handle, a1.Options())
 }

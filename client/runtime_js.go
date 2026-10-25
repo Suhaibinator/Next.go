@@ -146,6 +146,7 @@ func Run() {
 		return
 	}
 	installModuleHost()
+	installActionViewLifecycle()
 	if raw := doc.Get("body").Call("getAttribute", "data-nextgo-navigation"); !raw.IsNull() {
 		if err := json.Unmarshal([]byte(raw.String()), &routeManifest); err != nil {
 			hydrate()
@@ -515,6 +516,7 @@ func saveScroll() {
 // Same-document history changes also supersede an outstanding page request.
 // Invalidating its ID prevents a response already in flight from committing.
 func cancelPendingNavigation() {
+	cancelActionView()
 	skipViewTransition()
 	stopNavigationStream()
 	clearStreamRetry()
@@ -540,6 +542,7 @@ func startNavigationOptions(target string, pop bool, state js.Value, options Nav
 	if draftFrozen {
 		return
 	}
+	cancelActionView()
 	skipViewTransition()
 	stopNavigationStream()
 	clearStreamRetry()
@@ -713,6 +716,11 @@ func commitNavigation(ctx context.Context, target string, pop bool, state js.Val
 		transition.Types = []string{kind}
 	}
 	return Transition(ctx, transition, func() error {
+		if guard, ok := ctx.Value(actionViewCommitKey{}).(func() error); ok {
+			if err := guard(); err != nil {
+				return err
+			}
+		}
 		if id != navigationID || ctx.Err() != nil {
 			return context.Canceled
 		}

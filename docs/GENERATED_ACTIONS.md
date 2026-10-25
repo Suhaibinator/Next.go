@@ -107,7 +107,18 @@ application-relative path. Resolve it through
 do not hardcode mount/locale prefixes. Generated callers inherit the existing
 same-origin, revision, byte-limit, cancellation, redirect and error-privacy
 checks. A returned redirect is a suggestion: the caller chooses navigation or
-refresh. No automatic retry or refreshed/streamed UI is added.
+refresh. Ordinary callers add no automatic retry or refreshed/streamed UI.
+
+New `FooAndRefresh`/`FooMultipartAndRefresh` wrappers forward the opt-in
+`Contract.CallAndRefresh`/`CallMultipartAndRefresh` APIs and return
+`mutation.RefreshResponse[FooOutput]`. This explicit action-view subset passes
+75 focused cases plus 179 affected host regressions, both SDK native/WASM and
+host/Linux executable checks. Its nil top-level error confirms mutation data even
+when `View.Err` reports a view failure; never repeat a confirmed write to fix UI.
+See [combined confirmation/view semantics](ACTION_VIEWS.md). The 193-check
+generated-action matrix below describes the preceding ordinary-call subset.
+Generated wrappers do not add handler cookie mutation APIs or sequential
+dispatch; those remain open alongside complete login/logout/refresh behavior.
 
 ## App-owned native registration
 
@@ -230,6 +241,6 @@ The capability reference is Next.js's
 the [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest)
 still identifies stable v16.4.3. This Go convention does not interpret that
 directive or import React source. Inline closures, automatic state/form mapping,
-single-response refreshed/streamed UI, durable idempotency/transactions and
+complete action-view form/state coordination, durable idempotency/transactions and
 complete production/security/network/cloud qualification remain future work.
 All 79 capability rows and 11 release gates remain in [the inventory](PARITY.md).

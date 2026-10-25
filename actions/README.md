@@ -1,5 +1,27 @@
 # Server actions
 
+`Router.ServeWithView` is the native integration hook for an explicitly
+negotiated mutation/current-view response. It shares the ordinary action
+execution path and passes `ViewSuccess` to a renderer only after successful
+encoding and the existing `OnRevalidate` callback. The renderer receives owned
+encoded bytes and copies of the effect selectors, and is responsible for any
+additional fallible shared-cache expiry before loading the view. It must not
+rerun the action. The hook does not negotiate view URLs, authorize destinations,
+or implement the browser commit protocol on its own.
+
+View-mode errors always return ordinary typed JSON, including multipart
+submissions with an exact view-protocol `Accept` header. The hook clones request
+headers for this negotiation; it does not alter the caller's request. Ordinary
+`ServeHTTP` forms still receive their usual HTML errors.
+
+The view hook limits the encoded success response to 64 KiB. A result exceeding
+that bound may follow a committed mutation; ordinary invalidation still runs,
+and the response reports a generic unknown outcome requiring reconciliation
+before retry. Failures never imply rollback. Renderer panics before output
+receive a generic 500; after a write or flush they are logged without appending
+ordinary JSON to a partial view stream. Normal `ServeHTTP` response behavior
+and progressive forms retain their existing contract.
+
 `actions` provides explicit Go mutation handlers for JSON requests and ordinary
 HTML forms. Authentication, authorization, persistence, and domain validation
 belong in the handler. Register actions before serving requests.
