@@ -14,7 +14,9 @@ type Route struct {
 }
 
 type Manifest struct {
-	Prerender string `json:"prerender,omitempty"`
+	// Development suppresses automatic viewport speculation, not navigation.
+	Development bool   `json:"development,omitempty"`
+	Prerender   string `json:"prerender,omitempty"`
 	// Scripts binds global early dependency configuration across navigation.
 	Scripts string            `json:"scripts,omitempty"`
 	Public  map[string]string `json:"public,omitempty"`

@@ -417,7 +417,16 @@ const bootstrap = `(async () => {
       else location.reload();
     }
   });
-  while (!document.getElementById('nextgo-initial-ready')) await new Promise(requestAnimationFrame);
+  if (!document.getElementById('nextgo-initial-ready')) await new Promise(resolve => {
+    const ready = () => {
+      if (!document.getElementById('nextgo-initial-ready')) return;
+      observer.disconnect();
+      resolve();
+    };
+    const observer = new MutationObserver(ready);
+    observer.observe(document.documentElement, {childList: true, subtree: true});
+    ready();
+  });
   const body = document.body;
   const base = body.dataset.nextgoRuntime || ('/_nextgo/' + body.dataset.nextgoBuild + '/');
   const status = document.getElementById('nextgo-status');

@@ -10,10 +10,27 @@ not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
 The latest recorded browser sample is the
-[shared-prerender observation](#shared-prerender-observation-october-24-2026-utc).
+[viewport-link production observation](#viewport-link-production-observation-october-25-2026-utc).
 The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
 measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
+
+## Viewport-link production observation (October 25, 2026 UTC)
+
+The current [production-loopback report](benchmarks/viewport-go1.27.3-macos-arm64.json)
+records the `/prefetch` example with Go 1.27.3/macOS arm64, Chromium
+156.0.8078.4 and ten fresh contexts in one browser process. Eager WASM measures
+8,260,663 raw bytes and 2,143,540 gzip-9 bytes. Its SHA-256 is
+`31c2915750d9a69180d0ff194d27ea7120a5aa65de3503ad3b9171ba2783ff54`. Both the 6-MiB raw and
+1.6-MiB gzip-9 reference budgets **fail**.
+
+Readiness ranged from 99 to 111 ms (median 107 ms) on warm loopback without
+CPU/network throttling. This includes parser-ordered runtime startup, automatic
+visible-link work and compiled
+code reuse; it is not a production or competing-framework timing comparison.
+The observed 6,815,744-byte WASM linear-memory capacity excludes JavaScript
+buffers and does not measure live heap, peak memory or RSS. See the
+[feature qualification and limits](VIEWPORT_PREFETCH.md#bundle-and-local-startup-observation).
 
 ## Measured WASM and startup improvement
 

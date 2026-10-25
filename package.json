@@ -15,7 +15,8 @@
     "test:stream-parser": "node scripts/test-browser.mjs --config tests/stream-parser.config.mjs",
     "test:stream-admission": "node scripts/test-browser.mjs --config tests/stream-admission.config.mjs",
     "test:partial": "node scripts/test-browser.mjs --config tests/partial.config.mjs",
-    "test:partial-shell": "node scripts/test-browser.mjs --config tests/partial-shell.config.mjs"
+    "test:partial-shell": "node scripts/test-browser.mjs --config tests/partial-shell.config.mjs",
+    "test:viewport": "node scripts/test-browser.mjs --config tests/viewport.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

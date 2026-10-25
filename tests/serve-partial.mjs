@@ -19,6 +19,7 @@ const controlToken = randomBytes(32).toString('hex');
 const addresses = { first: 4164, broken: 4165, second: 4166, ...(shellTests ? { live: 4167, busy: 4168 } : {}) };
 const children = [];
 const gates = new Map();
+const wasmGates = new Map();
 const shellWire = new Map();
 let holder;
 async function releaseHolder() {
@@ -42,8 +43,17 @@ async function holdStream(replica) {
 let stopping = false;
 const gateway = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1:4163');
+  if (url.pathname === '/_fixture/wasm-gate' && request.method === 'GET') {
+    const gate = wasmGates.get(url.searchParams.get('key'));
+    response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); response.end(JSON.stringify({ held: !!gate, status: gate?.status })); return;
+  }
+  if (url.pathname === '/_fixture/release-wasm' && request.method === 'POST') {
+    const key = url.searchParams.get('key'), gate = wasmGates.get(key);
+    if (!gate) { response.writeHead(404); response.end('WASM gate not found'); return; }
+    wasmGates.delete(key); gate.incoming.pipe(gate.response); gate.incoming.resume(); response.end('released'); return;
+  }
   if (shellTests && request.method === 'GET' && url.pathname === '/_fixture/shell-wire') {
-    const value = shellWire.get(url.searchParams.get('trace') + '\0' + url.searchParams.get('url'));
+    const value = shellWire.get(url.searchParams.get('trace') + '\0' + url.searchParams.get('url') + (url.searchParams.get('kind') === 'prefetch' ? '\0prefetch' : ''));
     response.writeHead(value ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); response.end(JSON.stringify(value || { error: 'shell frame not captured' })); return;
   }
   if (shellTests && request.method === 'POST' && ['/_fixture/expire', '/_fixture/hold-stream', '/_fixture/release-stream'].includes(url.pathname)) {
@@ -68,13 +78,39 @@ const gateway = createServer(async (request, response) => {
   }
   const replica = request.headers['x-fixture-partial'] || 'first';
   if (!Object.hasOwn(addresses, replica)) { response.writeHead(400); response.end('unknown fixture replica'); return; }
-  const headers = { ...request.headers, host: '127.0.0.1:4163', 'accept-encoding': 'identity' }; delete headers['x-fixture-partial']; delete headers['x-fixture-partial-gate']; delete headers['x-fixture-shell-trace'];
+  const headers = { ...request.headers, host: '127.0.0.1:4163', 'accept-encoding': 'identity' }; delete headers['x-fixture-partial']; delete headers['x-fixture-partial-gate']; delete headers['x-fixture-partial-wasm-gate']; delete headers['x-fixture-shell-trace'];
   const upstream = requestHTTP({ hostname: '127.0.0.1', port: addresses[replica], method: request.method, path: request.url, headers }, incoming => {
     response.writeHead(incoming.statusCode, incoming.headers); incoming.on('error', () => response.destroy());
     const key = request.headers['x-fixture-partial-gate'];
     const media = String(incoming.headers['content-type']);
+    const wasmKey = request.headers['x-fixture-partial-wasm-gate'];
+    if (typeof wasmKey === 'string' && wasmKey.length <= 128 && url.pathname.endsWith('/app.wasm') && incoming.statusCode === 200 && media.includes('application/wasm')) {
+      if (wasmGates.size >= 8 || wasmGates.has(wasmKey)) { incoming.destroy(); response.writeHead(503); response.end('fixture WASM gate capacity exceeded'); return; }
+      // Real transport backpressure holds the binary without buffering it or
+      // enabling browser request interception while the document is streaming.
+      incoming.pause(); response.flushHeaders();
+      const state = { incoming, response, status: incoming.statusCode }; wasmGates.set(wasmKey, state);
+      response.on('close', () => { if (wasmGates.get(wasmKey) === state) wasmGates.delete(wasmKey); incoming.destroy(); });
+      return;
+    }
     const navigationStream = media.includes('application/x-nextgo-stream+json');
     const trace = request.headers['x-fixture-shell-trace'];
+    const publicJSON = shellTests && trace && request.headers['x-nextgo-purpose'] === 'prefetch' && incoming.statusCode === 200 && media.includes('application/json') && incoming.headers['x-nextgo-prefetch'] === 'shell' && incoming.headers['x-nextgo-shell-protocol'] === '1';
+    if (publicJSON) {
+      // Capture the genuine complete public envelope before forwarding, keyed
+      // independently of active stream frames. Never retain request credentials
+      // or private region output; client admission is proved by its resume hint.
+      const captureKey = trace + '\0' + request.url + '\0prefetch'; shellWire.delete(captureKey);
+      const decoder = new StringDecoder('utf8'); let text = '', bytes = 0;
+      incoming.on('data', chunk => { bytes += Buffer.byteLength(chunk); if (bytes <= 256 * 1024) text += typeof chunk === 'string' ? chunk : decoder.write(chunk); else text = ''; });
+      incoming.on('end', () => {
+        let value;
+        try { value = bytes <= 256 * 1024 ? { status: incoming.statusCode, data: JSON.parse(text + decoder.end()) } : { error: 'fixture public-envelope bound exceeded' }; }
+        catch { value = { error: 'invalid genuine public envelope' }; }
+        shellWire.delete(captureKey); shellWire.set(captureKey, value);
+        while (shellWire.size > 32) shellWire.delete(shellWire.keys().next().value);
+      });
+    }
     if (shellTests && trace && navigationStream && request.headers['x-nextgo-purpose'] !== 'prefetch') {
       // Keep only the genuine public first frame, before forwarding. Browser
       // stream cleanup can make CDP response.body unavailable after EOF; no
@@ -94,25 +130,31 @@ const gateway = createServer(async (request, response) => {
         first = '';
       });
     }
-    if (!key || (!media.includes('text/html') && !navigationStream) || !url.pathname.startsWith('/partial')) { incoming.pipe(response); return; }
+    if (!key || (!media.includes('text/html') && !navigationStream && !publicJSON) || !url.pathname.startsWith('/partial')) { incoming.pipe(response); return; }
     const gate = { response, pending: '', started: false, released: false, ended: false }; gates.set(key, gate);
     incoming.setEncoding('utf8');
     incoming.on('data', chunk => {
       if (gate.released) { response.write(chunk); return; }
       gate.pending += chunk;
       if (!gate.started) {
-        if (navigationStream) {
+        if (publicJSON) {
+          // Diagnostic cancellation control: expose a genuine first byte while
+          // retaining the rest of this public response until explicitly released.
+          response.write(gate.pending.slice(0, 1)); gate.pending = gate.pending.slice(1); gate.started = true;
+        } else if (navigationStream) {
           // A complete real shell frame is the negotiated-stream commit point.
           const end = gate.pending.indexOf('\n');
           if (end >= 0) { response.write(gate.pending.slice(0, end + 1)); gate.pending = gate.pending.slice(end + 1); gate.started = true; }
         } else {
-          // Preserve the real server's complete initial Flush, including its
-          // bootstrap-ready marker. Splitting that marker into a tiny later write
-          // can leave WebKit's incremental parser waiting behind this test gate.
+          // Preserve the genuine initial Flush: the completed shell, its ready
+          // marker and both parser-ordered runtime scripts. Retain compatibility
+          // with older artifacts whose bootstrap appeared before the marker.
           const marker = gate.pending.indexOf('<span id="nextgo-initial-ready"');
           const end = marker < 0 ? -1 : gate.pending.indexOf('</span>', marker);
-          if (end >= 0) {
-            const complete = end + '</span>'.length;
+          const bootstrap = /<script\b[^>]*\bdata-nextgo-bootstrap(?:\s|=|>)[^>]*>/i.exec(gate.pending);
+          const bootEnd = bootstrap ? gate.pending.indexOf('</script>', bootstrap.index + bootstrap[0].length) : -1;
+          if (end >= 0 && bootEnd >= 0) {
+            const complete = Math.max(end + '</span>'.length, bootEnd + '</script>'.length);
             response.write(gate.pending.slice(0, complete)); gate.pending = gate.pending.slice(complete); gate.started = true;
           }
         }
@@ -130,6 +172,6 @@ for (const [name, port] of Object.entries(addresses)) {
   children.push(child);
   child.once('exit', code => { if (!stopping) { console.error(`partial ${name} replica exited ${code}`); shutdown(code || 1); } });
 }
-function shutdown(code = 0) { if (stopping) return; stopping = true; process.exitCode = code; void releaseHolder(); for (const gate of gates.values()) gate.response.destroy(); gateway.closeAllConnections(); gateway.close(); for (const child of children) child.kill('SIGTERM'); }
+function shutdown(code = 0) { if (stopping) return; stopping = true; process.exitCode = code; void releaseHolder(); for (const gate of gates.values()) gate.response.destroy(); for (const gate of wasmGates.values()) { gate.incoming.destroy(); gate.response.destroy(); } gateway.closeAllConnections(); gateway.close(); for (const child of children) child.kill('SIGTERM'); }
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => shutdown());
 gateway.listen(4163, '127.0.0.1');

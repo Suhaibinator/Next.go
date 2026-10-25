@@ -112,6 +112,8 @@ jobs:
         run: npm run test:partial
       - name: Public shell prefetch and validated resume
         run: npm run test:partial-shell
+      - name: Bounded viewport prefetch and lifecycle conformance
+        run: npm run test:viewport
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -150,6 +152,8 @@ jobs:
         run: sh ./scripts/test-partial-container.sh
       - name: Public shell prefetch Linux browser conformance
         run: sh ./scripts/test-partial-shell-container.sh
+      - name: Viewport prefetch Linux browser conformance
+        run: sh ./scripts/test-viewport-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

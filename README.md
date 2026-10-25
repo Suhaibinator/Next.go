@@ -20,6 +20,7 @@ The example includes:
 | --- | --- |
 | `/` | Shared root layout, meaningful SSR, two independent Go counters |
 | `/about` | Static route and client-side navigation |
+| `/prefetch` | Typed Go links, bounded production viewport prefetch and intent/none controls |
 | `/partial`, `/partial/alpha`, `/partial/beta` | Captured public shell and fresh request-time server regions |
 | `/keyed`, `/keyed/table` | DOM-preserving keyed Go collections, row state, explicit updates and cleanup |
 | `/composition`, `/composition/details` | Typed providers, child scopes, effects and retained-layout cleanup |
@@ -161,6 +162,27 @@ Additional Go-safe conventions:
 Catch-all parameters contain decoded segments joined with `/`; an optional empty match produces an empty string. Catch-alls terminate a route. Static segments precede single parameters, which precede catch-alls. Hidden directories are ignored; ambiguous route shapes and repeated parameter names are rejected.
 
 The generator discovers the files above and emits ordinary typed imports and registration. Missing exports, wrong signatures, and invalid Go package imports produce Go compilation errors. There is no runtime Go source interpreter or compiler plugin.
+
+### Typed navigation links
+
+`ui.Link` renders a normal anchor and opts into bounded production viewport
+prefetch by default. Plain `ui.El("a", ...)` links retain intent-only behavior:
+
+```go
+ui.Link(nextgo.MustURL(c, "/about"), ui.LinkOptions{}, ui.Text("About"))
+ui.Link(nextgo.MustURL(c, "/partial/alpha"), ui.LinkOptions{
+    Prefetch: ui.PrefetchIntent,
+}, ui.Text("Load on pointer or keyboard intent"))
+```
+
+`PrefetchNone` disables automatic work for that link; `Replace` and ordinary
+`Attrs` control history and native anchor attributes. Development/network/
+lifecycle gates suppress viewport speculation without changing server privacy
+or ordinary navigation. The current scheduler has two workers, 32 queued
+candidates and bounded observation/deduplication. Its bounded subset passes
+the current 232-check startup/viewport/partial-shell subset, both SDK native/WASM
+and host/nonroot Linux executable checks; this is not a full release matrix.
+[Startup ordering and evidence](docs/BOOTSTRAP.md) describe the tested artifact. See [API, lifecycle and limits](docs/VIEWPORT_PREFETCH.md).
 
 ### Pages and server data
 
@@ -569,6 +591,12 @@ flowchart LR
 ```
 
 An ordinary request returns a full HTML document. A Go navigation request sends `X-Nextgo-Navigate: 1` and receives JSON containing `version`, `build`, `configuration`, `url`, `html`, `title`, `description`, `meta`, `document`, `status`, and optional structured `head`. `document` carries required `lang`, `dir` and `viewport` values. The final server URL keeps browser history canonical after redirects; the browser preserves the target fragment. Both responses retain the proper HTTP status. The current envelope has `version: 3` and requires `X-Nextgo-Protocol: 3` on live server responses. This is an internal, version-checked protocol; incompatible responses trigger full-document navigation. Invalid document settings in an otherwise compatible response preserve the current view and report a recoverable error.
+
+Runtime support and bootstrap scripts appear after the completed app shell and
+initial-ready marker in parser order, including the first streamed flush. A
+one-shot MutationObserver provides the defensive readiness wait without
+animation-frame polling; nonces, CDN paths and early head dependencies remain
+supported. See [the startup contract](docs/BOOTSTRAP.md).
 
 Hydration never replaces the initial application DOM. A failed mount reports an error, cleans up its resources, and leaves the server markup in place. Navigations replace the changed application/outlet region and mount new islands; configured shared layouts can retain existing DOM and state. The document shell remains in place. Titles and page-owned metadata update with the content.
 

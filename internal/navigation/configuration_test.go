@@ -14,6 +14,7 @@ func TestConfigurationIdentityCoversRuntimeOwnershipRules(t *testing.T) {
 		t.Fatal("invalid or unstable identity", original)
 	}
 	variants := []string{
+		ConfigurationID("build", paths.Config{}, Manifest{Routes: manifest.Routes, Handlers: manifest.Handlers, Development: true}, false, false),
 		ConfigurationID("build", paths.Config{}, manifest, false, true),
 		ConfigurationID("other", paths.Config{}, manifest, false, false),
 		ConfigurationID("build", paths.Config{BasePath: "/docs"}, manifest, false, false),

@@ -402,7 +402,7 @@ func newApp(c Config) (*App, error) {
 	if err := a.initInterceptions(); err != nil {
 		return nil, err
 	}
-	manifest := navigation.Manifest{Public: c.Public}
+	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev}
 	manifest.Draft = c.Draft != nil
 	manifest.Scripts = earlyScriptsIdentity(c.EarlyScripts)
 	manifest.Prerender = a.prerenderIdentity()
@@ -950,24 +950,35 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 	}
 	var buf bytes.Buffer
 	err = document.Execute(&buf, struct {
-		Page          Page
-		Document      Document
-		Body          template.HTML
-		Build         string
-		Dev           bool
-		DevGeneration string
-		Head          template.HTML
-		Preserve      bool
-		Transitions   bool
-		Navigation    string
-		Configuration string
-		Draft         string
-		Paths         paths.Config
-		Runtime       string
-		Style         string
-		Nonce         string
-		Early         template.HTML
-	}{p, documentAttrs, template.HTML(body), a.config.BuildID, a.config.Dev, a.config.DevGeneration, template.HTML(nonceHead(headHTML, scripts.Nonce(r.Context()))), a.config.PreserveLayouts, a.config.ViewTransitions, a.navigationJSON, a.configurationID, a.draftState(r), a.paths, a.paths.RuntimeURL(a.config.BuildID), mustPath(a.paths.AssetURL("/style.css")), scripts.Nonce(r.Context()), template.HTML(a.earlyScripts(r))})
+		Page           Page
+		Document       Document
+		Body           template.HTML
+		Build          string
+		Dev            bool
+		DevGeneration  string
+		Head           template.HTML
+		Preserve       bool
+		Transitions    bool
+		Navigation     string
+		Configuration  string
+		Draft          string
+		Paths          paths.Config
+		Runtime        string
+		Style          string
+		Nonce          string
+		Early          template.HTML
+		RuntimeScripts template.HTML
+	}{
+		Page: p, Document: documentAttrs, Body: template.HTML(body),
+		Build: a.config.BuildID, Dev: a.config.Dev, DevGeneration: a.config.DevGeneration,
+		Head:     template.HTML(nonceHead(headHTML, scripts.Nonce(r.Context()))),
+		Preserve: a.config.PreserveLayouts, Transitions: a.config.ViewTransitions,
+		Navigation: a.navigationJSON, Configuration: a.configurationID, Draft: a.draftState(r),
+		Paths: a.paths, Runtime: a.paths.RuntimeURL(a.config.BuildID),
+		Style: mustPath(a.paths.AssetURL("/style.css")), Nonce: scripts.Nonce(r.Context()),
+		Early:          template.HTML(a.earlyScripts(r)),
+		RuntimeScripts: template.HTML(runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), scripts.Nonce(r.Context()))),
+	})
 	if err != nil {
 		http.Error(w, "Unable to render document", 500)
 		return
@@ -987,11 +998,11 @@ var document = template.Must(template.New("document").Parse(`<!doctype html>
 <style{{if .Nonce}} nonce="{{.Nonce}}"{{end}}>` + frameworkCSS + `</style>
 <link rel="stylesheet" href="{{.Style}}">
 {{.Early}}
-<script{{if .Nonce}} nonce="{{.Nonce}}"{{end}} src="{{.Runtime}}wasm_exec.js"></script><script data-nextgo-bootstrap=""{{if .Nonce}} nonce="{{.Nonce}}"{{end}} async src="{{.Runtime}}boot.js"></script>
 </head><body{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
 <div id="nextgo-status" role="status" aria-live="polite" hidden></div>
 ` + routeAnnouncer + `
 <div id="nextgo-app" tabindex="-1">{{.Body}}</div>
 <span id="nextgo-initial-ready" hidden></span>
+{{.RuntimeScripts}}
 <noscript>Interactive controls require JavaScript and WebAssembly. Page links still work.</noscript>
 </body></html>`))

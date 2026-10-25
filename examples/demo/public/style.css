@@ -26,3 +26,4 @@ body[data-nextgo-transitions="true"] .site-header{view-transition-name:demo-head
 [data-nextgo-island="fileform"] [data-file-error]{display:block;min-height:3.2em}
 
 [data-file-receipt]{white-space:pre-wrap;overflow-wrap:anywhere}
+.prefetch-offscreen-zone { margin-top: 200vh; }

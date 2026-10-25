@@ -23,10 +23,11 @@ func requestURI(r *http.Request) string {
 
 type initialStreamWriter struct {
 	http.ResponseWriter
-	pending bytes.Buffer
-	ready   bool
-	err     error
-	cancel  context.CancelFunc
+	pending   bytes.Buffer
+	ready     bool
+	err       error
+	cancel    context.CancelFunc
+	bootstrap string
 }
 
 func (w *initialStreamWriter) Write(data []byte) (int, error) {
@@ -45,6 +46,7 @@ func (w *initialStreamWriter) Flush() {
 	}
 	if !w.ready {
 		w.pending.WriteString(`</div><span id="nextgo-initial-ready" hidden></span>`)
+		w.pending.WriteString(w.bootstrap)
 		w.ready = true
 		n, err := w.ResponseWriter.Write(w.pending.Bytes())
 		if err == nil && n != w.pending.Len() {
@@ -85,7 +87,7 @@ func (a *App) respondStream(w http.ResponseWriter, r *http.Request, p Page, head
 	for key, value := range p.Meta {
 		b.WriteString(`<meta data-nextgo-meta name="` + html.EscapeString(key) + `" content="` + html.EscapeString(value) + `">`)
 	}
-	b.WriteString(nonceHead(head, nonce) + `<style` + nonceAttr + `>` + frameworkCSS + `</style><link rel="stylesheet" href="` + html.EscapeString(mustPath(a.paths.AssetURL("/style.css"))) + `">` + a.earlyScripts(r) + `<script` + nonceAttr + ` src="` + html.EscapeString(a.paths.RuntimeURL(a.config.BuildID)) + `wasm_exec.js"></script><script data-nextgo-bootstrap=""` + nonceAttr + ` async src="` + html.EscapeString(a.paths.RuntimeURL(a.config.BuildID)) + `boot.js"></script></head><body data-nextgo-basepath="` + html.EscapeString(a.paths.BasePath) + `" data-nextgo-assets="` + html.EscapeString(a.paths.AssetPrefix) + `" data-nextgo-runtime="` + html.EscapeString(a.paths.RuntimeURL(a.config.BuildID)) + `" data-nextgo-build="` + html.EscapeString(a.config.BuildID) + `"`)
+	b.WriteString(nonceHead(head, nonce) + `<style` + nonceAttr + `>` + frameworkCSS + `</style><link rel="stylesheet" href="` + html.EscapeString(mustPath(a.paths.AssetURL("/style.css"))) + `">` + a.earlyScripts(r) + `</head><body data-nextgo-basepath="` + html.EscapeString(a.paths.BasePath) + `" data-nextgo-assets="` + html.EscapeString(a.paths.AssetPrefix) + `" data-nextgo-runtime="` + html.EscapeString(a.paths.RuntimeURL(a.config.BuildID)) + `" data-nextgo-build="` + html.EscapeString(a.config.BuildID) + `"`)
 	if a.paths.TrailingSlash {
 		b.WriteString(` data-nextgo-trailing-slash="true"`)
 	}
@@ -105,7 +107,7 @@ func (a *App) respondStream(w http.ResponseWriter, r *http.Request, p Page, head
 	b.WriteString(`><div id="nextgo-status" role="status" aria-live="polite" hidden></div>` + routeAnnouncer + `<div id="nextgo-app" tabindex="-1">`)
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
-	stream := &initialStreamWriter{ResponseWriter: w, cancel: cancel}
+	stream := &initialStreamWriter{ResponseWriter: w, cancel: cancel, bootstrap: runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), nonce)}
 	_, _ = io.WriteString(stream, b.String())
 	if err := ui.RenderStream(ctx, stream, p.Body); err != nil {
 		a.config.Logger.Printf("stream: %v", err)

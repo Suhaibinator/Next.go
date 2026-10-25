@@ -12,18 +12,27 @@ const id = page => page.locator('[data-partial-shell-generation]');
 const traceKeys = new WeakMap();
 async function select(page, headers = {}) { await page.setExtraHTTPHeaders({ ...headers, 'X-Fixture-Shell-Trace': traceKeys.get(page) }); }
 async function open(page, path = '/partial') { await page.goto(origin + path); await ready(page); if (path.startsWith('/partial')) await loaded(page); }
-async function link(page, path = target) {
-  await page.evaluate(path => { document.getElementById('shell-target')?.remove(); const a = document.createElement('a'); a.id = 'shell-target'; a.href = path; a.textContent = 'Open cached public shell'; document.querySelector('main').prepend(a); }, path);
+async function link(page, path = target, automatic = true) {
+  await page.evaluate(({ path, automatic }) => { document.getElementById('shell-target')?.remove(); const a = document.createElement('a'); a.id = 'shell-target'; a.href = path; a.textContent = 'Open cached public shell'; if (!automatic) a.dataset.nextgoPrefetch = 'false'; document.querySelector('main').prepend(a); }, { path, automatic });
   return page.locator('#shell-target');
+}
+async function publicPrefetchWire(page, path) {
+  const wireURL = `${origin}/_fixture/shell-wire?kind=prefetch&trace=${encodeURIComponent(traceKeys.get(page))}&url=${encodeURIComponent(path)}`;
+  await expect.poll(async () => (await page.request.get(wireURL)).status()).toBe(200);
+  return (await page.request.get(wireURL)).json();
 }
 async function prefetched(page, path = target) {
   const a = await link(page, path); const waiting = page.waitForResponse(response => isPrefetch(response.request(), path));
-  await a.dispatchEvent('pointerover'); const response = await waiting; await response.finished();
+  await a.dispatchEvent('pointerover'); const response = await waiting;
   expect(response.status()).toBe(200); expect(response.request().headers()['x-nextgo-shell-protocol']).toBe('1');
   expect(response.headers()['x-nextgo-shell-protocol']).toBe('1'); expect(response.headers()['x-nextgo-prefetch']).toBe('shell');
   expect(Number(response.headers()['x-nextgo-shell-stale'])).toBeGreaterThan(0); expect(Number(response.headers()['x-nextgo-shell-stale'])).toBeLessThanOrEqual(30_000);
   expect(response.headers()['cache-control']).toContain('private'); expect(response.headers()['cache-control']).toContain('no-store');
-  const data = await response.json(); expect(data.shell).toMatch(/^[a-f0-9]{64}$/); expect(data.shellRef || false).toBe(false);
+  // Chromium can report ERR_ABORTED without resolving Playwright's finished()
+  // promise. Check the bounded genuine wire envelope; each active use below
+  // separately proves browser admission through its shell hint/reference.
+  const captured = await publicPrefetchWire(page, path); expect(captured.status).toBe(response.status());
+  const data = captured.data; expect(data.shell).toMatch(/^[a-f0-9]{64}$/); expect(data.shellRef || false).toBe(false);
   expect(data.html).toContain('data-partial-loading'); expect(data.html).not.toContain('data-partial-request-id');
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0))));
   return { response, data, a };
@@ -89,7 +98,7 @@ test('revoking a real request grant after prefetch cannot use the public shell a
   await context.addCookies([{ name: 'nextgo_partial_grant', value: 'allowed', url: origin }]); await open(page); const path = '/partial/alpha?protected=1'; const cached = await prefetched(page, path);
   await page.evaluate(() => { window.shellAuthDocument = true; }); await context.clearCookies({ name: 'nextgo_partial_grant' });
   const decision = page.waitForResponse(response => isActive(response.request(), path)); const document = page.waitForResponse(response => response.request().isNavigationRequest() && response.url() === origin + path);
-  await cached.a.click(); expect((await decision).status()).toBe(403); expect((await document).status()).toBe(403); await expect(page).toHaveURL(origin + path);
+  await cached.a.click(); const denied = await decision; expect(denied.request().headers()['x-nextgo-shell']).toBe(cached.data.shell); expect(denied.status()).toBe(403); expect((await document).status()).toBe(403); await expect(page).toHaveURL(origin + path);
   expect(await page.evaluate(() => window.shellAuthDocument)).toBeUndefined(); await expect(page.locator('[data-partial-shell]')).toHaveCount(0); await expect(page.locator('meta[name="partial-shell-generation"]')).toHaveCount(0);
 });
 
@@ -116,29 +125,43 @@ test('superseded resumes, query strings and history always reload private region
 });
 
 test('Go Refresh fences a late public prefetch instead of repopulating the next navigation hint', async ({ page }) => {
-  await open(page, '/features'); const a = await link(page); let release, entered; const gate = new Promise(resolve => { release = resolve; }); const captured = new Promise(resolve => { entered = resolve; });
-  await page.route(origin + target, async route => {
-    if (!isPrefetch(route.request())) { await route.continue(); return; }
-    const response = await route.fetch(); expect(response.status()).toBe(200); entered(); await gate;
-    try { await route.fulfill({ response }); } catch (error) { if (!/closed|cancel|abort|handled|disposed/i.test(String(error))) throw error; }
-  });
-  try {
-    await a.dispatchEvent('pointerover'); await captured;
-    const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === '/features' && response.request().headers()['x-nextgo-navigate'] === '1'); await page.locator('[data-refresh]').click(); await refreshed; await expect(page.locator('#nextgo-app')).not.toHaveAttribute('aria-busy'); release();
-    const replacement = await link(page); await replacement.evaluate(a => a.setAttribute('data-nextgo-prefetch', 'false'));
-    const waiting = page.waitForResponse(response => isActive(response.request())); await replacement.click(); const response = await waiting; expect(response.request().headers()['x-nextgo-shell']).toBeUndefined(); expect((await shellFrame(response)).shellRef || false).toBe(false); await loaded(page); await ready(page);
-  } finally { release(); }
+  await open(page, '/features'); const a = await link(page); const gate = `prefetch-${traceKeys.get(page)}`;
+  await page.evaluate(path => {
+    window.partialPrefetchRead = { bytes: 0, done: false }; const fetch = window.fetch;
+    window.fetch = function (url, options) {
+      return fetch.apply(this, arguments).then(response => {
+        if (!String(url).endsWith(path) || new Headers(options?.headers).get('x-nextgo-purpose') !== 'prefetch') return response;
+        const getReader = response.body.getReader;
+        response.body.getReader = function (...args) { const reader = getReader.apply(this, args); const read = reader.read;
+          reader.read = function (...args) { return read.apply(this, args).then(chunk => { window.partialPrefetchRead.bytes += chunk.value?.byteLength || 0; window.partialPrefetchRead.done = chunk.done; return chunk; }); }; return reader; };
+        return response;
+      });
+    };
+  }, target);
+  await select(page, { 'X-Fixture-Partial-Gate': gate });
+  const pending = page.waitForResponse(response => isPrefetch(response.request())); await a.dispatchEvent('pointerover'); expect((await pending).status()).toBe(200);
+  const captured = await publicPrefetchWire(page, target); expect(captured.status).toBe(200); expect(captured.data.html).toContain('data-partial-loading');
+  await expect.poll(() => page.evaluate(() => window.partialPrefetchRead)).toEqual({ bytes: 1, done: false });
+  await select(page); const aborted = page.waitForEvent('requestfailed', request => isPrefetch(request));
+  const refreshed = page.waitForResponse(response => new URL(response.url()).pathname === '/features' && response.request().headers()['x-nextgo-navigate'] === '1'); await page.locator('[data-refresh]').click(); await refreshed; await aborted; await expect(page.locator('#nextgo-app')).not.toHaveAttribute('aria-busy');
+  const released = await page.request.post(`${origin}/_fixture/release-region?key=${encodeURIComponent(gate)}`); expect([200, 404]).toContain(released.status());
+  const replacement = await link(page, target, false);
+  const waiting = page.waitForResponse(response => isActive(response.request())); await replacement.click(); const response = await waiting; expect(response.request().headers()['x-nextgo-shell']).toBeUndefined(); expect((await shellFrame(response)).shellRef || false).toBe(false); await loaded(page); await ready(page);
 });
 
 test('the bounded shell lifetime expires independently of private HTTP no-store', async ({ page }) => {
-  await page.clock.install(); await open(page); const cached = await prefetched(page); await page.clock.fastForward(31_000);
+  await page.clock.install(); await open(page); const cached = await prefetched(page);
+  const admitted = page.waitForResponse(response => isActive(response.request())); await cached.a.click(); const resumed = await admitted;
+  expect(resumed.request().headers()['x-nextgo-shell']).toBe(cached.data.shell); expect((await shellFrame(resumed)).shellRef).toBe(true); await expect(page.locator('[data-partial-region-slug]')).toHaveText('alpha'); await ready(page);
+  await page.goBack(); await expect(page).toHaveURL(origin + '/partial'); await expect(page.locator('[data-partial-region-slug]')).toHaveText('root'); await ready(page);
+  cached.a = await link(page, target, false); await page.clock.fastForward(31_000);
   await cached.a.evaluate(a => a.setAttribute('data-nextgo-prefetch', 'false')); const waiting = page.waitForResponse(response => isActive(response.request())); await cached.a.click(); const response = await waiting;
   expect(response.request().headers()['x-nextgo-shell']).toBeUndefined(); const frame = await shellFrame(response); expect(frame.shellRef || false).toBe(false); expect(frame.html).toContain('data-partial-shell'); await loaded(page); await ready(page);
 });
 
 test('a cheap public prefetch bypasses saturated stream capacity while its active click must respect real admission', async ({ page, request }) => {
   await select(page, { 'X-Fixture-Partial': 'busy' }); await open(page); const title = await remember(page); await control(request, 'hold-stream', 'busy');
-  const cached = await prefetched(page); const failed = page.waitForResponse(response => isActive(response.request())); await cached.a.click(); const busy = await failed; expect(busy.status()).toBe(503); expect(busy.headers()['retry-after']).toBe('1'); await expect(page.locator('#nextgo-status')).toContainText('Navigation failed'); await unchanged(page, title);
+  const cached = await prefetched(page); const failed = page.waitForResponse(response => isActive(response.request())); await cached.a.click(); const busy = await failed; expect(busy.request().headers()['x-nextgo-shell']).toBe(cached.data.shell); expect(busy.status()).toBe(503); expect(busy.headers()['retry-after']).toBe('1'); await expect(page.locator('#nextgo-status')).toContainText('Navigation failed'); await unchanged(page, title);
   await control(request, 'release-stream'); await expect.poll(async () => (await request.head(origin + '/stream', { headers: { 'X-Fixture-Partial': 'busy' } })).status()).toBe(200);
   const waiting = page.waitForResponse(response => isActive(response.request())); await cached.a.click(); expect((await waiting).status()).toBe(200); await loaded(page); await ready(page);
 });

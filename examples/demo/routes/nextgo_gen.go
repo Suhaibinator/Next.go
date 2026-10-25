@@ -310,6 +310,9 @@ func ReadPostsBySlug(values map[string]string) (PostsBySlugParams, error) {
 	return p, nil
 }
 
+// Prefetch constructs the application path for page /prefetch.
+func Prefetch() string { return "/prefetch" }
+
 // Prerender constructs the application path for page /prerender.
 func Prerender() string { return "/prerender" }
 

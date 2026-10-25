@@ -34,8 +34,9 @@ var routeManifest navigation.Manifest
 type prefetchContextKey struct{}
 
 type prefetchRequest struct {
-	done   chan struct{}
-	cancel context.CancelFunc
+	done     chan struct{}
+	cancel   context.CancelFunc
+	viewport bool
 }
 
 func Register(name string, mount Mount) {
@@ -193,6 +194,7 @@ func Run() {
 	startStreaming()
 	hydrate()
 	installDraftLifecycle()
+	installViewportPrefetch()
 	listen(doc, "click", func(e js.Value) {
 		if e.Get("defaultPrevented").Bool() || e.Get("button").Int() != 0 || e.Get("metaKey").Bool() || e.Get("ctrlKey").Bool() || e.Get("shiftKey").Bool() || e.Get("altKey").Bool() {
 			return
@@ -433,23 +435,31 @@ func invalidateCache() {
 		pending.cancel()
 	}
 	prefetches = map[string]*prefetchRequest{}
+	if viewportPrefetch != nil {
+		viewportPrefetch.requestScan()
+	}
 }
-func prefetch(target string) {
+func prefetch(target string) { prefetchWithOrigin(target, false) }
+
+func prefetchWithOrigin(target string, viewport bool) *prefetchRequest {
 	// Managed HttpOnly preview sessions require a fresh request on navigation;
 	// speculative responses cannot be reused and only duplicate private work.
 	if draftFrozen || routeManifest.Draft {
-		return
+		return nil
 	}
 	key := requestURL(target)
 	if _, ok := pageCache.get(key); ok {
-		return
+		return nil
 	}
-	if prefetches[key] != nil || len(prefetches) >= navigationCacheLimit {
-		return
+	if pending := prefetches[key]; pending != nil {
+		return pending
+	}
+	if len(prefetches) >= navigationCacheLimit {
+		return nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	ctx = context.WithValue(ctx, prefetchContextKey{}, true)
-	pending := &prefetchRequest{done: make(chan struct{}), cancel: cancel}
+	pending := &prefetchRequest{done: make(chan struct{}), cancel: cancel, viewport: viewport}
 	prefetches[key] = pending
 	epoch := cacheEpoch
 	go func() {
@@ -465,6 +475,7 @@ func prefetch(target string) {
 			pageCache.putUntil(key, data, data.cacheUntil)
 		}
 	}()
+	return pending
 }
 
 func listen(target js.Value, event string, fn func(js.Value)) {
@@ -624,6 +635,10 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 	data, cached := pageCache.get(key)
 	var hint *shellResumeHint
 	if !cached {
+		if pending := prefetches[key]; pending != nil && pending.viewport {
+			pending.cancel()
+			delete(prefetches, key)
+		}
 		if pending := prefetches[key]; pending != nil {
 			select {
 			case <-pending.done:
