@@ -454,7 +454,7 @@ func serverSource(p *Project, id string, dev bool, refresh ...bool) string {
 	aliases := map[string]string{}
 	var b strings.Builder
 	b.WriteString(`package main
-import("embed";"flag";"io/fs";"log";"net/http";"os";"os/signal";"syscall";"context";"time";"encoding/json"
+import("embed";"flag";"fmt";"io/fs";"log";"net/http";"os";"os/signal";"syscall";"context";"time";"encoding/json"
 nextgo "` + framework + `"
 "` + framework + `/serverless"
 "` + framework + `/environment"
@@ -464,11 +464,11 @@ nextgo "` + framework + `"
 		aliases[key] = alias
 		fmt.Fprintf(&b, "%s %q\n", alias, key)
 	}
-	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");devReady:=flag.String(\"dev-ready\",\"\",\"owned development readiness output\");flag.Parse();")
-	fmt.Fprintf(&b, "if *devReady!=\"\"&&!%t{log.Fatal(\"development readiness is unavailable\")};", dev)
-	b.WriteString("exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{log.Fatal(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
+	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){if err:=run();err!=nil{log.Print(err);os.Exit(1)}}\nfunc run()error{\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");devReady:=flag.String(\"dev-ready\",\"\",\"owned development readiness output\");flag.Parse();")
+	fmt.Fprintf(&b, "if *devReady!=\"\"&&!%t{return fmt.Errorf(\"development readiness is unavailable\")};", dev)
+	b.WriteString("exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{return fmt.Errorf(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{return err}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{return err}\n")
 	writeConfigConstruction(&b, p, aliases, id, dev)
-	b.WriteString("config.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
+	b.WriteString("config.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{return err}\n")
 	writeMetadataSources(&b, p, aliases)
 	if p.Configure != "" {
 		fmt.Fprintf(&b, "%s.Configure(&config)\n", aliases[p.Configure])
@@ -477,26 +477,28 @@ nextgo "` + framework + `"
 		fmt.Fprintf(&b, "config.ActionRegistrars=append(config.ActionRegistrars,%s.Register)\n", aliases[p.Import+"/actionrefs"])
 	}
 	b.WriteString(`ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
-app,err:=nextgo.NewContext(ctx,config);if err!=nil{log.Fatal(err)};
+app,err:=nextgo.NewContext(ctx,config);if err!=nil{return err};
+defer func(){drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=app.Close(drain);err!=nil{log.Printf("Next.go completion drain: %v",err)}}()
 `)
 	if dev {
 		fmt.Fprintf(&b, `if *devReady!=""{func(){supported:=%t&&config.Dev&&config.Phase==nextgo.PhaseDevelopment&&app.Paths().AssetPrefix==""&&config.BuildID==%q&&config.DevGeneration==*devGeneration&&*devGeneration!="";data,err:=json.Marshal(struct{Version int `+"`json:\"version\"`"+`;Build string `+"`json:\"build\"`"+`;Generation string `+"`json:\"generation\"`"+`;Supported bool `+"`json:\"supported\"`"+`}{1,config.BuildID,config.DevGeneration,supported});if err!=nil{log.Print("development readiness unavailable");return};file,err:=os.OpenFile(*devReady,os.O_CREATE|os.O_EXCL|os.O_WRONLY,0600);if err!=nil{log.Print("development readiness unavailable");return};_,writeErr:=file.Write(data);closeErr:=file.Close();if writeErr!=nil||closeErr!=nil{log.Print("development readiness unavailable")}}()}
 `, refreshEnabled, id)
 	}
-	b.WriteString(`if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}
-if *exportConfig{info,err:=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});if err!=nil{log.Fatal(err)};if err=json.NewEncoder(os.Stdout).Encode(info);err!=nil{log.Fatal(err)};return}
-if *prerenderOut!=""{buildCtx,cancel:=context.WithTimeout(ctx,90*time.Second);defer cancel();data,err:=app.BuildPrerender(buildCtx);if err!=nil{log.Fatal(err)};if err=os.WriteFile(*prerenderOut,data,0600);err!=nil{log.Fatal(err)};return}
-if *pathConfig{if err:=json.NewEncoder(os.Stdout).Encode(app.Paths());err!=nil{log.Fatal(err)};return}
-if *staticPaths{enumeration,cancel:=context.WithTimeout(ctx,30*time.Second);defer cancel();paths,err:=app.StaticPathsForDomain(enumeration,*exportDomain);if err!=nil{log.Fatal(err)};encoder:=json.NewEncoder(os.Stdout);encoder.SetEscapeHTML(false);if err=encoder.Encode(paths);err!=nil{log.Fatal(err)};return}
+	b.WriteString(`if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{return err};return nil}
+if *exportConfig{info,err:=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});if err!=nil{return err};if err=json.NewEncoder(os.Stdout).Encode(info);err!=nil{return err};return nil}
+if *prerenderOut!=""{buildCtx,cancel:=context.WithTimeout(ctx,90*time.Second);defer cancel();data,err:=app.BuildPrerender(buildCtx);if err!=nil{return err};if err=os.WriteFile(*prerenderOut,data,0600);err!=nil{return err};return nil}
+if *pathConfig{if err:=json.NewEncoder(os.Stdout).Encode(app.Paths());err!=nil{return err};return nil}
+if *staticPaths{enumeration,cancel:=context.WithTimeout(ctx,30*time.Second);defer cancel();paths,err:=app.StaticPathsForDomain(enumeration,*exportDomain);if err!=nil{return err};encoder:=json.NewEncoder(os.Stdout);encoder.SetEscapeHTML(false);if err=encoder.Encode(paths);err!=nil{return err};return nil}
 if os.Getenv("AWS_LAMBDA_RUNTIME_API")!=""{
-defer func(){drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=app.Close(drain);err!=nil{log.Printf("Next.go completion drain: %v",err)}}()
-if err:=serverless.Run(ctx,app);err!=nil && ctx.Err()==nil{log.Fatal(err)};return}
+if err:=serverless.Run(ctx,app);err!=nil && ctx.Err()==nil{return err};return nil}
 server:=&http.Server{Addr:*addr,Handler:app,ReadHeaderTimeout:10*time.Second}
 shutdownDone:=make(chan struct{})
-go func(){<-ctx.Done();shutdown,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();_ = server.Shutdown(shutdown);if err:=app.Close(shutdown);err!=nil{log.Printf("Next.go completion drain: %v",err)};close(shutdownDone)}()
+go func(){defer close(shutdownDone);<-ctx.Done();shutdown,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=server.Shutdown(shutdown);err!=nil{_ = server.Close()}}()
+defer func(){stop();<-shutdownDone}()
 log.Printf("Next.go listening on %s",*addr)
-if err:=server.ListenAndServe();err!=nil && err!=http.ErrServerClosed{log.Fatal(err)}
+if err:=server.ListenAndServe();err!=nil && err!=http.ErrServerClosed{return err}
 <-shutdownDone
+return nil
 }
 `)
 	return b.String()

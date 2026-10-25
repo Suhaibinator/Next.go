@@ -270,8 +270,8 @@ The frozen V2 recovery source passes all four runtime test modes and 39 host
 development cases, including its added cold-start cases. V2 host production
 passes 12 browser/four Node transport cases; Linux production passes 48 browser
 cases per matching SDK. Those counts are separate from the historical 88 Linux/
-33 host development executions below. V2 Linux development/mixed work remains
-incomplete, so production results do not establish that qualification.
+33 host development executions below. V2 production does not supply development
+proof; later V3 and retained mixed-SDK results are recorded separately.
 
 Exact remote `ec7bc3` attempt 1 ends six jobs passing/two failing. Its refresh
 job passes 52 development/48 production browser cases and four Node cases, but
@@ -284,8 +284,12 @@ test/subtest records and one intentional module skip per SDK. These are not the
 literal failed remote AMD64 environment or broader V3 browser proof. The
 viewport-worker cleanup edit is only a test-fixture correction. Fresh V3 CLI/
 generation/demo/refresh/static builds pass separately. The 56-case browser
-isolation passes on old V2 artifacts, not V3 runtime; V3 host HMR/production and
-remote qualification remain pending. [Exact scope](PARITY.md).
+isolation passes on old V2 artifacts, not V3 runtime. Subsequent V3 host checks
+pass 39 development, four Node and 12 production browser cases; Linux passes
+52 HMR plus four aggregate-zone development cases per SDK. Exact `71703bc` CI
+passes all eight jobs. The later native shutdown/conflict increment has its own
+qualification and does not reuse these results as new-runtime proof.
+[Exact scope](PARITY.md).
 The older published-BFCache failure below remains separately unresolved.
 
 | Qualified scope | Result and boundary |

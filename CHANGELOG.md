@@ -8,12 +8,33 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — mutation conflicts and generated server cleanup
+
+- Add native `actions.ConflictError` for an application-declared rejected write,
+  using the existing 409 error envelope and escaped progressive HTML. Public
+  messages and fields exclude wrapped private details; authorization errors
+  retain precedence. Handler cancellation now asks callers to reconcile an
+  unconfirmed outcome before retrying.
+- Close successfully constructed applications on generated startup, inspection,
+  export and Lambda errors. HTTP startup failures cancel and join their shutdown
+  worker. All four generated HTTP server types separate the five-second request
+  drain from application cleanup and force-close remaining connections after a
+  failed drain.
+- Integrated native race/vet passes on Go 1.24.13 and 1.27.3: 69 tested packages,
+  3,069 passing test/subtest records and one expected helper skip per SDK.
+  Four WASM modes and four vets pass per SDK. Actual deadline probes cover
+  ordinary, aggregate and release entrypoints plus an instrumented ingress
+  constructor with an unchanged HTTP lifecycle. Fresh host production builds,
+  four local transport checks and 12 Chromium checks pass. New immutable CI and
+  complete release qualification remain pending.
+
 ## Unreleased — independent zone release endpoints and ingress
 
-The new implementation is under qualification. Its APIs and source sample do
-not prove independent build/release isolation, successful rollout/rollback or
-production/Next.js multi-zone parity. Final compiler/browser/transport evidence
-is pending.
+Frozen V2 production and V3 development increments have scoped compiler,
+browser and transport evidence. A retained V1/V2 mixed-SDK matrix also passes
+without rebuilding the release endpoints. These results do not qualify later
+source changes or establish production/Next.js multi-zone parity; see the
+[exact checkpoint record](docs/PARITY.md).
 
 - Added `NewZoneRelease` with a fixed trusted public zone/origin, explicit exact
   backend authorities, frozen release-scoped public/runtime assets and bounded

@@ -769,7 +769,7 @@ The core is 164,623 raw / 37,713 gzip-9 bytes larger than the zones observation.
 Code and Data hashes both changed, so this comparison does not isolate a cause
 or establish a timing/RSS result. Both reference core budgets still fail.
 
-### Independent-zone evidence: frozen V2 subset; V3 pending
+### Independent-zone evidence: frozen V2, V3 and retained mixed SDKs
 
 The current source adds `zones release`, `zones ingress` and `zones ingress-build`
 with native `ZoneRelease`/`ZoneIngress` APIs. A selected release has fixed public
@@ -804,8 +804,8 @@ first independent-release slice.
 V2 host refresh development passes 39 cases; its production browsers pass 12
 and its production Node transport cases pass four. Linux production separately
 passes 228 legacy executable and 4 loader/9 independent deployment/13 aggregate
-zone cases per SDK. Linux development/mixed qualification remains incomplete; the
-V2 production successes do not supply it. The served V2 core is 8,260,348 raw /
+zone cases per SDK. Those production results do not supply development proof;
+later V3 and retained mixed-SDK results are recorded separately. The served V2 core is 8,260,348 raw /
 2,125,763 Node gzip-9 bytes, with development implementations absent in that
 artifact; both size budgets still fail. Source/evidence is retained under
 `.nextgo-test-results/qualification/independent-zones-edge/`.
@@ -832,14 +832,54 @@ passes. Actual V3 demo core bytes are 8,260,348 raw/2,125,761 gzip-9 (both budge
 fail); refresh core is 6,268,844/1,687,488 (raw passes, gzip fails), without a
 performance-improvement claim. The 56-case test-isolation matrix passes all
 four engines on exact old V2 artifact `bfd1bb21…`; it is not V3 runtime or CI
-trigger-cause proof. Fresh V3 host HMR/production and Linux development checks
-are running; mixed and remote qualification remain pending. V2 and the failed
-remote head are distinct.
-Historical HMR results above remain distinct. The remote workflow for checkpoint `76211b8` fails the strict
-Chromium BFCache assertion; the unresolved failure is not cured by comparative
-diagnostics or the older `bb62d65` green workflow. No all-green immutable CI,
-full R15 parity, production maturity or actual AWS claim follows. This update
+trigger-cause proof. V3 host HMR passes 39 cases, ordinary production passes
+four Node and 12 Chromium checks, and Linux development passes 56 per SDK
+(52 HMR plus four aggregate-zone cases). A Go 1.27 preflight selected the wrong
+image SDK and ran zero tests; its preserved failure is separate from the
+corrected, exact-SDK success. Historical V1/Go 1.24 A1/B1 and V2/Go 1.27 A2 also
+pass four ingress-only builds, four loader, nine transport and 52 browser checks
+without rebuilding the release endpoints. That mixed proof is not V3 or later
+native-source qualification.
+
+Exact pushed `71703bc` [CI run 40196064007](https://github.com/Suhaibinator/Next.go/actions/runs/40196064007)
+passes all eight jobs: 2,441 browser executions pass with three platform skips,
+88 Node checks pass, and both Go SDK native/WASM/vet/build jobs succeed. These
+are repeated platform/suite executions, not distinct framework capabilities.
+The original failed checkpoints remain preserved.
+Historical HMR results above remain distinct. The remote workflow for checkpoint
+`76211b8` fails the strict Chromium BFCache assertion; its cause remains unproven
+by comparative diagnostics or the older `bb62d65` green workflow. The later
+`71703bc` green CI is checkpoint evidence, rather than a claim of complete R15
+parity, production maturity or actual AWS operation. This update
 preserves exactly **79 capability rows and 11 open release gates**.
+
+### Native mutation and generated-server lifecycle increment
+
+The current increment adds public `actions.ConflictError` for an application-
+declared rejected write, retains unconfirmed-outcome guidance for cancellation,
+and fixes generated application cleanup on startup/inspection failures. All four
+generated HTTP server types join shutdown, close remaining connections after a
+failed request drain, then use a fresh five-second application-cleanup context.
+These changes do not add transactions, rollback or automatic mutation retry.
+
+Frozen source has 1,391 files (`ed528e66…`) and 1,100 selected runtime inputs
+(`1c69631d…`). Go 1.24.13/Linux ARM64 and Go 1.27.3/macOS ARM64 each pass native
+race/vet (69 tested packages, 3,069 passing test/subtest records, one expected
+process-helper skip) and four WASM modes/four vets (1,054 passing records and
+one intentional module skip). Actual five-second deadline cases cover ordinary,
+aggregate and release executables; ingress uses a constructor observer around
+the real implementation with an unchanged generated HTTP/cleanup tail. Source
+and worker cleanup checks pass. Fresh host CLI/demo/refresh/static builds and
+four Node/12 Chromium production checks pass separately. Original fixture
+failures and controlled failing baseline generators remain archived.
+
+These results qualify that native increment's bounded subset. They do not
+replace its next immutable CI run, production release/ingress artifact matrix,
+actual AWS verification, performance budgets or the open parity/release gates.
+The actual served host demo core measures 8,260,182 raw / 2,126,182 Node gzip-9
+bytes; both budgets still fail. Its 4,251 linked functions exclude development
+refresh implementations. These observations establish neither a speed or memory
+improvement nor equivalence with earlier artifacts.
 
 All gates below are **open** until linked evidence from the exact release candidate demonstrates them. These are project release criteria, not claims that Next.js provides every operational safeguard automatically. Official production, data-security, CSP, accessibility, testing and self-hosting guidance inform this checklist. [Production checklist](https://nextjs.org/docs/app/guides/production-checklist), [data security](https://nextjs.org/docs/app/guides/data-security), [CSP](https://nextjs.org/docs/app/guides/content-security-policy), [accessibility](https://nextjs.org/docs/architecture/accessibility), [testing](https://nextjs.org/docs/app/guides/testing), [self-hosting](https://nextjs.org/docs/app/guides/self-hosting).
 

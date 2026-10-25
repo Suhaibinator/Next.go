@@ -372,6 +372,7 @@ func (r *Router) serve(w http.ResponseWriter, req *http.Request, render func(htt
 
 func (r *Router) handleError(w http.ResponseWriter, req *http.Request, err error) {
 	var validation *ValidationError
+	var conflict *ConflictError
 	var badRequest *requestError
 	var large *http.MaxBytesError
 	switch {
@@ -379,6 +380,10 @@ func (r *Router) handleError(w http.ResponseWriter, req *http.Request, err error
 		r.fail(w, req, http.StatusForbidden, &Error{Code: "forbidden", Message: "You do not have permission to perform this action."})
 	case errors.Is(err, ErrUnauthorized):
 		r.fail(w, req, http.StatusUnauthorized, &Error{Code: "unauthorized", Message: "Authentication is required to perform this action."})
+	// Authorization denials take precedence over public conflict details. A
+	// conflict intentionally precedes validation when errors are joined.
+	case errors.As(err, &conflict):
+		r.fail(w, req, http.StatusConflict, &Error{Code: "conflict", Message: conflict.Error(), Fields: conflict.Fields})
 	case errors.As(err, &validation):
 		r.fail(w, req, 422, &Error{Code: "validation_error", Message: validation.Error(), Fields: validation.Fields})
 	case errors.As(err, &badRequest):
@@ -386,7 +391,7 @@ func (r *Router) handleError(w http.ResponseWriter, req *http.Request, err error
 	case errors.As(err, &large):
 		r.fail(w, req, 413, &Error{Code: "body_too_large", Message: "The request body is too large."})
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
-		r.fail(w, req, 408, &Error{Code: "request_canceled", Message: "The request was canceled. Please try again."})
+		r.fail(w, req, 408, &Error{Code: "request_canceled", Message: viewUnknownOutcome})
 	default:
 		r.options.LogError(req, err)
 		r.fail(w, req, 500, &Error{Code: "internal_error", Message: "The action could not be completed."})

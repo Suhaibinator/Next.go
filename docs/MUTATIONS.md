@@ -78,6 +78,106 @@ and a serializable output contract rather than assuming rollback.
 does not replace data-level authorization. The router bounds/reads the request
 body before invoking a binding, so this hook is not a substitute for body limits.
 
+## Known application conflicts and uncertain outcomes
+
+A native handler can return `&actions.ConflictError{Message: ..., Fields: ...}`
+when it knows that an application concurrency check rejected the requested
+write. The router returns HTTP **409**, code **`conflict`**, and the existing
+public message/field-error envelope. An empty message uses a safe default asking
+the caller to refresh and reconcile. Wrapped private error context is excluded.
+Progressive URL-encoded/multipart requests receive escaped 409 HTML instead of a
+success redirect; action-view requests receive ordinary failure JSON and never
+invoke the successful-view renderer. Returned success cookies and invalidation
+selectors are not published when the handler returns a conflict.
+
+Messages and field errors are public browser data. Do not include secrets,
+private repository details or unauthorized current values. Authorization errors
+win over a joined conflict and hide its details. A conflict intentionally wins
+over a joined validation error. This is an explicit application declaration:
+returning this type does not itself roll back a write or prove that none occurred.
+
+For example, an application can compare a supplied revision and update a record
+inside the same critical section:
+
+```go
+package records
+
+import (
+    "context"
+    "errors"
+    "sync"
+
+    "github.com/Suhaibinator/Next.go/actions"
+)
+
+type Record struct {
+    Revision uint64 `json:"revision"`
+    Value    string `json:"value"`
+}
+
+type Repository struct {
+    mu    sync.Mutex
+    value Record
+}
+
+func (r *Repository) Update(ctx context.Context, expected uint64, value string) (Record, error) {
+    if err := ctx.Err(); err != nil {
+        return Record{}, err
+    }
+    r.mu.Lock()
+    defer r.mu.Unlock()
+    if err := ctx.Err(); err != nil {
+        return Record{}, err
+    }
+    if expected != r.value.Revision {
+        return Record{}, &actions.ConflictError{
+            Fields: map[string]string{"revision": "Load the current record and reconcile your edits."},
+        }
+    }
+    next := r.value.Revision + 1
+    if next == 0 {
+        return Record{}, errors.New("record revision exhausted")
+    }
+    r.value = Record{Revision: next, Value: value}
+    return r.value, nil
+}
+```
+
+This process-local example shows the atomic comparison and update only. The
+handler must authorize the caller's access to the selected repository/record and
+validate the value before writing. A real database adapter must combine its
+revision predicate and write in the same database transaction. This example
+provides no persistence, cross-process isolation, durable idempotency receipt or
+framework transaction guarantee. A revision is not an authorization capability.
+
+In a `BindForm` callback, an application that guarantees this conflict means a
+rejected write can explicitly map the typed failure to a known form rejection:
+
+```go
+var failure *mutation.Error
+if errors.As(err, &failure) && failure.Status == 409 && failure.Code == "conflict" {
+    return client.FormResult[Record]{}, &client.FormError{
+        Message: failure.Message,
+        Fields:  client.FieldErrors(failure.Fields),
+    }
+}
+return client.FormResult[Record]{}, err
+```
+
+Use this fragment in the callback's error branch. Mapping to `FormError` retains
+editable values and reports a known rejection. Return other errors unchanged so
+the form's existing failure path remains **Unconfirmed**. Do not classify an
+arbitrary 409, transport failure, cancellation or private server failure as a
+known rejected write. Refresh/reconcile explicitly; do not automatically resubmit
+with the new revision or overwrite the user's edits.
+
+A handler can commit backing data and subsequently return `context.Canceled` or
+`context.DeadlineExceeded`. Its response remains HTTP 408/code `request_canceled`,
+but the message says the outcome could not be confirmed and asks for
+reconciliation before retrying. Neither that message nor request cancellation
+establishes rollback. A confirmed `CallAndRefresh` result with a failed view is
+still a confirmed mutation: repair the view separately, without another POST.
+
 ## Go/WASM calling
 
 ```go

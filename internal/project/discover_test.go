@@ -57,8 +57,8 @@ func TestDiscoveryAndGeneratedEntrypoint(t *testing.T) {
 	if initialized := strings.Index(source, "signal.NotifyContext"); initialized < 0 || constructed <= initialized || lambda <= initialized || !strings.Contains(source, "serverless.Run(ctx,app)") {
 		t.Fatal("construction and Lambda runtime must use the initialized shutdown context")
 	}
-	if !strings.Contains(source, "app.Close(shutdown)") || !strings.Contains(source, "app.Close(drain)") {
-		t.Fatal("generated server must drain completion work on both deployment paths")
+	if strings.Contains(source, "app.Close(shutdown)") || strings.Count(source, "app.Close(drain)") != 1 {
+		t.Fatal("generated server must close its application with one independent cleanup context")
 	}
 	if listening := strings.Index(source, "server.ListenAndServe()"); listening <= lambda {
 		t.Fatal("Lambda runtime must be selected before starting an HTTP listener")

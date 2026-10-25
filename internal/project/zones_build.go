@@ -330,7 +330,7 @@ func zonesServerSource(zones []compiledZone, dev bool) string {
 		writeMetadataSources(&b, zone.project, aliases, "assets/"+zone.declaration.ID+"/metadata")
 		b.WriteString("return config}\n")
 	}
-	b.WriteString(`func main(){if err:=run();err!=nil{log.Fatal(err)}}
+	b.WriteString(`func main(){if err:=run();err!=nil{log.Print(err);os.Exit(1)}}
 func run()error{
 addr:=flag.String("addr",":3000","listen address");envDir:=flag.String("env-dir",os.Getenv("NEXTGO_ENV_DIR"),"explicit aggregate environment directory");envMode:=flag.String("env-mode","production","environment mode");generation:=flag.String("dev-generation","","development reload token");hosts:=flag.String("zone-hosts","","startup JSON zone ID to exact Host overrides; defaults to NEXTGO_ZONE_HOSTS")
 prerender:=flag.String("prerender-out","","unsupported aggregate purpose");staticPaths:=flag.Bool("static-paths",false,"unsupported aggregate purpose");pathConfig:=flag.Bool("path-config",false,"unsupported aggregate purpose");staticExport:=flag.Bool("static-export",false,"unsupported aggregate purpose");exportCheck:=flag.Bool("export-check",false,"unsupported aggregate purpose");exportConfig:=flag.Bool("export-config",false,"unsupported aggregate purpose");exportDomain:=flag.String("export-domain","","unsupported aggregate purpose");flag.Parse()
@@ -365,7 +365,8 @@ app,err:=nextgo.NewZones(ctx,zones);if err!=nil{return err}
 defer func(){drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=app.Close(drain);err!=nil{log.Printf("Next.go zones drain: %v",err)}}()
 if os.Getenv("AWS_LAMBDA_RUNTIME_API")!=""{if err:=serverless.Run(ctx,app);err!=nil&&ctx.Err()==nil{return err};return nil}
 server:=&http.Server{Addr:*addr,Handler:app,ReadHeaderTimeout:10*time.Second};done:=make(chan struct{})
-go func(){<-ctx.Done();drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();_=server.Shutdown(drain);if err:=app.Close(drain);err!=nil{log.Printf("Next.go zones drain: %v",err)};close(done)}()
+go func(){defer close(done);<-ctx.Done();drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=server.Shutdown(drain);err!=nil{_=server.Close()}}()
+defer func(){stop();<-done}()
 log.Printf("Next.go zones listening on %s",*addr)
 if err:=server.ListenAndServe();err!=nil&&err!=http.ErrServerClosed{return err}
 <-done

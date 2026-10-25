@@ -124,7 +124,7 @@ if os.Getenv("AWS_LAMBDA_RUNTIME_API")!=""{
 if err:=serverless.Run(ctx,app);err!=nil&&ctx.Err()==nil{return err};return nil}
 server:=&http.Server{Addr:*addr,Handler:app,ReadHeaderTimeout:10*time.Second}
 shutdownDone:=make(chan struct{})
-go func(){<-ctx.Done();shutdown,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();_=server.Shutdown(shutdown);if err:=app.Close(shutdown);err!=nil{log.Printf("Next.go completion drain: %v",err)};close(shutdownDone)}()
+go func(){defer close(shutdownDone);<-ctx.Done();shutdown,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=server.Shutdown(shutdown);err!=nil{_=server.Close()}}()
 defer func(){stop();<-shutdownDone}()
 log.Printf("Next.go zone release listening on %s",*addr)
 if err:=server.ListenAndServe();err!=nil&&err!=http.ErrServerClosed{return err}

@@ -19,8 +19,8 @@ in [the inventory](docs/PARITY.md), not full release qualification.
 The preceding forms checkpoint adds choice/field validation and mutation
 factoring. It passes both SDK/native/WASM and executable checks, 394 host
 browser checks (335 primary, 36 forms, 23 separate static) and 48 Linux
-four-engine form checks. The AWS qualification scaffold has offline tests only,
-with cloud execution awaiting explicit approval.
+four-engine form checks. The AWS qualification scaffold has offline tests only;
+cloud execution was not authorized and has not run.
 
 The preceding zones checkpoint composes exact-host/path-selected native applications
 with explicit full-document boundaries and trusted tenant metadata. Native/WASM,
@@ -155,9 +155,9 @@ The output is a **single native server executable** containing public assets, We
 
 An [opt-in AWS qualification scaffold](deployment/aws-qualification/README.md)
 prepares reviewed synthetic ZIP/template inputs and explicit account/profile/
-budget controls. Its 18 offline tests do not qualify cloud behavior; no AWS calls
-have run, and the prepared cloud action still awaits explicit approval. Do not
-run its execution commands without that approval.
+budget controls. Its 18 offline tests do not qualify cloud behavior; cloud
+execution was not authorized and no AWS calls have run. Operators must obtain
+explicit approval before using its execution commands.
 
 The binary targets the build machine's OS/architecture. Cross-platform native builds and Windows process supervision are not part of the tested v1 workflow. Builds use the current Go compiler for both targets; do not replace `wasm_exec.js` with a file from a different compiler version.
 
@@ -1042,10 +1042,12 @@ context, avoid retaining mutable request/page state, and never use a request bod
 or response writer after handling. Errors and panics are logged by type.
 
 Native HTTP starts callbacks after the application handler finishes; a proxy or
-client may still be receiving the response. Generated servers drain callbacks on
-shutdown. Custom servers should call `app.Close(drainContext)` after
-`http.Server.Shutdown`. An expired drain cancels work; Go cannot terminate code
-that ignores cancellation.
+client may still be receiving the response. Generated HTTP servers allow five
+seconds for request draining, close remaining connections if it fails, then give
+application cleanup a fresh five-second context. Custom servers should call
+`app.Close(drainContext)` after `http.Server.Shutdown` using an independent bounded
+context. An expired cleanup context cancels work; Go cannot terminate code that
+ignores cancellation.
 
 The Lambda custom runtime delays callbacks until its response POST succeeds,
 then waits for completion before polling the next event. The invocation deadline

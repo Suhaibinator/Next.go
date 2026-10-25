@@ -56,8 +56,13 @@ actual-cloud and operational recovery qualification remain open.
 
 The executable embeds the application assets and matching WASM runtime. It can
 run outside the source checkout with no Go, Node, or source files installed. Send
-SIGTERM for graceful HTTP shutdown; the generated server allows five seconds for
-active requests. Place a TLS reverse proxy in front of it. Configure that proxy
+SIGTERM for graceful HTTP shutdown. Generated ordinary, aggregate-zone, release,
+and ingress servers allow five seconds for active requests, close remaining
+connections if draining fails, then give application cleanup a separate
+five-second context. Allow more than ten seconds in the external supervisor's
+termination grace period for both budgets. Connection closure cancels requests
+but does not join arbitrary handlers; cleanup hooks must observe cancellation. Place a TLS reverse
+proxy in front of it. Configure that proxy
 to preserve the Host header, provide appropriate request/body/time limits, and
 restrict any forwarded headers to trusted proxies. Keep application secrets in
 your deployment's secret manager, never in public assets or island props.
@@ -254,9 +259,11 @@ Actual cloud qualification remains required for a production release.
 ### Request completion work
 
 `nextgo.After` uses bounded process-local callbacks. Native servers start them
-when request handling finishes and share the generated server's five-second
-shutdown budget with HTTP draining. Custom servers must call `app.Close` after
-`http.Server.Shutdown`. Lambda sends its response before starting callbacks and
+when request handling finishes. Generated HTTP servers give application cleanup
+its own five-second context after HTTP draining, so an exhausted request-drain
+deadline does not immediately cancel completion or tracing cleanup. Custom
+servers must call `app.Close` after `http.Server.Shutdown` with an independent
+bounded context. Lambda sends its response before starting callbacks and
 awaits them before polling `/next`; callback budgets also obey the invocation
 deadline. Failed response publication discards callbacks. Cancellation remains
 cooperative, and crashes/deploys can lose work. Required jobs belong in durable
