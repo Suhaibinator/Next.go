@@ -8,6 +8,18 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — JSON validation dependency boundary
+
+- Move the duplicate-key/lexical validator into `internal/wirejson/scan`, whose
+  runtime dependency graph excludes the standard JSON decoder. Keep
+  `wirejson.Unique` as a direct forwarding function and retain `Strict` without
+  changing its behavior. The scanner and decoder-oracle tests move unchanged
+  apart from the package name.
+- Native race, matching WASM, vet and dependency checks pass on Go 1.24.13 and
+  1.27.3. A bounded 30-second differential fuzz run also passes. Existing callers
+  still use the parent decoder package; this refactor claims no application
+  bundle reduction or performance-budget completion.
+
 ## Unreleased — mutation conflicts and generated server cleanup
 
 - Add native `actions.ConflictError` for an application-declared rejected write,
