@@ -191,8 +191,10 @@ bounded by the original 30-second budget and the same ownership fences, not a
 new unlimited lifetime. Existing streamed retry/reconciliation is separate
 from submitting the action again.
 
-The new phase uses lazy Go/WASM bridge ABI 3 to delegate transport, typed-result
-validation and document commit to the core runtime. Module callbacks remain
+The cookie/FIFO phase used lazy Go/WASM bridge ABI 3 to delegate transport,
+typed-result validation and document commit to the core runtime. Current paired
+bundles require ABI 4 for [resource invalidation](CLIENT_RESOURCES.md); rebuild
+the core and all modules together. Module callbacks remain
 retained until the physical host operation settles; cancellation cannot free a
 callback that the host may still call. This does not create another router or
 shared Go heap across modules.

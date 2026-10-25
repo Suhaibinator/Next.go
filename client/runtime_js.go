@@ -71,6 +71,7 @@ func hydrate() {
 	ok := true
 	for i := 0; i < nodes.Length(); i++ {
 		root := nodes.Index(i)
+		recordResourceOrigin(root)
 		if root.Call("hasAttribute", "data-nextgo-hydrated").Bool() {
 			if state := root.Call("getAttribute", "data-nextgo-hydrated").String(); state == "error" || state == "loading" {
 				ok = false
@@ -430,6 +431,7 @@ func invalidateCache() {
 		_ = moduleCall("invalidate")
 		return
 	}
+	invalidateResourceStores()
 	cacheEpoch++
 	pageCache.clear()
 	for _, pending := range prefetches {
@@ -439,6 +441,7 @@ func invalidateCache() {
 	if viewportPrefetch != nil {
 		viewportPrefetch.requestScan()
 	}
+	syncLazyModules()
 }
 func prefetch(target string) { prefetchWithOrigin(target, false) }
 

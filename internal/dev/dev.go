@@ -36,6 +36,7 @@ type supervisor struct {
 	listeners      map[chan string]bool
 	output         io.Writer
 	authority      string
+	inspection     inspectionState
 }
 
 func Run(ctx context.Context, root, addr string, output io.Writer) error {
@@ -79,6 +80,10 @@ func Run(ctx context.Context, root, addr string, output io.Writer) error {
 func (s *supervisor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !s.allowedHost(r.Host) {
 		http.Error(w, "unrecognized development host", http.StatusForbidden)
+		return
+	}
+	if r.URL.Path == InspectionPath {
+		s.inspect(w, r)
 		return
 	}
 
@@ -228,6 +233,7 @@ func (s *supervisor) exited(c *child) bool {
 		s.mu.Lock()
 		s.proxy = nil
 		s.buildError = buildError
+		s.inspectionTransitionLocked("failed", "server_exited")
 		s.mu.Unlock()
 		fmt.Fprintln(s.output, buildError)
 		s.publish("build-error", buildError)
@@ -329,6 +335,9 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 				lastAttempt = fingerprint
 				var build *project.Build
 				var buildErr error
+				s.mu.Lock()
+				s.inspectionTransitionLocked("building", "")
+				s.mu.Unlock()
 				compiled := published == nil || published.Fingerprint != sourceFingerprint
 				if compiled {
 					fmt.Fprintln(s.output, "Building Go server and WASM…")
@@ -355,6 +364,7 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 						_ = os.RemoveAll(build.Dir)
 					}
 					if buildErr == nil {
+						graph := publicInspectionGraph(build.Project)
 						proxy := httputil.NewSingleHostReverseProxy(target)
 						proxy.ErrorLog = log.New(s.output, "proxy: ", 0)
 						s.mu.Lock()
@@ -362,6 +372,8 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 						s.id = build.ID
 						s.generation = next.generation
 						s.buildError = ""
+						s.inspection.graph = graph
+						s.inspectionTransitionLocked("ready", "")
 						expired := s.retainBuildLocked(build.ID, build.Dir)
 						s.mu.Unlock()
 						previous := active
@@ -381,6 +393,7 @@ func (s *supervisor) watch(ctx context.Context, root string) {
 				if buildErr != nil && ctx.Err() == nil {
 					s.mu.Lock()
 					s.buildError = buildErr.Error()
+					s.inspectionTransitionLocked("failed", "build_failed")
 					s.mu.Unlock()
 					fmt.Fprintln(s.output, "Build failed:", buildErr)
 					s.publish("build-error", buildErr.Error())

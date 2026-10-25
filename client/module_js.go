@@ -15,6 +15,7 @@ var moduleScopes = map[int]*Scope{}
 var nextModuleScope int
 
 type moduleState struct {
+	ResourceEpoch uint64
 	Paths         paths.Config
 	Public        map[string]string
 	Location      Location
@@ -34,6 +35,7 @@ func syncModule(raw string) error {
 	if err := state.Paths.Validate(); err != nil {
 		return err
 	}
+	setResourceEpoch(state.ResourceEpoch)
 	old := selections
 	deployment = state.Paths
 	routeManifest.Public = state.Public

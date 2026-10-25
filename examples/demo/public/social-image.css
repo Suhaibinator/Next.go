@@ -1,0 +1,11 @@
+[data-social-image-example] img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+[data-social-image-example] input {
+  box-sizing: border-box;
+  width: 100%;
+}

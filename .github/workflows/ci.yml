@@ -45,6 +45,8 @@ jobs:
           NEXTGO_TEST_WORKSPACE_BINARY="$PWD/dist/workspace/server" \
           NEXTGO_TEST_CACHE_BINARY="$PWD/dist/nextgo-cache" \
           go test -race -tags=deployment ./tests/deployment -count=1
+      - name: Resources, social images and media through both Lambda modes
+        run: NEXTGO_TEST_BINARY="$PWD/dist/demo/server" node --test tests/seven-feature-lambda.test.mjs
       - name: Standalone production smoke test
         shell: bash
         run: |
@@ -81,6 +83,12 @@ jobs:
       - run: npm run test:shared-pages
       - run: npm run test:shared-prerender
       - run: npm run test:static:crossbrowser
+      - name: Client resources and lazy-module invalidation
+        run: npm run test:resources
+      - name: Typed embeds and native media
+        run: npm run test:embeds
+      - name: Server-rendered social images
+        run: npm run test:social-image
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

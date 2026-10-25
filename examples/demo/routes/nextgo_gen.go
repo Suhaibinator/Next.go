@@ -14,6 +14,9 @@ func About() string { return "/about" }
 // ActionView constructs the application path for page /action-view.
 func ActionView() string { return "/action-view" }
 
+// ApiEmbed constructs the application path for HTTP endpoint /api/embed.
+func ApiEmbed() string { return "/api/embed" }
+
 // ApiHeaderPolicy constructs the application path for HTTP endpoint /api/header-policy.
 func ApiHeaderPolicy() string { return "/api/header-policy" }
 
@@ -25,6 +28,12 @@ func ApiLocale() string { return "/api/locale" }
 
 // ApiReport constructs the application path for HTTP endpoint /api/report.
 func ApiReport() string { return "/api/report" }
+
+// ApiResources constructs the application path for HTTP endpoint /api/resources.
+func ApiResources() string { return "/api/resources" }
+
+// ApiSocial constructs the application path for HTTP endpoint /api/social.
+func ApiSocial() string { return "/api/social" }
 
 // Boards constructs the application path for page /boards.
 func Boards() string { return "/boards" }
@@ -127,6 +136,9 @@ func ReadDownloadsByName(values map[string]string) (DownloadsByNameParams, error
 	}
 	return p, nil
 }
+
+// Embeds constructs the application path for page /embeds.
+func Embeds() string { return "/embeds" }
 
 // Environment constructs the application path for page /environment.
 func Environment() string { return "/environment" }
@@ -371,6 +383,9 @@ func Preview() string { return "/preview" }
 // Profiles constructs the application path for page /profiles.
 func Profiles() string { return "/profiles" }
 
+// Resources constructs the application path for page /resources.
+func Resources() string { return "/resources" }
+
 // Restricted constructs the application path for page /restricted.
 func Restricted() string { return "/restricted" }
 
@@ -454,6 +469,9 @@ func ReadSharedPrerenderBySlug(values map[string]string) (SharedPrerenderBySlugP
 	}
 	return p, nil
 }
+
+// SocialImage constructs the application path for page /social-image.
+func SocialImage() string { return "/social-image" }
 
 // Stream constructs the application path for page /stream.
 func Stream() string { return "/stream" }

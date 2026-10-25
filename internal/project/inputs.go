@@ -457,6 +457,11 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 				}
 				return nil
 			}
+			if d.Name() == assetPipelineManifest {
+				if err := hashAssetPipelineInputs(ctx, filepath.Dir(name), hash); err != nil {
+					return err
+				}
+			}
 			ext := filepath.Ext(name)
 			if ext != ".go" && ext != ".mod" && ext != ".sum" && filepath.Base(name) != "component.json" && !publicAsset {
 				return nil

@@ -21,7 +21,10 @@ import (
 
 const framework = "github.com/Suhaibinator/Next.go"
 
-type Build struct{ Dir, Binary, ID, Fingerprint string }
+type Build struct {
+	Dir, Binary, ID, Fingerprint string
+	Project                      *Project // Exact discovery metadata used by this successful build.
+}
 
 func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Build, error) {
 	absRoot, err := filepath.Abs(root)
@@ -64,6 +67,10 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 			_ = os.RemoveAll(buildDir)
 		}
 	}()
+	generatedAssets, err := stageAssetPipeline(ctx, p.Root, buildDir, output)
+	if err != nil {
+		return nil, err
+	}
 	modules, err := compileLazy(ctx, p, buildDir, fingerprint, moduleTags, output)
 	if err != nil {
 		return nil, err
@@ -97,7 +104,7 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 		return nil, err
 	}
 	// All bytes published under immutable runtime URLs participate in the ID.
-	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules), support, bootstrap)
+	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules)+generatedAssetIdentity(generatedAssets), support, bootstrap)
 	serverDir := filepath.Join(buildDir, "server")
 	assets := filepath.Join(serverDir, "assets")
 	runtimeDir := filepath.Join(assets, "_nextgo", id)
@@ -127,6 +134,9 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 			return nil, err
 		}
 	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+	if err = mergeGeneratedAssets(ctx, generatedAssets, public); err != nil {
 		return nil, err
 	}
 	private := filepath.Join(serverDir, "private")
@@ -214,7 +224,7 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 		return nil, fmt.Errorf("sources changed during discovery or generation; retrying on the next development cycle (or rerun build)")
 	}
 	success = true
-	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint}, nil
+	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p}, nil
 }
 
 func runtimeBuildID(wasm []byte, fingerprint string, support []byte, loader string) string {

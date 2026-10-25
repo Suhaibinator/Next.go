@@ -1,0 +1,11 @@
+:root {
+  --accent: {{accent}};
+  --background: {{background}};
+  --ink: {{ink}};
+}
+body { margin: 0; color: var(--ink); background: var(--background); font: 18px/1.6 system-ui, sans-serif; }
+main { max-width: 48rem; margin: 12vh auto; padding: 2rem; }
+h1 { font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1.1; }
+.eyebrow, a { color: var(--accent); }
+.eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+code { padding: .15em .4em; border: 1px solid currentColor; border-radius: .3em; }

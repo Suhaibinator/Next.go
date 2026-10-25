@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "name": "Go design tokens",
+      "command": ["go", "-C", "{project}", "run", "{inputs}/tools/styles/main.go"],
+      "inputs": ["styles", "tools/styles"],
+      "outputs": ["style.css"],
+      "timeoutSeconds": 120
+    }
+  ]
+}

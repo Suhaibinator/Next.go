@@ -27,7 +27,7 @@ func main() {
 	}
 }
 func execute(ctx context.Context, args []string) error {
-	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo build [-out dist/demo] <app> | nextgo export [-out dist/static] [-paths /,/about] <app>"
+	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-out dist/demo] <app> | nextgo export [-out dist/static] [-paths /,/about] <app>"
 	if len(args) == 0 {
 		return fmt.Errorf("%s", usage)
 	}
@@ -36,7 +36,7 @@ func execute(ctx context.Context, args []string) error {
 		return nil
 	}
 	switch args[0] {
-	case "init", "generate", "export", "dev", "build":
+	case "init", "generate", "export", "dev", "build", "inspect":
 	default:
 		return fmt.Errorf("unknown command %q; use nextgo help", args[0])
 	}
@@ -45,6 +45,9 @@ func execute(ctx context.Context, args []string) error {
 	}
 	if args[0] == "export" {
 		return executeExport(ctx, args[1:])
+	}
+	if args[0] == "inspect" {
+		return executeInspect(ctx, args[1:])
 	}
 	if args[0] == "generate" {
 		flags := flag.NewFlagSet("generate", flag.ContinueOnError)

@@ -399,6 +399,9 @@ func exportResponse(ctx context.Context, client *http.Client, target string, nav
 		return nil, err
 	}
 	defer response.Body.Close()
+	if response.Header.Get(nextgo.RequiresServerHeader) == "1" {
+		return nil, fmt.Errorf("cannot export %s: page declares runtime dependencies that require a server", target)
+	}
 	if response.Header.Get("X-Nextgo-Request-Regions") == "1" || response.Header.Get("X-Nextgo-Partial") == "1" {
 		return nil, fmt.Errorf("cannot export %s: request-time regions require an HTTP server", target)
 	}

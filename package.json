@@ -19,7 +19,11 @@
     "test:viewport": "node scripts/test-browser.mjs --config tests/viewport.config.mjs",
     "test:generated-actions": "node scripts/test-browser.mjs --config tests/generated-actions.config.mjs",
     "test:action-view": "node --test tests/action-view-wire-observer.test.mjs && node scripts/test-browser.mjs --config tests/action-view.config.mjs",
-    "test:cookie-dispatch": "node scripts/test-browser.mjs --config tests/cookie-dispatch.config.mjs"
+    "test:cookie-dispatch": "node scripts/test-browser.mjs --config tests/cookie-dispatch.config.mjs",
+    "test:resources": "node scripts/test-browser.mjs --config tests/resources.config.mjs",
+    "test:embeds": "node scripts/test-browser.mjs --config tests/embeds.config.mjs",
+    "test:social-image": "node scripts/test-browser.mjs --config tests/social-image.config.mjs",
+    "test:lambda:features": "node --test tests/seven-feature-lambda.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

@@ -2,7 +2,14 @@
 
 A Go full-stack web framework with server-rendered HTML, file routes, nested layouts, interactive WebAssembly islands, explicit caching, server actions, streaming boundaries, typed metadata, and local image optimization. Application logic and browser interactions are written in Go. JavaScript is limited to Go's required runtime support and a small bootstrap/development reload bridge.
 
-**Experimental: feature parity and production maturity are unfinished.** The target is a Go alternative to Next.js, without React/JSX source compatibility. [The capability inventory and release gates](docs/PARITY.md) distinguish implemented subsets from remaining work. Native race tests, Chromium production/development/static-host suites and Firefox/WebKit production checks cover implemented subsets. The integrated checks pass for current security/resource changes; complete browser qualification, release security review, performance and operational release gates remain open.
+**Experimental: feature parity and production maturity are unfinished.** The target is a Go alternative to Next.js, without React/JSX source compatibility. [The capability inventory and release gates](docs/PARITY.md) distinguish implemented subsets from remaining work. Native race tests, Chromium production/development/static-host suites and Firefox/WebKit production checks cover implemented subsets. Recorded integrated checks qualify their named source checkpoints; complete browser qualification, release security review, performance and operational release gates remain open.
+
+The current resource, social-image, embed, asset-tool and inspection increment
+has passing scoped qualification: 373 host browser checks and 44 Linux
+cross-engine feature checks, both SDK native/WASM checks, 228 existing executable
+checks and eight new local mock Lambda cases. These are separate result groups,
+not real AWS or full release qualification. Historical ASCII-build and browser
+results below describe their own checkpoints.
 
 ## Run the example
 
@@ -24,6 +31,9 @@ The example includes:
 | `/` | Shared root layout, meaningful SSR, two independent Go counters |
 | `/about` | Static route and client-side navigation |
 | `/prefetch` | Typed Go links, bounded production viewport prefetch and intent/none controls |
+| `/resources` | Public SSR-seeded Go resources, explicit reload/retry and two owned views |
+| `/social-image`, `/api/social` | Server-generated PNG card and social metadata |
+| `/embeds` | Sandboxed local frame, native video/audio and captions |
 | `/partial`, `/partial/alpha`, `/partial/beta` | Captured public shell and fresh request-time server regions |
 | `/keyed`, `/keyed/table` | DOM-preserving keyed Go collections, row state, explicit updates and cleanup |
 | `/composition`, `/composition/details` | Typed providers, child scopes, effects and retained-layout cleanup |
@@ -85,6 +95,12 @@ unfinished.
 go run ./cmd/nextgo build --out ./dist/demo ./examples/demo
 ./dist/demo/server -addr :3000
 ```
+
+Pages that depend on runtime HTTP behavior can call `c.RequireServer()` before
+returning and propagate its error. Export rejects the declaration before
+publishing HTML/navigation bodies, preserving prior output. It is an explicit
+dependency declaration, not automatic Go/API analysis. See
+[static deployment dependencies](docs/STATIC_DEPENDENCIES.md).
 
 The controlled ASCII-validator build comparison reduces the Go 1.27.3 example
 core from 8,689,715 to 8,191,328 raw bytes (2,233,505 to 2,107,698 gzip-9).
@@ -461,7 +477,7 @@ The preceding action-view checkpoint passed 75 focused cases plus 179 affected h
 (254 distinct local checks), both SDK native/WASM checks and host/Linux
 HTTP/both mock Lambda suites. Preceding matrices stay separate. Try `/action-view`
 and read [qualification, ownership, cookies and failure rules](docs/ACTION_VIEWS.md). Native
-result cookies and a document-wide typed-dispatch FIFO/ABI 3 are implemented
+result cookies and a document-wide typed-dispatch FIFO are implemented
 with scoped verification. Both SDK native/WASM and full host/Linux deployment
 checks pass; all 55 cookie cases pass. The corrected affected browser matrix
 passes 342/342, including 75 action-view checks. A native JavaScript CDP
@@ -487,7 +503,19 @@ Body: ui.El("main", nil,
 
 Full-document requests flush the initial shell and later inert templates. Go/WASM waits for each template's matching outside completion marker before moving its existing nodes into the boundary and hydrating its islands; no executable inline patch scripts are generated. The fallback remains visible while the HTML parser has only part of a chunk. **Deferred chunks require WASM to become visible**; the no-script view keeps fallback content. Negotiated navigation commits a validated shell, then independently nested chunks as they arrive. Older clients still receive complete buffered envelopes. Explicit partial shells with registered request-time regions are available; automatic partial-shell analysis, metadata streaming and independent route/slot ownership remain unfinished. Failures after headers flush use generic boundary error content. See [the streaming sample](examples/demo/app/stream/page.go) and [completion contract](docs/STREAMING.md#initial-document-completion).
 
-`seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, dynamic social images, manifests/file discovery, automatic font download/subsetting and managed script loading remain outstanding. Local font/stylesheet resources are available through the assets API below.
+`seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, manifests/file discovery, automatic font download/subsetting and broader script integration remain outstanding. Local font/stylesheet resources are available through the assets API below.
+
+`socialimage.Render` and `socialimage.NewHandler` compose bounded typed layouts, bitmap
+text and supplied image bytes into PNGs using Go's standard library. The
+`/social-image` example uses `/api/social` for its card metadata. This is not an
+HTML/CSS/JSX layout engine or automatic image-file publication. See
+[social-image rendering, caching and limits](docs/SOCIAL_IMAGES.md).
+
+`ui.FramePolicy` permits configured literal origins or explicit self sources,
+with an empty sandbox by default and a persistent fallback. `ui.Video` and
+`ui.Audio` provide typed native controls, source validation and text tracks.
+General iframe/raw HTML restrictions remain intact; applications own CSP,
+trusted providers and media assets. See [frames and native media](docs/EMBEDS.md).
 
 `images.New(images.Config{FS: publicImages})` creates a local public-image optimizer. Assign it to `Config.Images`, then render `handler.Image(images.ImageOptions{Src: "/photo.png", Alt: "A landscape", Width: 960, Height: 640})`. It supplies intrinsic dimensions, responsive variants and lazy-loading attributes, with configured input/pixel/dimension/concurrency and encoded-cache limits. Current output formats are PNG/JPEG; remote fetching, WebP/AVIF and automatic blur placeholders are unfinished. An image `os.DirFS` must not expose secrets or symlinks escaping its public root. See [the embedded image/crawler setup](examples/demo/media/assets.go) and [media page](examples/demo/app/media/page.go).
 
@@ -503,6 +531,14 @@ page.Resources = append(page.Resources, assets.Stylesheet(fontCSS), font.Preload
 ```
 
 `NewFontStyles` validates local WOFF/WOFF2 faces and creates content-addressed CSS; the font bytes themselves must exist at the public source URL. Font weights/styles/display and metric overrides can be configured. `Page.Resources` is validated with metadata before rendering/caching. Native head/resource tests and the Chromium stylesheet navigation/cleanup regression pass; font acquisition and real font-loading/layout-shift qualification remain separate. This does not download/subset fonts or implement a third-party script loader.
+
+Optional `nextgo.assets.json` commands run declared CSS/asset tools during
+development, build and export. Watched input snapshots and validated staged
+outputs enter the successful generation; ordinary Go applications need no
+Node/tooling manifest. Commands run with the user's privileges, not in an OS
+sandbox. The [Go token/CSS example](examples/css-pipeline) and
+[asset-pipeline contract](docs/ASSET_PIPELINE.md) cover hooks, bounds, cache
+policy and static-host responsibilities.
 
 The static exporter supports concrete pages, bounded parameter enumeration and deterministic locale subpaths. Broader static-generation semantics remain partial:
 
@@ -662,9 +698,23 @@ Shared `mutation.Contract[Input, Output]` definitions provide native typed bindi
 
 `client.NewScopedOptimistic` adds a bounded Go intent ledger for tentative component state, pending feedback, canonical confirmation and rollback. It closes with its island, rejects stale results after reset, and supports concurrent settlement without changing intent order. Try `/optimistic` in the demo and see [optimistic Go state](docs/OPTIMISTIC.md) for ownership, cancellation and server-reconciliation limits.
 
+`scope.ResourceStore` and `scope.AsyncResource` add byte-oriented idle/loading/
+ready/failed/invalidated state, explicit `Load`/`Retry`, owned SSR seeds and
+bounded public reuse/deduplication. A zero public TTL disables both reuse and
+sharing; positive TTL is an application promise of request-independent data.
+There is no implicit request or automatic retry. Core/lazy invalidation epochs
+now require **module ABI 4**: rebuild and publish every module with its core.
+Try `/resources` and read [resource ownership and privacy](docs/CLIENT_RESOURCES.md).
+
 `client.CurrentLocation` reads the committed browser address. `scope.ObserveLocation` synchronizes a Go island immediately and after committed path, query, and fragment changes, with automatic cleanup and no speculative or unchanged-refresh notifications. See [navigation and subscriptions](docs/NAVIGATION.md) for the API and lifecycle contract.
 
 Development polls Go/module files and public assets throughout the application module, debounces edits, compiles both targets, and switches the proxy only after a successful server startup. An SSE bridge reloads the browser on success and displays build errors while the last successful application keeps serving. If the application process exits unexpectedly, development reports the failure; saving a source change rebuilds it. Source changes during compilation discard the mixed build and trigger another development cycle. Workspace modules and local replacements are watched along with matched embed inputs; see [workspace handling](docs/WORKSPACES.md). Development retains the active generation and seven predecessors, expires older owned assets/directories, and cleans owned generations on exit. Crash leftovers are disposable. Production staging output is removed after the binary is exported.
+
+While development runs, `go run ./cmd/nextgo inspect -addr localhost:3000`
+reads a bounded public route/layout/slot/component graph and last-good build
+state. Access is loopback-only; it is read-only and absent from production.
+It exposes neither source nor environment/props. See
+[inspection policy and limits](docs/DEV_INSPECTION.md).
 
 ## Tests
 
@@ -718,7 +768,13 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, advanced CSS tooling/module semantics and Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+
+The [compatibility and upgrade policy](docs/COMPATIBILITY.md),
+[changelog](CHANGELOG.md) and [security-reporting status](SECURITY.md) describe
+source pinning, independent wire/ABI boundaries and rollback duties. There is
+no stable tagged release, support window or verified private reporting channel;
+these documents do not establish release maturity.
 
 The optimized reference build still has a multi-megabyte Go WASM runtime; see [measured sizes and performance limits](docs/PERFORMANCE.md). Loading and compiling it takes time; useful SSR and ordinary links are available first. DOM access uses `syscall/js`, an experimental API outside Go's compatibility guarantee. CPU-heavy Go work can block the browser main thread. These are real tradeoffs of this implementation, not features hidden by the framework. See the [Go WebAssembly guide](https://go.dev/wiki/WebAssembly) and [`syscall/js` documentation](https://pkg.go.dev/syscall/js).
 

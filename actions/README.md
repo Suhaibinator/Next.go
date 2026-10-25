@@ -97,9 +97,15 @@ receives the response. They do not trigger a fetch redirect automatically.
   `AllowedOrigins` entry, a matching Referer when Origin is absent, or
   `Sec-Fetch-Site: same-origin` when both are absent. Cross-site Fetch Metadata
   is always rejected. Command-line clients should supply an Origin header.
-- Forwarded headers are ignored. Behind a TLS-terminating proxy, configure the
+- The action router derives the scheme from `Request.TLS` and ignores forwarded
+  headers directly. Behind a native TLS-terminating proxy, configure the
   exact public origin in `AllowedOrigins` and have the proxy preserve Host. Do
   not derive trusted origins from arbitrary incoming forwarding headers.
+  The Lambda adapter first reconstructs `Request.TLS` from HTTP API v2 event
+  metadata: exact `X-Forwarded-Proto: http` selects HTTP; otherwise it selects
+  HTTPS. That deployment therefore depends on the integration's authority over
+  event metadata. Local adapter tests do not establish real ingress header
+  normalization; qualify the actual API Gateway or Function URL configuration.
 - Origin checks prevent browser cross-origin mutations; they do not identify a
   user. Always authorize sensitive operations. Data and validation messages in
   responses are visible to the requester.

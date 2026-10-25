@@ -118,7 +118,9 @@ when `View.Err` reports a view failure; never repeat a confirmed write to fix UI
 See [combined confirmation/view semantics](ACTION_VIEWS.md). The 193-check
 generated-action matrix below describes the preceding ordinary-call subset.
 Generated wrappers now inherit the implemented native `Result.Cookies` output
-and core typed-dispatch FIFO/ABI 3 without a second transport. See
+and the core typed-dispatch FIFO without a second transport. The historical
+cookie/dispatch matrix used ABI 3; current paired bundles require ABI 4 for
+[resource invalidation](CLIENT_RESOURCES.md). See
 [native cookies](NATIVE_COOKIES.md) and [dispatch](MUTATION_DISPATCH.md). Current
 SDK/deployment checks and all 55 cookie checks pass; the corrected affected
 browser record is 342/342, including all 75 action-view checks. A separate native

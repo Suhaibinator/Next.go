@@ -35,7 +35,7 @@ var lazyRetryScope *Scope
 
 var lazySlots = make(chan struct{}, 2)
 
-const moduleABI = 3
+const moduleABI = 4
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
@@ -193,7 +193,7 @@ func syncLazyModules() {
 	}
 }
 func moduleSnapshot() string {
-	encoded, _ := json.Marshal(moduleState{Paths: deployment, Public: routeManifest.Public, Location: committedLocation, Selections: selections, Frozen: draftFrozen, Ready: currentURL != "", Configuration: documentConfiguration()})
+	encoded, _ := json.Marshal(moduleState{ResourceEpoch: resourceEpoch, Paths: deployment, Public: routeManifest.Public, Location: committedLocation, Selections: selections, Frozen: draftFrozen, Ready: currentURL != "", Configuration: documentConfiguration()})
 	return string(encoded)
 }
 func installModuleHost() {
