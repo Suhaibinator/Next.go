@@ -1,175 +1,275 @@
-# Experimental offline contract foundation
+# Experimental managed offline pages
 
-This foundation describes **saved anonymous public** documents, not the current
-user's authenticated state. Native `App.PrepareOffline` prepares approved HTML
-through the application's handler/middleware chain. It does not register a
-service worker, install a browser feature or enable offline navigation. Compiler,
-worker, storage and browser integration remain unfinished. T16 remains
-**Missing** and all release gates remain open.
+Managed offline mode saves an explicitly declared **anonymous public reading
+edition**. It does not preserve the current user's identity, permissions, private
+application state or transactions. Production builds now include a Go/WASM service
+worker, immutable dependency inventory, native document preparation and eager Go
+browser controls. This is a bounded experimental subset; complete offline/PWA
+parity and the project's release gates remain open.
 
-## Explicit public permission
+## Run the example
 
-The `offline` contract starts with an application declaration:
-
-```go
-policy, err := offline.Normalize(offline.Config{
-    ID: "public-docs",
-    Origin: "https://example.test",
-    Semantics: offline.SavedAnonymousPublic,
-    Pages: []offline.Page{
-        {Path: "/", MaxAge: 24 * time.Hour},
-        {Path: "/offline", MaxAge: 24 * time.Hour},
-    },
-    Fallback: "/offline",
-    Updates: offline.WaitForClosedClients,
-})
+```sh
+go run ./cmd/nextgo build --out ./dist/offline ./examples/offline
+./dist/offline/server -addr 127.0.0.1:3022
 ```
 
-Handle `err` before using the policy. The origin is trusted exact configuration;
-it is not inferred from request Host or forwarded headers. HTTP is restricted
-to localhost/loopback. Page paths are literal, query-free app-relative paths;
-the fallback must also be an allowed page. At most 16 pages are declared, with
-explicit retention of one second to seven days in whole seconds.
+Open `http://127.0.0.1:3022/` online, choose **Enable offline**, and inspect
+**Status of saved public pages**. Wait for a complete saved edition; reload once
+if the page is not yet controlled. The sample declares `/`, `/guide` and
+`/offline`, with eager Go controls and a separate lazy Go counter. Its
+`/api/health` remains network-only. See the [sample guide](../examples/offline/README.md)
+for deployment configuration.
 
-This declaration is necessary, not proof that content is public. Cookie absence,
-HTTP cache headers and existing prefetch permission cannot authorize persistent
-storage. Native final-response admission must inspect the complete anonymous
-request/response after middleware unwinds. Forms, credentials, mutations, unsafe
-requests, SPA envelopes and automatic replay are outside this contract.
+Use the exact configured origin and mount. HTTPS is required except on
+localhost/loopback; neither request Host nor forwarded headers select the trusted
+policy origin. Different hosts, ports and mounts have distinct ownership scopes.
+A trusted proxy must preserve the configured public deployment identity.
 
-## Native anonymous document preparation
+## Declare public permission
 
-Call the native method explicitly on a constructed application:
+Add native `app/offline.go` with this signature:
 
 ```go
-prepared, err := app.PrepareOffline(ctx, policy.Config())
-if err != nil {
-    return err
+//go:build !js
+
+package app
+
+import (
+    "time"
+    "github.com/Suhaibinator/Next.go/offline"
+)
+
+func Offline() offline.Config {
+    return offline.Config{
+        ID: "public-docs",
+        Origin: "https://example.test",
+        BasePath: "/reader",
+        Semantics: offline.SavedAnonymousPublic,
+        Pages: []offline.Page{
+            {Path: "/", MaxAge: 24 * time.Hour},
+            {Path: "/offline", MaxAge: 24 * time.Hour},
+        },
+        Fallback: "/offline",
+        Updates: offline.WaitForClosedClients,
+    }
 }
-documents := prepared.Documents()
 ```
 
-The signature is `PrepareOffline(context.Context, offline.Config)
-(*PreparedOffline, error)`. No startup capture or HTTP endpoint is installed.
-Use a bounded context. The method normalizes the policy and constructs fresh
-query-free GETs from its trusted origin. Caller values/credentials are discarded;
-cancellation/deadline remain. Every selected page must have an ordinary public
-`Route.Cache` declaration with a positive TTL or effective lifetime. Public
-permission is an application assertion, not automatic secret classification.
-Rendering uses the read-only public snapshot path rather than a personalized
-request snapshot.
+`BasePath` must equal the application's mount. Paths are literal, query-free,
+app-relative paths; the fallback is one of the declared pages. At most 16 pages
+are allowed, each with explicit whole-second retention from one second to seven
+days. Every selected route also needs an ordinary active public `Route.Cache`
+policy with positive TTL or effective lifetime. This is an application assertion
+that the representation is public, not automatic secret classification. Cookie
+absence, prefetch permission or a successful HTTP status cannot grant it.
 
-V1 requires production mode and an exact `BasePath` match. It refuses development,
-managed draft configuration, locales, zones, alternate asset prefixes, trailing-
-slash configuration, rewrites/redirects and early scripts. Selected prerender,
-streamed/region/slot/intercepted pages and API/handler-shadowed paths are refused.
-A private guard checks middleware URL changes before framework dispatch.
-Middleware that deliberately discards that request context or performs its own
-side effects remains trusted application code; this is not a sandbox.
+The compiler discovers this provider without executing it during discovery. A
+production build supplies `Config.Offline` and its `Config.OfflineBuild` inventory.
+`New` owns and verifies the compiler's actual asset bytes and deployment identity.
+The generated server then calls `app.PrepareOfflineBundle(ctx)` before accepting
+traffic. It prepares once per application process: complete documents, catalog and
+worker script become visible together. Failure or cancellation publishes none;
+an explicit later call can retry. This is startup capture, not a scheduled refresh
+or a request-time cache of arbitrary responses. A new process can create a new
+saved generation even for the same runtime.
 
-The complete middleware chain runs into a bounded final recorder. It checks
-commit-time and final headers after middleware returns, requiring nonempty 200
-UTF-8 HTML without flush, overflow, redirect, cookies, authentication challenge,
-private/no-store, application `Vary`, CSP, nonce, encoding or trailers. Only the
-framework's own compression/navigation `Vary` is omitted for this private,
-nonnegotiating capture. Request-sensitive rules, cache bypass and nonce state
-also refuse admission. Trusted native code can still perform application work;
-it must honor cancellation, which cannot forcibly stop an ignoring callback.
-Refusal returns no partial preparation; use `errors.Is(err,
-nextgo.ErrOfflineAdmission)` for admission errors and handle context errors too.
+Custom servers using a compiler-produced inventory must call
+`PrepareOfflineBundle` with a bounded startup context before serving. The lower
+level `app.PrepareOffline(ctx, config)` remains available for native document
+capture; its `PreparedOffline` result alone does not install a worker or supply the
+complete hydration inventory. `Policy()` and `Documents()` return owned copies;
+`BuildID()`, `ConfigurationID()`, `Identity()` and `Admission()` bind that result.
 
-The fallback is deliberately different from its normal route body: only the
-approved title/description become escaped text in an inert self-contained
-document. It contains no application body, head, runtime or assets. Its final
-bytes must match that template after middleware unwinds; even whitespace
-transforms are refused.
+## Native admission and immutable delivery
 
-`Policy()` returns owned normalized configuration; `Documents()` returns
-independent records and HTML byte copies with path, URL, MIME, SHA-256, retention
-and fallback status. `BuildID()`, `ConfigurationID()`, `Identity()` and
-`Admission()` bind the native result to policy/build/configuration. This identity
-is separate from catalog generation. The result contains document bytes only:
-it neither discovers the hydration asset graph nor creates a complete catalog,
-worker, stored generation or installation proof.
+Preparation constructs fresh anonymous GETs from trusted policy URLs, retaining
+caller cancellation/deadline but discarding credentials and other caller context.
+The full application middleware chain executes into a bounded final recorder.
+Both committed and final responses must be admitted; request-sensitive access,
+redirects, cookies, private/no-store, application `Vary`, authentication challenges,
+CSP/nonces, flush, overflow and other unsupported shapes refuse preparation.
+Only framework compression/navigation negotiation is omitted for this dedicated
+capture. Native application callbacks remain trusted and must cooperate with
+cancellation; the framework cannot forcibly stop an ignoring callback.
 
-## Complete immutable inventory
+V1 is production-only. Development/HMR, static export, prerender, draft
+configuration, locales, zones, alternate asset prefixes, trailing-slash mode,
+rewrites/redirects, early scripts, image optimization (`Config.Images`) and managed
+metadata files are refused. Registered static image files can still be delivered
+when admitted by the HTML rules and declared inventory.
+Selected streamed, request-region, slot/intercepted, API or handler-shadowed pages
+are unsupported. Final HTML also passes a restrictive framework markup check:
+known inventory references and framework CSS only, with no arbitrary inline
+styles, events, iframes, foreign SVG/MathML or refresh redirects. Unsupported
+content fails admission rather than being silently removed. Stylesheets use a
+conservative pure-CSS lexer subset: `@import`, `url()`, escaped grammar and
+unknown functions are rejected rather than discovering further dependencies.
 
-`NewCatalog(CatalogSpec)` owns normalized policy, runtime/configuration identity,
-save time, document hashes and every declared asset's exact URL, decoded size,
-MIME and SHA-256. All entries are required. One worker, core WASM, matching SDK
-shim and bootstrap plus at least one stylesheet are mandatory; lazy/public
-dependencies must also be declared. The contract cannot discover dependencies
-hidden in application code or HTML.
+The configured fallback is an **inert document containing only approved escaped
+title and description**. It omits the normal application body, layout, head, CSS
+and runtime; it is not a body-faithful offline copy. Middleware must leave its
+exact approved bytes unchanged.
 
-Public snapshots use the exact runtime's `/_nextgo/<runtime>/offline-public/`
-namespace. Mutable `/assets/` aliases, other origins/runtimes, queries and URL
-aliases are refused. Catalog generation derives from the full canonical policy
-and inventory. The future compiler must assign runtime identity from relative
-snapshot/worker/shim/bridge-template bytes first; the catalog cannot feed back
-into that identity. Hashes identify bytes, not public permission or authenticity.
+Managed endpoints live beneath `BasePath`:
 
-`VerifyInventory` requires observations for every entry with exact size, MIME
-and digest. The adapter must derive observations by fully consuming and hashing
-decoded bytes. A successful header, commit marker or remembered completion flag
-is insufficient after eviction/corruption. Native `MarshalCatalog`/`ParseCatalog`
-provide bounded strict metadata encoding; they do not approve network content.
+- `/_nextgo/offline/catalog` and `/_nextgo/offline/sw.js` publish the current
+  catalog and stable worker script URL with revalidation.
+- `/_nextgo/offline/documents/<generation>/<document-sha256>` supplies approved
+  anonymous document bytes with `no-store` and exact admission/build/configuration
+  bindings. `Catalog.PreparationURL(path)` produces this source URL. The worker
+  stores those bytes under the original document URL, not the preparation URL.
+- `/_nextgo/<runtime>/offline-public/…` contains frozen public dependencies.
+  Core, every lazy module, worker WASM, matching SDK runtime, bootstrap, stylesheet
+  and declared public files have exact decoded size, MIME and SHA-256 entries.
 
-## Reservation and activation
+These reserved services bypass ordinary page middleware; they serve only the
+already admitted immutable bundle. The compiler assigns runtime identity before
+catalog generation, avoiding a hash cycle. Unknown dependencies or mutable asset
+aliases cannot be added to a completed saved edition.
 
-Defaults charge active, previous **and staging** generations together:
+## Go browser controls and native navigation
 
-| Reservation bound | Default |
+The eager core exposes `client.OfflineStatus()`,
+`client.RefreshOfflineStatus(ctx)`, `client.SubscribeOffline(scope, callback)`,
+`client.EnableOffline(ctx)`,
+`client.CheckOfflineUpdate(ctx)` and `client.DisableOffline(ctx)`. Run asynchronous
+operations from `scope.Go` or another goroutine, not a JavaScript event callback.
+`OfflineStatus()` is a pure getter of the last confirmed snapshot.
+`RefreshOfflineStatus(ctx)` explicitly queries the owned active and waiting
+workers through the same serialized operation admission; it never registers,
+updates, repairs bootstrap state, extends a timeout or retries an unconfirmed
+result. The sample status button runs it through `Scope.Go` with busy controls.
+Subscriptions clean up with their scope; lazy-module controls are unsupported.
+A supported secure browser needs Service Workers, Cache Storage, Web Locks and
+MessageChannel. Conflicting overlapping service-worker ownership is refused.
+
+`OfflineState` reports enabled/control/saved-document status, current and waiting
+generations, phase, errors and `CleanupPending`. A saved page uses **native
+full-document navigation**, not SPA envelopes or partial-shell reuse; component
+new documents initialize component state from their SSR props. Browser history
+restoration, including BFCache, can preserve an existing document. Nondeclared
+pages, query URLs, APIs, mutation
+POSTs and framework protocol requests stay network-only. They are neither stored
+nor queued for replay. Ordinary declared document navigations try the network
+once with an internal `cache: "no-store"` fetch that bypasses the browser HTTP
+cache while preserving the original credentials, headers and redirect semantics.
+Only a transport failure permits a verified saved-document fallback; a live HTTP
+error response is not converted into cached success. Received live documents are
+not silently persisted as a new edition.
+
+Enable is explicit consent to save the complete inventory. Check-for-update asks
+the browser to check the owned registration. The worker does not call
+`skipWaiting` or `clients.claim`: a waiting edition activates after all tabs in its
+application scope close. Reopen the application to use the new edition. No tab is
+forcibly reloaded, and a failed staged update keeps the last good saved edition.
+
+Disable stops saved-document serving and unregisters the exact owner. An already
+controlled tab can retain that controller until native reload. Its public cached
+payload remains charged while clients can still need it: **disabled does not mean
+erased**. Close scoped tabs, then explicitly Enable or Disable during a later
+online visit to reconcile retained data. `CleanupPending` exposes this state;
+background deletion is not guaranteed. Other applications' storage is untouched.
+
+## Storage and lifetime bounds
+
+Active, previous and staging generations are all charged; shared URLs are charged
+again per generation. Defaults are:
+
+| Reservation | Default |
 | --- | ---: |
 | One decoded asset | 16 MiB |
 | One document | 512 KiB |
 | One generation | 32 MiB |
 | Total across three generations | 96 MiB |
 
-Catalog/commit allowances are included, and shared URLs are charged again per
-generation. Zero budget fields select defaults; smaller consistent limits are
-never enlarged to fit a file. These are policy reservations, not browser-storage
-quota, heap/RSS or fetch-concurrency guarantees. The ledger performs no I/O.
+Zero budget fields select defaults. Smaller consistent limits are not enlarged
+to fit a file. These are declared payload/metadata reservation bounds, not total
+browser storage, process memory/RSS, transient decoding or network guarantees.
+Browser eviction and storage failures can make the saved edition unavailable.
 
-1. `Restore` rechecks active/previous inventories and charges an interrupted
-   stage. Unknown/corrupt stage metadata requires physical reconciliation;
-   forgetting its record does not remove its bytes.
-2. `Reserve` charges the candidate's full cost before fetching/writing. Refusal
-   preserves the last good generation. Its opaque reservation belongs to one
-   ledger and cannot authorize another stage.
-3. `Observe` accepts each fully read, hash-checked declared entry once. Extra,
-   duplicate, mismatched and post-completion observations are rejected.
-4. `Complete` requires the whole inventory. It neither activates nor releases
-   the reservation; the adapter must persist its bounded completion marker last.
-5. `Activate` requires a complete stage, actual closed-client evidence and no
-   retained previous generation. Consent messages, `navigator.onLine` and one
-   tab's state do not prove that all clients closed.
-6. `ConfirmPreviousRemoved`/`ConfirmStagingRemoved` release reservations only
-   after exact owned storage deletion and physical work have settled. Canceling
-   a fetch or dropping a reference is not deletion/completion evidence.
+The Go ledger reserves the full candidate before writes. Each observation must
+match fully consumed decoded bytes; completion requires the entire inventory and
+its persisted marker. Activation requires a complete stage and closed-client
+checks. A reservation is released only after owned physical deletion settles;
+dropping an index or canceling work is insufficient. Interrupted/disabled
+payloads still count until reconciliation. Persisted highest-observed wall time
+prevents clock rollback from extending retention, but is not an independent
+trusted clock.
 
-`Fresh(path, nowUnix, highestObservedUnix)` also requires the adapter's persisted
-highest-observed-time fence. Restore and update that fence across restarts;
-clock rollback must not extend retention. This stateless predicate cannot infer
-an earlier observation by itself or supply an independent trusted clock.
+Service-worker execution and termination remain browser-controlled. There is no
+durable background Go scheduling guarantee. Physical retirement of a Go worker
+with a pending Go runtime timer has not been qualified; bridge timer cleanup is
+not proof of that runtime path. This feature provides no background sync,
+authenticated data storage, mutation replay or exactly-once transaction semantics.
 
-## What remains
+## Verification status
 
-There is no registration command, worker lifecycle/storage adapter, complete
-compiler asset capture or browser offline test matrix yet. Copying an admission
-label into a catalog cannot establish that native preparation approved its bytes.
-Private worker experiments, including failed attempts, are retained separately;
-they are not successful browser/installation qualification. Useful SSR and the
-ordinary online application remain the supported path. See [the inventory](PARITY.md)
-for T16 and the unchanged release requirements.
+Current Linux ARM64 scoped reports cover worker/client unit slices, native and
+WASM Accept-Encoding admission, actual production compiler artifacts, sample
+preparation and paired A/B builds. The compiler checks include complete eager,
+lazy and worker output, byte inventory verification and startup ordering; build
+reports alone do not prove installation, offline cold restart or browser update
+behavior. Some focused suites overlap and their counts must not be summed.
 
-Check the foundation and native gate with:
+The final corrected managed browser matrix passed **32 cases**: eight each in
+Chromium, Firefox, WebKit and touch emulation, with no failures, skips, retries or
+flaky results. It covered DOM-preserving eager/lazy Go interaction, cold saved-page
+loading with the server stopped, native links, network-only requests without
+replay, an inert 503 for a missing lazy asset, A-to-B waiting/activation after
+scoped browsers close, explicit status recovery and deferred disable cleanup.
+The cold/warm transport gate is not a claim that the browser HTTP cache was
+primed. Final source identity and cleanup accounting are recorded separately in
+the qualification report.
+
+All four earlier failed attempts are retained: the first two each recorded two
+passes, one cold-restart failure and 29 cases not run; the third recorded 14
+passes, one pre-hydration counter-click failure and 17 not run; the fourth
+recorded 14 passes, one stale-status-snapshot failure and 17 not run. The explicit
+status query fixes a concrete operator control gap. Later inspection found the
+new worker active with its persisted owner intact; the original message-port
+failure remains unobserved. The final passing matrix does not establish that
+initial internal cause or make every prior attempt successful.
+
+The final tracked transport harness also passed 12 combinations against those
+latest browser-qualified binaries: both A/B artifacts at root and `/reader`,
+using native HTTP plus local buffered and streaming mock-Lambda RuntimeAPI
+adapters. Actual catalog, prepared documents, immutable assets, compression and
+URL joins were checked. Four Node prechecks and 22 Node cases (16 collector and
+six legacy gateway cases) also passed. This execution was Linux ARM64 only; it is
+not AMD64, browser-through-Lambda or actual AWS qualification. Remote CI wiring
+for this source still needs its own pushed-head result.
+There is no full offline/PWA or production-maturity claim. See the
+[capability inventory](PARITY.md) for remaining requirements and open release gates.
+
+Useful focused checks include:
 
 ```sh
-go test -race . ./offline
-go vet . ./offline
+go test -race . ./offline ./offline/worker
+go vet . ./offline ./offline/worker
 sh scripts/test-wasm.sh
 ```
 
-The ordinary WASM invocation includes the portable `offline` package. These
-checks do not establish worker installation, browser storage or offline-app
-qualification. Native host checks pass; minimum-SDK verification is separate.
+These commands are native/WASM checks, not browser installation or deployment
+qualification. Browser testing additionally needs Node and Playwright.
+
+To reproduce the production browser matrix from the repository root, first run
+`npm ci` and install the Playwright browsers (`npx playwright install`, with the
+required operating-system dependencies). Use the matching supported Go SDK.
+All framework inputs must already be Git tracked or staged, including new files;
+the fixture deliberately does not copy arbitrary untracked source files. Keep
+the fresh output directory outside the Git checkout:
+
+```sh
+offline_qualification="$(mktemp -d /tmp/nextgo-offline.XXXXXX)"
+go build -o "$offline_qualification/nextgo" ./cmd/nextgo
+GOCACHE="$(go env GOCACHE)" \
+NEXTGO_TEST_NEXTGO_BINARY="$offline_qualification/nextgo" \
+node tests/offline-build-fixture.mjs --out "$offline_qualification/build"
+NEXTGO_OFFLINE_ARTIFACTS="$offline_qualification/build/index.json" npm run test:offline
+```
+
+The shipped builder makes fresh A/B copies and publishes their pinned index only
+after both builds and source checks succeed. It never reuses an old output
+folder or builds the CLI implicitly. `tests/offline-transports.mjs` is a separate
+prebuilt-artifact transport runner; its current executed scope is Linux ARM64.

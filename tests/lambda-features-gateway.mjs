@@ -8,7 +8,7 @@ const requestLimit = 1 << 20, transportLimit = 8 << 20, preludeLimit = 16 << 10;
 const queueLimit = 32, invocationTimeout = 15_000;
 const excludedHeaders = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
 
-export async function startLambdaGateway({binary, mode, port, allowedHosts, workerArgs = []}) {
+export async function startLambdaGateway({binary, mode, port, allowedHosts, workerArgs = [], trustedEnvironment}) {
   // Test operators may opt into a small exact authority set. This does not
   // resolve those names or trust forwarded headers; all sockets stay loopback.
   // Capture a copy before any async startup so callers cannot widen it later.
@@ -26,7 +26,31 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
   assert.ok(args.every(arg => typeof arg === 'string' && arg.length <= 4096 && !arg.includes('\0')) && args.reduce((bytes, arg) => bytes + Buffer.byteLength(arg), 0) <= 4096, 'invalid fixture workerArgs');
   let poll, active, sequence = 0, stopping = false, logs = '';
   const queue = [], sockets = new Set();
-  const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('AWS_LAMBDA_') && !key.startsWith('NEXTGO_LAMBDA_') && !key.startsWith('NEXTGO_DEMO_') && key !== 'NEXTGO_ENV_DIR'));
+  // Existing browser fixtures retain their environment behavior. A caller can
+  // instead supply a complete environment; that branch never inspects ambient
+  // variables (including cloud credentials) and owns its copied string values.
+  if (trustedEnvironment !== undefined) {
+    assert.ok(trustedEnvironment && Object.getPrototypeOf(trustedEnvironment) === Object.prototype, 'invalid fixture environment');
+    assert.ok(Object.entries(trustedEnvironment).every(([key, value]) => /^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && value.length <= 8192 && !value.includes('\0')), 'invalid fixture environment');
+    assert.ok(Object.keys(trustedEnvironment).length <= 64 && Object.values(trustedEnvironment).reduce((bytes, value) => bytes + Buffer.byteLength(value), 0) <= 32768, 'bounded fixture environment');
+    assert.ok(!Object.keys(trustedEnvironment).some(key => key.startsWith('AWS_') || key.startsWith('NEXTGO_LAMBDA_')), 'runtime environment is fixture owned');
+  }
+  const environment = trustedEnvironment === undefined
+    ? Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('AWS_LAMBDA_') && !key.startsWith('NEXTGO_LAMBDA_') && !key.startsWith('NEXTGO_DEMO_') && key !== 'NEXTGO_ENV_DIR'))
+    : Object.fromEntries(Object.entries(trustedEnvironment));
+  const reports = [], failures = [];
+  let droppedReports = 0, droppedFailures = 0;
+  // Observations must never turn a valid legacy invocation into a failure.
+  // Keep bounded recent history and expose loss explicitly to strict callers.
+  function observeReport(report) {
+    if (reports.length === 128) {reports.shift(); droppedReports++;}
+    reports.push(report);
+  }
+  function observeFailure(message) {
+    if (failures.length === 32) {failures.shift(); droppedFailures++;}
+    failures.push(String(message).slice(0, 2048));
+  }
+  let exitResult, joined = false;
   function rejectHTTP(response, status, message) {
     if (response.destroyed || response.writableEnded) return;
     if (response.headersSent) response.destroy();
@@ -64,7 +88,7 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
       assert.equal(request.method, 'POST');
       assert.equal(request.url, `/2018-06-01/runtime/invocation/${item.id}/response`);
       assert.equal(request.headers['lambda-runtime-function-response-mode'] || 'buffered', mode);
-      let used = 0, prefix = Buffer.alloc(0), begun = false;
+      let used = 0, prefix = Buffer.alloc(0), begun = false, httpBytes = 0, statusCode;
       const chunks = [];
       for await (const chunk of request) {
         used += chunk.length;
@@ -75,27 +99,33 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
           const boundary = prefix.indexOf(Buffer.alloc(8));
           if (boundary < 0) {assert.ok(prefix.length <= preludeLimit + 7, 'stream prelude cap'); continue;}
           assert.ok(boundary > 0 && boundary <= preludeLimit, 'stream prelude cap');
-          beginResponse(item, JSON.parse(prefix.subarray(0, boundary).toString('utf8')));
+          const metadata = JSON.parse(prefix.subarray(0, boundary).toString('utf8'));
+          statusCode = metadata.statusCode;
+          beginResponse(item, metadata);
           begun = true;
+          httpBytes += prefix.length - boundary - 8;
           if (!item.response.destroyed && !item.response.writableEnded) item.response.write(prefix.subarray(boundary + 8));
           prefix = Buffer.alloc(0);
-        } else if (!item.response.destroyed && !item.response.writableEnded) item.response.write(chunk);
+        } else {httpBytes += chunk.length; if (!item.response.destroyed && !item.response.writableEnded) item.response.write(chunk);}
       }
       assert.equal(request.trailers['lambda-runtime-function-error-type'], undefined, 'no late Lambda stream error');
       if (mode === 'buffered') {
         const metadata = JSON.parse(Buffer.concat(chunks, used).toString('utf8'));
         const body = Buffer.from(metadata.body, metadata.isBase64Encoded ? 'base64' : 'utf8');
         assert.ok(body.length <= transportLimit, 'HTTP body cap');
+        statusCode = metadata.statusCode; httpBytes = body.length;
         beginResponse(item, metadata);
         if (!item.response.destroyed && !item.response.writableEnded) item.response.end(body);
       } else {
         assert.ok(begun, 'stream prelude present');
         if (!item.response.destroyed && !item.response.writableEnded) item.response.end();
       }
+      observeReport({id: item.id, mode, path: item.event.rawPath, method: item.event.requestContext.http.method, statusCode, runtimeBytes: used, httpBytes});
       complete(item);
       response.writeHead(202); response.end();
     } catch (error) {
       if (item) {rejectHTTP(item.response, 502, 'Local Lambda integration failed'); complete(item);}
+      observeFailure(error.message);
       console.error(`${mode}: ${error.message}`);
       if (!response.headersSent) response.writeHead(500);
       response.end();
@@ -113,14 +143,14 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
   const append = data => {logs = (logs + data.toString('utf8')).slice(-32_768);};
   child.stdout.on('data', append); child.stderr.on('data', append);
   const exited = new Promise(resolve => {
-    child.once('error', error => {logs += error.message; resolve({error});});
+    child.once('error', error => {logs += error.message; exitResult = {error: error.message}; resolve({error});});
     child.once('exit', (code, signal) => {
       if (!stopping) {
         console.error(`${mode} worker exited ${code}/${signal}: ${logs}`);
         if (active) rejectHTTP(active.response, 502, 'Local Lambda worker exited');
         for (const queued of queue) rejectHTTP(queued.response, 502, 'Local Lambda worker exited');
       }
-      resolve({code, signal});
+      exitResult = {code, signal}; resolve({code, signal});
     });
   });
   const gateway = createServer({maxHeaderSize: 16 << 10}, async (request, response) => {
@@ -169,6 +199,7 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
     for (const socket of sockets) socket.destroy();
     runtime.closeAllConnections();
     await Promise.all([new Promise(resolve => runtime.close(resolve)), new Promise(resolve => gateway.close(resolve))]);
+    joined = true;
     assert.equal(result.timeout, undefined, `${mode} worker graceful shutdown`);
     assert.equal(result.error, undefined, `${mode} worker startup`);
     assert.equal(result.code, 0, `${mode} worker exit: ${logs}`);
@@ -176,5 +207,5 @@ export async function startLambdaGateway({binary, mode, port, allowedHosts, work
   try {
     await new Promise((resolve, reject) => {gateway.once('error', reject); gateway.listen(port, '127.0.0.1', resolve);});
   } catch (error) {await close(); throw error;}
-  return {close};
+  return {close, snapshot: () => ({mode, childPID: child.pid, stopping, joined, exit: exitResult ? {...exitResult} : null, active: active?.id ?? null, queued: queue.length, invocations: sequence, reports: reports.map(report => ({...report})), failures: [...failures], droppedReports, droppedFailures})};
 }

@@ -75,6 +75,9 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if err != nil {
 		return nil, err
 	}
+	if err := validateOfflinePurpose(p, dev, allowPrerender, release != nil); err != nil {
+		return nil, err
+	}
 	if release != nil {
 		if err := release.validateProject(p); err != nil {
 			return nil, err
@@ -204,8 +207,12 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if refresh != nil {
 		runtimeBootstrap = devRefreshBootstrapBridge + "\n" + bootstrap
 	}
+	offlinePlan, err := compileOffline(ctx, p, buildDir, coreTags, support, generatedAssets, len(modules), output)
+	if err != nil {
+		return nil, err
+	}
 	// All bytes published under immutable runtime URLs participate in the ID.
-	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules)+generatedAssetIdentity(generatedAssets), support, runtimeBootstrap)
+	id := runtimeBuildID(data, p.Import+"\x00"+fingerprint+"\x00"+lazyIdentity(modules)+generatedAssetIdentity(generatedAssets)+offlinePlan.identity(), support, runtimeBootstrap)
 	serverDir := filepath.Join(buildDir, "server")
 	assets := filepath.Join(serverDir, "assets")
 	runtimeDir := filepath.Join(assets, "_nextgo", id)
@@ -226,19 +233,28 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if err = os.WriteFile(filepath.Join(runtimeDir, "boot.js"), []byte(runtimeBootstrap), 0644); err != nil {
 		return nil, err
 	}
+	if err = offlinePlan.finalize(id, data, support, runtimeBootstrap, modules); err != nil {
+		return nil, err
+	}
+	if err = offlinePlan.publish(runtimeDir); err != nil {
+		return nil, err
+	}
+	p.offlineBuild = offlinePlan
 	public := filepath.Join(assets, "public")
 	if err = os.MkdirAll(public, 0755); err != nil {
 		return nil, err
 	}
-	if _, err = os.Lstat(filepath.Join(p.Root, "public")); err == nil {
-		if err = copyTree(filepath.Join(p.Root, "public"), public); err != nil {
+	if offlinePlan == nil {
+		if _, err = os.Lstat(filepath.Join(p.Root, "public")); err == nil {
+			if err = copyTree(filepath.Join(p.Root, "public"), public); err != nil {
+				return nil, err
+			}
+		} else if !os.IsNotExist(err) {
 			return nil, err
 		}
-	} else if !os.IsNotExist(err) {
-		return nil, err
-	}
-	if err = mergeGeneratedAssets(ctx, generatedAssets, public); err != nil {
-		return nil, err
+		if err = mergeGeneratedAssets(ctx, generatedAssets, public); err != nil {
+			return nil, err
+		}
 	}
 	private := filepath.Join(serverDir, "private")
 	if err = os.MkdirAll(private, 0755); err != nil {
@@ -410,6 +426,9 @@ func serverImports(p *Project) map[string]bool {
 	if p.Configure != "" {
 		imports[p.Configure] = true
 	}
+	if p.Offline != "" {
+		imports[p.Offline] = true
+	}
 	for _, metadata := range p.MetadataFiles {
 		if !metadata.Static() {
 			imports[metadata.Import] = true
@@ -459,6 +478,9 @@ nextgo "` + framework + `"
 "` + framework + `/serverless"
 "` + framework + `/environment"
 `)
+	if p.Offline != "" {
+		fmt.Fprintf(&b, "offline %q\n", framework+"/offline")
+	}
 	for i, key := range keys {
 		alias := fmt.Sprintf("p%d", i)
 		aliases[key] = alias
@@ -466,7 +488,11 @@ nextgo "` + framework + `"
 	}
 	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){if err:=run();err!=nil{log.Print(err);os.Exit(1)}}\nfunc run()error{\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");devReady:=flag.String(\"dev-ready\",\"\",\"owned development readiness output\");flag.Parse();")
 	fmt.Fprintf(&b, "if *devReady!=\"\"&&!%t{return fmt.Errorf(\"development readiness is unavailable\")};", dev)
-	b.WriteString("exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{return fmt.Errorf(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{return err}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{return err}\n")
+	b.WriteString("exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{return fmt.Errorf(\"prerender and static export purposes conflict\")};")
+	if p.Offline != "" {
+		b.WriteString("if exporting||*prerenderOut!=\"\"{return fmt.Errorf(\"managed offline supports production serving only; static export and prerender are unavailable\")};")
+	}
+	b.WriteString("if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{return err}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{return err}\n")
 	writeConfigConstruction(&b, p, aliases, id, dev)
 	b.WriteString("config.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{return err}\n")
 	writeMetadataSources(&b, p, aliases)
@@ -476,6 +502,7 @@ nextgo "` + framework + `"
 	if len(p.Actions) > 0 {
 		fmt.Fprintf(&b, "config.ActionRegistrars=append(config.ActionRegistrars,%s.Register)\n", aliases[p.Import+"/actionrefs"])
 	}
+	writeOfflineConfiguration(&b, p, aliases)
 	b.WriteString(`ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
 app,err:=nextgo.NewContext(ctx,config);if err!=nil{return err};
 defer func(){drain,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel();if err:=app.Close(drain);err!=nil{log.Printf("Next.go completion drain: %v",err)}}()
@@ -489,7 +516,11 @@ if *exportConfig{info,err:=app.StaticExportConfig(nextgo.StaticExportOptions{Dom
 if *prerenderOut!=""{buildCtx,cancel:=context.WithTimeout(ctx,90*time.Second);defer cancel();data,err:=app.BuildPrerender(buildCtx);if err!=nil{return err};if err=os.WriteFile(*prerenderOut,data,0600);err!=nil{return err};return nil}
 if *pathConfig{if err:=json.NewEncoder(os.Stdout).Encode(app.Paths());err!=nil{return err};return nil}
 if *staticPaths{enumeration,cancel:=context.WithTimeout(ctx,30*time.Second);defer cancel();paths,err:=app.StaticPathsForDomain(enumeration,*exportDomain);if err!=nil{return err};encoder:=json.NewEncoder(os.Stdout);encoder.SetEscapeHTML(false);if err=encoder.Encode(paths);err!=nil{return err};return nil}
-if os.Getenv("AWS_LAMBDA_RUNTIME_API")!=""{
+`)
+	if p.Offline != "" {
+		b.WriteString("if err:=app.PrepareOfflineBundle(ctx);err!=nil{return err}\n")
+	}
+	b.WriteString(`if os.Getenv("AWS_LAMBDA_RUNTIME_API")!=""{
 if err:=serverless.Run(ctx,app);err!=nil && ctx.Err()==nil{return err};return nil}
 server:=&http.Server{Addr:*addr,Handler:app,ReadHeaderTimeout:10*time.Second}
 shutdownDone:=make(chan struct{})

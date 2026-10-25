@@ -1,0 +1,1102 @@
+package worker
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"net/url"
+	"sort"
+	"strings"
+	"sync"
+
+	"github.com/Suhaibinator/Next.go/internal/offlinejson"
+	"github.com/Suhaibinator/Next.go/offline"
+)
+
+const ownerRecord = "__nextgo_offline_owner__"
+const catalogRecord = "__nextgo_offline_catalog__"
+const maxOwnerRecord = offline.MaxCommitBytes
+
+// Backend exposes only bounded browser primitives. Calls return after the
+// underlying promise/body/cache operation has physically settled.
+type Backend interface {
+	Call(string, any) (json.RawMessage, error)
+}
+
+type Engine struct {
+	mu         sync.Mutex
+	descriptor offline.WorkerDescriptor
+	catalog    *offline.Catalog
+	backend    Backend
+	policyHash string
+}
+
+type Request struct {
+	Token         string `json:"token"`
+	ClientID      string `json:"clientID"`
+	URL           string `json:"url"`
+	Method        string `json:"method"`
+	Mode          string `json:"mode"`
+	Destination   string `json:"destination"`
+	Cache         string `json:"cache"`
+	Authorization bool   `json:"authorization"`
+	Cookie        bool   `json:"cookie"`
+	SPA           bool   `json:"spa"`
+	Range         bool   `json:"range"`
+}
+
+type Command struct {
+	Version         int    `json:"version"`
+	Command         string `json:"command"`
+	OwnerPolicyID   string `json:"ownerPolicyID"`
+	RuntimeID       string `json:"runtimeID"`
+	ConfigurationID string `json:"configurationID"`
+	RequestID       string `json:"requestID"`
+}
+
+type Status struct {
+	Version             int    `json:"version"`
+	RequestID           string `json:"requestID"`
+	OwnerPolicyID       string `json:"ownerPolicyID"`
+	RuntimeID           string `json:"runtimeID"`
+	ConfigurationID     string `json:"configurationID"`
+	Generation          string `json:"generation"`
+	ActiveGeneration    string `json:"activeGeneration"`
+	PreviousGeneration  string `json:"previousGeneration"`
+	StagingGeneration   string `json:"stagingGeneration"`
+	State               string `json:"state"`
+	Supported           bool   `json:"supported"`
+	Enabled             bool   `json:"enabled"`
+	DeferredCleanup     bool   `json:"deferredCleanup"`
+	SavedAtUnix         int64  `json:"savedAtUnix"`
+	HighestObservedUnix int64  `json:"highestObservedUnix"`
+	Error               string `json:"error"`
+}
+
+type Decision struct {
+	Kind            string `json:"kind"`
+	Handle          int    `json:"handle"`
+	Saved           bool   `json:"saved"`
+	Generation      string `json:"generation"`
+	RuntimeID       string `json:"runtimeID"`
+	ConfigurationID string `json:"configurationID"`
+}
+
+type diskIndex struct {
+	Version       int      `json:"version"`
+	Policy        string   `json:"policy"`
+	Active        string   `json:"active"`
+	Previous      string   `json:"previous"`
+	Staging       string   `json:"staging"`
+	StageToken    string   `json:"stageToken"`
+	StageComplete bool     `json:"stageComplete"`
+	Disabled      bool     `json:"disabled"`
+	Highest       int64    `json:"highest"`
+	Retained      []string `json:"retained,omitempty"`
+}
+
+type ioReply struct {
+	Text            string              `json:"text"`
+	Found           bool                `json:"found"`
+	Names           []string            `json:"names"`
+	Keys            []string            `json:"keys"`
+	Token           string              `json:"token"`
+	Handle          int                 `json:"handle"`
+	Observation     offline.Observation `json:"observation"`
+	Admission       string              `json:"admission"`
+	Document        string              `json:"document"`
+	RuntimeID       string              `json:"runtimeID"`
+	ConfigurationID string              `json:"configurationID"`
+	Now             int64               `json:"now"`
+	Active          bool                `json:"active"`
+	Controlled      int                 `json:"controlled"`
+	ClientIDs       []string            `json:"clientIDs"`
+	VisibleIDs      []string            `json:"visibleIDs"`
+	Vary            string              `json:"vary"`
+	Generation      string              `json:"generation"`
+	CacheControl    string              `json:"cacheControl"`
+}
+
+type restored struct {
+	index      diskIndex
+	ledger     *offline.Ledger
+	catalogs   map[string]*offline.Catalog
+	pending    offline.Reservation
+	hasPending bool
+}
+
+func NewEngine(raw []byte, backend Backend) (*Engine, error) {
+	if backend == nil || len(raw) > offlinejson.MaxBytes {
+		return nil, offline.ErrInvalid
+	}
+	var d offline.WorkerDescriptor
+	if err := offlinejson.Decode(raw, &d); err != nil {
+		return nil, err
+	}
+	c, err := parseCatalog([]byte(d.CatalogJSON))
+	if err != nil {
+		return nil, err
+	}
+	spec := c.Spec()
+	normalized, err := offline.NormalizeWorkerDescriptor(d, c.Policy(), spec.RuntimeID, spec.Configuration)
+	if err != nil || normalized.Generation != c.Generation() {
+		return nil, offline.ErrInvalid
+	}
+	p, _ := json.Marshal(c.Policy().Config())
+	return &Engine{descriptor: normalized, catalog: c, backend: backend, policyHash: sum(p)}, nil
+}
+func parseCatalog(data []byte) (*offline.Catalog, error) {
+	if len(data) == 0 || len(data) > offline.MaxCatalogBytes {
+		return nil, offline.ErrInvalid
+	}
+	var spec offline.CatalogSpec
+	if err := offlinejson.Decode(data, &spec); err != nil {
+		return nil, err
+	}
+	return offline.NewCatalog(spec)
+}
+func hexIdentity(value string) bool {
+	if len(value) != 64 {
+		return false
+	}
+	for _, c := range value {
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
+}
+func sum(data []byte) string                           { s := sha256.Sum256(data); return hex.EncodeToString(s[:]) }
+func (e *Engine) Descriptor() offline.WorkerDescriptor { return e.descriptor }
+func (e *Engine) Limit() int                           { return e.catalog.Policy().Config().Budget.InFlight }
+func (e *Engine) QueueLimit() int                      { return e.catalog.Policy().Config().Budget.Queue }
+func (e *Engine) meta() string                         { return e.descriptor.Namespace + "-meta" }
+func (e *Engine) generation(g string) string           { return e.descriptor.Namespace + "-g-" + g }
+func (e *Engine) key(name string) string {
+	return e.catalog.Policy().Config().Origin + e.catalog.Policy().Config().BasePath + "/_nextgo/offline/_records/" + e.catalog.Policy().StorageID() + "/" + name
+}
+func (e *Engine) call(op string, arg any) (ioReply, error) {
+	raw, err := e.backend.Call(op, arg)
+	if err != nil {
+		return ioReply{}, err
+	}
+	var reply ioReply
+	if err = offlinejson.Decode(raw, &reply); err != nil {
+		return ioReply{}, err
+	}
+	return reply, nil
+}
+func (e *Engine) lock() (func(), error) {
+	r, err := e.call("lock", struct {
+		Namespace string `json:"namespace"`
+	}{e.descriptor.Namespace})
+	if err != nil || r.Token == "" {
+		return nil, offline.ErrState
+	}
+	return func() {
+		_, _ = e.call("unlock", struct {
+			Token string `json:"token"`
+		}{r.Token})
+	}, nil
+}
+func (e *Engine) role() bool { r, err := e.call("role", struct{}{}); return err == nil && r.Active }
+func (e *Engine) now() (int64, error) {
+	r, err := e.call("clock", struct{}{})
+	if err != nil || r.Now < 1 || r.Now > 1<<53-1 {
+		return 0, offline.ErrInvalid
+	}
+	return r.Now, nil
+}
+func (e *Engine) clients() (ioReply, error) {
+	r, err := e.call("clients", struct{}{})
+	if err != nil || r.Controlled < 0 || len(r.ClientIDs) != r.Controlled {
+		return ioReply{}, offline.ErrState
+	}
+	return r, nil
+}
+func retainedLive(retained, visible []string) bool {
+	for _, id := range retained {
+		for _, live := range visible {
+			if id == live {
+				return true
+			}
+		}
+	}
+	return false
+}
+func validClientID(id string) bool {
+	if len(id) < 1 || len(id) > 64 {
+		return false
+	}
+	for _, c := range id {
+		if c < 33 || c > 126 {
+			return false
+		}
+	}
+	return true
+}
+func (e *Engine) list() ([]string, error) {
+	r, err := e.call("list", struct {
+		Namespace string `json:"namespace"`
+	}{e.descriptor.Namespace})
+	if err != nil {
+		return nil, err
+	}
+	if len(r.Names) > 4 {
+		return nil, offline.ErrQuota
+	}
+	return r.Names, nil
+}
+func (e *Engine) record(cache, key string, max int) ([]byte, bool, error) {
+	r, err := e.call("record", struct {
+		Cache, Key string
+		Max        int
+	}{cache, key, max})
+	if err != nil {
+		return nil, false, err
+	}
+	if len(r.Text) > max {
+		return nil, false, offline.ErrQuota
+	}
+	return []byte(r.Text), r.Found, nil
+}
+
+// readOwner is policy-independent only for explicit disabled cleanup. It never
+// makes payloads usable and never treats an absent retained client as permission
+// until the browser's complete visible-client list has been checked under lock.
+func (e *Engine) readOwner() (diskIndex, bool, error) {
+	data, found, err := e.record(e.meta(), e.key(ownerRecord), maxOwnerRecord)
+	if err != nil || !found {
+		return diskIndex{}, found, err
+	}
+	var idx diskIndex
+	if offlinejson.Decode(data, &idx) != nil || idx.Version != 1 || !hexIdentity(idx.Policy) || idx.Highest < 1 || idx.Highest > 1<<53-1 || len(idx.Retained) > 4 || !idx.Disabled && len(idx.Retained) > 0 {
+		return idx, true, offline.ErrIncomplete
+	}
+	if idx.Active == "" && idx.Previous != "" || idx.Staging == "" && (idx.StageToken != "" || idx.StageComplete) || idx.Staging != "" && !validID(idx.StageToken) {
+		return idx, true, offline.ErrIncomplete
+	}
+	generations := map[string]bool{}
+	for _, g := range []string{idx.Active, idx.Previous, idx.Staging} {
+		if g != "" {
+			if !hexIdentity(g) || generations[g] {
+				return idx, true, offline.ErrIncomplete
+			}
+			generations[g] = true
+		}
+	}
+	seen := map[string]bool{}
+	for _, id := range idx.Retained {
+		if !validClientID(id) || seen[id] {
+			return idx, true, offline.ErrIncomplete
+		}
+		seen[id] = true
+	}
+	return idx, true, nil
+}
+func (e *Engine) clearOwned() error {
+	names, err := e.list()
+	if err != nil {
+		return err
+	}
+	sort.Slice(names, func(i, j int) bool { return names[i] != e.meta() && names[j] == e.meta() })
+	for _, name := range names {
+		if err = e.remove(name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (e *Engine) writeIndex(index diskIndex) error {
+	b, err := json.Marshal(index)
+	if err != nil || len(b) > maxOwnerRecord {
+		return offline.ErrQuota
+	}
+	_, err = e.call("writeRecord", struct{ Cache, Key, Text string }{e.meta(), e.key(ownerRecord), string(b)})
+	return err
+}
+func (e *Engine) remove(cache string) error {
+	_, err := e.call("remove", struct{ Cache string }{cache})
+	return err
+}
+func (e *Engine) inspect(c *offline.Catalog, keepURL string, partial bool) ([]offline.Observation, int, error) {
+	cache := e.generation(c.Generation())
+	r, err := e.call("keys", struct{ Cache string }{cache})
+	if err != nil {
+		return nil, 0, err
+	}
+	allowed := map[string]bool{e.key(catalogRecord): true}
+	for _, entry := range c.Entries() {
+		allowed[entry.URL] = true
+	}
+	for _, key := range r.Keys {
+		if !allowed[key] {
+			return nil, 0, offline.ErrIncomplete
+		}
+	}
+	if len(r.Keys) > len(allowed) {
+		return nil, 0, offline.ErrIncomplete
+	}
+	var observed []offline.Observation
+	handle := 0
+	for _, entry := range c.Entries() {
+		r, err = e.call("readEntry", struct {
+			Cache, URL string
+			Max        int64
+			Keep       bool
+		}{cache, entry.URL, entry.DecodedBytes, false})
+		if err != nil {
+			return nil, 0, err
+		}
+		if !r.Found {
+			if partial {
+				continue
+			}
+			return nil, 0, offline.ErrIncomplete
+		}
+		if !matches(entry, r.Observation) {
+			return nil, 0, offline.ErrIncomplete
+		}
+		observed = append(observed, r.Observation)
+	}
+	if !partial {
+		if err = c.VerifyInventory(observed); err != nil {
+			return nil, 0, err
+		}
+	}
+	// Allocate retained response bytes only after the complete pack is verified.
+	if keepURL != "" {
+		for _, entry := range c.Entries() {
+			if entry.URL == keepURL {
+				r, err = e.call("readEntry", struct {
+					Cache, URL string
+					Max        int64
+					Keep       bool
+				}{cache, entry.URL, entry.DecodedBytes, true})
+				if err != nil {
+					return nil, 0, err
+				}
+				if !r.Found || !matches(entry, r.Observation) || r.Handle < 1 {
+					if r.Handle > 0 {
+						_, _ = e.call("release", struct{ Handle int }{r.Handle})
+					}
+					return nil, 0, offline.ErrIncomplete
+				}
+				handle = r.Handle
+				break
+			}
+		}
+	}
+
+	return observed, handle, nil
+}
+func matches(entry offline.Entry, observation offline.Observation) bool {
+	return observation.URL == entry.URL && observation.SHA256 == entry.SHA256 && observation.DecodedBytes == entry.DecodedBytes && observation.ContentType == entry.ContentType
+}
+func (e *Engine) restore() (restored, error) {
+	names, err := e.list()
+	if err != nil {
+		return restored{}, err
+	}
+	data, found, err := e.record(e.meta(), e.key(ownerRecord), maxOwnerRecord)
+	if err != nil {
+		return restored{}, err
+	}
+	state := restored{catalogs: map[string]*offline.Catalog{}}
+	if !found {
+		if len(names) != 0 {
+			return state, offline.ErrIncomplete
+		}
+		l, err := offline.Restore(e.catalog.Policy(), nil, nil)
+		state.ledger = l
+		return state, err
+	}
+	if err = offlinejson.Decode(data, &state.index); err != nil {
+		return state, err
+	}
+	idx := state.index
+	if idx.Version != 1 || idx.Policy != e.policyHash || idx.Highest < 1 || idx.Highest > 1<<53-1 || idx.Active == "" && idx.Previous != "" || idx.Staging == "" && (idx.StageToken != "" || idx.StageComplete) || idx.Staging != "" && idx.StageToken == "" {
+		return state, offline.ErrIncomplete
+	}
+	if len(idx.Retained) > 4 || !idx.Disabled && len(idx.Retained) > 0 {
+		return state, offline.ErrIncomplete
+	}
+	seenClients := map[string]bool{}
+	for _, id := range idx.Retained {
+		if !validClientID(id) || seenClients[id] {
+			return state, offline.ErrIncomplete
+		}
+		seenClients[id] = true
+	}
+	// A failed installer can leave its reservation before its catalog exists.
+	// Only the still-active different generation may discard that never-complete
+	// candidate. The global lock excludes its physical installer operations; the
+	// durable reservation is cleared only after exact cache deletion settles.
+	if idx.Staging != "" && !idx.StageComplete && idx.Staging != e.catalog.Generation() && e.role() {
+		if !hexIdentity(idx.Staging) || idx.Staging == idx.Active || idx.Staging == idx.Previous {
+			return state, offline.ErrIncomplete
+		}
+		if err = e.remove(e.generation(idx.Staging)); err != nil {
+			return state, err
+		}
+		state.index.Staging = ""
+		state.index.StageToken = ""
+		state.index.StageComplete = false
+		if err = e.writeIndex(state.index); err != nil {
+			return state, err
+		}
+		return e.restore()
+	}
+	expected := map[string]bool{e.meta(): true}
+	stored := make([]*offline.Stored, 3)
+	missingStage := false
+	for i, g := range []string{idx.Active, idx.Previous, idx.Staging} {
+		if g == "" {
+			continue
+		}
+		if !hexIdentity(g) || expected[e.generation(g)] {
+			return state, offline.ErrIncomplete
+		}
+		expected[e.generation(g)] = true
+		raw, found, err := e.record(e.generation(g), e.key(catalogRecord), offline.MaxCatalogBytes)
+		if err != nil {
+			return state, err
+		}
+		var c *offline.Catalog
+		if !found {
+			if i != 2 || idx.StageComplete || g != e.catalog.Generation() {
+				return state, offline.ErrIncomplete
+			}
+			c = e.catalog
+			missingStage = true
+		} else {
+			c, err = parseCatalog(raw)
+			if err != nil || c.Generation() != g {
+				return state, offline.ErrIncomplete
+			}
+		}
+		p, _ := json.Marshal(c.Policy().Config())
+		if sum(p) != e.policyHash {
+			return state, offline.ErrIncomplete
+		}
+		obs, _, err := e.inspect(c, "", i == 2 && !idx.StageComplete)
+		if err != nil {
+			return state, err
+		}
+		stored[i] = &offline.Stored{Catalog: c, Inventory: obs}
+		state.catalogs[g] = c
+	}
+	for _, name := range names {
+		if !expected[name] {
+			return state, offline.ErrIncomplete
+		}
+	}
+	if len(names) != len(expected) && !(missingStage && len(names) == len(expected)-1) {
+		return state, offline.ErrIncomplete
+	}
+	state.ledger, err = offline.Restore(e.catalog.Policy(), stored[0], stored[1], stored[2])
+	if err != nil {
+		return state, err
+	}
+	state.pending, state.hasPending = state.ledger.Pending()
+	if idx.StageComplete {
+		if !state.hasPending {
+			return state, offline.ErrState
+		}
+		if err = state.ledger.Complete(state.pending); err != nil {
+			return state, err
+		}
+	}
+	return state, nil
+}
+func (e *Engine) baseStatus(id string) Status {
+	c := e.descriptor.Client
+	return Status{Version: 1, RequestID: id, OwnerPolicyID: c.OwnerPolicyID, RuntimeID: c.RuntimeID, ConfigurationID: c.ConfigurationID, Generation: e.descriptor.Generation, State: "disabled", Supported: true}
+}
+func (e *Engine) status(state restored, id string) Status {
+	r := e.baseStatus(id)
+	r.ActiveGeneration = state.index.Active
+	r.PreviousGeneration = state.index.Previous
+	r.StagingGeneration = state.index.Staging
+	r.HighestObservedUnix = state.index.Highest
+	r.DeferredCleanup = state.index.Disabled && len(state.catalogs) > 0
+	if c := state.catalogs[state.index.Active]; c != nil {
+		r.SavedAtUnix = c.Spec().SavedAtUnix
+	}
+	r.Enabled = !state.index.Disabled && state.index.Active == e.catalog.Generation()
+	if r.Enabled {
+		r.State = "ready"
+		now, err := e.now()
+		if err != nil || now < state.index.Highest {
+			r.State = "failed"
+			r.Enabled = false
+			r.Error = "clock-rollback"
+		} else {
+			if now > state.index.Highest {
+				state.index.Highest = now
+				r.HighestObservedUnix = now
+				if e.writeIndex(state.index) != nil {
+					r.State = "failed"
+					r.Enabled = false
+					r.Error = "storage-failed"
+				}
+			}
+			if !allFresh(e.catalog, now, state.index.Highest) {
+				r.State = "failed"
+				r.Enabled = false
+				r.Error = "expired"
+			}
+		}
+	} else if state.index.Staging != "" && !state.index.Disabled {
+		r.State = "staged"
+	}
+	return r
+}
+func validID(id string) bool {
+	if len(id) < 1 || len(id) > 64 {
+		return false
+	}
+	for _, c := range id {
+		if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-') {
+			return false
+		}
+	}
+	return true
+}
+func (e *Engine) sourceAllowed(source string) bool {
+	u, err := url.Parse(source)
+	if err != nil || u.User != nil || u.Scheme+"://"+u.Host != e.catalog.Policy().Config().Origin {
+		return false
+	}
+	base := e.catalog.Policy().Config().BasePath
+	return base == "" || u.Path == base || strings.HasPrefix(u.Path, base+"/")
+}
+
+// Message serializes the complete physical transition under an origin-wide lock.
+// Port closure is not cancellation and never releases this reservation early.
+func (e *Engine) Message(command Command, source string) Status {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	result := e.baseStatus(command.RequestID)
+	if command.Version != 1 || !validID(command.RequestID) || command.OwnerPolicyID != e.descriptor.Client.OwnerPolicyID || !e.sourceAllowed(source) {
+		result.Error = "invalid-message"
+		return result
+	}
+	if command.Command != "status" && (command.RuntimeID != e.descriptor.Client.RuntimeID || command.ConfigurationID != e.descriptor.Client.ConfigurationID) {
+		result.Error = "identity-changed"
+		return result
+	}
+	unlock, err := e.lock()
+	if err != nil {
+		result.Supported = false
+		result.State = "failed"
+		result.Error = "locking-unavailable"
+		return result
+	}
+	defer unlock()
+	if command.Command != "status" && !e.role() {
+		result.Error = "waiting-worker"
+		return result
+	}
+	if command.Command == "disable" {
+		return e.disable(command.RequestID)
+	}
+	if idx, found, readErr := e.readOwner(); readErr == nil && found && idx.Disabled {
+		result.DeferredCleanup = true
+		result.ActiveGeneration = idx.Active
+		result.PreviousGeneration = idx.Previous
+		result.StagingGeneration = idx.Staging
+		result.HighestObservedUnix = idx.Highest
+		if command.Command == "status" {
+			return result
+		}
+		if command.Command == "enable" {
+			clients, err := e.clients()
+			if err != nil || retainedLive(idx.Retained, clients.VisibleIDs) {
+				result.Error = "cleanup-pending"
+				return result
+			}
+			if err = e.clearOwned(); err != nil {
+				result.Error = "cleanup-failed"
+				return result
+			}
+		}
+	}
+	state, err := e.restore()
+	if err != nil {
+		result.State = "failed"
+		result.Error = "corrupt-storage"
+		return result
+	}
+	if command.Command == "status" {
+		return e.status(state, command.RequestID)
+	}
+	if command.Command != "enable" {
+		result.Error = "unsupported-command"
+		return result
+	}
+	return e.enable(state, command.RequestID)
+}
+func (e *Engine) disable(id string) Status {
+	result := e.baseStatus(id)
+	clients, err := e.clients()
+	if err != nil {
+		result.Error = "clients-unavailable"
+		return result
+	}
+	idx, found, readErr := e.readOwner()
+	if readErr == nil && found && idx.Disabled {
+		result.DeferredCleanup = true
+		result.ActiveGeneration = idx.Active
+		result.PreviousGeneration = idx.Previous
+		result.StagingGeneration = idx.Staging
+		result.HighestObservedUnix = idx.Highest
+		if retainedLive(idx.Retained, clients.VisibleIDs) {
+			return result
+		}
+		if err = e.clearOwned(); err != nil {
+			result.Error = "cleanup-failed"
+			return result
+		}
+		return e.baseStatus(id)
+	}
+	state, restoreErr := e.restore()
+	if restoreErr == nil && retainedLive(state.index.Retained, clients.VisibleIDs) {
+		result = e.status(state, id)
+		result.Enabled = false
+		result.State = "disabled"
+		result.DeferredCleanup = true
+		return result
+	}
+	if restoreErr == nil && len(state.catalogs) == 0 && !state.hasPending {
+		return e.baseStatus(id)
+	}
+	if clients.Controlled > 0 {
+		if clients.Controlled > 4 {
+			result.Error = "client-capacity"
+			return result
+		}
+		for _, client := range clients.ClientIDs {
+			if !validClientID(client) {
+				result.Error = "client-capacity"
+				return result
+			}
+		}
+		if restoreErr != nil {
+			if readErr != nil || !found {
+				result.Error = "corrupt-storage"
+				result.DeferredCleanup = true
+				return result
+			}
+			// A valid owner record is enough to retire a corrupt pack, never to serve
+			// it. Preserve every current dependent client before unregistering.
+			idx.Disabled = true
+			idx.Retained = append([]string(nil), clients.ClientIDs...)
+			if e.writeIndex(idx) != nil {
+				result.Error = "client-capacity"
+				return result
+			}
+			result.DeferredCleanup = true
+			result.ActiveGeneration = idx.Active
+			result.PreviousGeneration = idx.Previous
+			result.StagingGeneration = idx.Staging
+			result.HighestObservedUnix = idx.Highest
+			return result
+		}
+		state.index.Disabled = true
+		state.index.Retained = append([]string(nil), clients.ClientIDs...)
+		if e.writeIndex(state.index) != nil {
+			result = e.status(state, id)
+			result.Error = "client-capacity"
+			return result
+		}
+		return e.status(state, id)
+	}
+	names, err := e.list()
+	if err != nil {
+		result.Error = "corrupt-storage"
+		return result
+	}
+	sort.Slice(names, func(i, j int) bool { return names[i] != e.meta() && names[j] == e.meta() })
+	for _, name := range names {
+		if err = e.remove(name); err != nil {
+			result.Error = "cleanup-failed"
+			result.DeferredCleanup = true
+			return result
+		}
+	}
+	return e.baseStatus(id)
+}
+func (e *Engine) promote(state *restored) error {
+	if !state.hasPending || !state.index.StageComplete || state.index.Staging != e.catalog.Generation() || !e.role() {
+		return offline.ErrState
+	}
+	if state.index.Previous != "" {
+		g := state.index.Previous
+		if err := e.remove(e.generation(g)); err != nil {
+			return err
+		}
+		if err := state.ledger.ConfirmPreviousRemoved(g); err != nil {
+			return err
+		}
+		delete(state.catalogs, g)
+		state.index.Previous = ""
+		if err := e.writeIndex(state.index); err != nil {
+			return err
+		}
+	}
+	if err := state.ledger.Activate(state.pending, true); err != nil {
+		return err
+	}
+	state.index.Previous = state.index.Active
+	state.index.Active = state.index.Staging
+	state.index.Staging = ""
+	state.index.StageToken = ""
+	state.index.StageComplete = false
+	state.index.Disabled = false
+	state.index.Retained = nil
+	state.hasPending = false
+	return e.writeIndex(state.index)
+}
+func allFresh(c *offline.Catalog, now, highest int64) bool {
+	for _, page := range c.Policy().Config().Pages {
+		if !c.Fresh(page.Path, now, highest) {
+			return false
+		}
+	}
+	return true
+}
+func (e *Engine) enable(state restored, id string) Status {
+	if state.index.Disabled {
+		clients, err := e.clients()
+		if err != nil {
+			r := e.status(state, id)
+			r.Error = "clients-unavailable"
+			return r
+		}
+		if retainedLive(state.index.Retained, clients.VisibleIDs) || clients.Controlled > 0 {
+			r := e.status(state, id)
+			r.DeferredCleanup = true
+			r.Error = "cleanup-pending"
+			return r
+		}
+		names, err := e.list()
+		if err != nil {
+			r := e.status(state, id)
+			r.Error = "corrupt-storage"
+			return r
+		}
+		sort.Slice(names, func(i, j int) bool { return names[i] != e.meta() && names[j] == e.meta() })
+		for _, name := range names {
+			if e.remove(name) != nil {
+				r := e.status(state, id)
+				r.Error = "cleanup-failed"
+				return r
+			}
+		}
+		state = restored{catalogs: map[string]*offline.Catalog{}}
+		state.ledger, _ = offline.Restore(e.catalog.Policy(), nil, nil)
+	}
+	return e.stage(state, id, true)
+}
+func (e *Engine) stage(state restored, id string, promote bool) Status {
+	fail := func(code string) Status { r := e.status(state, id); r.Error = code; return r }
+	now, err := e.now()
+	if err != nil || now < state.index.Highest || now < e.catalog.Spec().SavedAtUnix {
+		return fail("clock-rollback")
+	}
+	if state.index.Version == 1 && now > state.index.Highest {
+		state.index.Highest = now
+		if e.writeIndex(state.index) != nil {
+			return fail("storage-failed")
+		}
+	}
+	if !allFresh(e.catalog, now, max(now, state.index.Highest)) {
+		return fail("expired")
+	}
+	if state.index.Active == e.catalog.Generation() && !state.index.Disabled {
+		return e.status(state, id)
+	}
+	if state.hasPending {
+		if !state.index.StageComplete {
+			g := state.index.Staging
+			if err = e.remove(e.generation(g)); err != nil {
+				return fail("cleanup-failed")
+			}
+			if err = state.ledger.ConfirmStagingRemoved(state.pending); err != nil {
+				return fail("cleanup-failed")
+			}
+			delete(state.catalogs, g)
+			state.hasPending = false
+		} else if state.index.Staging == e.catalog.Generation() {
+			if promote {
+				if err = e.promote(&state); err != nil {
+					return fail("activation-failed")
+				}
+			}
+			return e.status(state, id)
+		} else {
+			return fail("update-waiting")
+		}
+	}
+	// Re-download the frozen catalog before accepting any payload. A newer native
+	// catalog belongs to a new worker/global, never to an old active VM.
+	fetched, err := e.call("fetchCatalog", struct {
+		URL string
+		Max int
+	}{e.descriptor.Client.CatalogURL, offline.MaxCatalogBytes})
+	if err != nil || fetched.Text != e.descriptor.CatalogJSON {
+		return fail("catalog-changed")
+	}
+	token, err := state.ledger.Reserve(e.catalog)
+	if err != nil {
+		return fail("quota")
+	}
+	op, err := e.call("token", struct{}{})
+	if err != nil || !validID(op.Token) {
+		return fail("storage-failed")
+	}
+	state.pending = token
+	state.hasPending = true
+	state.index.Version = 1
+	state.index.Policy = e.policyHash
+	state.index.Highest = now
+	state.index.Disabled = false
+	state.index.Staging = e.catalog.Generation()
+	state.index.StageToken = op.Token
+	state.index.StageComplete = false
+	state.index.Retained = nil
+	// This durable reservation precedes creation/fetch/write of any candidate.
+	if err = e.writeIndex(state.index); err != nil {
+		return fail("storage-failed")
+	}
+	cache := e.generation(e.catalog.Generation())
+	if _, err = e.call("create", struct{ Cache string }{cache}); err != nil {
+		return fail("storage-failed")
+	}
+	if _, err = e.call("writeRecord", struct{ Cache, Key, Text string }{cache, e.key(catalogRecord), e.descriptor.CatalogJSON}); err != nil {
+		return fail("storage-failed")
+	}
+	for _, entry := range e.catalog.Entries() {
+		source := entry.URL
+		document := entry.Kind == "document" || entry.Kind == "fallback"
+		if document {
+			for _, doc := range e.catalog.Spec().Documents {
+				u, _ := e.catalog.Policy().DocumentURL(doc.Path)
+				if u == entry.URL {
+					source, err = e.catalog.PreparationURL(doc.Path)
+					break
+				}
+			}
+			if err != nil || source == entry.URL {
+				return fail("integrity-failed")
+			}
+		}
+		r, err := e.call("fetchEntry", struct {
+			Entry      offline.Entry
+			Source     string
+			Document   bool
+			Generation string
+		}{entry, source, document, e.catalog.Generation()})
+		if err != nil {
+			return fail("download-failed")
+		}
+		good := matches(entry, r.Observation)
+		if document {
+			good = good && deliveryVary(r.Vary) && r.Admission == offline.NativeAdmissionV1 && r.Document == entry.SHA256 && r.Generation == e.catalog.Generation() && r.RuntimeID == e.catalog.Spec().RuntimeID && r.ConfigurationID == e.catalog.Spec().Configuration
+		} else {
+			good = good && publicAssetHeaders(r.CacheControl, r.Vary)
+		}
+		if !good {
+			_, _ = e.call("release", struct{ Handle int }{r.Handle})
+			return fail("integrity-failed")
+		}
+		if _, err = e.call("put", struct {
+			Cache, URL string
+			Handle     int
+		}{cache, entry.URL, r.Handle}); err != nil {
+			return fail("storage-failed")
+		}
+		if err = state.ledger.Observe(token, r.Observation); err != nil {
+			return fail("integrity-failed")
+		}
+	}
+	observed, _, err := e.inspect(e.catalog, "", false)
+	if err != nil || e.catalog.VerifyInventory(observed) != nil {
+		return fail("integrity-failed")
+	}
+	if err = state.ledger.Complete(token); err != nil {
+		return fail("integrity-failed")
+	}
+	state.index.StageComplete = true
+	state.catalogs[e.catalog.Generation()] = e.catalog
+	if err = e.writeIndex(state.index); err != nil {
+		return fail("storage-failed")
+	}
+	if promote {
+		if err = e.promote(&state); err != nil {
+			return fail("activation-failed")
+		}
+	}
+	return e.status(state, id)
+}
+
+func (e *Engine) Fetch(request Request) Decision {
+	if request.Method != "GET" || request.Authorization || request.Cookie || request.SPA || request.Range || request.Cache == "no-store" {
+		return Decision{Kind: "pass"}
+	}
+	var wanted *offline.Entry
+	for _, entry := range e.catalog.Entries() {
+		if entry.URL == request.URL {
+			copy := entry
+			wanted = &copy
+			break
+		}
+	}
+	if wanted == nil {
+		return Decision{Kind: "pass"}
+	}
+	doc := wanted.Kind == "document" || wanted.Kind == "fallback"
+	if doc && request.Mode != "navigate" {
+		return Decision{Kind: "pass"}
+	}
+	// Ordinary native responses are forwarded once, without persistence or a
+	// storage lock. Only a transport failure permits the saved-public fallback.
+	if doc && request.Token != "" {
+		reply, err := e.call("network", struct{ Token string }{request.Token})
+		if err == nil && reply.Handle > 0 {
+			return Decision{Kind: "network", Handle: reply.Handle}
+		}
+	}
+	decision := e.saved(request, doc)
+	// A damaged/expired saved pack cannot supply even one immutable entry. A
+	// healthy network may still serve that exact original asset request, without
+	// mixing the result into the saved pack or holding the storage lock.
+	if !doc && decision.Kind == "fallback" && request.Token != "" {
+		reply, err := e.call("network", struct{ Token string }{request.Token})
+		if err == nil && reply.Handle > 0 {
+			return Decision{Kind: "network", Handle: reply.Handle}
+		}
+	}
+	return decision
+}
+func (e *Engine) saved(request Request, doc bool) Decision {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	failure := Decision{Kind: "fallback"}
+	unlock, err := e.lock()
+	if err != nil {
+		return failure
+	}
+	defer unlock()
+	if idx, found, readErr := e.readOwner(); readErr == nil && found && idx.Disabled && doc {
+		return Decision{Kind: "pass"}
+	}
+	state, err := e.restore()
+	if err != nil {
+		return failure
+	}
+	disabled := state.index.Disabled
+	if disabled && doc {
+		return Decision{Kind: "pass"}
+	}
+	if disabled && !retainedLive(state.index.Retained, []string{request.ClientID}) {
+		return Decision{Kind: "pass"}
+	}
+	if !disabled && !e.role() {
+		return failure
+	}
+	if state.hasPending && state.index.StageComplete && state.index.Staging == e.catalog.Generation() {
+		if e.promote(&state) != nil {
+			return failure
+		}
+	}
+	if state.index.Active != e.catalog.Generation() {
+		return failure
+	}
+	now, err := e.now()
+	if err != nil || now < state.index.Highest {
+		return failure
+	}
+	c := state.catalogs[state.index.Active]
+	if c == nil {
+		return failure
+	}
+	if !allFresh(c, now, max(now, state.index.Highest)) {
+		return failure
+	}
+	if !disabled {
+		state.index.Highest = now
+		if e.writeIndex(state.index) != nil {
+			return failure
+		}
+	}
+	_, handle, err := e.inspect(c, request.URL, false)
+	if err != nil || handle < 1 {
+		return failure
+	}
+	return Decision{Kind: "cached", Handle: handle, Saved: doc, Generation: c.Generation(), RuntimeID: c.Spec().RuntimeID, ConfigurationID: c.Spec().Configuration}
+}
+
+func (e *Engine) Lifecycle(kind string) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	unlock, err := e.lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+	idx, found, readErr := e.readOwner()
+	if readErr == nil && found && idx.Disabled {
+		return nil
+	}
+	state, err := e.restore()
+	if err != nil {
+		return err
+	}
+	if kind == "install" {
+		if state.index.Active == "" || state.index.Disabled || state.index.Active == e.catalog.Generation() {
+			return nil
+		}
+		status := e.stage(state, "", false)
+		if status.Error != "" {
+			return offline.ErrIncomplete
+		}
+		return nil
+	}
+	if !e.role() {
+		return nil
+	}
+	if state.hasPending && state.index.StageComplete && state.index.Staging == e.catalog.Generation() {
+		return e.promote(&state)
+	}
+	return nil
+}
+// deliveryVary permits only transport compression negotiation; it grants no
+// cookie/authorization-dependent representation or additional storage authority.
+func deliveryVary(value string) bool {
+	return value == "" || strings.EqualFold(strings.TrimSpace(value), "Accept-Encoding")
+}
+
+func publicAssetHeaders(control, vary string) bool {
+	for _, part := range strings.Split(control, ",") {
+		key := strings.ToLower(strings.TrimSpace(strings.SplitN(part, "=", 2)[0]))
+		if key == "private" || key == "no-store" {
+			return false
+		}
+	}
+	return deliveryVary(vary)
+}
+
+// ProtocolError exposes only bounded public categories, never browser exception
+// text, response bodies, native loader diagnostics, paths or credentials.
+func ProtocolError(err error) string {
+	if errors.Is(err, offline.ErrQuota) {
+		return "quota"
+	}
+	if err != nil {
+		return "unavailable"
+	}
+	return ""
+}

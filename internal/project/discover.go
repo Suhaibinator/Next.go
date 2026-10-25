@@ -69,6 +69,8 @@ type Component struct {
 }
 type Project struct {
 	Root, ModuleDir, ModulePath, Import, NotFound, Configure string
+	Offline                                                  string // Native app-root Offline() convention.
+	offlineBuild                                             *offlineBuildPlan
 	Unauthorized, Forbidden                                  string
 	Default                                                  string
 	defaultRoute                                             *Route
@@ -107,6 +109,10 @@ func Discover(root string) (*Project, error) {
 		imp += "/" + filepath.ToSlash(rel)
 	}
 	p := &Project{Root: abs, ModuleDir: mod.Dir, ModulePath: mod.Path, Import: imp}
+	p.Offline, err = discoverOffline(p)
+	if err != nil {
+		return nil, err
+	}
 	p.Actions, err = DiscoverActions(p)
 	if err != nil {
 		return nil, err

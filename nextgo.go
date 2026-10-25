@@ -31,6 +31,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/publicorigin"
 	"github.com/Suhaibinator/Next.go/internal/routing"
 	"github.com/Suhaibinator/Next.go/metadatafiles"
+	"github.com/Suhaibinator/Next.go/offline"
 	"github.com/Suhaibinator/Next.go/scripts"
 	"github.com/Suhaibinator/Next.go/seo"
 	_ "github.com/Suhaibinator/Next.go/serveronly"
@@ -135,6 +136,10 @@ type Route struct {
 	StaticParamsLayers []StaticParamsLayer
 }
 type Config struct {
+	// Offline explicitly opts into a saved-anonymous-public managed bundle.
+	// OfflineBuild is compiler-owned inventory, required with Offline.
+	Offline      *offline.Config
+	OfflineBuild *offline.Build
 	// Phase is the native startup purpose, set before generated Configure calls.
 	// Zero preserves legacy Dev/PrerenderBuildMode selection, otherwise production.
 	Phase Phase
@@ -215,6 +220,7 @@ type Config struct {
 	After           AfterOptions
 }
 type App struct {
+	managedOffline      *managedOffline
 	prerenderShape      string
 	prerenderKnown      map[string]bool
 	locales             *localeRouter
@@ -358,6 +364,9 @@ func newApp(c Config) (*App, error) {
 	if err := freezeManagedMetadata(&c); err != nil {
 		return nil, err
 	}
+	if err := freezeManagedOfflineConfig(&c); err != nil {
+		return nil, err
+	}
 	if c.Locales != nil {
 		return newLocaleApp(c)
 	}
@@ -365,7 +374,7 @@ func newApp(c Config) (*App, error) {
 		c.BuildID = "development"
 	}
 	switch c.BuildID {
-	case "actions", "loading", "image", "events", "draft":
+	case "actions", "loading", "image", "events", "draft", "offline":
 		return nil, fmt.Errorf("build ID %q is reserved for a framework service", c.BuildID)
 	}
 	if c.Logger == nil {
@@ -437,6 +446,9 @@ func newApp(c Config) (*App, error) {
 	if err := a.initInterceptions(); err != nil {
 		return nil, err
 	}
+	if err := a.initManagedOffline(); err != nil {
+		return nil, err
+	}
 	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, Documents: documentPathPatterns(c.DocumentPaths)}
 	manifest.Draft = c.Draft != nil
 	manifest.Scripts = earlyScriptsIdentity(c.EarlyScripts)
@@ -444,7 +456,7 @@ func newApp(c Config) (*App, error) {
 	if c.localeScope != nil {
 		manifest.Locale = c.localeScope.identity()
 	}
-	manifest.Cache = configurationZonePolicy(configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest())), c.Zone())
+	manifest.Cache = a.offlineConfigurationPolicy(configurationZonePolicy(configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest())), c.Zone()))
 	manifest.Rules = a.rulesIdentity()
 	manifest.Parallel = a.parallelIdentity()
 	for _, rules := range [][]compiledRule{a.redirects, a.rewrites} {
@@ -461,6 +473,7 @@ func newApp(c Config) (*App, error) {
 		manifest.Handlers = append(manifest.Handlers, path)
 	}
 	manifest.Handlers = append(manifest.Handlers, a.metadataEndpointPatterns()...)
+	manifest.Handlers = append(manifest.Handlers, a.offlineEndpointPatterns()...)
 	sort.Strings(manifest.Handlers)
 	manifestJSON, _ := json.Marshal(manifest)
 	a.navigationJSON = string(manifestJSON)
@@ -519,6 +532,9 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.serveRequest(w, r)
 }
 func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
+	if a.serveManagedOffline(w, r) {
+		return
+	}
 	if a.locales != nil {
 		a.locales.serveHTTP(w, r)
 		return
@@ -902,7 +918,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		p.Description = p.Metadata.Description
 	}
 	documentAttrs, documentErr := pageDocument(p)
-	head, headHTML, headErr := pageHeadPaths(p, a.paths)
+	head, headHTML, headErr := pageHeadPaths(p, a.offlineRenderPaths(r.Context()))
 	if headErr != nil || documentErr != nil {
 		a.config.Logger.Printf("head: %v", headErr)
 		p = a.localeMetadata(errorPage())
@@ -1034,6 +1050,8 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Nonce          string
 		Early          template.HTML
 		RuntimeScripts template.HTML
+		Offline        string
+		OfflineSaved   bool
 	}{
 		Page: p, Document: documentAttrs, Body: template.HTML(body),
 		Build: a.config.BuildID, Dev: a.config.Dev, DevGeneration: a.config.DevGeneration,
@@ -1041,9 +1059,10 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Preserve: a.config.PreserveLayouts, Transitions: a.config.ViewTransitions,
 		Navigation: a.navigationJSON, Configuration: a.configurationID, Draft: a.draftState(r),
 		Paths: a.paths, Runtime: a.paths.RuntimeURL(a.config.BuildID),
-		Style: mustPath(a.paths.AssetURL("/style.css")), Nonce: scripts.Nonce(r.Context()),
+		Style: a.offlineStylesheetURL(r), Nonce: scripts.Nonce(r.Context()),
 		Early:          template.HTML(a.earlyScripts(r)),
 		RuntimeScripts: template.HTML(runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), scripts.Nonce(r.Context()))),
+		Offline:        a.offlineDescriptorJSON(), OfflineSaved: a.offlineSavedDocument(r),
 	})
 	if err != nil {
 		http.Error(w, "Unable to render document", 500)
@@ -1064,7 +1083,7 @@ var document = template.Must(template.New("document").Parse(`<!doctype html>
 <style{{if .Nonce}} nonce="{{.Nonce}}"{{end}}>` + frameworkCSS + `</style>
 <link rel="stylesheet" href="{{.Style}}">
 {{.Early}}
-</head><body{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
+</head><body{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
 <div id="nextgo-status" role="status" aria-live="polite" hidden></div>
 ` + routeAnnouncer + `
 <div id="nextgo-app" tabindex="-1">{{.Body}}</div>

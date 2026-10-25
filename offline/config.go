@@ -154,7 +154,12 @@ func (p *Policy) Config() Config {
 	return copy
 }
 
-func (p *Policy) documentURL(path string) string { return p.config.Origin + p.config.BasePath + path }
+func (p *Policy) documentURL(path string) string {
+	if path == "/" && p.config.BasePath != "" {
+		return p.config.Origin + p.config.BasePath
+	}
+	return p.config.Origin + p.config.BasePath + path
+}
 func (p *Policy) owner() string {
 	return p.config.Origin + "\x00" + p.config.BasePath + "\x00" + p.config.ID
 }

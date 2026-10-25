@@ -175,6 +175,9 @@ func CompileZones(ctx context.Context, name string, dev bool, output io.Writer) 
 		if hasPrerenderFiles(p) {
 			return nil, fmt.Errorf("zone %q: zones v1 does not support prerender declarations; no capture or seed reservation was executed", zone.ID)
 		}
+		if p.Offline != "" {
+			return nil, fmt.Errorf("zone %q: managed offline is unavailable for aggregate zones", zone.ID)
+		}
 		projects[zone.Root] = p
 		unique = append(unique, p)
 	}

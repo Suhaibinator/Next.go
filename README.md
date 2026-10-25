@@ -740,14 +740,17 @@ unfinished.
 
 ## Rendering and navigation architecture
 
-An experimental [offline contract foundation](docs/OFFLINE.md) describes explicit
-saved anonymous public snapshots, complete byte inventories and bounded
-generation reservations. Native `App.PrepareOffline` explicitly captures allowed
-public pages through middleware and a final response-admission gate; it does not
-create a complete asset catalog or install an endpoint automatically. There is
-no service-worker registration or compiler/browser-storage integration yet;
-T16 remains Missing. It cannot preserve authenticated current state or authorize
-mutation replay.
+An experimental [managed offline mode](docs/OFFLINE.md) builds a Go/WASM service
+worker and complete immutable dependency inventory, then prepares explicitly
+allowed anonymous public documents once at production startup. Eager Go controls
+enable saving, check updates and disable the owned worker. Saved reading uses
+native document navigation; private/query/API requests and mutations remain
+network-only. Open tabs can defer deletion after disable. A bounded matrix of 32 browser cases
+across four engines passed cold restart, Go hydration, updates and explicit
+cleanup controls. Arbitrary offline applications and durable Go scheduling remain
+unqualified. See the [offline example](examples/offline/README.md) for the
+production build command and the guide for v1 restrictions. This bounded
+subset does not preserve authenticated current state or replay mutations.
 
 ```mermaid
 flowchart LR

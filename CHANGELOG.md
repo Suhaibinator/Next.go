@@ -8,26 +8,30 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — offline document preparation foundation
+## Unreleased — experimental managed offline public editions
 
-- Add experimental `offline` policies, owned catalogs, complete-inventory
-  verification, persisted-time freshness checks and reservations charging
-  active, previous and staging generations. Native catalog codecs stay outside
-  the browser import graph.
-- Add `App.PrepareOffline` for explicit saved-anonymous-public documents. It
-  constructs anonymous requests, discards caller/middleware identity values,
-  renders read-only public pages and checks complete buffered responses after
-  middleware unwinds. The fallback contains escaped title/description text;
-  its application body, head and runtime are omitted.
-- Keep worker registration, compiler asset capture, browser storage, offline
-  navigation and mutation recovery unfinished. T16 remains Missing; these APIs
-  do not enable an offline application. See [the contract](docs/OFFLINE.md).
-- Root/offline native race tests and vet pass on Go 1.24.13 and 1.27.3,
-  with 951 passing test/subtest records per SDK. Portable WASM tests, vet and
-  dependency-boundary checks pass with matching toolchains.
-- Preserve running CI checkpoints when a new push arrives. Allow the streaming
-  job 45 minutes, including a bounded 30-minute browser/dependency installation;
-  its preceding attempt exhausted the former 15-minute job limit before tests.
+- Add a production compiler path for native `app/offline.go` policies, a separate
+  Go/WASM worker, immutable eager/lazy/public dependencies and the matching SDK
+  shim. Generated native and local Lambda entrypoints prepare the complete
+  anonymous public bundle before accepting traffic.
+- Add explicit eager Go enable/status/update/disable APIs. Saved pages hydrate
+  their existing DOM and use native document navigation. Queries, APIs, private
+  state and mutations remain network-only; nothing queues or replays writes.
+- Bind staged storage to complete decoded hashes, freshness and reservations for
+  active, previous and candidate generations. Updates wait for closed clients;
+  disable can retain charged public data until a later explicit reconciliation.
+- Preserve request fields and physical body cancellation through network-first
+  document delivery. Document clones avoid Chromium preload reuse before the
+  fresh-network cache override. Sample buttons prevent restored enabled state
+  from bypassing their server-rendered hydration gate.
+- Add the [offline sample](examples/offline/README.md), actual two-generation
+  browser fixtures and native/local Lambda transport checks. The earlier
+  `dc425dd` checkpoint qualified native preparation only. Current scoped proof
+  and retained failed-run history are recorded in [OFFLINE.md](docs/OFFLINE.md).
+- Keep this production-only subset experimental. Development, static export,
+  prerender/locales/zones and other documented integrations are refused. Complete
+  PWA support, timer/runtime retirement and all 11 production release gates stay
+  open; this is not full Next.js compatibility or production certification.
 
 ## Unreleased — JSON validation dependency boundary
 

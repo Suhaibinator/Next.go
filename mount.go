@@ -34,7 +34,7 @@ func assetRequest(r *http.Request) bool {
 	}
 	name := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/_nextgo/"), "/", 2)[0]
 	switch name {
-	case "actions", "loading", "image", "events", "draft":
+	case "actions", "loading", "image", "events", "draft", "offline":
 		return false
 	}
 	return true

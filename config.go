@@ -494,7 +494,7 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 		return cachedPage{}, &uncacheable{page: page, status: status}
 	}
 	page = a.localeMetadata(page)
-	head, headHTML, err := pageHeadPaths(page, a.paths)
+	head, headHTML, err := pageHeadPaths(page, a.offlineRenderPaths(ctx))
 	if err != nil {
 		return cachedPage{}, err
 	}

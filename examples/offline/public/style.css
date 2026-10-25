@@ -1,0 +1,26 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.6; background: #f6f4ef; color: #20342d; }
+* { box-sizing: border-box; }
+body { max-width: 68rem; margin: 0 auto; padding: 2rem clamp(1rem, 4vw, 3rem); }
+header { border-bottom: 1px solid #bbc7ba; padding-bottom: 1.25rem; }
+.eyebrow { font-size: .75rem; letter-spacing: .16em; font-weight: 750; }
+nav, .controls { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; }
+nav a, a { color: #245b45; text-underline-offset: .25em; }
+main { padding: 1.5rem 0; }
+h1 { max-width: 18ch; font-size: clamp(2rem, 5vw, 3.8rem); line-height: 1.1; letter-spacing: -.04em; }
+h2 { line-height: 1.2; }
+p, li { max-width: 72ch; }
+.lead { font-size: 1.15rem; }
+.panel { margin-top: 2rem; padding: 1.2rem clamp(1rem, 3vw, 2rem); border: 1px solid #bbc7ba; border-radius: .8rem; background: #fffdf7; }
+button { font: inherit; border: 1px solid #245b45; border-radius: .4rem; padding: .55rem .8rem; color: #fff; background: #245b45; cursor: pointer; }
+button:disabled { opacity: .5; cursor: wait; }
+button:focus-visible, a:focus-visible { outline: 3px solid #b26a21; outline-offset: 4px; }
+output { font-variant-numeric: tabular-nums; font-weight: 700; }
+.note, footer { font-size: .9rem; color: #4e6157; }
+footer { border-top: 1px solid #bbc7ba; padding-top: 1rem; }
+@media (prefers-color-scheme: dark) {
+  :root { background: #18231e; color: #f1f0e8; }
+  .panel { background: #213329; }
+  a, nav a { color: #b5dec0; }
+  button { background: #b5dec0; color: #18231e; }
+  .note, footer { color: #bbcbc0; }
+}

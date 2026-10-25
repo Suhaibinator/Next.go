@@ -15,6 +15,14 @@ import (
 // user build flags and indirect dependencies. Filename scanning alone cannot
 // establish whether a server package reaches the browser.
 func validateBrowserGraph(ctx context.Context, p *Project, entry string, buildFlags ...string) error {
+	return validateBrowserGraphTarget(ctx, p, entry, false, buildFlags...)
+}
+
+func validateOfflineWorkerGraph(ctx context.Context, p *Project, entry string, buildFlags ...string) error {
+	return validateBrowserGraphTarget(ctx, p, entry, true, buildFlags...)
+}
+
+func validateBrowserGraphTarget(ctx context.Context, p *Project, entry string, worker bool, buildFlags ...string) error {
 	canonical, canonicalErr := filepath.EvalSymlinks(entry)
 	if canonicalErr != nil {
 		return canonicalErr
@@ -44,6 +52,9 @@ func validateBrowserGraph(ctx context.Context, p *Project, entry string, buildFl
 		}
 		if err != nil {
 			return fmt.Errorf("read browser dependency graph: %w", err)
+		}
+		if worker && (dependency.ImportPath == framework+"/client" || strings.HasPrefix(dependency.ImportPath, framework+"/client/")) {
+			return fmt.Errorf("offline worker dependency %s imports the document client runtime", dependency.ImportPath)
 		}
 		if dependency.ImportPath == p.Import+"/app" || strings.HasPrefix(dependency.ImportPath, p.Import+"/app/") {
 			return fmt.Errorf("browser dependency %s imports application route code; move shared values outside app/ and mark server-only packages with a blank serveronly import", dependency.ImportPath)

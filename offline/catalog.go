@@ -220,6 +220,27 @@ func (c *Catalog) Spec() CatalogSpec {
 	return spec
 }
 
+// PreparationURL addresses exact frozen bytes through the dedicated native
+// transport, separate from the original page URL and its HTTP/CDN cache key.
+// The worker must still check native approval, generation, document hash and
+// compatibility before saving those bytes under the original Entry.URL.
+// A no-store transport response is not application public-data admission.
+func (c *Catalog) PreparationURL(path string) (string, error) {
+	if c == nil || c.policy == nil || c.policy.config.ID == "" || !lowerHex(c.generation, 64) {
+		return "", ErrInvalid
+	}
+	for _, doc := range c.spec.Documents {
+		if doc.Path == path {
+			value := c.policy.config.Origin + c.policy.config.BasePath + PreparedDocumentsPath + c.generation + "/" + doc.SHA256
+			if len(value) > MaxURLBytes {
+				return "", ErrInvalid
+			}
+			return value, nil
+		}
+	}
+	return "", ErrInvalid
+}
+
 // Fresh requires the adapter's persisted highest observed wall-clock time. The
 // adapter must restore/update that fence across worker restarts; this stateless
 // predicate cannot discover a rollback by itself. It never extends expiry.

@@ -26,6 +26,9 @@ func MustURL(ctx context.Context, local string) string {
 // asset prefix (default: BasePath). CDN deployments must publish those assets
 // with appropriate CORS headers; these values are public browser information.
 func AssetURL(ctx context.Context, local string) (string, error) {
+	if value, handled, err := managedOfflineAssetURL(ctx, local); handled {
+		return value, err
+	}
 	return requestPaths(ctx).AssetURL(local)
 }
 func MustAssetURL(ctx context.Context, local string) string {

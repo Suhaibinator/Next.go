@@ -191,6 +191,16 @@ func Run() {
 		report("Invalid document attributes; reload the page")
 		return
 	}
+	savedOffline, offlineErr := initializeOfflineDocument()
+	if offlineErr != nil {
+		hydrate()
+		report("Invalid offline document configuration")
+		return
+	}
+	if savedOffline {
+		savedOfflineHydrate()
+		return
+	}
 	if bootstrapDevRefresh(runDocument) {
 		return
 	}
@@ -300,6 +310,9 @@ func Prefetch(target string) (err error) {
 	if moduleMode {
 		return moduleCall("prefetch", target)
 	}
+	if offlineNativeNavigation() {
+		return ErrOfflineNativeNavigation
+	}
 	if draftFrozen {
 		return nil
 	}
@@ -357,6 +370,9 @@ func NavigateWithOptions(target string, options NavigationOptions) (err error) {
 			err = fmt.Errorf("navigation setup failed: %v", v)
 		}
 	}()
+	if offlineNativeNavigation() {
+		return offlineNavigate(target, replace)
+	}
 	u, err := pageURL(target)
 	if err != nil {
 		return err
@@ -397,6 +413,10 @@ func Refresh() {
 		_ = moduleCall("refresh")
 		return
 	}
+	if offlineNativeNavigation() {
+		win.Get("location").Call("reload")
+		return
+	}
 	if draftFrozen {
 		draftRefreshPending = true
 		return
@@ -427,6 +447,9 @@ func eligibleURL(u js.Value) bool {
 	return path != "/api" && !strings.HasPrefix(path, "/api/") && !strings.HasPrefix(path, "/assets/") && !strings.HasPrefix(path, "/_nextgo/")
 }
 func eligibleLink(target js.Value) (js.Value, js.Value, bool) {
+	if offlineNativeNavigation() {
+		return js.Undefined(), js.Undefined(), false
+	}
 	if target.Get("nodeType").Int() != 1 {
 		target = target.Get("parentElement")
 	}
@@ -469,6 +492,9 @@ func invalidateCache() {
 func prefetch(target string) { prefetchWithOrigin(target, false) }
 
 func prefetchWithOrigin(target string, viewport bool) *prefetchRequest {
+	if offlineNativeNavigation() {
+		return nil
+	}
 	// Managed HttpOnly preview sessions require a fresh request on navigation;
 	// speculative responses cannot be reused and only duplicate private work.
 	if draftFrozen || routeManifest.Draft {
@@ -566,6 +592,12 @@ func startNavigationMode(target string, pop bool, state js.Value, replace bool) 
 
 func startNavigationOptions(target string, pop bool, state js.Value, options NavigationOptions) {
 	if draftFrozen || refreshFrozen() {
+		return
+	}
+	if offlineNativeNavigation() {
+		if err := offlineNavigate(target, true); err != nil {
+			report(err.Error())
+		}
 		return
 	}
 	cancelActionView()

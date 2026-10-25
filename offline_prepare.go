@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/Suhaibinator/Next.go/cache"
+	"github.com/Suhaibinator/Next.go/internal/paths"
 	"github.com/Suhaibinator/Next.go/internal/postresponse"
 	"github.com/Suhaibinator/Next.go/internal/publicorigin"
 	"github.com/Suhaibinator/Next.go/offline"
@@ -98,6 +99,7 @@ type offlineCapture struct {
 	err                         error
 	title, description          string
 	fallbackHTML                []byte
+	options                     *offlinePrepareOptions
 }
 
 // PrepareOffline constructs strictly anonymous GETs from trusted native policy,
@@ -111,7 +113,11 @@ type offlineCapture struct {
 // approved title/description as escaped text, omitting app body/head and runtime.
 // A failure returns no partial preparation. Arbitrary native code is trusted;
 // cancellation cannot forcibly stop a middleware or loader that ignores it.
-func (a *App) PrepareOffline(ctx context.Context, config offline.Config) (prepared *PreparedOffline, err error) {
+func (a *App) PrepareOffline(ctx context.Context, config offline.Config) (*PreparedOffline, error) {
+	return a.prepareOffline(ctx, config, nil)
+}
+
+func (a *App) prepareOffline(ctx context.Context, config offline.Config, options *offlinePrepareOptions) (prepared *PreparedOffline, err error) {
 	if ctx == nil || a == nil {
 		return nil, ErrOfflineAdmission
 	}
@@ -170,10 +176,14 @@ func (a *App) PrepareOffline(ctx context.Context, config offline.Config) (prepar
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		capture := &offlineCapture{app: a, path: page.Path, pattern: selected[i].Pattern, host: origin.Host, scheme: origin.Scheme, fallback: page.Path == config.Fallback}
+		capture := &offlineCapture{app: a, path: page.Path, pattern: selected[i].Pattern, host: origin.Host, scheme: origin.Scheme, fallback: page.Path == config.Fallback, options: options}
 		// shellContext forwards Done/Err/Deadline but hides all caller values.
 		publicCtx := context.WithValue(postresponse.BlockRegistration(shellContext{ctx}, ErrOfflineAdmission), offlineCaptureKey{}, capture)
-		r, requestErr := http.NewRequestWithContext(publicCtx, http.MethodGet, config.Origin+config.BasePath+page.Path, nil)
+		documentURL, urlErr := policy.DocumentURL(page.Path)
+		if urlErr != nil {
+			return nil, ErrOfflineAdmission
+		}
+		r, requestErr := http.NewRequestWithContext(publicCtx, http.MethodGet, documentURL, nil)
 		if requestErr != nil {
 			return nil, ErrOfflineAdmission
 		}
@@ -200,7 +210,7 @@ func (a *App) PrepareOffline(ctx context.Context, config offline.Config) (prepar
 			return nil, ErrOfflineAdmission
 		}
 		digest := sha256.Sum256(body)
-		prepared.documents = append(prepared.documents, PreparedOfflineDocument{Path: strings.Clone(page.Path), URL: config.Origin + config.BasePath + page.Path, ContentType: "text/html; charset=utf-8", SHA256: hex.EncodeToString(digest[:]), MaxAge: page.MaxAge, HTML: body, Fallback: capture.fallback})
+		prepared.documents = append(prepared.documents, PreparedOfflineDocument{Path: strings.Clone(page.Path), URL: documentURL, ContentType: "text/html; charset=utf-8", SHA256: hex.EncodeToString(digest[:]), MaxAge: page.MaxAge, HTML: body, Fallback: capture.fallback})
 	}
 	return prepared, nil
 }
@@ -372,5 +382,5 @@ func (a *App) offlinePublicContext(ctx context.Context) context.Context {
 		capture.err = ErrOfflineAdmission
 		return ctx
 	}
-	return publicorigin.WithContext(ctx, origin)
+	return paths.WithContext(publicorigin.WithContext(ctx, origin), a.offlineRenderPaths(ctx))
 }
