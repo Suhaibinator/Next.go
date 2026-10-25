@@ -14,7 +14,31 @@ import (
 
 func decode[O any](status int, protocol, revision, want string, body []byte) (Response[O], error) {
 	var result Response[O]
-	bad := func(reason string) (Response[O], error) { return result, fmt.Errorf("%w: %s", ErrProtocol, reason) }
+	data, redirect, err := decodeEnvelope(status, protocol, revision, want, body)
+	if err != nil {
+		return result, err
+	}
+	if bytes.Equal(bytes.TrimSpace(data), []byte("null")) {
+		switch reflect.TypeFor[O]().Kind() {
+		case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice:
+		default:
+			return result, badEnvelope("null result for a nonnullable output")
+		}
+	}
+	if err := strictJSON(data, &result.Data); err != nil {
+		return result, badEnvelope("result does not match output type")
+	}
+	if redirect != "" {
+		if _, err := (paths.Config{}).URL(redirect); err != nil {
+			return result, badEnvelope("unsafe redirect metadata")
+		}
+	}
+	result.Redirect = redirect
+	return result, nil
+}
+func badEnvelope(reason string) error { return fmt.Errorf("%w: %s", ErrProtocol, reason) }
+func decodeEnvelope(status int, protocol, revision, want string, body []byte) (json.RawMessage, string, error) {
+	bad := func(reason string) (json.RawMessage, string, error) { return nil, "", badEnvelope(reason) }
 	if protocol != actionwire.Protocol {
 		return bad("missing or unsupported protocol")
 	}
@@ -40,28 +64,12 @@ func decode[O any](status int, protocol, revision, want string, body []byte) (Re
 		if envelope.Error == nil || envelope.Error.Code == "" || envelope.Error.Message == "" || envelope.Data != nil || envelope.Redirect != "" {
 			return bad("invalid failure envelope")
 		}
-		return result, &Error{Status: status, Code: envelope.Error.Code, Message: envelope.Error.Message, Fields: envelope.Error.Fields}
+		return nil, "", &Error{Status: status, Code: envelope.Error.Code, Message: envelope.Error.Message, Fields: envelope.Error.Fields}
 	}
 	if status != 200 || revision != want || envelope.Error != nil || envelope.Data == nil {
 		return bad("invalid success envelope")
 	}
-	if bytes.Equal(bytes.TrimSpace(envelope.Data), []byte("null")) {
-		switch reflect.TypeFor[O]().Kind() {
-		case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice:
-		default:
-			return bad("null result for a nonnullable output")
-		}
-	}
-	if err := strictJSON(envelope.Data, &result.Data); err != nil {
-		return bad("result does not match output type")
-	}
-	if envelope.Redirect != "" {
-		if _, err := (paths.Config{}).URL(envelope.Redirect); err != nil {
-			return bad("unsafe redirect metadata")
-		}
-	}
-	result.Redirect = envelope.Redirect
-	return result, nil
+	return envelope.Data, envelope.Redirect, nil
 }
 
 func strictJSON(data []byte, dst any) error { return wirejson.Strict(data, dst) }

@@ -39,10 +39,15 @@ type FormOptions[T any] struct {
 	Validate        func(T) (FieldErrors, error)
 	Merge           func(current, submitted, confirmed T) T
 	OnObserverError func(error)
+	// ValidationLimit bounds started per-field validators, including canceled
+	// workers until they settle. Zero defaults to 8; the maximum is 32.
+	ValidationLimit int
 }
 type FormSnapshot[T any] struct {
 	Values, Baseline          T
 	Errors                    FieldErrors
+	Validating                map[string]bool
+	ValidationInFlight        int
 	Touched                   map[string]bool
 	Phase                     FormPhase
 	Message                   string
@@ -63,6 +68,12 @@ type Form[T any] struct {
 	options                                       FormOptions[T]
 	errors                                        FieldErrors
 	serverErrors                                  FieldErrors
+	syncErrors, validationErrors                  FieldErrors
+	validationFields                              map[string]struct{}
+	validationPending                             map[string]*FormFieldValidation[T]
+	validationFlights                             map[*FormFieldValidation[T]]struct{}
+	validationFence                               uint64
+	validationNotify                              bool
 	touched                                       map[string]bool
 	phase                                         FormPhase
 	message                                       string
@@ -105,6 +116,12 @@ func NewForm[T any](initial T, options ...FormOptions[T]) (*Form[T], error) {
 	var opts FormOptions[T]
 	if len(options) == 1 {
 		opts = options[0]
+	}
+	if opts.ValidationLimit == 0 {
+		opts.ValidationLimit = defaultFormValidationLimit
+	}
+	if opts.ValidationLimit < 1 || opts.ValidationLimit > maxFormValidationLimit {
+		return nil, fmt.Errorf("nextgo: invalid form validation capacity")
 	}
 	if opts.Clone == nil {
 		opts.Clone = func(v T) T { return v }
@@ -181,6 +198,13 @@ func (f *Form[T]) Snapshot() (out FormSnapshot[T], err error) {
 	if !f.open() {
 		return FormSnapshot[T]{}, ErrFormClosed
 	}
+	out.Validating = map[string]bool{}
+	for name, ticket := range f.validationPending {
+		if ticket.ctx.Err() == nil {
+			out.Validating[name] = true
+		}
+	}
+	out.ValidationInFlight = len(f.validationFlights)
 	out.Errors = FieldErrors{}
 	for name, message := range f.errors {
 		out.Errors[name] = message
@@ -217,7 +241,7 @@ func (f *Form[T]) EditMany(names []string, patch func(*T)) error {
 		seen[name] = true
 	}
 	f.busy = true
-	defer func() { f.busy = false }()
+	defer f.endFormCallback()
 	next, err := f.clone(f.values)
 	if err != nil {
 		return err
@@ -242,12 +266,15 @@ func (f *Form[T]) EditMany(names []string, patch func(*T)) error {
 	if !changed {
 		return nil
 	}
+	f.retireFieldValidations(true)
 	f.values = next
 	f.revision++
 	for _, name := range names {
+		delete(f.syncErrors, name)
 		delete(f.errors, name)
 		delete(f.serverErrors, name)
 	}
+	f.errors, _ = mergeFormErrors(f.syncErrors, f.validationErrors, f.serverErrors)
 	if f.active == nil {
 		f.phase = FormIdle
 		f.message = ""
@@ -280,7 +307,7 @@ func (f *Form[T]) Reset() error {
 		return ErrFormBusy
 	}
 	f.busy = true
-	defer func() { f.busy = false }()
+	defer f.endFormCallback()
 	next, err := f.clone(f.baseline)
 	if err != nil {
 		return err
@@ -292,6 +319,9 @@ func (f *Form[T]) Reset() error {
 		f.unconfirmed = true
 	}
 	f.cancelActive()
+	f.retireFieldValidations(true)
+	f.validationFields = nil
+	f.syncErrors = nil
 	f.values = next
 	f.revision++
 	f.resetVersion++
@@ -329,7 +359,14 @@ func (f *Form[T]) Validate() (FieldErrors, error) {
 		return nil, ErrFormBusy
 	}
 	f.busy = true
-	defer func() { f.busy = false }()
+	retired := f.retireFieldValidations(false)
+	defer func() {
+		f.busy = false
+		if retired {
+			f.validationChanged()
+		}
+		f.flushValidationNotification()
+	}()
 	input, err := f.clone(f.values)
 	if err != nil {
 		return nil, err
@@ -341,14 +378,14 @@ func (f *Form[T]) Validate() (FieldErrors, error) {
 	if !f.open() {
 		return nil, ErrFormClosed
 	}
-	for name, message := range f.serverErrors {
-		fields[name] = message
-	}
-	fields, err = checkedFieldErrors(fields)
+	syncFields := fields
+	fields, err = mergeFormErrors(syncFields, f.validationErrors, f.serverErrors)
 	if err != nil {
 		return nil, err
 	}
-	changed := !maps.Equal(fields, f.errors)
+	changed := retired || !maps.Equal(fields, f.errors)
+	retired = false
+	f.syncErrors = syncFields
 	f.errors = fields
 	f.busy = false
 	if changed {
@@ -370,6 +407,9 @@ func (f *Form[T]) Begin(ctx context.Context) (*FormSubmission[T], error) {
 	if f.active != nil {
 		return nil, ErrFormPending
 	}
+	if f.hasFieldValidations() {
+		return nil, ErrFormValidationPending
+	}
 	if ctx == nil {
 		return nil, fmt.Errorf("nextgo: form submission requires a context")
 	}
@@ -377,7 +417,7 @@ func (f *Form[T]) Begin(ctx context.Context) (*FormSubmission[T], error) {
 		return nil, err
 	}
 	f.busy = true
-	defer func() { f.busy = false }()
+	defer f.endFormCallback()
 	input, err := f.clone(f.values)
 	if err != nil {
 		return nil, err
@@ -392,6 +432,13 @@ func (f *Form[T]) Begin(ctx context.Context) (*FormSubmission[T], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	syncFields := fields
+	fields, err = mergeFormErrors(syncFields, f.validationErrors, nil)
+	if err != nil {
+		return nil, err
+	}
+	f.retireFieldValidations(false)
+	f.syncErrors = syncFields
 	f.errors = fields
 	f.serverErrors = nil
 	f.submitted = true
@@ -470,7 +517,7 @@ func (t *FormSubmission[T]) Accept(value T, message string) error {
 		return err
 	}
 	f.busy = true
-	defer func() { f.busy = false }()
+	defer f.endFormCallback()
 	baseline, err := f.clone(value)
 	if err != nil {
 		return err
@@ -522,13 +569,23 @@ func (t *FormSubmission[T]) Accept(value T, message string) error {
 		t.Cancel()
 		return err
 	}
+	asyncFields := f.validationErrors
+	if apply {
+		asyncFields = nil
+	}
+	combined, combineErr := mergeFormErrors(fields, asyncFields, nil)
+	if combineErr != nil {
+		return combineErr
+	}
+	f.retireFieldValidations(apply)
+	f.syncErrors = fields
 	if apply {
 		f.values = next
 		f.revision++
 	}
 	f.baseline = baseline
 	f.unconfirmed = false
-	f.errors = fields
+	f.errors = combined
 	f.serverErrors = nil
 	f.message = message
 	f.phase = FormSucceeded
@@ -554,11 +611,17 @@ func (t *FormSubmission[T]) Reject(message string, fields FieldErrors) error {
 		return err
 	}
 	if f.revision == t.revision {
-		f.errors = maps.Clone(checked)
+		combined, combineErr := mergeFormErrors(nil, f.validationErrors, checked)
+		if combineErr != nil {
+			return combineErr
+		}
+		f.syncErrors = nil
+		f.errors = combined
 		f.serverErrors = checked
 	} else {
 		f.serverErrors = nil
 	}
+	f.retireFieldValidations(false)
 	f.message = message
 	f.phase = FormFailed
 	t.finish(f)
@@ -576,9 +639,11 @@ func (t *FormSubmission[T]) Fail(message string) error {
 	if !validFormMessage(message) {
 		return fmt.Errorf("nextgo: invalid form message")
 	}
+	f.retireFieldValidations(false)
 	f.unconfirmed = true
 	if f.revision == t.revision {
-		f.errors = FieldErrors{}
+		f.syncErrors = nil
+		f.errors, _ = mergeFormErrors(nil, f.validationErrors, nil)
 	}
 	f.serverErrors = nil
 	f.message = message
@@ -592,6 +657,7 @@ func (t *FormSubmission[T]) Cancel() error {
 	if err != nil {
 		return err
 	}
+	f.retireFieldValidations(false)
 	f.unconfirmed = true
 	f.cancelActive()
 	f.phase = FormCanceled
@@ -606,23 +672,34 @@ func (f *Form[T]) cancelActive() {
 	}
 }
 func (f *Form[T]) Cancel() bool {
-	if f == nil || f.active == nil {
+	if f == nil {
 		return false
 	}
-	f.unconfirmed = true
-	f.cancelActive()
-	if f.open() {
-		f.phase = FormCanceled
-		f.message = ""
-		f.changed()
+	validations := f.retireFieldValidations(false)
+	submission := f.active != nil
+	if submission {
+		f.unconfirmed = true
+		f.cancelActive()
 	}
-	return true
+	if f.open() && (validations || submission) {
+		if submission {
+			f.phase = FormCanceled
+			f.message = ""
+		}
+		f.validationChanged()
+	}
+	return validations || submission
 }
 func (f *Form[T]) Close() {
 	if f == nil || f.closed {
 		return
 	}
 	f.closed = true
+	f.retireFieldValidations(true)
+	f.validationFields = nil
+	f.syncErrors = nil
+	f.validationPending = nil
+	f.validationNotify = false
 	f.cancelActive()
 	if f.browserStop != nil {
 		stop := f.browserStop
@@ -667,7 +744,7 @@ func (f *Form[T]) Observe(fn func(FormSnapshot[T])) (func(), error) {
 	}
 	return func() { delete(f.observers, id) }, nil
 }
-func (f *Form[T]) changed() { f.version++; f.publish() }
+func (f *Form[T]) changed() { f.validationNotify = false; f.version++; f.publish() }
 func (f *Form[T]) publish() {
 	if f.publishing || !f.open() {
 		return

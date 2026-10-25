@@ -52,3 +52,6 @@ playwright-report/
 .ssh/
 .codex/
 .agents/
+
+# Offline Python deployment-qualification bytecode.
+deployment/aws-qualification/__pycache__/

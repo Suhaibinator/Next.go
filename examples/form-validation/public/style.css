@@ -1,0 +1,15 @@
+:root { font-family: system-ui, sans-serif; color: #123b35; background: #f4faf8; color-scheme: light; }
+body { max-width: 1100px; margin: 0 auto; padding: 28px 22px; line-height: 1.55; }
+nav, .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+a { color: #126d59; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 28px; }
+[data-fv-instance] { padding: 20px; border: 1px solid #b6cfc7; border-radius: 12px; background: white; }
+input:not([type=radio]), select { display: block; width: 100%; box-sizing: border-box; font: inherit; padding: 8px; }
+fieldset label { display: block; }
+button { font: inherit; padding: 7px 11px; cursor: pointer; }
+button:disabled { cursor: default; }
+.field-error { display: block; min-height: 3.1em; color: #8b1d2c; }
+[data-fv-validation] { display: block; min-height: 1.55em; font-size: .9rem; }
+[data-state=pending] { color: #755900; }
+dt { font-weight: 700; margin-top: 8px; } dd { margin-left: 0; font-family: ui-monospace, monospace; }
+.small, footer { font-size: .85rem; } .eyebrow { letter-spacing: .12em; font-size: .75rem; font-weight: 700; }

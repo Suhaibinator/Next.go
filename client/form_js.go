@@ -437,6 +437,9 @@ func formStatus[T any](state FormSnapshot[T]) string {
 	if state.Pending {
 		return "Saving…"
 	}
+	if len(state.Validating) > 0 {
+		return "Checking fields…"
+	}
 	switch state.Phase {
 	case FormSucceeded:
 		message := state.Message
@@ -585,9 +588,10 @@ func BindSubmit[T any](scope *Scope, root Element, model *Form[T], handler func(
 		if !binding.active() {
 			return
 		}
-		root.Attribute("aria-busy", strconv.FormatBool(state.Pending))
+		busy := state.Pending || len(state.Validating) > 0
+		root.Attribute("aria-busy", strconv.FormatBool(busy))
 		for _, button := range buttons {
-			button.node.Set("disabled", button.disabled || state.Pending)
+			button.node.Set("disabled", button.disabled || busy)
 		}
 		if opts.Status.Value.Truthy() {
 			opts.Status.Text(formStatus(state))
@@ -644,7 +648,7 @@ func BindSubmit[T any](scope *Scope, root Element, model *Form[T], handler func(
 		ticket, err := model.Begin(ctx)
 		if err != nil {
 			cancel()
-			if !errors.Is(err, ErrFormInvalid) && !errors.Is(err, ErrFormPending) && !errors.Is(err, ErrFormClosed) && !errors.Is(err, ErrFormSettled) {
+			if !errors.Is(err, ErrFormInvalid) && !errors.Is(err, ErrFormPending) && !errors.Is(err, ErrFormValidationPending) && !errors.Is(err, ErrFormClosed) && !errors.Is(err, ErrFormSettled) {
 				report(err.Error())
 			}
 			return

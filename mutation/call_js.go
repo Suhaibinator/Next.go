@@ -108,17 +108,27 @@ func callOptions(options []CallOptions) (CallOptions, error) {
 	return opts, nil
 }
 func (c Contract[I, O]) callTransport(ctx context.Context, request client.FetchOptions, opts CallOptions) (Response[O], error) {
-	var zero Response[O]
-
-	target, err := client.URL(c.Path())
+	var decoded Response[O]
+	err := dispatchTransport(ctx, c.Path(), c.revision, request, opts, func(response client.Response) error {
+		var err error
+		decoded, err = decode[O](response.StatusCode, response.Header.Get(actionwire.ProtocolHeader), response.Header.Get(actionwire.RevisionHeader), c.revision, response.Body)
+		return err
+	})
 	if err != nil {
-		return zero, err
+		return Response[O]{}, err
 	}
-	// Resolving the URL explicitly also makes the final-response check exact.
+	return decoded, nil
+}
+
+func dispatchTransport(ctx context.Context, path, revision string, request client.FetchOptions, opts CallOptions, decode func(client.Response) error) error {
+	target, err := client.URL(path)
+	if err != nil {
+		return err
+	}
 	global := js.Global()
 	u := global.Get("URL").New(target, global.Get("location").Get("href"))
 	if scheme := u.Get("protocol").String(); scheme != "http:" && scheme != "https:" {
-		return zero, fmt.Errorf("nextgo: mutations require an HTTP(S) origin")
+		return fmt.Errorf("nextgo: mutations require an HTTP(S) origin")
 	}
 	expected := u.Get("href").String()
 	request.Method = "POST"
@@ -130,8 +140,7 @@ func (c Contract[I, O]) callTransport(ctx context.Context, request client.FetchO
 	}
 	request.Headers["Accept"] = "application/json"
 	request.Headers[actionwire.ProtocolHeader] = actionwire.Protocol
-	request.Headers[actionwire.RevisionHeader] = c.revision
-	var decoded Response[O]
+	request.Headers[actionwire.RevisionHeader] = revision
 	var validationErr error
 	err = client.DispatchMutation(ctx, expected, request, func(response client.Response) error {
 		if response.URL != expected {
@@ -139,21 +148,21 @@ func (c Contract[I, O]) callTransport(ctx context.Context, request client.FetchO
 		} else if !jsonMediaType(response.Header.Get("Content-Type")) {
 			validationErr = fmt.Errorf("%w: expected JSON", ErrProtocol)
 		} else {
-			decoded, validationErr = decode[O](response.StatusCode, response.Header.Get(actionwire.ProtocolHeader), response.Header.Get(actionwire.RevisionHeader), c.revision, response.Body)
+			validationErr = decode(response)
 		}
 		return validationErr
 	})
 	if validationErr != nil {
-		return zero, validationErr
+		return validationErr
 	}
 	if err != nil {
 		if errors.Is(err, client.ErrMutationQueueFull) || errors.Is(err, client.ErrMutationQueueFrozen) {
-			return zero, err
+			return err
 		}
 		if ctx.Err() != nil {
-			return zero, context.Cause(ctx)
+			return context.Cause(ctx)
 		}
-		return zero, fmt.Errorf("nextgo: mutation transport failed; reconcile before retrying: %w", err)
+		return fmt.Errorf("nextgo: mutation transport failed; reconcile before retrying: %w", err)
 	}
-	return decoded, nil
+	return nil
 }

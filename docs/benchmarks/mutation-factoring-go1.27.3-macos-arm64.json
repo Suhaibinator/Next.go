@@ -1,0 +1,453 @@
+{
+  "measuredAt": "2026-10-25T05:50:08.765Z",
+  "scope": "Controlled isolated source-pair Go/WASM core-size experiment; not a production artifact replacement or a speed/CPU/allocation measurement. No live application builds, compiler experiment changes, codec replacements, or capability removals. Monolithic JSON/reflection dependencies remain.",
+  "source": {
+    "commit": "502cbd977b47f3ac8b38a35e8f7933f7fd44491c",
+    "method": "git archive of the exact pushed commit into a separate /private/tmp source snapshot; no .git/VCS stamping in either variant. Typed routes/action references regenerated within the isolated snapshot only. Both variants use identical stable virtual generated browser package, generated eager imports, lazy descriptors, SDK and compiler flags. Entry source frozen from a preceding 20-component generated registration with lazy Size constants updated to this phase; descriptor content digests/epoch are held fixed for all paired compiles. This is a core-linking experiment, not a runnable lazy-module deployment.",
+    "sameGeneratedEntrypointSHA256": "332add5f22faa0d1a736d05ffff9e9884404f85739b26f8d7123930794915c3e",
+    "sourceFileHashes": {
+      "main.go": {
+        "sha256": "332add5f22faa0d1a736d05ffff9e9884404f85739b26f8d7123930794915c3e"
+      },
+      "call-original.go": {
+        "sha256": "43c9a8caf31e996581ebc3b5230c5946d07ee2241af4a906eff037373311ac83"
+      },
+      "call-candidate.go": {
+        "sha256": "a6bb1fd8204786f6634962fcaa8cc74c4a7329095c8cfc4ca37cdb29e6504a7c"
+      },
+      "decode-original.go": {
+        "sha256": "2025563d3802bf2f1a2b1d5bed6a997294bda3dc19a7ce1688a3a4187411d13e"
+      },
+      "decode-candidate.go": {
+        "sha256": "89f3bf938d86fb288ecc8fbcacca14e0dc871aee3cb9a31e075517f52ec071ca"
+      }
+    }
+  },
+  "compiler": {
+    "version": "go version go1.27.3 darwin/arm64",
+    "target": "js/wasm",
+    "flags": [
+      "-trimpath",
+      "-ldflags=-s -w"
+    ],
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "",
+    "GOTOOLCHAIN": "local",
+    "namedDiagnosticFlags": [
+      "-trimpath",
+      "-ldflags=-w"
+    ],
+    "note": "Named diagnostic only adds names for body-size attribution; its Code section is byte-identical to the stripped source-pair baseline. It is not included in size comparisons."
+  },
+  "environment": {
+    "node": "v25.7.0",
+    "zlib": "1.3.1-e00f703"
+  },
+  "productionObservation": {
+    "nativeSHA256": "15494d970754dcb0abc99524ae0b171de30609ec2ac29e9fc428fa37f6f449ce",
+    "coreRawBytes": 8225235,
+    "coreSHA256": "9080e814f176faab07104a651b465dedf2a74e21f546c534c5293ee143ff3ceb",
+    "wasmSections": {
+      "code": {
+        "bytes": 5421949,
+        "sha256": "a11d05521e940392dfbd19502dd910457ca731455c11f799be9693c59cdb0949"
+      },
+      "data": {
+        "bytes": 2789668,
+        "sha256": "fac38dd05ae19f8213d4ee91a065f6228f6b9214e9d3b0a8082ab5862718baad"
+      }
+    },
+    "extraction": "Exact contiguous WASM bytes extracted from the frozen native artifact and verified against the actual HTTP-measured core SHA in metadata-phase-go1.27.3-macos-arm64.json.",
+    "diagnosticAlignment": {
+      "functionCount": 4196,
+      "allFunctionIndexBodyLengthsMatchProduction": true,
+      "codeBytesIdentical": false,
+      "note": "Production and snapshot each have 4,196 function bodies with the same lengths at every function index. Names below come from the snapshot diagnostic; production Code bytes differ and are not claimed identical. The paired effect is measured only between isolated baseline/candidates, never by subtracting shipped artifact sizes."
+    }
+  },
+  "baselineProfile": {
+    "codeIdenticalToStrippedBaseline": true,
+    "codeBytes": 5421949,
+    "codeSHA256": "813be0619ebd5b5815f6b9952393019edbfc522e4bfe545d34a98b918f34ea60",
+    "functionFamilies": {
+      "callTransport": {
+        "bodyBytes": 52963,
+        "count": 14,
+        "functions": [
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.callTransport.func1",
+            "bodyBytes": 2409
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.callTransport",
+            "bodyBytes": 5256
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Credential_string__json___credential______go.shape.struct___Role_string__json___role______.callTransport.func1",
+            "bodyBytes": 2469
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Credential_string__json___credential______go.shape.struct___Role_string__json___role______.callTransport",
+            "bodyBytes": 5256
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail_____ViewFail_bool__json___viewFail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.callTransport.func1",
+            "bodyBytes": 2409
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail_____ViewFail_bool__json___viewFail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.callTransport",
+            "bodyBytes": 5256
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Title_string__json___title_____Files___github.com_Suhaibinator_Next.go_examples_demo_uploads.Content__json___files______go.shape.struct___ID_string__json___id_____Title_string__json___title_____Files___github.com_Suhaibinator_Next.go_examples_demo_uploads.ReceivedFile__json___files______.callTransport.func1",
+            "bodyBytes": 2411
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.callTransport.func1",
+            "bodyBytes": 2411
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount______go.shape.struct___Applied_int64__json___applied_____Count_int64__json___count______.callTransport.func1",
+            "bodyBytes": 2409
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.callTransport.func1",
+            "bodyBytes": 2407
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Title_string__json___title_____Files___github.com_Suhaibinator_Next.go_examples_demo_uploads.Content__json___files______go.shape.struct___ID_string__json___id_____Title_string__json___title_____Files___github.com_Suhaibinator_Next.go_examples_demo_uploads.ReceivedFile__json___files______.callTransport",
+            "bodyBytes": 5008
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.callTransport",
+            "bodyBytes": 5008
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount______go.shape.struct___Applied_int64__json___applied_____Count_int64__json___count______.callTransport",
+            "bodyBytes": 5256
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.callTransport",
+            "bodyBytes": 4998
+          }
+        ]
+      },
+      "refreshTransport": {
+        "bodyBytes": 17994,
+        "count": 9,
+        "functions": [
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Credential_string__json___credential______go.shape.struct___Role_string__json___role______.refreshTransport.func2",
+            "bodyBytes": 1201
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Credential_string__json___credential______go.shape.struct___Role_string__json___role______.refreshTransport.func1",
+            "bodyBytes": 865
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Credential_string__json___credential______go.shape.struct___Role_string__json___role______.refreshTransport",
+            "bodyBytes": 3952
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct____go.shape.struct___Role_string__json___role______.refreshTransport.func2",
+            "bodyBytes": 1201
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct____go.shape.struct___Role_string__json___role______.refreshTransport.func1",
+            "bodyBytes": 865
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct____go.shape.struct___Role_string__json___role______.refreshTransport",
+            "bodyBytes": 3952
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail_____ViewFail_bool__json___viewFail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.refreshTransport.func2",
+            "bodyBytes": 1141
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail_____ViewFail_bool__json___viewFail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.refreshTransport.func1",
+            "bodyBytes": 865
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.Contract_go.shape.struct___Amount_int64__json___amount_____Fail_bool__json___fail_____ViewFail_bool__json___viewFail______go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______.refreshTransport",
+            "bodyBytes": 3952
+          }
+        ]
+      },
+      "decode": {
+        "bodyBytes": 47107,
+        "count": 6,
+        "functions": [
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___Count_int64__json___count_____Revision_int64__json___revision______",
+            "bodyBytes": 8159
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___Role_string__json___role______",
+            "bodyBytes": 8159
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___ID_string__json___id_____Title_string__json___title_____Files___github.com_Suhaibinator_Next.go_examples_demo_uploads.ReceivedFile__json___files______",
+            "bodyBytes": 7575
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______",
+            "bodyBytes": 7526
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___Applied_int64__json___applied_____Count_int64__json___count______",
+            "bodyBytes": 8159
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_mutation.decode_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______",
+            "bodyBytes": 7529
+          }
+        ]
+      },
+      "BindSubmit": {
+        "bodyBytes": 99789,
+        "count": 24,
+        "functions": [
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func4",
+            "bodyBytes": 8516
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func4.1",
+            "bodyBytes": 3331
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func4.1.1",
+            "bodyBytes": 1374
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func3",
+            "bodyBytes": 1187
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func2",
+            "bodyBytes": 2016
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.func1",
+            "bodyBytes": 1320
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______.deferwrap1",
+            "bodyBytes": 170
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Channel_string__json___channel_____Topics___string__json___topics______",
+            "bodyBytes": 15344
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func4",
+            "bodyBytes": 8516
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func4.1",
+            "bodyBytes": 3349
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func4.1.1",
+            "bodyBytes": 1384
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func3",
+            "bodyBytes": 1187
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func2",
+            "bodyBytes": 2019
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.func1",
+            "bodyBytes": 1320
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___.deferwrap1",
+            "bodyBytes": 170
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___Title_string__Files___github.com_Suhaibinator_Next.go_client.File__Receipt_github.com_Suhaibinator_Next.go_examples_demo_uploads.Receipt___",
+            "bodyBytes": 15344
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func4",
+            "bodyBytes": 8516
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func4.1",
+            "bodyBytes": 3350
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func4.1.1",
+            "bodyBytes": 1385
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func3",
+            "bodyBytes": 1187
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func2",
+            "bodyBytes": 1970
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.func1",
+            "bodyBytes": 1320
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______.deferwrap1",
+            "bodyBytes": 170
+          },
+          {
+            "name": "github.com_Suhaibinator_Next.go_client.BindSubmit_go.shape.struct___ID_string__json___id_____Version_string__json___version_____Name_string__json___name_____Bio_string__json___bio_____Email_string__json___email_____Role_string__json___role_____Newsletter_bool__json___newsletter______",
+            "bodyBytes": 15344
+          }
+        ]
+      }
+    }
+  },
+  "variants": {
+    "baseline": {
+      "rawBytes": 8225122,
+      "nodeGzip9Bytes": 2117264,
+      "sha256": "620da9e4a9eacc6abaefcb172e68b832ec9c45f0a639860ce5f08e0d1b48f0b2",
+      "wasmSections": {
+        "code": {
+          "bytes": 5421949,
+          "sha256": "813be0619ebd5b5815f6b9952393019edbfc522e4bfe545d34a98b918f34ea60"
+        },
+        "data": {
+          "bytes": 2789555,
+          "sha256": "9758a3f40521e3e5f676aedd83206b3c562a8988c066369c8ad277a7e84e3275"
+        }
+      },
+      "savingsVsBaseline": {
+        "rawBytes": 0,
+        "nodeGzip9Bytes": 0
+      },
+      "referenceBudgets": {
+        "rawLimitBytes": 6291456,
+        "nodeGzip9LimitBytes": 1677721,
+        "rawPass": false,
+        "nodeGzip9Pass": false
+      }
+    },
+    "shared-transport": {
+      "rawBytes": 8191142,
+      "nodeGzip9Bytes": 2109453,
+      "sha256": "ea466334c27a81efb69a6616afc6fe7ad69a2b382a6ea694f94c99cb83e9bb5f",
+      "wasmSections": {
+        "code": {
+          "bytes": 5389132,
+          "sha256": "32cd9d68cafca70e4d5514a05a9a7d1e6e2e9323a292ace65df45711c5228676"
+        },
+        "data": {
+          "bytes": 2788386,
+          "sha256": "212903a10c571c594bbe76a99f34f2f7bfb7559911475bafc1bd5045372e25bc"
+        }
+      },
+      "savingsVsBaseline": {
+        "rawBytes": 33980,
+        "nodeGzip9Bytes": 7811
+      },
+      "referenceBudgets": {
+        "rawLimitBytes": 6291456,
+        "nodeGzip9LimitBytes": 1677721,
+        "rawPass": false,
+        "nodeGzip9Pass": false
+      }
+    },
+    "shared-envelope": {
+      "rawBytes": 8188594,
+      "nodeGzip9Bytes": 2109841,
+      "sha256": "f480cfa3cb3f25891e59d6febd80ab667465541c8d6272ac806f17cca319a11a",
+      "wasmSections": {
+        "code": {
+          "bytes": 5391347,
+          "sha256": "afb8939f4fd4ef76565ef9cb6fc98d4a7f5f25448da36dab916d94fdf833637e"
+        },
+        "data": {
+          "bytes": 2783623,
+          "sha256": "a9b2e58084b5741b225c5423019a2b189172c79bee8f7f434832b3d660bc2f0e"
+        }
+      },
+      "savingsVsBaseline": {
+        "rawBytes": 36528,
+        "nodeGzip9Bytes": 7423
+      },
+      "referenceBudgets": {
+        "rawLimitBytes": 6291456,
+        "nodeGzip9LimitBytes": 1677721,
+        "rawPass": false,
+        "nodeGzip9Pass": false
+      }
+    },
+    "shared-transport-envelope": {
+      "rawBytes": 8154605,
+      "nodeGzip9Bytes": 2104103,
+      "sha256": "44b8ab76955255d94114f94d3e9c8429d65c06ff8da7c77538315a638e955626",
+      "wasmSections": {
+        "code": {
+          "bytes": 5358530,
+          "sha256": "c323a7116663e9e3e964fed0cc4d9de8dccaf27c891396ca72b3ae2de9008854"
+        },
+        "data": {
+          "bytes": 2782445,
+          "sha256": "3e34dbabfbec58cf46d29963dc1b73d6076004cf456a6e504a076188e682da15"
+        }
+      },
+      "savingsVsBaseline": {
+        "rawBytes": 70517,
+        "nodeGzip9Bytes": 13161
+      },
+      "referenceBudgets": {
+        "rawLimitBytes": 6291456,
+        "nodeGzip9LimitBytes": 1677721,
+        "rawPass": false,
+        "nodeGzip9Pass": false
+      }
+    }
+  },
+  "recommendation": {
+    "candidate": "shared-transport-envelope",
+    "change": "Keep generic I/O codecs and public Contract API, but share ordinary mutation URL/request/protocol/queue/error handling and share type-independent response-envelope validation. Keep typed null/output validation and redirect checks in the original order. Refresh transport remains unchanged and uses the same shared envelope decoder through decode[O].",
+    "costs": [
+      "Adds helper calls and a decoder callback; CPU and allocation effects were not measured.",
+      "Does not remove encoding/json, reflection, Go runtime or eager application components.",
+      "Savings depend on linked contract shapes; no whole-framework or other-app saving is inferred."
+    ],
+    "preserved": [
+      "Same request encoding and snapshot timing",
+      "Per-contract response byte limit, same-origin final URL and JSON media validation",
+      "Protocol/revision, duplicate/unknown JSON field and nesting validation",
+      "Nullable output kinds and custom UnmarshalJSON behavior, including partial output on errors",
+      "Queue sentinel identity, caller cancellation cause, physical dispatch/settlement behavior",
+      "Confirmed mutation versus streamed view failure separation"
+    ],
+    "qualification": "Both size budgets still FAIL. This candidate requires normal full integration qualification before release."
+  },
+  "verification": {
+    "isolatedNativeRace": "PASS: go test -race ./mutation",
+    "isolatedWasm": "PASS: GOOS=js GOARCH=wasm go test -exec=<matching SDK>/lib/wasm/go_js_wasm_exec ./mutation",
+    "originalDecoderOracle": {
+      "comparisons": 7938,
+      "method": "Test-only original decoder versus candidate over status/protocol/revision/body/type products; compares returned output (including partial data), error text and errors.Is(ErrProtocol). Original decoder copy remains experimental only."
+    },
+    "focusedTests": [
+      "Custom output codecs and generic protocol error boundary",
+      "Protocol/revision/envelope/typed decode/redirect error ordering",
+      "Nested duplicate JSON rejection before custom codec",
+      "Partially decoded output preservation",
+      "Nullable pointer/map/slice/interface and nonnullable array/bool/string"
+    ],
+    "independentReview": "PASS: separate read-only reviewer found no concrete implementation divergence and approved the focused custom-codec/error-order/partial-output/null-kind tests. Reviewer performed no edits or tests.",
+    "liveNativeRace": "PASS: go test -race ./mutation",
+    "liveNativeVet": "PASS: go vet ./mutation",
+    "liveWasm": "PASS: GOOS=js GOARCH=wasm go test -exec=<matching SDK>/lib/wasm/go_js_wasm_exec ./mutation",
+    "liveWasmVet": "PASS: GOOS=js GOARCH=wasm go vet ./mutation",
+    "diffCheck": "PASS"
+  },
+  "implementationStatus": "Root-authorized combined candidate implemented in mutation/call_js.go and mutation/decode.go with focused mutation/decode_semantics_test.go. Live native race tests, native vet, matching Go/WASM tests, WASM vet and diff check passed. No live application build or production replacement occurred; full integration qualification remains for the parent task."
+}

@@ -26,6 +26,7 @@ jobs:
           go run ./cmd/nextgo generate --check ./examples/workspace/site
           go run ./cmd/nextgo generate --check ./examples/content
           go run ./cmd/nextgo generate --check ./examples/metadata-site
+          go run ./cmd/nextgo generate --check ./examples/form-validation
       - run: go test -race ./...
       - run: go vet ./...
       - uses: actions/setup-node@v4
@@ -39,10 +40,11 @@ jobs:
           GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client
       - run: go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
       - run: go run ./cmd/nextgo build -out ./dist/workspace ./examples/workspace/site
-      - name: Content and managed metadata production/static builds
+      - name: Additional example production and static builds
         run: |
           go run ./cmd/nextgo build -out ./dist/content ./examples/content
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
+          go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
           go run ./cmd/nextgo export -out ./dist/content-static ./examples/content
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
       - run: go build -trimpath -o ./dist/nextgo-cache ./cmd/nextgo-cache
@@ -55,6 +57,8 @@ jobs:
           go test -race -tags=deployment ./tests/deployment -count=1
       - name: Resources, social images and media through both Lambda modes
         run: NEXTGO_TEST_BINARY="$PWD/dist/demo/server" node --test tests/seven-feature-lambda.test.mjs
+      - name: Form validation through native HTTP and both Lambda modes
+        run: NEXTGO_FORM_VALIDATION_BINARY="$PWD/dist/form-validation/server" npm run test:form-validation:deployment
       - name: Standalone production smoke test
         shell: bash
         run: |
@@ -99,15 +103,18 @@ jobs:
         run: npm run test:embeds
       - name: Server-rendered social images
         run: npm run test:social-image
-      - name: Production artifacts for Lambda and managed metadata browsers
+      - name: Production artifacts for focused browser fixtures
         run: |
           go run ./cmd/nextgo build -out ./dist/lambda-demo ./examples/demo
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
+          go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
       - name: Browser hydration and navigation through both local Lambda modes
         run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/lambda-demo/server" npm run test:lambda:browser
       - name: Managed metadata through native and static deployments
         run: NEXTGO_METADATA_SERVER_BINARY="$PWD/dist/metadata-site/server" NEXTGO_METADATA_STATIC_ROOT="$PWD/dist/metadata-static" npm run test:metadata-files
+      - name: Form validation, native choices and lifecycle
+        run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/form-validation/server" npm run test:form-validation
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

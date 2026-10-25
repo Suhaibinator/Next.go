@@ -1,0 +1,77 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Opt-in synthetic Next.go qualification only; private IAM Function URLs, no application data access.",
+  "Parameters": {
+    "Owner": {"Type": "String", "AllowedPattern": "[a-f0-9]{32}"},
+    "DeployFunctions": {"Type": "String", "Default": "false", "AllowedValues": ["false", "true"]},
+    "ArtifactKey": {"Type": "String", "AllowedPattern": "artifacts/[a-f0-9]{32}/bootstrap-[a-f0-9]{64}\\.zip"},
+    "Architecture": {"Type": "String", "AllowedValues": ["x86_64", "arm64"]},
+    "InvokerArn": {"Type": "String", "AllowedPattern": "arn:aws:iam::[0-9]{12}:(role|user)/[A-Za-z0-9+=,.@_/-]+"}
+  },
+  "Conditions": {"Deploy": {"Fn::Equals": [{"Ref": "DeployFunctions"}, "true"]}},
+  "Resources": {
+    "StagingBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "BucketEncryption": {"ServerSideEncryptionConfiguration": [{"ServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]},
+        "OwnershipControls": {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]},
+        "PublicAccessBlockConfiguration": {"BlockPublicAcls": true, "BlockPublicPolicy": true, "IgnorePublicAcls": true, "RestrictPublicBuckets": true},
+        "LifecycleConfiguration": {"Rules": [{"Id": "expire-synthetic-code", "Status": "Enabled", "ExpirationInDays": 1}]},
+        "Tags": [{"Key": "nextgo-qualification-owner", "Value": {"Ref": "Owner"}}, {"Key": "nextgo-qualification", "Value": "synthetic-v1"}]
+      }
+    },
+    "BufferedLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {"LogGroupName": {"Fn::Sub": "/aws/lambda/${AWS::StackName}-buffered"}, "RetentionInDays": 1}
+    },
+    "StreamingLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {"LogGroupName": {"Fn::Sub": "/aws/lambda/${AWS::StackName}-streaming"}, "RetentionInDays": 1}
+    },
+    "ExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]},
+        "Policies": [{"PolicyName": "only-owned-function-logs", "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{"Effect": "Allow", "Action": ["logs:CreateLogStream", "logs:PutLogEvents"], "Resource": [
+            {"Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-buffered:*"},
+            {"Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-streaming:*"}
+          ]}]
+        }}]
+      }
+    },
+    "BufferedFunction": {
+      "Type": "AWS::Lambda::Function", "Condition": "Deploy", "DependsOn": "BufferedLogs",
+      "Properties": {
+        "FunctionName": {"Fn::Sub": "${AWS::StackName}-buffered"},
+        "Runtime": "provided.al2023", "Handler": "bootstrap", "Architectures": [{"Ref": "Architecture"}],
+        "Role": {"Fn::GetAtt": ["ExecutionRole", "Arn"]}, "MemorySize": 512, "Timeout": 10, "ReservedConcurrentExecutions": 1,
+        "Code": {"S3Bucket": {"Ref": "StagingBucket"}, "S3Key": {"Ref": "ArtifactKey"}},
+        "Environment": {"Variables": {"NEXTGO_LAMBDA_RESPONSE_MODE": "buffered", "NEXTGO_LAMBDA_STREAM_MAX_BYTES": "8388608"}}
+      }
+    },
+    "StreamingFunction": {
+      "Type": "AWS::Lambda::Function", "Condition": "Deploy", "DependsOn": "StreamingLogs",
+      "Properties": {
+        "FunctionName": {"Fn::Sub": "${AWS::StackName}-streaming"},
+        "Runtime": "provided.al2023", "Handler": "bootstrap", "Architectures": [{"Ref": "Architecture"}],
+        "Role": {"Fn::GetAtt": ["ExecutionRole", "Arn"]}, "MemorySize": 512, "Timeout": 10, "ReservedConcurrentExecutions": 1,
+        "Code": {"S3Bucket": {"Ref": "StagingBucket"}, "S3Key": {"Ref": "ArtifactKey"}},
+        "Environment": {"Variables": {"NEXTGO_LAMBDA_RESPONSE_MODE": "streaming", "NEXTGO_LAMBDA_STREAM_MAX_BYTES": "8388608"}}
+      }
+    },
+    "BufferedURL": {"Type": "AWS::Lambda::Url", "Condition": "Deploy", "Properties": {"AuthType": "AWS_IAM", "InvokeMode": "BUFFERED", "TargetFunctionArn": {"Ref": "BufferedFunction"}}},
+    "StreamingURL": {"Type": "AWS::Lambda::Url", "Condition": "Deploy", "Properties": {"AuthType": "AWS_IAM", "InvokeMode": "RESPONSE_STREAM", "TargetFunctionArn": {"Ref": "StreamingFunction"}}},
+    "BufferedInvokeURL": {"Type": "AWS::Lambda::Permission", "Condition": "Deploy", "Properties": {"FunctionName": {"Ref": "BufferedFunction"}, "Principal": {"Ref": "InvokerArn"}, "Action": "lambda:InvokeFunctionUrl", "FunctionUrlAuthType": "AWS_IAM"}},
+    "BufferedInvoke": {"Type": "AWS::Lambda::Permission", "Condition": "Deploy", "Properties": {"FunctionName": {"Ref": "BufferedFunction"}, "Principal": {"Ref": "InvokerArn"}, "Action": "lambda:InvokeFunction", "InvokedViaFunctionUrl": true}},
+    "StreamingInvokeURL": {"Type": "AWS::Lambda::Permission", "Condition": "Deploy", "Properties": {"FunctionName": {"Ref": "StreamingFunction"}, "Principal": {"Ref": "InvokerArn"}, "Action": "lambda:InvokeFunctionUrl", "FunctionUrlAuthType": "AWS_IAM"}},
+    "StreamingInvoke": {"Type": "AWS::Lambda::Permission", "Condition": "Deploy", "Properties": {"FunctionName": {"Ref": "StreamingFunction"}, "Principal": {"Ref": "InvokerArn"}, "Action": "lambda:InvokeFunction", "InvokedViaFunctionUrl": true}}
+  },
+  "Outputs": {
+    "Bucket": {"Value": {"Ref": "StagingBucket"}},
+    "BufferedURL": {"Condition": "Deploy", "Value": {"Fn::GetAtt": ["BufferedURL", "FunctionUrl"]}},
+    "StreamingURL": {"Condition": "Deploy", "Value": {"Fn::GetAtt": ["StreamingURL", "FunctionUrl"]}}
+  }
+}

@@ -2,14 +2,73 @@
 
 This repository is an experimental source distribution. No versioned release
 or support window is established here. Historical entries identify committed
-checkpoints, not published packages or a production certification. That history
-ends at `467ba2f`; the separate unreleased section records current source work
-and its scoped verification. See
+checkpoints, not published packages or a production certification. The separate
+unreleased section records current source work and its scoped verification. See
 [compatibility and upgrade policy](docs/COMPATIBILITY.md),
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — native phases, public metadata and bounded content
+## Unreleased — explicit field validation, choice identity and transport factoring
+
+This additive forms checkpoint has passing native/WASM, browser and executable
+checks for its bounded contracts. No release or production certification is
+introduced.
+
+- Added `RadioChoice`/`BindRadioChoice` for an absent radio versus a selected
+  empty value, and `BindMultipleOptions` for exact selected option positions
+  when values repeat. `SelectedOptionValues` returns DOM-order native values
+  with multiplicity; it cannot recover option positions from native POST
+  strings. Legacy value-based bindings keep their existing restrictions.
+- Added portable field-validation tickets and scoped `BindFieldValidation` with
+  explicit input/blur/manual triggers, debounce, whole-draft provenance,
+  separate error sources and submission gating. Binding starts no request.
+  Eight document callback leases/128 controllers span eager/lazy runtimes;
+  cancellation fences output while running callbacks retain physical capacity.
+  Server-side validation, authorization and persistence remain application work.
+  See [field validation](docs/FIELD_VALIDATION.md) and the dedicated
+  [public preview example](examples/form-validation/README.md).
+- Factored type-independent mutation transport/envelope handling while retaining
+  typed/custom codec, error-order, partial-output and cancellation semantics.
+  The isolated `502` comparison removes 70,517 raw/13,161 gzip-9 bytes, not a
+  causal whole-batch or speed/allocation measurement. The exact current core is
+  **8,237,069 raw / 2,120,177 Node gzip-9 bytes**; both size budgets still fail.
+  [Controlled comparison](docs/benchmarks/mutation-factoring-go1.27.3-macos-arm64.json),
+  [refrozen artifact](docs/benchmarks/form-validation-refreeze-go1.27.3-macos-arm64.json).
+- Added an opt-in [AWS qualification scaffold](deployment/aws-qualification/README.md)
+  with 18 passing offline tests and separate source review. A synthetic ZIP is
+  prepared, but cloud approval is pending and no AWS calls have run. The
+  scaffold is not cloud qualification, a billing cap or production auth.
+
+Both current/minimum SDK full native race/vet (60 tested/141 no-test packages),
+matching core/mutation/expanded-module WASM tests/vet and the current three
+native production builds pass. Final Linux checks pass **48** four-engine form
+cases, **6** form HTTP/mock-Lambda cases and **228** legacy executable checks.
+Host passes **36** focused and **23** separate static cases, **228** legacy
+executable checks in 118.784 s and **6** new form transport cases. All five
+application generation checks pass. The primary host browser run passes
+**335/335** in 4.8 minutes, completing **394 host browser passes** (335 primary,
+36 forms, 23 separate static), without failures/skips. Earlier artifact runs are
+not counted again; Linux form/executable groups remain separate. A final test-only
+clock correction leaves the runtime sources refrozen and the compared six
+Linux WASM Code sections identical. Earlier failed clock/redirect/untouched-error
+expectations and fixture-cleanup attempts remain retained as provenance.
+
+Module ABI 4, navigation 3 and action/action-view 1 are unchanged. All **79
+capability rows and 11 open release gates** remain tracked.
+
+## Source checkpoints, newest first
+
+### `20cb9d2` — CI smoke-pipe hardening
+
+This workflow correction avoids early-closing smoke-test pipes. It does not
+establish the historical exit-23 cause or remote success of the forms checkpoint. The preceding `502cbd9` workflow
+has four passing jobs but a container exit-23 failure whose cause remains
+unconfirmed: browser 1,572 passes/three existing skips, streaming 280 passes,
+and both SDK jobs with four Node mock-Lambda cases each are separate successful
+groups. New form CI steps accompany the forms checkpoint; no current whole-CI
+pass is inferred from their configuration.
+
+### `502cbd9` — native phases, public metadata and bounded content
 
 These changes have scoped frozen-source verification below. They are not a
 published release, complete capability parity or production certification.
@@ -84,8 +143,6 @@ by this batch. Existing browser-through-local-Lambda evidence below uses the
 preceding `467ba2f` artifact; new metadata-specific Lambda and actual AWS
 qualification remain open. All **79 capability rows and 11 open release gates**
 remain tracked, and no release/tag/support commitment is introduced.
-
-## Source checkpoints, newest first
 
 ### `467ba2f` — scoped resources, safe media and staged build tooling
 

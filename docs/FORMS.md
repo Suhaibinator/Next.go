@@ -69,6 +69,16 @@ change. Set `FieldBindingOptions.ValidateOnBlur` to opt a control into whole-mod
 validation after blur records it as touched; the default is false. `/forms?validate=blur`
 and `/field-preview` demonstrate this option. It does not filter errors to touched
 fields or run asynchronous/debounced validation.
+Calling `Validate` can populate `Snapshot.Errors` while the bound alert remains
+empty: it does not touch a field or mark the form submitted. Bound error UI
+remains gated by touched/submitted state until those transitions occur.
+
+The separate opt-in [`BindFieldValidation` controller](FIELD_VALIDATION.md)
+adds explicit debounced asynchronous checks without changing this synchronous
+callback contract. Its implemented subset has the scoped qualification below.
+It captures a cloned whole-input snapshot, rejects stale results,
+separates logical checking from callback admission, and preserves synchronous
+and server error precedence. The controller starts no work merely by binding.
 
 Editing clears that field's existing error. Explicit/blur validation preserves
 known server errors on unchanged fields, including server-only rules the client
@@ -86,6 +96,8 @@ patch)`. `Touch(name)` records a visit. `Observe` immediately supplies an owned
 snapshot, with later changes delivered synchronously on the Go event loop.
 Snapshots contain values, baseline, errors, touched fields, pending/dirty flags,
 phase, message, submission/unknown-outcome flags and publication/reset versions.
+The additive `Validating` map tracks logical field checks; `ValidationInFlight`
+counts started callbacks through settlement. `Pending` remains submission-only.
 Observer mutation is coalesced; a runaway notification chain closes the model
 after its delivery bound. Observer failures are isolated and reported through
 `OnObserverError`.
@@ -123,7 +135,61 @@ Empty option values are supported for multiple selects. Unknown or repeated mode
 values fail initial binding; invalid later values are reported without changing
 the DOM selection. Application validation must still enforce its choice domain.
 
-Both helpers validate SSR defaults and adopt live pre-WASM selections. They
+For an empty-valued radio, use the additive `BindRadioChoice` API with
+`client.RadioChoice` rather than the string-only binding:
+
+```go
+type Preferences struct {
+    Plan client.RadioChoice
+    SelectedTopics []int
+}
+
+err = client.BindRadioChoice(scope, radios, model, "plan",
+    func(value Preferences) client.RadioChoice { return value.Plan },
+    func(value *Preferences, choice client.RadioChoice) { value.Plan = choice })
+```
+
+`RadioChoice{}` means no selection. `RadioChoice{Value: "", Selected: true}`
+means the empty-valued radio is selected. When `Selected` is false, `Value` must
+be empty; selected values must belong to the fixed unique option domain. Check
+`Selected` when validating presence rather than testing `Value != ""`.
+SSR `defaultChecked` and pre-WASM live `checked` state keep the same distinct
+meaning. This adds no hidden fields or synthetic DOM value encoding, and leaves
+`BindRadioGroup`'s nonempty-value contract unchanged.
+
+For repeated option values, use `BindMultipleOptions` with selected option
+positions instead of value strings:
+
+```go
+err = client.BindMultipleOptions(scope, topics, model, "topics",
+    func(value Preferences) []int { return value.SelectedTopics },
+    func(value *Preferences, selected []int) { value.SelectedTopics = selected })
+```
+
+Indices are zero-based positions in the native select's complete fixed `options`
+collection, including options inside optgroups. They must be unique and in range.
+Option values may repeat or be empty; selecting two equal-valued options remains
+two selected native nodes. Selection comparison uses membership, so an already
+matching model order is retained; newly adopted positions follow DOM order. Nil
+and empty index slices select none. Reset uses exact option positions, preserving
+which duplicate nodes were selected. Provide a deep `Clone` for every mutable
+slice in the DTO. Getter/setter callbacks keep their ordinary pure synchronous
+contract. The existing value-based `BindMultiple` still requires unique values.
+
+`client.SelectedOptionValues(values, indices)` converts the selected positions
+to an owned value slice in DOM order, preserving repeated/empty values. Its
+fixed values list shares the 256-option/256-byte-value bounds. It does not
+filter disabled controls, options or optgroups and does not emulate FormData.
+
+Native POST distinguishes an absent radio name from a selected empty value;
+native adapters must inspect the field's presence/cardinality instead of relying
+only on `url.Values.Get`. Native multiple-select submission preserves repeated
+values, but cannot reveal which of two equal-valued option positions supplied
+one occurrence. Do not infer index identity from those strings or claim an
+identical typed-index roundtrip. Applications choose explicit server contracts
+for value multiplicity or a separate fixed identity scheme and validate them.
+
+All choice helpers validate SSR defaults and adopt live pre-WASM selections. They
 update existing `checked`/`selected` properties and share the touched/error,
 validation, pending/merge, reset and cleanup model. Groups apply ARIA/custom
 validity to each radio and use one shared error region. Use labels, a
@@ -165,6 +231,12 @@ one pending submission, disable submit buttons while pending and maintain
 `Observe` for custom/localized output. Default timeout is 30 seconds; positive
 timeouts up to five minutes are supported. `FailureMessage` customizes the
 generic ambiguous-failure message.
+
+With an asynchronous field controller, logical checking also disables submit
+buttons and sets `aria-busy`; it does not start a mutation. `Begin` returns
+`ErrFormValidationPending` while a current check is waiting/running, including
+debounce. Current known async errors still reject submission after checking
+settles. See [validation timing and outcome semantics](FIELD_VALIDATION.md).
 
 `BindSubmit` requires a POST form owned by the current island and all its named
 data controls to have matching bindings. It accepts associated controls within
@@ -229,6 +301,8 @@ and cancels pending work. A baseline is the last confirmed value, not a promise
 that no other writer has changed the server. `Close` cancels active work,
 unregisters bindings and drops owned values/callbacks. Repeated close is harmless.
 Parent disposal applies the [component lifetime](COMPONENT_LIFETIMES.md) rules.
+`Cancel()` returns true for canceled validation or submission work; validation-only
+cancellation preserves the mutation phase and does not set `Unconfirmed`.
 
 ## Limits, demonstrations and remaining work
 
@@ -248,10 +322,14 @@ a deployed application. `/forms` requires a server; `/field-preview` performs
 local previews and works on a plain static host. Local apply/reset buttons are
 disabled until Go loads.
 
-Empty-valued radio/duplicate-valued option controllers, complete disabled/native
-submission equivalence, streaming/resumable upload controls and progress, dynamic
+The additive empty-valued-radio and duplicate-valued-option controllers are
+implemented with the scoped current-source qualification below. The separate
+async field-validation controller and portable tickets have their own
+[limits and provenance contract](FIELD_VALIDATION.md).
+Complete disabled/native submission equivalence, streaming/resumable upload
+controls and progress, dynamic
 choice/file schemas and field arrays,
-asynchronous/debounced and per-field validation policies, optimistic-ledger integration, richer native
+automatic reactive/background validation policies, optimistic-ledger integration, richer native
 validation-page reconstruction and complete form/browser/accessibility/cloud
 qualification remain open. Named submitter dispatch remains native. These are
 unfinished capabilities in the [full inventory](PARITY.md), not removed from the
@@ -329,3 +407,60 @@ copies; streaming/resumable protocols and progress remain open.
 
 Current bundle cost is recorded in [PERFORMANCE.md](PERFORMANCE.md). The eager
 sample still exceeds its proposed raw/gzip size budgets.
+
+## Additive choice and async-validation qualification
+
+The preceding matrices describe their historical subsets; they are not added
+together with this newer run. The frozen new source passes full native race/vet
+on Go **1.27.3** and minimum Go **1.24.13**, covering **60 tested packages** and
+**141 packages without tests**. Matching-toolchain WASM checks pass for core,
+mutation and the expanded module-target selection on both SDKs, with core/module
+vet and generated-reference checks for five applications.
+
+The new browser fixture passes **36 host** and **48 Linux** cases (**84 platform
+executions**, not 84 distinct scenarios). Linux covers Chromium, Firefox,
+WebKit and WebKit touch. Host static checks separately pass **23** cases.
+The current host primary regression suite separately passes **335** cases;
+those regressions are not included in the focused 84-case form count.
+The generated form application passes **six transport cases per platform**
+(host and non-root/read-only Linux): native HTTP, buffered local Lambda and
+streaming local Lambda, each at root and a mounted asset path. These are
+**12 platform transport executions**, with repeated semantics across platforms.
+The existing **228-case** executable HTTP/mock-Lambda regression suite also
+passes independently on each platform; it is not part of the new-fixture count.
+
+Coverage includes selected-empty versus absent radios, duplicate option identity
+and native value multiplicity, independent forms, delayed and failed checks,
+same-value/edited/reset result fencing, validation-before-submit, composition,
+eager/module admission, cleanup, useful no-JS POST and retained static output
+after `RequireServer` export refusal. Known current async invalidity blocks
+submission; canceling checks alone does not turn them into unknown writes.
+Admission bounds validator callback invocation through posted settlement, not
+arbitrary work or browser promises application code starts independently.
+
+Qualification retained and corrected fixture mistakes without changing those
+contracts. An initial browser run passed 44 cases and failed four because it
+expected untouched alerts immediately after pure `Form.Validate`; the corrected
+assertion checks invalid model state, empty untouched alerts and zero HTTP work,
+then exact visible errors after the real Go submit attempt. A mounted raw HTTP
+fixture now asserts its canonical 308 redirect. A Playwright teardown orphan
+was addressed with graceful SIGTERM configuration and final cleanup checks.
+These were fixture corrections, not runtime behavior changes.
+
+The minimum-SDK capacity test originally let a real 15 ms deadline expire before
+eight callbacks had started. Its `js && wasm` test now establishes an eight-worker
+start barrier and controlled expiry, retaining the same physical-admission
+assertions; five minimum-SDK repetitions pass. Separate true Go-context-before-
+JS-timer deadline regressions remain. Only that test source changed: production
+runtime inputs stayed unchanged, and CODE sections in all six rebuilt
+demo/form/workspace WASM bundles remain byte-identical. This does not mean whole
+artifact bytes or build IDs are identical.
+
+Local records are retained at
+`.nextgo-test-results/qualification/form-validation-final/qualification-final.json`
+for Linux and `.nextgo-test-results/qualification/form-validation/final-host/`
+for host fixture output. The integrated 884-input runtime witness remains
+unchanged for the final production source. These scoped local results do not
+qualify actual AWS, complete accessibility/device/load/recovery behavior, all
+form capabilities or production maturity. All 79 capabilities and 11 open
+release gates remain tracked.

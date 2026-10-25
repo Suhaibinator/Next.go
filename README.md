@@ -11,10 +11,16 @@ checks and eight new local mock Lambda cases. These are separate result groups,
 not real AWS or full release qualification. Historical ASCII-build and browser
 results below describe their own checkpoints.
 
-The new configuration-phase, managed-metadata and bounded-content increment
+The preceding configuration-phase, managed-metadata and bounded-content increment
 has passing native/WASM, focused example and final Linux metadata/CSS browser
 checks for its bounded contracts. These are scoped results, recorded separately
 in [the inventory](docs/PARITY.md), not full release qualification.
+
+The current forms checkpoint adds choice/field validation and mutation
+factoring. It passes both SDK/native/WASM and executable checks, 394 host
+browser checks (335 primary, 36 forms, 23 separate static) and 48 Linux
+four-engine form checks. The AWS qualification scaffold has offline tests only,
+with cloud execution awaiting explicit approval.
 
 ## Run the example
 
@@ -124,6 +130,12 @@ does not complete the [release gates](docs/PARITY.md).
 The output is a **single native server executable** containing public assets, WebAssembly, its matching `wasm_exec.js`, and the loader. Copy this executable to a compatible host and run it from any directory. Production needs neither Go nor Node installed. The default listen address is `:3000`; TLS can terminate at a reverse proxy.
 
 [Deployment instructions](docs/DEPLOYMENT.md) cover reverse proxies, non-root read-only Docker, graceful shutdown, and an AWS Lambda HTTP API v2/Function URL adapter. Linux container and mock Lambda Runtime API checks exist; actual AWS deployment, IAM, cloud cold starts and platform behavior remain unvalidated. Lambda defaults to bounded buffered responses; optional true response streaming is implemented and mock-tested for compatible integrations. Actual AWS streaming and platform limits remain unverified. Default caches and example mutation state remain process-local. The optional [`cache/shared` API](docs/SHARED_CACHE.md) shares serialized data and explicitly selected public HTML/head snapshots through an authenticated HTTP backend. The service supports bounded memory or an optional Linux/macOS local file journal (`-data-dir`) with restart-safe values, deadlines and acknowledged invalidation. Shared prerender-seed admission has bounded native, browser and executable coverage; replication and real-cloud production qualification remain unfinished.
+
+An [opt-in AWS qualification scaffold](deployment/aws-qualification/README.md)
+prepares reviewed synthetic ZIP/template inputs and explicit account/profile/
+budget controls. Its 18 offline tests do not qualify cloud behavior; no AWS calls
+have run, and the prepared cloud action still awaits explicit approval. Do not
+run its execution commands without that approval.
 
 The binary targets the build machine's OS/architecture. Cross-platform native builds and Windows process supervision are not part of the tested v1 workflow. Builds use the current Go compiler for both targets; do not replace `wasm_exec.js` with a file from a different compiler version.
 
@@ -366,7 +378,18 @@ For dynamic lists, [keyed collections](docs/KEYED_COLLECTIONS.md) bind row scope
 
 [Component lifetimes](docs/COMPONENT_LIFETIMES.md) add `Scope.Subscope` for child ownership, typed `NewContext`/`Provide`/`UseContext` providers, and `Lifetime.Effect` with explicit state dependencies and cleanup before each rerun. Preserved layout scopes retain their providers; replaced page scopes dispose them. Context stays within one Go ownership tree/runtime, and effects run synchronously without implicit dependency tracking.
 
-[Controlled forms](docs/FORMS.md) use typed Go inputs, explicit text/textarea/select/checkbox/radio-group/multiple-select bindings and one cancellable submission. They preserve pre-WASM edits, keep newer edits during delayed responses, expose validation and unknown outcomes, and retain ordinary POST behavior for progressive forms. `Form.Validate` and opt-in `ValidateOnBlur` support validation before submission while preserving server errors on unchanged fields. The profile sample uses a public process-local repository; production applications need their own authorization and durable shared storage.
+[Controlled forms](docs/FORMS.md) use typed Go inputs, explicit field bindings and one cancellable submission. They preserve pre-WASM edits, keep newer edits during delayed responses, expose validation and unknown outcomes, and retain ordinary POST behavior. Additive `RadioChoice`/`BindRadioChoice` distinguishes absence from a selected empty value; `BindMultipleOptions` uses option indices to preserve duplicate-valued node identity. `SelectedOptionValues` preserves native value multiplicity without inventing an index roundtrip from repeated POST strings. Legacy value-based bindings keep their existing contracts.
+
+`Form.Validate`/`ValidateOnBlur` remain synchronous. Opt-in
+`BindFieldValidation` adds explicit input/blur/manual triggers, debounce and
+stale-result tickets; binding starts no work. Logical pending checks gate
+submission, and canceled callbacks retain physical admission until return.
+The document defaults to eight validator callbacks and 128 controllers across
+eager/lazy runtimes. Server validation and authorization remain mandatory.
+Run `go run ./cmd/nextgo dev ./examples/form-validation` for two independent
+public preview forms; see [field validation](docs/FIELD_VALIDATION.md) and
+[the sample contract](examples/form-validation/README.md). No persistence or
+production authentication is provided.
 
 [File inputs and uploads](docs/FILES.md) bind browser-local `client.File` handles, read bounded bytes with cancellation, and preserve native multipart POST. Go browser components can use [native multipart transport](docs/MULTIPART.md) to upload through FormData without copying contents into Go or base64 encoding. The small-file sample hashes and discards bytes; its public receipt metadata is process-local. Streaming, resumable uploads and object storage remain open.
 
