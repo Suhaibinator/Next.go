@@ -3,8 +3,8 @@
 The CLI discovers explicitly versioned action packages and generates typed
 Go/WASM callers plus native registration. Both adapters delegate to the existing
 `mutation.Contract`; there is no second transport or application JavaScript.
-This subset is implemented and under qualification. No final SDK/browser/
-deployment count is claimed for this increment.
+This subset is implemented with the scoped native, browser, deployment and
+measurement evidence below. It is not full action or production-release parity.
 
 ## Action package convention
 
@@ -171,9 +171,59 @@ error redaction and an explicit refresh of the server snapshot. Its counter is
 ephemeral and resets when the process restarts. Existing manually bound actions
 continue to work; adopting discovery does not require converting all of them.
 
-Qualification of this new discovery/registration subset is pending. Existing
-mutation transport/browser/deployment results qualify their preceding source;
-they are not a final result for these generated adapters.
+### Current qualification
+
+Generated-action checks pass **35 cases**: seven host Chromium, seven host WebKit
+and 21 Linux Firefox/WebKit/touch cases. Selected affected regressions pass
+**138 cases**, and the separate Linux stream-parser suite passes **20 cases**.
+These are **193 distinct local browser checks**, with each final suite counted
+once; this is not a complete release-browser or remote-CI matrix.
+
+The first Linux action run had 18 passes and three fixture failures; the
+corrected fresh-image run passes all 21. The first selected-regression run had
+133 passes and five `ECONNREFUSED` failures because its custom configuration
+omitted three required fixture servers. After restoring that configuration,
+all 138 cases were repeated successfully. Initial failures remain part of the
+qualification provenance rather than being counted as passes.
+
+Host Go 1.27.3 full native race/vet, matching core/module WASM tests and explicit
+WASM vet pass. Go 1.24.13 full native race/vet, matching core/mutation/module
+WASM tests and core/module vet also pass. Its first WASM launch could not create
+an OS thread (`newosproc`) before tests; the retained lower-concurrency rerun
+passes. Complete host and nonroot read-only Linux HTTP/both mock Lambda
+executable suites pass.
+
+The [current production-loopback observation](PERFORMANCE.md#generated-action-artifact-observation-october-25-2026-utc)
+records 8,322,265 raw / 2,156,086 gzip-9 WASM bytes. Both size budgets still fail;
+its startup/memory observations are not production timing or RSS guarantees.
+
+The 661-file Go/public input manifest is retained under
+`.nextgo-test-results/qualification/generated-actions/input-manifest.json`,
+SHA-256 `fee9bd739c50a10aed205523fe508f5c1e4a95c7b2efcf837030e2c3768834b0`.
+The fresh host server SHA-256 is
+`9d8e7c9fdc91eea525b871c2ee4ee00f6a0a66e8726d54dad98aca945a9d20b8`.
+Initial failure logs remain alongside the final suite logs.
+
+Remote `f4ecda9` run 40147748543 is terminal: both Go jobs and container passed,
+streaming failed, and the broad browser job was cancelled during cross-browser
+work after its host npm test step passed. Its failed parser assertion depended
+on a 500-ms loader delay; the trace contains live fallback HTML and later
+loaded/hydrated content, while the five-second visibility assertion missed the
+transient state. Exact paint/scheduling cause is unproven. A real HTTP gate
+passes two host and four Linux checks on the same historical artifact without
+Go changes; that is a test-timing correction, not a runtime fix or whole remote
+pass.
+
+At the recorded **October 25, 2026, 01:22 UTC** snapshot, remote `624a19c`
+run 40149720819 had passing native SDK jobs and a terminal failed streaming
+job: the generated-action step had 24 passes and four
+manual-coexistence failures, one per engine. Earlier steps passed 20 parser,
+16 admission, 32 partial-region, 40 shell and 40 viewport cases in that job.
+Container and broad browser jobs were unfinished at that snapshot. Subsequent
+workflow results remain separate. The 35 corrected local action checks do not
+make that historical remote step pass; no all-green CI result is claimed.
+Previous mutation transport/browser/deployment matrices remain historical;
+no release gate closes with this subset.
 
 The capability reference is Next.js's
 [`use server` file/function boundary](https://nextjs.org/docs/app/api-reference/directives/use-server);

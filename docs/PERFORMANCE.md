@@ -10,14 +10,68 @@ not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
 The latest recorded browser sample is the
-[viewport-link production observation](#viewport-link-production-observation-october-25-2026-utc).
+[generated-action artifact observation](#generated-action-artifact-observation-october-25-2026-utc).
 The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
 measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
 
+## Generated-action artifact observation (October 25, 2026 UTC)
+
+The [recorded production-loopback report](benchmarks/generated-actions-go1.27.3-macos-arm64.json)
+uses the frozen generated-action server, Go 1.27.3/macOS arm64, Chromium
+156.0.8078.4, Node 25.7.0 and Apple M4 Max. It records ten fresh contexts in one
+browser process on `/prefetch`, with warm OS/server state, default browser
+caching, automatic visible-link work and no CPU/network throttling. All ten
+observe meaningful SSR before hydration, no browser errors and a working Go
+counter changing from 3 to 4 after measurement.
+
+| Artifact measurement | Bytes |
+| --- | ---: |
+| Actual decoded WASM response | 8,322,265 |
+| Node zlib level-9 recompression | 2,156,086 |
+| Actual HTTP gzip encoded body, browser Resource Timing | 2,244,521 |
+| Exported WASM memory capacity at instantiation | 4,784,128 |
+| Exported WASM memory capacity at hydration readiness | 6,815,744 |
+
+The WASM SHA-256 is
+`7dd246cdd6d71bb31bf63159d180f55227538ba7c1c5c09b30fe37488feee629`;
+the native server SHA-256 is
+`9d8e7c9fdc91eea525b871c2ee4ee00f6a0a66e8726d54dad98aca945a9d20b8`.
+Both the **6-MiB raw and 1.6-MiB gzip-9 reference budgets fail**. Modeled gzip-9
+size is not the server's actual compressed transfer size.
+
+Browser navigation-to-ready is **111.5–131.9 ms, median 112.4 ms**, timestamped
+by a MutationObserver relative to the browser navigation performance origin.
+Node wall time from calling `goto(waitUntil: 'commit')` through observing ready
+has a separate **135.13-ms median** and includes automation/polling overhead.
+It is not the same clock/window as browser readiness or the earlier reports;
+no before/after speed claim follows.
+
+Memory figures come from actual exported `WebAssembly.Memory` objects resolved
+by native instantiation, not a modeled buffer. They are capacities, not live Go
+heap, physical commitment, peak memory or RSS; observer wrappers/body capture
+also add instrumentation work. One browser process can reuse compiled code.
+These warm-local observations do not establish cold-field startup, physical
+device/network behavior, concurrent production load or Next.js parity.
+
+Run the matching standalone server separately, then reproduce with:
+
+```sh
+node scripts/measure-production-startup.mjs \
+  --origin http://127.0.0.1:3012 --path /prefetch --trials 10 \
+  --binary /absolute/path/server --counter 'Prefetch companion' \
+  --out /tmp/nextgo-startup.json
+```
+
+`--binary` records the checksum/build metadata; it does not start a server.
+`--help` lists optional browser/counter controls. The script captures actual
+browser response bytes without an artifact-refetch fallback. Preserve the
+toolchain, binary and measurement window when comparing results. No production
+performance gate is satisfied by this report.
+
 ## Viewport-link production observation (October 25, 2026 UTC)
 
-The current [production-loopback report](benchmarks/viewport-go1.27.3-macos-arm64.json)
+The preceding [production-loopback report](benchmarks/viewport-go1.27.3-macos-arm64.json)
 records the `/prefetch` example with Go 1.27.3/macOS arm64, Chromium
 156.0.8078.4 and ten fresh contexts in one browser process. Eager WASM measures
 8,260,663 raw bytes and 2,143,540 gzip-9 bytes. Its SHA-256 is

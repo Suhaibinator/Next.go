@@ -178,7 +178,13 @@ HTTP and buffered/streaming mock Lambda fixtures check typed metadata and data.
 This generic API provides typed calls directly. Optional
 [generated action discovery](GENERATED_ACTIONS.md) now emits named browser calls,
 shared aliases/path helpers and native registration from explicit action
-packages; it delegates to this same transport. Its new qualification is pending.
+packages; it delegates to this same transport. The new subset has 193 distinct
+local browser checks passing (35 generated actions, 138 affected regressions,
+20 Linux parser). Native race/vet and matching core/module WASM tests/vet pass
+on both SDKs, alongside host/Linux executable suites. The bundle-size budgets
+still fail, and remote CI retains its separately recorded action failures. See
+the generated-action qualification for failed-fixture provenance.
+
 Single-response refreshed/streamed UI,
 automatic form-state mapping, transaction/idempotency adapters, richer auth
 integrations and full production/network/resource/cloud qualification remain

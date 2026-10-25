@@ -88,9 +88,15 @@ test('automatic generated registration preserves existing manually configured ac
   await page.goto('/generated-actions'); await ready(page);
   await page.getByRole('link', { name: 'Try existing manual actions', exact: true }).click(); await ready(page);
   const initial = await number(page.locator('[data-server-count]'));
+  await page.evaluate(() => { window.generatedDocument = true; });
   const waiting = page.waitForResponse(response => new URL(response.url()).pathname === '/_nextgo/actions/increment' && response.request().method() === 'POST');
-  await page.getByRole('button', { name: 'Increment without refreshing page', exact: true }).click(); expect((await waiting).status()).toBe(200);
+  await page.getByRole('button', { name: 'Increment without refreshing page', exact: true }).click(); const response = await waiting;
+  expect(response.status()).toBe(200); expect((await response.json()).data.count).toBe(initial + 1);
+  await expect(page.locator('[data-action-status]')).toHaveText('Saved without refreshing. Navigate to read the published value.');
+  await expect(page.locator('[data-server-count]')).toHaveText(String(initial));
+  await page.getByRole('button', { name: 'Refresh server data', exact: true }).click();
   await expect(page.locator('[data-server-count]')).toHaveText(String(initial + 1));
+  expect(await page.evaluate(() => window.generatedDocument)).toBe(true);
 });
 
 test.describe('generated native form without JavaScript', () => {
