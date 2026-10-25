@@ -27,7 +27,7 @@ func main() {
 	}
 }
 func execute(ctx context.Context, args []string) error {
-	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-out dist/demo] <app> | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json>"
+	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-out dist/demo] <app> | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin ORIGIN -out DIR <zones.json> | nextgo zones ingress -manifest FILE | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
 	if len(args) == 0 {
 		return fmt.Errorf("%s", usage)
 	}

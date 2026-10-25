@@ -13,6 +13,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/actionview"
 	"github.com/Suhaibinator/Next.go/internal/actionwire"
 	"github.com/Suhaibinator/Next.go/internal/paths"
+	"github.com/Suhaibinator/Next.go/internal/publicorigin"
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
 	"html/template"
 	"io"
@@ -458,11 +459,11 @@ func (r *Router) sameOrigin(req *http.Request) bool {
 	if strings.EqualFold(req.Header.Get("Sec-Fetch-Site"), "cross-site") {
 		return false
 	}
-	scheme := "http"
-	if req.TLS != nil {
-		scheme = "https"
+	declared, err := publicorigin.Request(req)
+	if err != nil {
+		return false
 	}
-	expected, ok := originKey(scheme + "://" + req.Host)
+	expected, ok := originKey(declared.String())
 	if !ok {
 		return false
 	}

@@ -47,10 +47,49 @@ func TestApplicationBuildTagParsingAndReservedTarget(t *testing.T) {
 			}
 		}
 	}
-	for _, flags := range []string{`"unclosed`, "-tags", "-tags=nextgo_module", `"-tags=alpha nextgo_module"`} {
+	for _, flags := range []string{`"unclosed`, "-tags", "-tags=nextgo_module", `"-tags=alpha nextgo_module"`, "-tags=nextgo_devrefresh", `"-tags=alpha nextgo_devrefresh"`} {
 		if _, err := applicationBuildTags(flags); err == nil {
 			t.Fatal("invalid or reserved tags accepted", flags)
 		}
+	}
+}
+
+func TestDevRefreshPrivateBuildTagsPreserveActualSelection(t *testing.T) {
+	root := fixture(t, map[string]string{
+		"shared/base.go":        "package shared",
+		"shared/refresh.go":     "//go:build nextgo_devrefresh\n\npackage shared",
+		"shared/module.go":      "//go:build nextgo_module\n\npackage shared",
+		"shared/application.go": "//go:build alpha\n\npackage shared",
+	})
+	t.Setenv("GOFLAGS", "-tags=alpha")
+	core, module, err := browserBuildTags(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	refreshCore, refreshModule, err := devRefreshBrowserBuildTags(core, module)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		flag            string
+		refresh, module bool
+	}{{core, false, false}, {module, false, true}, {refreshCore, true, false}, {refreshModule, true, true}} {
+		command := exec.Command("go", "list", test.flag, "-f", `{{join .GoFiles ","}}`, "./shared")
+		command.Dir = root
+		command.Env = refreshBrowserEnvironment(command.Environ())
+		data, err := command.CombinedOutput()
+		if err != nil || strings.Contains(string(data), "refresh.go") != test.refresh || strings.Contains(string(data), "module.go") != test.module || !strings.Contains(string(data), "application.go") {
+			t.Fatalf("actual selected private/application targets differ: %q: %s (%v)", test.flag, data, err)
+		}
+	}
+	legacy, err := buildTagsFlag([]string{"literal,comma", "alpha"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	merged, _, err := devRefreshBrowserBuildTags(legacy, module)
+	words, parseErr := goFlagWords(strings.TrimPrefix(merged, "-tags="))
+	if err != nil || parseErr != nil || !reflect.DeepEqual(words, []string{"literal,comma", "alpha", devRefreshBuildTag}) {
+		t.Fatal("private merge changed legacy literal tag semantics", words, err, parseErr)
 	}
 }
 

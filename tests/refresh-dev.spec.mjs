@@ -50,6 +50,27 @@ test('cold SSR stays useful and lazy Go hydration preserves the existing counter
  }finally{release();await page.unroute('**/module-*.wasm');}
 });
 
+for(const fault of ['503 unavailable','invalid latest table'])test(`cold latest manifest ${fault} preserves SSR until explicit retry mounts the current genuine module`,async({page,request})=>{
+ const before=await inspection(request),server=await native(request);
+ const after=await edit('counter',client('v2'),request);
+ expect(after.buildId).toBe(before.buildId);expect(after.generation).toBe(before.generation);expect(after.refreshRevision).toBeGreaterThan(before.refreshRevision);expect((await native(request)).instance).toBe(server.instance);
+ const actualLatest=await manifest(request,after),expectedURL=new URL(actualLatest.modules.find(module=>module.name==='refreshcounter').url,origin).href;
+ const moduleRequests=[];page.on('request',r=>{if(/\/module-[a-f0-9]+\.wasm/.test(r.url()))moduleRequests.push(r.url());});
+ let checks=0;
+ await page.route('**/_nextgo/refresh?*',async route=>{checks++;if(checks===1){await route.fulfill({status:fault==='503 unavailable'?503:200,contentType:'application/json',body:fault==='503 unavailable'?'temporarily unavailable':'{"version":1,"modules":[]}'});return;}await route.continue();});
+ try{
+  await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.locator('body')).toHaveAttribute('data-nextgo-refresh-state','startup-error');
+  const loads=documents(page),token=await page.evaluate(()=>refreshDocument);
+  await expect(counter(page)).toHaveText('3');await expect(counter(page,'secondary')).toHaveText('10');await expect(proof(page)).toHaveText('Waiting for lazy Go');await expect(component(page).locator('[data-refresh-increment]')).toBeDisabled();
+  const recovery=page.locator('#nextgo-dev-refresh-startup');await expect(recovery).toHaveAttribute('role','alert');await expect(recovery.getByRole('link',{name:'Reload page',exact:true})).toHaveAttribute('href',origin+'/');
+  await page.evaluate(()=>{window.coldRefreshRoot=document.querySelector('[data-refresh-instance="primary"]');window.coldRefreshCount=window.coldRefreshRoot.querySelector('[data-refresh-count]');});
+  await component(page).locator('[data-refresh-label]').fill('SSR draft while retrying');await pause(400);expect(checks).toBe(1);expect(moduleRequests).toEqual([]);expect(loads).toEqual([]);expect(await page.evaluate(()=>refreshDocument)).toBe(token);
+  await recovery.getByRole('button',{name:'Retry loading Go',exact:true}).click();await ready(page);await expect(proof(page)).toHaveText('v2');await expect(proof(page,'secondary')).toHaveText('v2');await expect(recovery).toHaveCount(0);expect(checks).toBe(2);expect(moduleRequests).toEqual([expectedURL]);
+  expect(await page.evaluate(()=>coldRefreshRoot===document.querySelector('[data-refresh-instance="primary"]')&&coldRefreshCount===document.querySelector('[data-refresh-instance="primary"] [data-refresh-count]'))).toBe(true);await expect(component(page).locator('[data-refresh-label]')).toHaveValue('SSR draft while retrying');
+  await component(page).locator('[data-refresh-increment]').click();await expect(counter(page)).toHaveText('5');expect(loads).toEqual([]);expect(await page.evaluate(()=>refreshDocument)).toBe(token);expect((await native(request)).instance).toBe(server.instance);
+ }finally{await page.unroute('**/_nextgo/refresh?*');}
+});
+
 test('actual compiled Go replacements retain two states, DOM, focus, URL and native process while retiring each old runtime',async({page,request},info)=>{
  await open(page,'/?draft=public#counter');const loads=documents(page),before=await inspection(request),processBefore=await native(request),url=page.url(),token=await page.evaluate(()=>refreshDocument);
  await component(page).locator('[data-refresh-increment]').click();await component(page,'secondary').locator('[data-refresh-increment]').click();await component(page,'secondary').locator('[data-refresh-increment]').click();
@@ -120,6 +141,6 @@ test('effective alternate AssetPrefix disables warm refresh and a module edit re
  const refreshRequests=[],wasmRequests=[];page.on('request',r=>{const path=new URL(r.url()).pathname;if(path==='/_nextgo/refresh')refreshRequests.push(r.url());if(path.endsWith('.wasm'))wasmRequests.push(path);});
  await open(page);await expect(page.locator('body')).not.toHaveAttribute('data-nextgo-refresh-state',/.+/);await component(page).locator('[data-refresh-increment]').click();await expect(counter(page)).toHaveText('4');const loads=documents(page),server=await native(request),token=await page.evaluate(()=>refreshDocument);
  const after=await edit('counter',client('v2'),request);expect(after.refreshEnabled).toBe(false);expect(after.generation).not.toBe(configured.generation);await expect(proof(page)).toHaveText('v2');await exactlyDocuments(loads,1,6200);expect(await page.evaluate(()=>refreshDocument)).not.toBe(token);expect((await native(request)).instance).not.toBe(server.instance);await expect(counter(page)).toHaveText('3');await component(page).locator('[data-refresh-increment]').click();await expect(counter(page)).toHaveText('5');
- expect(refreshRequests).toEqual([]);expect(wasmRequests.length).toBeGreaterThanOrEqual(4);expect(wasmRequests.every(path=>path.startsWith('/refresh-assets/'))).toBe(true);
+ expect(refreshRequests.map(value=>{const url=new URL(value);expect(url.pathname).toBe('/_nextgo/refresh');return Object.fromEntries(url.searchParams);})).toEqual([{build:configured.buildId,generation:configured.generation},{build:after.buildId,generation:after.generation}]);expect(wasmRequests.length).toBeGreaterThanOrEqual(4);expect(wasmRequests.every(path=>path.startsWith('/refresh-assets/'))).toBe(true);
  const disabled=await request.get(origin+'/_nextgo/refresh?'+new URLSearchParams({build:after.buildId,generation:after.generation}));expect(disabled.status()).toBe(204);expect(await disabled.body()).toHaveLength(0);
 });

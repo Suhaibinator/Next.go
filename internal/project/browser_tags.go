@@ -8,6 +8,27 @@ import (
 )
 
 const moduleBuildTag = "nextgo_module"
+const devRefreshBuildTag = "nextgo_devrefresh"
+
+func devRefreshBrowserBuildTags(core, module string) (string, string, error) {
+	appendPrivate := func(flag string) (string, error) {
+		value, ok := strings.CutPrefix(flag, "-tags=")
+		if !ok {
+			return "", fmt.Errorf("invalid generated browser build tag flag")
+		}
+		tags, err := goFlagWords(value)
+		if err != nil {
+			return "", err
+		}
+		return buildTagsFlag(append(tags, devRefreshBuildTag))
+	}
+	core, err := appendPrivate(core)
+	if err != nil {
+		return "", "", err
+	}
+	module, err = appendPrivate(module)
+	return core, module, err
+}
 
 // Query Go, rather than only os.Getenv: GOFLAGS may come from `go env -w`.
 // Other flags stay in Go's environment; only -tags is merged explicitly.
@@ -85,6 +106,9 @@ func applicationBuildTags(flags string) ([]string, error) {
 	for _, tag := range tags {
 		if tag == moduleBuildTag {
 			return nil, fmt.Errorf("build tag nextgo_module is reserved for generated component executables; remove it from GOFLAGS")
+		}
+		if tag == devRefreshBuildTag {
+			return nil, fmt.Errorf("build tag nextgo_devrefresh is reserved for qualified development refresh; remove it from GOFLAGS")
 		}
 	}
 	return tags, nil

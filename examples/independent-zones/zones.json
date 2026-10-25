@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "zones": [
+    {"id":"alpha","host":"127.0.0.1:4260","basePath":"","tenant":"alpha","app":"./apps/alpha"},
+    {"id":"blog","host":"127.0.0.1:4260","basePath":"/blog","tenant":"blog","app":"./apps/blog"}
+  ]
+}

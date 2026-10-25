@@ -28,6 +28,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/paths"
 	"github.com/Suhaibinator/Next.go/internal/postresponse"
 	"github.com/Suhaibinator/Next.go/internal/publicconfig"
+	"github.com/Suhaibinator/Next.go/internal/publicorigin"
 	"github.com/Suhaibinator/Next.go/internal/routing"
 	"github.com/Suhaibinator/Next.go/metadatafiles"
 	"github.com/Suhaibinator/Next.go/scripts"
@@ -144,6 +145,7 @@ type Config struct {
 	prerenderDeferred  bool
 	startupContext     context.Context
 	zoneInfo           *ZoneInfo
+	publicOrigin       publicorigin.Origin
 	// EarlyScripts are trusted classic dependencies shared by every document.
 	// They execute in parser order before the Go bootstrap.
 	EarlyScripts []scripts.Script
@@ -315,7 +317,7 @@ func NewContext(ctx context.Context, c Config) (*App, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	c.startupContext = bindConfigZone(ctx, c)
+	c.startupContext = bindConfigPublicOrigin(bindConfigZone(ctx, c), c)
 	app, err := newApp(c)
 	if err == nil && !c.prerenderDeferred {
 		// Locale children retain this context until their wrapper finishes the
@@ -504,6 +506,9 @@ func match(pattern, path string) (map[string]string, bool) {
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if a.config.publicOrigin.String() != "" || publicorigin.Present(r.Context()) {
+		r = r.WithContext(bindConfigPublicOrigin(r.Context(), a.config))
+	}
 	if a.config.zoneInfo != nil || r.Context().Value(zoneContextKey{}) != nil {
 		r = r.WithContext(bindConfigZone(r.Context(), a.config))
 	}

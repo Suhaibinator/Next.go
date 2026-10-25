@@ -31,17 +31,23 @@ jobs:
           go run ./cmd/nextgo generate --check ./examples/zones/marketing
           go run ./cmd/nextgo generate --check ./examples/zones/blog
           go run ./cmd/nextgo generate --check ./examples/zones/tenant
+          go run ./cmd/nextgo generate --check ./examples/independent-zones/apps/alpha
+          go run ./cmd/nextgo generate --check ./examples/independent-zones/apps/blog
       - run: go test -race ./...
       - run: go vet ./...
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Go WASM client unit tests
+        env:
+          GOMAXPROCS: '1'
         run: sh scripts/test-wasm.sh
       - name: Go WASM core and module vet
         run: |
           GOOS=js GOARCH=wasm go vet ./client ./mutation
           GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation
+          GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client
       - run: go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
       - run: go run ./cmd/nextgo build -out ./dist/workspace ./examples/workspace/site
       - name: Additional example production and static builds
@@ -123,9 +129,7 @@ jobs:
           go run ./cmd/nextgo build -out ./dist/lambda-demo ./examples/demo
           go run ./cmd/nextgo build -out ./dist/metadata-site ./examples/metadata-site
           go run ./cmd/nextgo build -out ./dist/form-validation ./examples/form-validation
-          go run ./cmd/nextgo build -out ./dist/refresh ./examples/refresh
           NEXTGO_METADATA_BASE_PATH=/metadata-site go run ./cmd/nextgo export -out ./dist/metadata-static ./examples/metadata-site
-          NEXTGO_REFRESH_BASE_PATH=/refresh NEXTGO_REFRESH_ASSET_PREFIX=/refresh-assets NEXTGO_REFRESH_PUBLIC_NOTE='Production fixture public note' go run ./cmd/nextgo export -out ./dist/refresh-static ./examples/refresh
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
           ./dist/nextgo zones build -out ./dist/zones ./examples/zones/zones.json
       - name: Browser hydration and navigation through both local Lambda modes
@@ -138,6 +142,43 @@ jobs:
         run: NEXTGO_E2E_SERVER_BINARY="$PWD/dist/zones/server" npm run test:zones
       - name: Multi-zone development rebuild and last-good recovery
         run: NEXTGO_E2E_NEXTGO_BINARY="$PWD/dist/nextgo" npm run test:zones:dev
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-failure-artifacts
+          path: |
+            test-results/
+            test-results-crossbrowser/
+            playwright-report/
+            .nextgo-test-results/
+          include-hidden-files: true
+          retention-days: 7
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '1'
+      GOFLAGS: -p=1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Build refresh qualification artifacts
+        run: |
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          ./dist/nextgo build -out ./dist/refresh ./examples/refresh
+          NEXTGO_REFRESH_BASE_PATH=/refresh NEXTGO_REFRESH_ASSET_PREFIX=/refresh-assets NEXTGO_REFRESH_PUBLIC_NOTE='Production fixture public note' ./dist/nextgo export -out ./dist/refresh-static ./examples/refresh
+      - name: Refresh production transport contract
+        run: NEXTGO_REFRESH_SERVER_BINARY="$PWD/dist/refresh/server" NEXTGO_REFRESH_STATIC_ROOT="$PWD/dist/refresh-static" npm run test:refresh-production
       - name: Opt-in lazy Go state refresh development contract
         timeout-minutes: 60
         run: |
@@ -162,16 +203,56 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
-      - uses: actions/upload-artifact@v4
-        if: failure()
+  independent-zones:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.x', 'stable']
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '1'
+      GOFLAGS: -p=1
+      NEXTGO_INDEPENDENT_ZONES_ARTIFACTS: ${{ github.workspace }}/.nextgo-test-results/independent-zones/operator/artifact-index.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          name: playwright-failure-artifacts
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Build independent releases and immutable ingress snapshots
+        run: |
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          node tests/independent-zones-fixture.mjs build "$PWD/.nextgo-test-results/independent-zones/operator" "$PWD/dist/nextgo"
+      - name: Standalone application module tests
+        run: |
+          GOWORK=off go -C examples/independent-zones/apps/alpha test ./...
+          GOWORK=off go -C examples/independent-zones/apps/blog test ./...
+      - name: Artifact loader boundaries
+        run: node --test tests/independent-zones-deployment-unit.test.mjs
+      - name: HTTP and both Lambda modes at ingress and origins
+        run: npm run test:zones:independent:deployment
+      - name: Independent release browser conformance
+        run: |
+          PLAYWRIGHT_JSON_OUTPUT_FILE="$PWD/.nextgo-test-results/independent-zones/browser.json" npm run test:zones:independent -- --reporter=list,json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-zones-${{ matrix.go }}
           path: |
-            test-results/
-            test-results-crossbrowser/
-            playwright-report/
-            .nextgo-test-results/
+            .nextgo-test-results/independent-zones/browser.json
+            .nextgo-test-results/independent-zones/operator/artifact-index.json
+            .nextgo-test-results/independent-zones/operator/build-provenance.json
+            .nextgo-test-results/independent-zones/browser/
           include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 7
   streaming:
     runs-on: ubuntu-latest

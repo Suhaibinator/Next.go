@@ -73,7 +73,7 @@ func bindConfigZone(ctx context.Context, c Config) context.Context {
 	return withZoneContext(ctx, c.Zone())
 }
 func (a *App) bindZoneContext(ctx context.Context) context.Context {
-	return bindConfigZone(ctx, a.config)
+	return bindConfigPublicOrigin(bindConfigZone(ctx, a.config), a.config)
 }
 
 // Compose the existing opaque cache/configuration identity. Zone fields remain

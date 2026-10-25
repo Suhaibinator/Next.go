@@ -42,6 +42,10 @@ var moduleRefresh *moduleRefreshRuntime
 // browser work cannot be discovered or preempted by this contract. An unsupported
 // or busy framework lifetime requires a full document reload.
 func RunModuleRefresh(name, epoch, stateSchema, domSchema string) <-chan struct{} {
+	if !devRefreshBuild {
+		runModule(name, epoch, nil)
+		return nil
+	}
 	if !moduleMode || moduleRefresh != nil {
 		panic("development module refresh requires one generated module runtime")
 	}
@@ -64,6 +68,9 @@ func RunModuleRefresh(name, epoch, stateSchema, domSchema string) <-chan struct{
 }
 
 func moduleRefreshEnabled() (enabled bool) {
+	if !devRefreshBuild {
+		return false
+	}
 	defer func() { _ = recover() }()
 	host := win.Get(moduleBridgeName)
 	if !host.Truthy() || host.Get("refreshEnabled").Type() != js.TypeFunction {
@@ -76,7 +83,7 @@ func moduleRefreshEnabled() (enabled bool) {
 // Scope.active uses this additional admission fence. Freezing is distinct from
 // disposal: state can still be snapshotted before cleanup releases resources.
 func moduleRefreshHandlersFrozen() bool {
-	return moduleMode && moduleRefresh != nil && moduleRefresh.frozen
+	return devRefreshBuild && moduleMode && moduleRefresh != nil && moduleRefresh.frozen
 }
 
 func (runtime *moduleRefreshRuntime) bind(object js.Value, name string, fn func([]js.Value) any) {

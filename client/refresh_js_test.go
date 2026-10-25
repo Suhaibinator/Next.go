@@ -1,4 +1,4 @@
-//go:build js && wasm && !nextgo_module
+//go:build js && wasm && !nextgo_module && nextgo_devrefresh
 
 package client
 
@@ -22,6 +22,7 @@ type refreshFixture struct {
 	status      js.Value
 	functions   []js.Func
 	reloads     int
+	nodes       []js.Value
 }
 
 func refreshEnvironment(t *testing.T) *refreshFixture {
@@ -30,6 +31,9 @@ func refreshEnvironment(t *testing.T) *refreshFixture {
 	oldDoc, oldWin, oldC, oldLazy, oldMounted, oldURL, oldPaths, oldManifest, oldActivity := doc, win, devRefresh, lazyModules, mounted, currentURL, deployment, routeManifest, refreshActivity
 	globalCount := len(globalFunctions)
 	t.Cleanup(func() {
+		if devRefresh != nil && devRefresh.startupScope != nil {
+			devRefresh.startupScope.dispose()
+		}
 		for _, fn := range globalFunctions[globalCount:] {
 			fn.Release()
 		}
@@ -40,6 +44,7 @@ func refreshEnvironment(t *testing.T) *refreshFixture {
 		}
 	})
 	body := js.Global().Get("Object").New()
+	body.Set("appendChild", f.fn(func(_ js.Value, args []js.Value) any { return args[0] }))
 	body.Set("getAttribute", f.fn(func(_ js.Value, args []js.Value) any {
 		value, ok := f.attrs[args[0].String()]
 		if !ok {
@@ -61,6 +66,7 @@ func refreshEnvironment(t *testing.T) *refreshFixture {
 		}
 		return js.Null()
 	}), "querySelector": f.fn(func(js.Value, []js.Value) any { return js.Null() })})
+	doc.Set("createElement", f.fn(func(js.Value, []js.Value) any { return f.element() }))
 	doc.Set("addEventListener", f.fn(func(js.Value, []js.Value) any { return nil }))
 	win = js.ValueOf(map[string]any{"URL": js.Global().Get("URL"), "Uint8Array": js.Global().Get("Uint8Array"), "AbortController": js.Global().Get("AbortController"), "location": map[string]any{"href": "https://site.test/", "origin": "https://site.test", "reload": f.fn(func(js.Value, []js.Value) any { f.reloads++; return nil })}})
 	win.Set("history", map[string]any{"state": map[string]any{"nextgoEntry": "entry"}})
@@ -117,6 +123,170 @@ func (f *refreshFixture) fn(callback func(js.Value, []js.Value) any) js.Func {
 	f.functions = append(f.functions, fn)
 	return fn
 }
+
+// Only DOM mechanics are faked; bootstrap uses the real Fetch reader and the
+// production coordinator, strict manifest validation, event hook and Scope.
+func (f *refreshFixture) element() js.Value {
+	node := js.Global().Get("Object").New()
+	attrs := map[string]string{}
+	listeners := map[string]js.Value{}
+	node.Set("setAttribute", f.fn(func(_ js.Value, args []js.Value) any { attrs[args[0].String()] = args[1].String(); return nil }))
+	node.Set("getAttribute", f.fn(func(_ js.Value, args []js.Value) any { return attrs[args[0].String()] }))
+	node.Set("appendChild", f.fn(func(_ js.Value, args []js.Value) any { return args[0] }))
+	node.Set("remove", f.fn(func(js.Value, []js.Value) any { node.Set("removed", true); return nil }))
+	node.Set("addEventListener", f.fn(func(_ js.Value, args []js.Value) any { listeners[args[0].String()] = args[1]; return nil }))
+	node.Set("removeEventListener", f.fn(func(_ js.Value, args []js.Value) any { delete(listeners, args[0].String()); return nil }))
+	node.Set("click", f.fn(func(js.Value, []js.Value) any {
+		if callback, ok := listeners["click"]; ok {
+			callback.Invoke(js.Global().Get("Object").New())
+		}
+		return nil
+	}))
+	f.nodes = append(f.nodes, node)
+	return node
+}
+
+func TestRefreshCoreBootstrapFailurePreservesSSRAndRetriesLatestOnce(t *testing.T) {
+	f := refreshEnvironment(t)
+	base := refreshManifest(0)
+	c := fixtureCoordinator(base)
+	c.initialized = false
+	win.Set("__nextgoDevRuntime", map[string]any{"version": 1, "shimDigest": devrefresh.ShimDigest, "start": f.fn(func(js.Value, []js.Value) any { return nil })})
+	calls := 0
+	latest := refreshManifest(3)
+	latest.Modules[0].Digest = strings.Repeat("1", 64)
+	latest.Modules[0].URL = "/_nextgo/" + strings.Repeat("2", 20) + "/module-" + latest.Modules[0].Digest + ".wasm"
+	data, _ := json.Marshal(latest)
+	mockBrowserFetch(t, func([]js.Value) any {
+		calls++
+		if calls == 1 {
+			return js.Global().Get("Promise").Call("resolve", js.Global().Get("Response").New("unavailable", map[string]any{"status": 503}))
+		}
+		return js.Global().Get("Promise").Call("resolve", js.Global().Get("Response").New(string(data), map[string]any{"status": 200}))
+	})
+	ready := 0
+	if !bootstrapDevRefresh(func() { ready++ }) {
+		t.Fatal("did not defer hydration")
+	}
+	resourceWait(t, func() bool { return f.attrs["data-nextgo-refresh-state"] == "startup-error" })
+	if ready != 0 || c.initialized || c.disabled || f.reloads != 0 || lazyModules["counter"].descriptor.Digest != base.Modules[0].Digest {
+		t.Fatal("failed proof hydrated/reloaded or changed descriptors")
+	}
+	if c.startupRetry.Get("disabled").Bool() || c.startupScope.Root.Value.Call("getAttribute", "role").String() != "alert" {
+		t.Fatal("missing accessible recovery")
+	}
+	hook := win.Get("__nextgoRefresh")
+	functionCount, nodeCount := len(globalFunctions), len(f.nodes)
+	panel := c.startupScope.Root.Value
+	// An event received during failure cannot silently hydrate or reload. A bad
+	// event must not create a cold-start reload loop either.
+	hook.Invoke("invalid")
+	hook.Invoke(string(data))
+	if ready != 0 || f.reloads != 0 || calls != 1 {
+		t.Fatal("SSE retried failed startup implicitly")
+	}
+	c.startupRetry.Call("click")
+	resourceWait(t, func() bool { return ready == 1 })
+	if c.current.Revision != 3 || f.reloads != 0 || calls != 2 || !panel.Get("removed").Bool() || c.startupScope != nil {
+		t.Fatal("retry did not commit latest once/clean recovery", calls, ready)
+	}
+	if !hook.Equal(win.Get("__nextgoRefresh")) || len(globalFunctions) != functionCount || len(f.nodes) != nodeCount {
+		t.Fatal("retry duplicated document listeners or recovery DOM")
+	}
+	c.startBootstrap()
+	if ready != 1 || calls != 2 {
+		t.Fatal("completed bootstrap retried")
+	}
+}
+
+func TestRefreshCoreBootstrapRejectsUnavailableOrUnboundLatest(t *testing.T) {
+	for _, scenario := range []string{"network", "400", "409", "503", "invalid", "binding", "bridge"} {
+		t.Run(scenario, func(t *testing.T) {
+			f := refreshEnvironment(t)
+			c := fixtureCoordinator(refreshManifest(0))
+			c.initialized = false
+			if scenario != "bridge" {
+				win.Set("__nextgoDevRuntime", map[string]any{"version": 1, "shimDigest": devrefresh.ShimDigest, "start": f.fn(func(js.Value, []js.Value) any { return nil })})
+			}
+			m := refreshManifest(2)
+			if scenario == "binding" {
+				m.ServingBuild = strings.Repeat("1", 20)
+			}
+			data, _ := json.Marshal(m)
+			status := 200
+			switch scenario {
+			case "400":
+				status = 400
+			case "409":
+				status = 409
+			case "503":
+				status = 503
+			case "invalid":
+				data = []byte("invalid")
+			}
+			mockBrowserFetch(t, func([]js.Value) any {
+				if scenario == "network" {
+					return js.Global().Get("Promise").Call("reject", js.Global().Get("Error").New("network"))
+				}
+				return js.Global().Get("Promise").Call("resolve", js.Global().Get("Response").New(string(data), map[string]any{"status": status}))
+			})
+			ready := false
+			if !bootstrapDevRefresh(func() { ready = true }) {
+				t.Fatal("did not defer")
+			}
+			resourceWait(t, func() bool { return f.attrs["data-nextgo-refresh-state"] == "startup-error" })
+			if ready || c.initialized || c.disabled || f.reloads != 0 {
+				t.Fatal("unproved latest hydrated/reloaded", scenario)
+			}
+		})
+	}
+}
+
+func TestRefreshCoreBootstrapExplicitDisabledHydratesOrdinaryBaseline(t *testing.T) {
+	f := refreshEnvironment(t)
+	c := fixtureCoordinator(refreshManifest(0))
+	c.initialized = false
+	// No qualified bridge and an alternate asset prefix remain ordinary only
+	// after the authoritative supervisor explicitly reports disabled.
+	deployment.AssetPrefix = "/assets"
+	mockBrowserFetch(t, func([]js.Value) any {
+		return js.Global().Get("Promise").Call("resolve", js.Global().Get("Response").New(js.Null(), map[string]any{"status": 204}))
+	})
+	ready := 0
+	if !bootstrapDevRefresh(func() { ready++ }) {
+		t.Fatal("skipped disabled proof")
+	}
+	panel := c.startupScope.Root.Value
+	resourceWait(t, func() bool { return ready == 1 })
+	if !c.disabled || c.initialized || devRefreshEnabled() || f.reloads != 0 || !panel.Get("removed").Bool() {
+		t.Fatal("disabled proof did not preserve ordinary baseline")
+	}
+}
+
+func TestRefreshCoreBootstrapRetriesRemainSinglePhysicalFlight(t *testing.T) {
+	f := refreshEnvironment(t)
+	c := fixtureCoordinator(refreshManifest(0))
+	c.initialized = false
+	var resolve js.Value
+	executor := f.fn(func(_ js.Value, args []js.Value) any { resolve = args[0]; return nil })
+	promise := js.Global().Get("Promise").New(executor)
+	calls := 0
+	mockBrowserFetch(t, func([]js.Value) any { calls++; return promise })
+	if !bootstrapDevRefresh(func() { t.Error("failed request hydrated") }) {
+		t.Fatal("did not defer")
+	}
+	resourceWait(t, func() bool { return calls == 1 })
+	for n := 0; n < 10; n++ {
+		c.startupRetry.Call("click")
+		c.startBootstrap()
+	}
+	if calls != 1 || !c.startupRetry.Get("disabled").Bool() {
+		t.Fatal("concurrent physical bootstrap admitted")
+	}
+	resolve.Invoke(js.Global().Get("Response").New("unavailable", map[string]any{"status": 503}))
+	resourceWait(t, func() bool { return f.attrs["data-nextgo-refresh-state"] == "startup-error" })
+}
+
 func refreshManifest(revision uint64) devrefresh.Manifest {
 	previous := uint64(0)
 	if revision > 0 {

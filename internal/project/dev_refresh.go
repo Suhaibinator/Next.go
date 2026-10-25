@@ -97,9 +97,13 @@ func hasRefreshComponents(p *Project) bool {
 
 func refreshComponentGraphName(name string) string { return "module:" + name }
 
-func prepareDevRefresh(ctx context.Context, p *Project, buildDir, coreTags, moduleTags string, support []byte) (*devRefreshPlan, error) {
+func qualifiedDevRefreshSupport(support []byte) bool {
 	sum := sha256.Sum256(support)
-	if !hasRefreshComponents(p) || hex.EncodeToString(sum[:]) != devrefresh.ShimDigest {
+	return hex.EncodeToString(sum[:]) == devrefresh.ShimDigest
+}
+
+func prepareDevRefresh(ctx context.Context, p *Project, buildDir, coreTags, moduleTags string, support []byte) (*devRefreshPlan, error) {
+	if !hasRefreshComponents(p) || !qualifiedDevRefreshSupport(support) {
 		return nil, nil
 	}
 	inputs, contextDigest, err := devRefreshInputs(ctx, p.Root, coreTags, moduleTags)

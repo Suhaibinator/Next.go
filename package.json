@@ -31,6 +31,8 @@
     "test:zones": "node scripts/test-browser.mjs --config tests/zones.config.mjs",
     "test:zones:dev": "node scripts/test-browser.mjs --config tests/zones-dev.config.mjs",
     "test:zones:deployment": "node --test tests/zones-deployment.gateway.test.mjs tests/zones-deployment.test.mjs tests/zones-deployment.cli.test.mjs",
+    "test:zones:independent": "node scripts/test-browser.mjs --config tests/independent-zones-config.mjs",
+    "test:zones:independent:deployment": "node --test tests/independent-zones-deployment.test.mjs",
     "test:refresh-dev": "node scripts/test-browser.mjs --config tests/refresh-dev.config.mjs",
     "test:refresh-production": "node --test tests/refresh-production.test.mjs",
     "test:refresh-production:browser": "node scripts/test-browser.mjs --config tests/refresh-production.config.mjs"

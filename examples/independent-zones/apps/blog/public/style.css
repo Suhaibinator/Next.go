@@ -1,0 +1,11 @@
+/* blog original stylesheet B1 */
+:root { --release-accent: #85551f; font-family: system-ui, sans-serif; color: #173b35; background: #f5faf7; color-scheme: light; }
+body { max-width: 960px; margin: 0 auto; padding: 30px 22px; line-height: 1.6; }
+header { border-top: 8px solid var(--release-accent); padding-top: 16px; }
+nav { display: flex; flex-wrap: wrap; gap: 24px; } a { color: var(--release-accent); }
+.counter-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,330px),1fr)); gap: 20px; }
+[data-independent-instance] { padding: 18px; border: 1px solid #b8d0c4; border-radius: 8px; background: white; }
+[data-independent-count] { display: block; font-size: 2rem; font-weight: 700; }
+button,input { font: inherit; padding: 8px 12px; margin: 6px; }
+main { padding: 25px 0; } footer { border-top: 1px solid #b8d0c4; padding-top: 18px; font-size: .85rem; }
+.eyebrow { font-weight: 700; font-size: .75rem; letter-spacing: .13em; }

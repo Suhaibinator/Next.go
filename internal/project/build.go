@@ -47,18 +47,38 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 	return compileApplication(ctx, root, dev, output, allowPrerender, false)
 }
 
-func compileApplication(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender, allowRefresh bool) (*Build, error) {
+func compileApplication(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender, allowRefresh bool, releasePlans ...*zoneReleasePlan) (*Build, error) {
+	var release *zoneReleasePlan
+	if len(releasePlans) > 1 {
+		return nil, fmt.Errorf("one zone release plan is required")
+	}
+	if len(releasePlans) > 0 {
+		release = releasePlans[0]
+	}
+	if release != nil && (dev || allowPrerender || allowRefresh) {
+		return nil, fmt.Errorf("zone releases require the production compiler without prerender or development refresh")
+	}
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return nil, err
 	}
-	inputFingerprint, err := sourceFingerprintContext(ctx, absRoot)
+	var inputFingerprint string
+	if release != nil {
+		inputFingerprint, err = release.initialFingerprint(ctx, absRoot)
+	} else {
+		inputFingerprint, err = sourceFingerprintContext(ctx, absRoot)
+	}
 	if err != nil {
 		return nil, err
 	}
 	p, err := Discover(root)
 	if err != nil {
 		return nil, err
+	}
+	if release != nil {
+		if err := release.validateProject(p); err != nil {
+			return nil, err
+		}
 	}
 	if !allowPrerender && hasPrerenderFiles(p) {
 		return nil, fmt.Errorf("zones v1 does not support prerender declarations; no capture or seed reservation was executed")
@@ -73,7 +93,21 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if _, err = GenerateActions(p, false); err != nil {
 		return nil, err
 	}
-	fingerprint, err := fingerprintExceptContext(ctx, p.Root, "")
+	var fingerprint string
+	if release != nil {
+		proofRoot := filepath.Join(p.Root, ".nextgo")
+		if err := os.MkdirAll(proofRoot, 0755); err != nil {
+			return nil, err
+		}
+		proofDir, makeErr := os.MkdirTemp(proofRoot, "release-proof-")
+		if makeErr != nil {
+			return nil, makeErr
+		}
+		defer os.RemoveAll(proofDir)
+		fingerprint, err = release.prepareInputs(ctx, p, proofDir, coreTags, moduleTags)
+	} else {
+		fingerprint, err = fingerprintExceptContext(ctx, p.Root, "")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +141,14 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 		if err != nil {
 			return nil, err
 		}
-		refresh, err = prepareDevRefresh(ctx, p, buildDir, coreTags, moduleTags, support)
+		refreshCoreTags, refreshModuleTags := coreTags, moduleTags
+		if qualifiedDevRefreshSupport(support) {
+			refreshCoreTags, refreshModuleTags, err = devRefreshBrowserBuildTags(coreTags, moduleTags)
+			if err != nil {
+				return nil, err
+			}
+		}
+		refresh, err = prepareDevRefresh(ctx, p, buildDir, refreshCoreTags, refreshModuleTags, support)
 		if err != nil {
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
@@ -116,6 +157,9 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 			// infer eligibility from a partial graph or prevent an ordinary build.
 			fmt.Fprintln(output, "Development refresh compiler proof unavailable; using document reloads.")
 			refresh = nil
+		}
+		if refresh != nil {
+			coreTags, moduleTags = refreshCoreTags, refreshModuleTags
 		}
 	}
 	modules, err := compileLazyRefresh(ctx, p, buildDir, fingerprint, moduleTags, output, refresh)
@@ -203,7 +247,14 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if err = os.WriteFile(filepath.Join(private, "prerender.json"), []byte("{}"), 0600); err != nil {
 		return nil, err
 	}
-	if err = writeGo(filepath.Join(serverDir, "main.go"), serverSource(p, id, dev, refresh != nil)); err != nil {
+	serverMain := serverSource(p, id, dev, refresh != nil)
+	if release != nil {
+		if err = release.bindAssets(ctx, assets, id); err != nil {
+			return nil, err
+		}
+		serverMain = zoneReleaseServerSource(p, release)
+	}
+	if err = writeGo(filepath.Join(serverDir, "main.go"), serverMain); err != nil {
 		return nil, err
 	}
 	binary := filepath.Join(buildDir, "server-bin")
@@ -266,14 +317,24 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if err := validateGeneratedVirtualRoot(p.Root); err != nil {
 		return nil, err
 	}
-	finalFingerprint, err := fingerprintExceptContext(ctx, p.Root, "")
+	var finalFingerprint string
+	if release != nil {
+		finalFingerprint, err = release.finalFingerprint(ctx, p, coreTags, moduleTags)
+	} else {
+		finalFingerprint, err = fingerprintExceptContext(ctx, p.Root, "")
+	}
 	if err != nil {
 		return nil, err
 	}
 	if finalFingerprint != fingerprint {
 		return nil, fmt.Errorf("sources changed during build; retrying on the next development cycle (or rerun build)")
 	}
-	finalInputFingerprint, err := sourceFingerprintContext(ctx, p.Root)
+	var finalInputFingerprint string
+	if release != nil {
+		finalInputFingerprint, err = release.initialFingerprint(ctx, p.Root)
+	} else {
+		finalInputFingerprint, err = sourceFingerprintContext(ctx, p.Root)
+	}
 	if err != nil {
 		return nil, err
 	}

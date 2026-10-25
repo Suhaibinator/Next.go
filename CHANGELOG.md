@@ -8,7 +8,45 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — experimental opt-in lazy Go state refresh
+## Unreleased — independent zone release endpoints and ingress
+
+The new implementation is under qualification. Its APIs and source sample do
+not prove independent build/release isolation, successful rollout/rollback or
+production/Next.js multi-zone parity. Final compiler/browser/transport evidence
+is pending.
+
+- Added `NewZoneRelease` with a fixed trusted public zone/origin, explicit exact
+  backend authorities, frozen release-scoped public/runtime assets and bounded
+  compatibility metadata. Expectation headers identify deployment compatibility;
+  they do not authenticate ingress or a tenant. Applications still authorize
+  visitors and mutations.
+- Added `NewZoneIngress` for an immutable complete active/retained release
+  snapshot, exact host/longest literal mount selection and bounded physical
+  HTTP exchanges. It preserves supported framework protocols while rejecting
+  unsupported upgrades/identities and does not add response caching, failover,
+  redirect following or mutation retry. Old asset paths never fall back to the
+  active release.
+- Added `zones release`, `zones ingress` and `zones ingress-build`. A selected
+  endpoint publishes its binary and `zone-release.json` atomically to a new
+  directory; the ingress compiler publishes a standalone binary plus its
+  routing manifest. Selected-module peer-change/fingerprint independence is
+  still being corrected/qualified and is not claimed proven here.
+- Added a [two-module source example](examples/independent-zones/README.md) with
+  public process-local state, lazy counters, actions, cookies and streamed UI.
+  Its intended A1/B1 → A2/B1 → A1/B1 flow leaves the Blog release unchanged while
+  retaining exact Alpha asset generations. It supplies no production identity,
+  durable storage, data migration or idempotency guarantee.
+
+The v1 endpoint excludes locales, image optimization, managed metadata,
+prerender and static-export purposes. Trusted public-origin and TLS/offload
+policy are independent of backend authority; forwarding headers cannot supply
+that trust. See [the new contract](docs/INDEPENDENT_ZONES.md). All 79 capability
+rows and 11 open release gates remain tracked. This entry does not claim final
+compiler/browser/transport or cloud qualification.
+
+## Source checkpoints, newest first
+
+### `76211b8` — experimental opt-in lazy Go state refresh
 
 Implemented a bounded development-only refresh contract with completed scoped
 native, WASM, browser and retirement verification. Full Fast Refresh parity,
@@ -69,7 +107,10 @@ so no zero-production-payload claim follows. See [the contract](docs/HOT_REFRESH
 for bounded ownership, limits and exact evidence. All 79 capability rows and
 11 open release gates remain tracked; previous source/CI proofs remain distinct.
 
-## Source checkpoints, newest first
+Remote CI for `76211b8` also records a failed strict published-BFCache browser
+check. Its cause remains unresolved; the earlier `bb62d65` green checkpoint is
+a separate source/result. Neither result qualifies the newer release/ingress
+source above, and no application fix is inferred from this historical failure.
 
 ### `bb62d65` — native zones and trusted deployment context
 

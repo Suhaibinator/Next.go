@@ -190,6 +190,10 @@ func (fixture *refreshCompilerFixture) proof(t *testing.T) (*devRefreshPlan, err
 	if err != nil {
 		t.Fatal(err)
 	}
+	coreTags, moduleTags, err = devRefreshBrowserBuildTags(coreTags, moduleTags)
+	if err != nil {
+		t.Fatal(err)
+	}
 	inputs, contextDigest, err := devRefreshInputs(ctx, p.Root, coreTags, moduleTags)
 	if err != nil {
 		t.Fatal(err)
@@ -448,6 +452,10 @@ func TestDevRefreshProofRejectsWithinBuildMutationAndBindsCallerFlags(t *testing
 	fixture := newRefreshCompilerFixture(t)
 	before := fixture.plan(t)
 	coreTags, moduleTags, err := browserBuildTags(context.Background(), fixture.project.Root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	coreTags, moduleTags, err = devRefreshBrowserBuildTags(coreTags, moduleTags)
 	if err != nil {
 		t.Fatal(err)
 	}

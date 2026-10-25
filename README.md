@@ -28,14 +28,21 @@ production, focused browser and four-engine Linux development checks pass for
 this bounded subset. This is one-process composition, not independent application
 releases or production tenant authentication. See [zones](docs/ZONES.md).
 
-Experimental development refresh is implemented for explicit public state
+The preceding experimental refresh checkpoint implements explicit public state
 cells in opted-in lazy components. Host development passes 33 checks; Linux
 passes 88 unique four-engine checks (44 each on Go 1.24.13 and Go 1.27.3),
 without failures, skips or retries in those completed runs. Eight separate warm
-JSON archival checks pass and are not added to the 88. It is not full Fast Refresh, arbitrary Go heap migration or
-production hot swapping. The separate legacy 335-case host suite records 334
+JSON archival checks pass and are not added to the 88. It is not full Fast
+Refresh, arbitrary Go heap migration or production hot swapping. The separate
+legacy 335-case host suite records 334
 passes and one unresolved strict Chromium BFCache failure; no causal link or
 fix is inferred.
+
+The current independent-release/ingress source is implemented under
+qualification. It separates selected application artifacts from trusted ingress
+routing and retained release assets. Compiler isolation, rollout/rollback,
+browser and transport proof is pending; no complete multi-zone or production
+parity claim follows from the new APIs.
 
 ## Run the example
 
@@ -872,6 +879,40 @@ asset CDNs/domain locales and aggregate export/prerender are unsupported, and
 same-origin applications share browser authority. [Zone ownership and CLI limits](docs/ZONES.md)
 describe startup host overrides and shutdown. Independent releases/deployments,
 real ingress and production tenant isolation remain open requirements.
+
+### Independent release endpoints and ingress (under qualification)
+
+`NewZoneRelease` binds one application to a fixed public origin, zone/mount and
+immutable release-scoped asset tree. `NewZoneIngress` reads a complete immutable
+routing snapshot with an active release per mount and exact retained asset
+routes. Public identity comes from deployment configuration, never forwarded
+headers. Exact backend authorities and compatibility headers detect routing
+mismatches; they are not caller authentication or a network boundary.
+
+The [two-module example](examples/independent-zones/README.md) declares Alpha at
+`/` and Blog at `/blog`. A selected artifact is published into a new directory:
+
+```sh
+go run ./cmd/nextgo zones release -zone alpha \
+  -public-origin http://127.0.0.1:4260 -release A1 \
+  -out /tmp/independent-alpha-A1 ./examples/independent-zones/zones.json
+/tmp/independent-alpha-A1/server -addr 127.0.0.1:4261 \
+  -backend-hosts 127.0.0.1:4261
+```
+
+Build Blog separately and create the complete ingress manifest from actual
+`zone-release.json` descriptors and backend origins. `zones ingress -manifest
+FILE` serves it through the CLI; `zones ingress-build -app APPROOT -out DIR FILE`
+produces a standalone ingress binary. See [the release/ingress contract](docs/INDEPENDENT_ZONES.md)
+for exact manifest setup and the A1/B1 → A2/B1 → A1/B1 operator flow.
+
+Ingress has bounded physical exchanges and no response cache, upstream failover,
+redirect following or automatic mutation retry. Old asset URLs stay bound to
+their exact retained release; active traffic is not an asset fallback. The v1
+endpoint excludes locales, image optimization, managed metadata and prerender/
+export purposes. Backend admission, TLS/offload policy and application data
+migration/idempotency remain explicit operator/application work. This source
+has not yet completed independent-build or deployment qualification.
 
 ## Using the framework in another module
 

@@ -209,9 +209,11 @@ unless it is a declared embed, pipeline input, or another normally watched input
 
 The supervisor additionally requires a same-child startup assertion, produced
 after application construction, bound to the actual serving build/generation
-and supported development configuration. Missing or unsupported proof preserves
-ordinary development behavior. A descriptor manifest is public metadata only;
-it cannot carry the state handoff.
+and supported development configuration. The supervisor's authoritative HTTP
+204 response explicitly disables refresh and permits ordinary baseline
+hydration. An unavailable latest-table request is not evidence that refresh was
+disabled. A descriptor manifest is public metadata only; it cannot carry the
+state handoff.
 
 An eligible update keeps the native server and serving generation, advances a
 contiguous revision, and publishes the complete module table. The core validates
@@ -221,12 +223,25 @@ fallback. Content-addressed candidate bytes are checked for exact size, digest,
 and response URL and compiled before old modules are disposed. Merely repointing
 an unchanged digest/epoch does not require retiring that runtime.
 
-A fresh document first obtains the latest descriptor table bound to its actual
-native build/generation, then hydrates. It can adopt revision N directly even
-though the still-running server's embedded baseline is older; N being nonzero
-does not itself cause another reload. Missing startup proof disables refresh
-and continues ordinary hydration. A failed transaction reloads a fresh document
-without persisting or replaying the old state snapshot.
+A fresh document first obtains a valid HTTP 200 latest descriptor table bound
+to its actual native build/generation, then mounts islands. It can adopt
+revision N directly even though the still-running server's embedded baseline is
+older; N being nonzero does not itself cause another reload. Only an authoritative
+204 permits the embedded ordinary baseline. Transport failure, malformed or
+unbound 200, 409 and 503 preserve useful SSR and withhold all island hydration.
+They do not trigger automatic document reload, recursive fetch or fallback to
+possibly stale embedded modules.
+
+One document-owned accessible panel offers **Retry loading Go** and a native
+**Reload page** link. Manual retries reuse its panel/listener, and only one
+physical manifest request is admitted at a time. Logical timeout/cancellation
+does not open another flight while the previous transport still owns callbacks;
+the native reload link remains available while it is pending. SSE received
+during failed startup is only a bounded hint: an explicit retry must obtain a
+current authoritative response before hydration. A valid response removes the
+panel; a 200 table is bound before the first mount. This cold-start recovery
+differs from a failed in-document replacement transaction, which reloads a fresh
+document without persisting or replaying the old state snapshot.
 
 The supervisor pins the serving native baseline and latest successful candidate
 directories, with bounded older generations for transition requests. This is
@@ -247,9 +262,15 @@ fresh document and no successor started in that document.
 
 That experiment did not import this framework. Its private-shim result does not
 prove browser heap reclamation, GC/RSS stabilization, arbitrary callback ownership
-or production operation. The subsequent framework evidence uses the frozen
+or production operation. The historical framework matrix below uses the frozen
 1,007-input witness
 `84996b196f69f05aba872e46ab3630d9537f672ab4a5779006f039e35489ba92`.
+
+The newer cold-start recovery correction described above has passing focused
+checks in four runtime test modes. Its two new actual-browser cases are pending
+and are not added to the historical 88 Linux or 33 host development executions.
+Those earlier results do not qualify this later source increment or replace its
+new source-frozen matrix.
 
 | Qualified scope | Result and boundary |
 | --- | --- |
@@ -283,7 +304,7 @@ not supply raw event archives for every case of that full matrix. The earlier
 38-case infrastructure interruption and zero-test prelaunch attempt remain
 separate records.
 
-The current full 335-case host primary regression result remains **334 passed,
+The recorded full 335-case host primary regression result remains **334 passed,
 one failed**. Native Chromium reported a `masked` BFCache non-restoration; the
 cause remains unresolved. An isolated comparison later observed three actual
 restores each for bare, old and new variants. Its initial observation defect,
@@ -292,8 +313,8 @@ attempt files per variant) remain archived. That comparison does not repair or
 replace the failed full-suite qualification, and no all-green 335 result is
 claimed for this source.
 
-Current G05 core size is 8,401,692 raw bytes and 2,157,893 bytes with the measured
-Node gzip-9 procedure; both budgets fail. Private-shim cleanup and bounded swaps
+The recorded refresh-phase G05 core size is 8,401,692 raw bytes and 2,157,893 bytes
+with the measured Node gzip-9 procedure; both budgets fail. Private-shim cleanup and bounded swaps
 do not prove all old runtime memory is reclaimed.
 
 Local provenance is retained under

@@ -120,6 +120,9 @@ func (scope *Scope) RefreshInstance(instanceKey string) error {
 	if !devrefresh.ValidToken(instanceKey) {
 		return fmt.Errorf("nextgo: invalid refresh instance key")
 	}
+	if !devRefreshBuild {
+		return nil
+	}
 	r := refreshStateRuntime
 	if r == nil {
 		return nil
@@ -145,6 +148,9 @@ func NewRefreshState[T any](scope *Scope, key string, initial T) (*State[T], err
 	}
 	if !devrefresh.ValidToken(key) {
 		return nil, fmt.Errorf("nextgo: invalid refresh state key")
+	}
+	if !devRefreshBuild {
+		return NewState(initial), nil
 	}
 	r := refreshStateRuntime
 	if r == nil {

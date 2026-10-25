@@ -18,6 +18,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/actionview"
 	"github.com/Suhaibinator/Next.go/internal/actionwire"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
+	"github.com/Suhaibinator/Next.go/internal/publicorigin"
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
 )
 
@@ -192,11 +193,10 @@ func (a *App) renderActionView(w http.ResponseWriter, original *http.Request, so
 		// Cookie paths match the public escaped path. cookiejar compares Path;
 		// give it the wire spelling rather than decoding encoded separators.
 		u.Path, u.RawPath = u.EscapedPath(), ""
-		u.Scheme = "http"
-		if original.TLS != nil {
-			u.Scheme = "https"
+		origin, err := publicorigin.Request(original)
+		if err == nil {
+			u.Scheme, u.Host = origin.Scheme(), origin.Host()
 		}
-		u.Host = original.Host
 		return u
 	}
 	// Incoming Cookie has no path/domain attributes. Preserve its values and

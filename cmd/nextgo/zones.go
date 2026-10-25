@@ -20,11 +20,17 @@ func executeZones(ctx context.Context, args []string) error {
 }
 
 func executeZonesWith(ctx context.Context, args []string, output io.Writer, compile zonesCompiler, develop zonesDeveloper) error {
-	const usage = "usage: nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json>"
+	const usage = "usage: nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin https://example.test [-release A1] -out DIR <zones.json> | nextgo zones ingress -manifest FILE [-addr :3000] | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
 	if len(args) == 0 {
 		return fmt.Errorf("%s", usage)
 	}
 	switch args[0] {
+	case "release":
+		return executeZoneRelease(ctx, args[1:], output)
+	case "ingress":
+		return executeZoneIngress(ctx, args[1:], output)
+	case "ingress-build":
+		return executeZoneIngressBuild(ctx, args[1:], output)
 	case "help", "-h", "--help":
 		_, err := fmt.Fprintln(output, usage)
 		return err

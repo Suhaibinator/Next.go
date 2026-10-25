@@ -31,6 +31,9 @@ type refreshActivityLease struct {
 }
 
 func enableRefreshActivity() {
+	if !devRefreshBuild {
+		return
+	}
 	if refreshActivity.enabled {
 		return
 	}
@@ -42,6 +45,9 @@ func enableRefreshActivity() {
 // begin rejects new operations before they create browser work. Disabled builds
 // retain the existing production path without allocating a lease or channel.
 func beginRefreshActivity() (*refreshActivityLease, error) {
+	if !devRefreshBuild {
+		return nil, nil
+	}
 	if !refreshActivity.enabled {
 		return nil, nil
 	}
@@ -60,6 +66,9 @@ func beginRefreshActivity() (*refreshActivityLease, error) {
 // settlement callbacks must be retained/accounted; refusing to attach would lose
 // the ability to drain cleanup and continuations of previously admitted work.
 func retainRefreshActivity() *refreshActivityLease {
+	if !devRefreshBuild {
+		return nil
+	}
 	if !refreshActivity.enabled {
 		return nil
 	}
@@ -75,6 +84,9 @@ func retainRefreshActivityLocked() *refreshActivityLease {
 	return &refreshActivityLease{tracker: &refreshActivity}
 }
 func (lease *refreshActivityLease) Done() {
+	if !devRefreshBuild {
+		return
+	}
 	if lease == nil {
 		return
 	}
@@ -91,6 +103,9 @@ func (lease *refreshActivityLease) Done() {
 	}
 }
 func refreshActivityState() refreshActivityStatus {
+	if !devRefreshBuild {
+		return refreshActivityStatus{}
+	}
 	if !refreshActivity.enabled {
 		return refreshActivityStatus{}
 	}
@@ -99,6 +114,9 @@ func refreshActivityState() refreshActivityStatus {
 	return refreshActivityStatus{Busy: refreshActivity.busy, Frozen: refreshActivity.frozen}
 }
 func freezeRefreshActivity() refreshActivityStatus {
+	if !devRefreshBuild {
+		return refreshActivityStatus{}
+	}
 	if refreshActivity.enabled {
 		refreshActivityMu.Lock()
 		refreshActivity.frozen = true
@@ -110,6 +128,9 @@ func freezeRefreshActivity() refreshActivityStatus {
 // Only the persistent development host thaws after every child has drained.
 // A retiring module keeps its fence permanently closed.
 func thawRefreshActivity() error {
+	if !devRefreshBuild {
+		return nil
+	}
 	if !refreshActivity.enabled {
 		return nil
 	}
@@ -125,6 +146,9 @@ func thawRefreshActivity() error {
 // Call only from a goroutine after freezing admission and disposing owned
 // scopes. A timed-out join must fall back to document reload, never main return.
 func waitRefreshActivity(ctx context.Context) error {
+	if !devRefreshBuild {
+		return nil
+	}
 	if ctx == nil {
 		return errors.New("nextgo: refresh drain requires a context")
 	}

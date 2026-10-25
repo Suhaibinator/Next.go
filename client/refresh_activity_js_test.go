@@ -1,4 +1,4 @@
-//go:build js && wasm
+//go:build js && wasm && nextgo_devrefresh
 
 package client
 

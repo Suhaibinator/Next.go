@@ -19,6 +19,9 @@ import (
 // RegisterDevRefresh is emitted only by a compiler-proved development build.
 // It does not change the production component ABI or navigation protocol.
 func RegisterDevRefresh(compatibility string) {
+	if !devRefreshBuild {
+		return
+	}
 	if moduleMode || devRefresh != nil || !ascii.LowerHex(compatibility, 64) {
 		panic("invalid development refresh registration")
 	}
@@ -34,6 +37,11 @@ type refreshCoordinator struct {
 	swaps                int
 	composing            bool
 	cancel               context.CancelFunc
+	startupReady         func()
+	startupLoading       bool
+	startupScope         *Scope
+	startupMessage       js.Value
+	startupRetry         js.Value
 }
 
 var devRefresh *refreshCoordinator
@@ -42,8 +50,11 @@ var devRefresh *refreshCoordinator
 var refreshModuleFence func() bool
 var refreshModuleMounting bool
 
-func devRefreshEnabled() bool { return devRefresh != nil && !devRefresh.disabled }
+func devRefreshEnabled() bool { return devRefreshBuild && devRefresh != nil && !devRefresh.disabled }
 func refreshFrozen() (frozen bool) {
+	if !devRefreshBuild {
+		return false
+	}
 	defer func() {
 		if recover() != nil {
 			frozen = true
@@ -71,25 +82,31 @@ func refreshFrozen() (frozen bool) {
 var errRefreshFrozen = fmt.Errorf("nextgo: development refresh is pending")
 
 func refreshBridgeQualified() bool {
+	if !devRefreshBuild {
+		return false
+	}
 	bridge := win.Get("__nextgoDevRuntime")
 	return bridge.Type() == js.TypeObject && !bridge.IsNull() && bridge.Get("version").Type() == js.TypeNumber && bridge.Get("version").Float() == 1 && bridge.Get("shimDigest").String() == devrefresh.ShimDigest && bridge.Get("start").Type() == js.TypeFunction
 }
 
 // The persistent Go core obtains the latest proved descriptor table before any
-// island hydration. A missing startup proof disables HMR, never a reload loop.
+// island hydration. Only the supervisor's explicit disabled response authorizes
+// baseline hydration: an unavailable latest table may hide a newer kept build.
 func bootstrapDevRefresh(ready func()) bool {
+	if !devRefreshBuild {
+		return false
+	}
 	c := devRefresh
 	if c == nil {
 		return false
 	}
-	if !routeManifest.Development || !refreshBridgeQualified() || deployment.AssetPrefix != "" {
-		c.disabled = true
-		return false
-	}
+	c.startupReady = ready
 	enableRefreshActivity()
 	callback := js.FuncOf(func(_ js.Value, args []js.Value) any {
 		if len(args) != 1 || args[0].Type() != js.TypeString {
-			c.reload()
+			if c.initialized || c.disabled {
+				c.reload()
+			}
 			return nil
 		}
 		c.receive([]byte(args[0].String()))
@@ -106,15 +123,64 @@ func bootstrapDevRefresh(ready func()) bool {
 			}
 		})
 	}
+	c.createStartupStatus()
+	c.startBootstrap()
+	return true
+}
+
+// A single document-owned panel and listener survive manual retries. They live
+// outside the application, so neither useful SSR nor a build-error banner is
+// replaced. The native GET link also works while a transport is still pending.
+func (c *refreshCoordinator) createStartupStatus() {
+	panel := doc.Call("createElement", "div")
+	panel.Set("id", "nextgo-dev-refresh-startup")
+	panel.Call("setAttribute", "role", "status")
+	message := doc.Call("createElement", "p")
+	retry := doc.Call("createElement", "button")
+	retry.Set("type", "button")
+	retry.Set("textContent", "Retry loading Go")
+	reload := doc.Call("createElement", "a")
+	reload.Set("textContent", "Reload page")
+	reload.Call("setAttribute", "href", win.Get("location").Get("href").String())
+	reload.Call("setAttribute", "data-nextgo-reload", "")
+	panel.Call("appendChild", message)
+	panel.Call("appendChild", retry)
+	panel.Call("appendChild", reload)
+	doc.Get("body").Call("appendChild", panel)
+	scope := &Scope{Root: Element{panel}}
+	scope.On(Element{retry}, "click", func(Event) { c.startBootstrap() })
+	scope.Cleanup(func() { panel.Call("remove") })
+	c.startupScope, c.startupMessage, c.startupRetry = scope, message, retry
+}
+
+func (c *refreshCoordinator) startBootstrap() {
+	if c.startupLoading || c.initialized || c.disabled || c.startupReady == nil {
+		return
+	}
+	c.startupLoading = true
+	c.startupRetry.Set("disabled", true)
+	c.startupMessage.Set("textContent", "Checking current development modules…")
+	c.startupScope.Root.Value.Call("setAttribute", "role", "status")
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), devrefresh.Watchdog)
 		defer cancel()
 		body := doc.Get("body")
 		target := devrefresh.ManifestPath + "?build=" + url.QueryEscape(body.Call("getAttribute", "data-nextgo-build").String()) + "&generation=" + url.QueryEscape(body.Call("getAttribute", "data-nextgo-dev-generation").String())
-		response, err := Fetch(ctx, target, FetchOptions{MaxBytes: devrefresh.MaxManifestBytes, Cache: "no-store", Redirect: "error"})
+		// A canceled, non-cooperative transport must not admit another physical
+		// retry. Ordinary Fetch cancellation semantics remain unchanged.
+		response, err := Fetch(ctx, target, FetchOptions{MaxBytes: devrefresh.MaxManifestBytes, Cache: "no-store", Redirect: "error", physicalSettlement: true})
+		c.startupLoading = false
+		if err == nil && response.StatusCode == 204 {
+			c.disabled, c.pending = true, nil
+			c.finishBootstrap()
+			return
+		}
 		if err == nil && response.StatusCode == 200 {
 			var manifest devrefresh.Manifest
 			manifest, err = devrefresh.ParseManifest(response.Body)
+			if err == nil && (!routeManifest.Development || !refreshBridgeQualified() || deployment.AssetPrefix != "") {
+				err = devrefresh.ErrIncompatible
+			}
 			if err == nil {
 				err = c.validateBaseline(manifest)
 			}
@@ -136,24 +202,34 @@ func bootstrapDevRefresh(ready func()) bool {
 				}
 				c.current, c.seen, c.initialized = manifest, manifest, true
 				c.mark("ready")
-			}
-		} else if err == nil {
-			err = fmt.Errorf("refresh startup proof unavailable")
-		}
-		if err != nil {
-			c.disabled = true
-			c.pending = nil
-		}
-		ready()
-		if c.pending != nil && !c.disabled {
-			pending := *c.pending
-			c.pending = nil
-			if pending.Revision > c.current.Revision {
-				c.receiveManifest(pending)
+				c.finishBootstrap()
+				if c.pending != nil {
+					pending := *c.pending
+					c.pending = nil
+					if pending.Revision > c.current.Revision {
+						c.receiveManifest(pending)
+					}
+				}
+				return
 			}
 		}
+		// Do not hydrate old descriptors, reload, or retry automatically. SSE
+		// received while failed remains a bounded hint until an explicit retry
+		// has obtained the supervisor's current authoritative full table.
+		c.mark("startup-error")
+		c.startupMessage.Set("textContent", "Could not load current development modules. Server HTML is preserved. Retry loading Go or reload the page.")
+		c.startupScope.Root.Value.Call("setAttribute", "role", "alert")
+		c.startupRetry.Set("disabled", false)
 	}()
-	return true
+}
+
+func (c *refreshCoordinator) finishBootstrap() {
+	ready := c.startupReady
+	c.startupReady = nil
+	c.startupScope.dispose()
+	c.startupScope = nil
+	c.startupMessage, c.startupRetry = js.Undefined(), js.Undefined()
+	ready()
 }
 
 func (c *refreshCoordinator) validateBaseline(m devrefresh.Manifest) error {
@@ -181,7 +257,9 @@ func (c *refreshCoordinator) validateBaseline(m devrefresh.Manifest) error {
 func (c *refreshCoordinator) receive(raw []byte) {
 	m, err := devrefresh.ParseManifest(raw)
 	if err != nil {
-		c.reload()
+		if c.initialized || c.disabled {
+			c.reload()
+		}
 		return
 	}
 	c.receiveManifest(m)

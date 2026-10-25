@@ -120,7 +120,7 @@ func trackLazyMount(state *lazyState, scope *Scope, root js.Value, props string,
 	cleanup := func() {
 		delete(state.mounts, scope)
 		// The old cleanup must never call a successor runtime's mutable exports.
-		if !state.expectedStop {
+		if !devRefreshBuild || !state.expectedStop {
 			exports.Call("dispose", handle)
 		}
 	}
@@ -222,16 +222,20 @@ func instantiateLazyModule(ctx context.Context, name string, state *lazyState, b
 			return err
 		}
 	}
-	state.runtime = runtime
-	state.runDone = make(chan struct{})
-	managed := devRefreshEnabled() && state.descriptor.StateSchema != ""
+	managed := devRefreshBuild && devRefreshEnabled() && state.descriptor.StateSchema != ""
+	if devRefreshBuild && managed {
+		state.runtime = runtime
+		state.runDone = make(chan struct{})
+	}
 	var promise js.Value
-	if managed {
+	if devRefreshBuild && managed {
 		promise = win.Get("__nextgoDevRuntime").Call("start", runtime, instance)
 	} else {
 		promise = runtime.Call("run", instance)
 	}
-	state.runPromise = promise
+	if devRefreshBuild && managed {
+		state.runPromise = promise
+	}
 	// Keep settlement callbacks alive for the document lifetime. Returning main
 	// unexpectedly invalidates the module; active Go callbacks cannot be unloaded.
 	var success, failure js.Func
@@ -244,25 +248,27 @@ func instantiateLazyModule(ctx context.Context, name string, state *lazyState, b
 		if failed {
 			state.runError = fmt.Errorf("module runtime failed")
 		}
-		if !state.expectedStop {
+		if !devRefreshBuild || !state.expectedStop {
 			state.err = fmt.Errorf("module runtime exited")
 			if failed {
 				state.err = state.runError
 				report("A Go component runtime stopped. Reload the page.")
 			}
 		}
-		close(state.runDone)
-		if managed {
+		if devRefreshBuild && managed {
+			close(state.runDone)
+		}
+		if devRefreshBuild && managed {
 			success.Release()
 			failure.Release()
 		}
-		if managed && !state.expectedStop {
+		if devRefreshBuild && managed && !state.expectedStop {
 			devRefresh.reload()
 		}
 	}
 	success = js.FuncOf(func(js.Value, []js.Value) any { settle(false); return nil })
 	failure = js.FuncOf(func(js.Value, []js.Value) any { settle(true); return nil })
-	if !managed {
+	if !devRefreshBuild || !managed {
 		globalFunctions = append(globalFunctions, success, failure)
 	}
 	promise.Call("then", success, failure)
@@ -324,7 +330,7 @@ func installModuleHost() {
 		state.exports = exports
 		return ""
 	})
-	if devRefresh != nil {
+	if devRefreshBuild && devRefresh != nil {
 		bind("refreshEnabled", func([]js.Value) any {
 			return devRefreshEnabled() && devRefresh.initialized && refreshBridgeQualified() && deployment.AssetPrefix == ""
 		})
