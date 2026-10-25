@@ -146,6 +146,9 @@ func Forms() string { return "/forms" }
 // Gallery constructs the application path for page /gallery.
 func Gallery() string { return "/gallery" }
 
+// GeneratedActions constructs the application path for page /generated-actions.
+func GeneratedActions() string { return "/generated-actions" }
+
 // Keyed constructs the application path for page /keyed.
 func Keyed() string { return "/keyed" }
 

@@ -157,6 +157,7 @@ type registration struct {
 }
 
 func New(options Options) *Router {
+	options = cloneOptions(options)
 	if len(options.UnauthorizedChallenge) > 8192 {
 		panic("actions: unauthorized challenge exceeds 8 KiB")
 	}

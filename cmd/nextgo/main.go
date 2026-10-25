@@ -48,7 +48,7 @@ func execute(ctx context.Context, args []string) error {
 	}
 	if args[0] == "generate" {
 		flags := flag.NewFlagSet("generate", flag.ContinueOnError)
-		check := flags.Bool("check", false, "check generated routes without writing")
+		check := flags.Bool("check", false, "check generated routes and action references without writing")
 		if err := flags.Parse(args[1:]); err != nil {
 			return err
 		}
@@ -63,11 +63,18 @@ func execute(ctx context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
+		actionPaths, err := project.GenerateActions(p, *check)
+		if err != nil {
+			return err
+		}
 		verb := "Generated"
 		if *check {
 			verb = "Checked"
 		}
 		fmt.Fprintf(os.Stdout, "%s typed routes: %s\n", verb, path)
+		for _, actionPath := range actionPaths {
+			fmt.Fprintf(os.Stdout, "%s action references: %s\n", verb, actionPath)
+		}
 		return nil
 	}
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)

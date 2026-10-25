@@ -33,6 +33,7 @@ The example includes:
 | `/posts?delay=750ms` | Cancellable server loading and navigation status |
 | `/posts?fail=1` | Route error boundary |
 | `/features` | JSON action, progressive HTML form, navigation/refresh controls |
+| `/generated-actions` | Discovered typed JSON/multipart actions, native forms and explicit snapshot refresh |
 | `/lifecycle` | Bounded request completion callbacks |
 | `/cache` | Server fresh/stale/hard-expiry snapshots and strict mutation publication |
 | `/shared-cache` | Optional authenticated shared JSON data across app processes; background refresh and stale marking |
@@ -416,6 +417,21 @@ An ordinary `method="post" action="/_nextgo/actions/save"` form works without WA
 
 Action requests accept POST only, bound bodies to 1 MiB by default, reject cross-origin browser requests, validate redirects and hide unexpected errors. [Action security/HTTP documentation](actions/README.md) describes Origin/Referer/Fetch Metadata checks, proxy `AllowedOrigins`, validation and multipart cleanup. Origin checks do not authenticate users. Wire `Options.OnRevalidate` to the process-local configured cache after successful mutations, as [the sample configuration](examples/demo/app/config.go) does. Persistence, transactions, retry deduplication and authorization belong in the application.
 
+### Generated action references
+
+Put shared `Input`/`Output` and a literal, versioned `mutation.Contract` in
+`actions/<name>/contract.go`, with native-only `Handle`/`Options` in `action.go`.
+`nextgo generate` discovers these declarations without executing application
+code and emits shared path/type aliases, named Go/WASM calls and native
+registration in `actionrefs`. The CLI attaches registration to an app-owned
+router clone; existing manual actions and configured router hooks remain usable.
+
+Try `/generated-actions`, or run
+`go run ./cmd/nextgo generate --check ./examples/demo` to check owned outputs.
+Generated calls reuse the typed mutation transport; UI refresh, navigation,
+authorization and persistence remain explicit application decisions. This new
+subset is under qualification. See [conventions, examples and startup guarantees](docs/GENERATED_ACTIONS.md).
+
 ## Streaming, metadata, images, and static export
 
 Set `Page.Stream: true` and describe a deferred server boundary:
@@ -664,7 +680,7 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and intercepted routes, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, generated remote action stubs and one-response streamed mutations, optimistic rollback, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and intercepted routes, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and one-response refreshed/streamed mutations, optimistic rollback, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, CSS/Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
 
 The optimized reference build still has a multi-megabyte Go WASM runtime; see [measured sizes and performance limits](docs/PERFORMANCE.md). Loading and compiling it takes time; useful SSR and ordinary links are available first. DOM access uses `syscall/js`, an experimental API outside Go's compatibility guarantee. CPU-heavy Go work can block the browser main thread. These are real tradeoffs of this implementation, not features hidden by the framework. See the [Go WebAssembly guide](https://go.dev/wiki/WebAssembly) and [`syscall/js` documentation](https://pkg.go.dev/syscall/js).
 

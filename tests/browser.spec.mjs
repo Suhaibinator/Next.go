@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readerToken, adminToken } from './access-fixture.mjs';
 import { createServer, request as proxyRequest } from 'node:http';
+import { createStreamGate } from './stream-gate.mjs';
 
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
 const notes = page => page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Field notes', exact: true });
@@ -683,15 +684,22 @@ test('Go server actions refresh data and invalidate prefetch while preserving la
 });
 
 test('initial streaming shell stays intact as deferred content arrives and hydrates', async ({ page }) => {
-  await page.goto('/stream', { waitUntil: 'commit' });
-  await expect(page.locator('[data-stream-loading]')).toBeVisible();
-  await page.evaluate(() => { window.streamApp = document.getElementById('nextgo-app'); window.streamHeading = document.querySelector('h1'); });
-  await expect(page.locator('[data-stream-loaded]')).toBeVisible();
-  await ready(page);
-  expect(await page.evaluate(() => window.streamApp === document.getElementById('nextgo-app') && window.streamHeading === document.querySelector('h1'))).toBe(true);
-  await page.getByRole('button', { name: 'Increase Streamed counter', exact: true }).click();
-  await expect(page.locator('[data-count]')).toHaveText('8');
-  await expect(page.locator('[data-stream-loading]')).toHaveCount(0);
+  const gate = await createStreamGate('http://127.0.0.1:4100');
+  try {
+    await page.goto(gate.origin + '/stream', { waitUntil: 'commit' });
+    expect((await gate.shell).bytes).toBeGreaterThan(0);
+    await expect(page.locator('[data-stream-loading]')).toBeVisible();
+    await expect(page.locator('[data-stream-loaded]')).toHaveCount(0);
+    await page.evaluate(() => { window.streamApp = document.getElementById('nextgo-app'); window.streamHeading = document.querySelector('h1'); });
+    await ready(page); // Runtime assets are forwarded while deferred bytes wait.
+    gate.release();
+    await expect(page.locator('[data-stream-loaded]')).toBeVisible();
+    await ready(page);
+    expect(await page.evaluate(() => window.streamApp === document.getElementById('nextgo-app') && window.streamHeading === document.querySelector('h1'))).toBe(true);
+    await page.getByRole('button', { name: 'Increase Streamed counter', exact: true }).click();
+    await expect(page.locator('[data-count]')).toHaveText('8');
+    await expect(page.locator('[data-stream-loading]')).toHaveCount(0);
+  } finally { await gate.close(); }
 });
 
 test('sample metadata and image information update and clear during navigation', async ({ page }) => {

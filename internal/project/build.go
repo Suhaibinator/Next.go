@@ -43,6 +43,9 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	if _, err = GenerateRoutes(p, false); err != nil {
 		return nil, err
 	}
+	if _, err = GenerateActions(p, false); err != nil {
+		return nil, err
+	}
 	fingerprint, err := fingerprintExceptContext(ctx, p.Root, "")
 	if err != nil {
 		return nil, err
@@ -251,6 +254,9 @@ func serverSource(p *Project, id string, dev bool) string {
 	if p.Configure != "" {
 		imports[p.Configure] = true
 	}
+	if len(p.Actions) > 0 {
+		imports[p.Import+"/actionrefs"] = true
+	}
 	for _, handler := range []string{p.Unauthorized, p.Forbidden} {
 		if handler != "" {
 			imports[handler] = true
@@ -291,6 +297,9 @@ nextgo "` + framework + `"
 	b.WriteString("}}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
 	if p.Configure != "" {
 		fmt.Fprintf(&b, "%s.Configure(&config)\n", aliases[p.Configure])
+	}
+	if len(p.Actions) > 0 {
+		fmt.Fprintf(&b, "config.ActionRegistrars=append(config.ActionRegistrars,%s.Register)\n", aliases[p.Import+"/actionrefs"])
 	}
 	b.WriteString(`ctx,stop:=signal.NotifyContext(context.Background(),syscall.SIGINT,syscall.SIGTERM);defer stop()
 app,err:=nextgo.NewContext(ctx,config);if err!=nil{log.Fatal(err)};if *exportCheck{if _,err=app.StaticExportConfig(nextgo.StaticExportOptions{Domain:*exportDomain});err!=nil{log.Fatal(err)};return}

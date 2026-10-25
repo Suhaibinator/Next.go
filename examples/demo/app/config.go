@@ -101,6 +101,7 @@ func Configure(config *nextgo.Config) {
 	config.CacheProfileSpecs["demo-evergreen"] = cache.ProfileSpec{}
 	config.CacheProfiles["demo-profile"] = cache.Profile{Stale: 2 * time.Second, Revalidate: time.Second, Expire: 8 * time.Second}
 	configureSharedPages(config)
+	configureGeneratedActions(config)
 	config.Images = media.Handler()
 	if config.Handlers == nil {
 		config.Handlers = media.CrawlersWithPaths(nextgo.PathConfig{BasePath: config.BasePath, TrailingSlash: config.TrailingSlash})

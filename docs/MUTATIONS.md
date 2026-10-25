@@ -175,8 +175,11 @@ cancellation, protocol/schema poisoning, endpoint origin, redirect rejection,
 optimistic cleanup, deployment prefixes and locale/domain scopes. Generated
 HTTP and buffered/streaming mock Lambda fixtures check typed metadata and data.
 
-This generic API provides typed calls directly; it does not yet discover action
-files or generate per-action named stubs. Single-response refreshed/streamed UI,
+This generic API provides typed calls directly. Optional
+[generated action discovery](GENERATED_ACTIONS.md) now emits named browser calls,
+shared aliases/path helpers and native registration from explicit action
+packages; it delegates to this same transport. Its new qualification is pending.
+Single-response refreshed/streamed UI,
 automatic form-state mapping, transaction/idempotency adapters, richer auth
 integrations and full production/network/resource/cloud qualification remain
 open in [the parity inventory](PARITY.md). Next.js documents its server-function

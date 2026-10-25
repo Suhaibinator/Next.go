@@ -114,6 +114,8 @@ jobs:
         run: npm run test:partial-shell
       - name: Bounded viewport prefetch and lifecycle conformance
         run: npm run test:viewport
+      - name: Generated action callers and progressive native forms
+        run: npm run test:generated-actions
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -154,6 +156,8 @@ jobs:
         run: sh ./scripts/test-partial-shell-container.sh
       - name: Viewport prefetch Linux browser conformance
         run: sh ./scripts/test-viewport-container.sh
+      - name: Generated action Linux browser conformance
+        run: sh ./scripts/test-generated-actions-container.sh
       - name: Official OTLP collector integration
         run: ./scripts/test-collector-container.sh
       - uses: actions/upload-artifact@v4

@@ -74,6 +74,7 @@ type Project struct {
 	owners                                                   map[string]Route
 	Routes                                                   []Route
 	Components                                               []Component
+	Actions                                                  []Action
 }
 
 func ignored(name string) bool {
@@ -104,6 +105,10 @@ func Discover(root string) (*Project, error) {
 		imp += "/" + filepath.ToSlash(rel)
 	}
 	p := &Project{Root: abs, ModuleDir: mod.Dir, ModulePath: mod.Path, Import: imp}
+	p.Actions, err = DiscoverActions(p)
+	if err != nil {
+		return nil, err
+	}
 	appDir := filepath.Join(abs, "app")
 	if _, err = discoverApp(p, appDir, imp+"/app", "/"); err != nil {
 		return nil, err

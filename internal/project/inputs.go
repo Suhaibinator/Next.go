@@ -285,6 +285,17 @@ func hashInputs(plan inputPlan, skip string) (string, error) {
 }
 func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string, error) {
 	hash := sha256.New()
+	skipped := map[string]bool{}
+	if skip != "" {
+		skipped[skip] = true
+		// Input-only snapshots exclude exactly our four published Go outputs.
+		// Full build/watch fingerprints pass no skip and include every output.
+		if filepath.Base(skip) == "nextgo_gen.go" && filepath.Base(filepath.Dir(skip)) == "routes" {
+			for _, generated := range actionFiles(filepath.Dir(filepath.Dir(skip))) {
+				skipped[generated] = true
+			}
+		}
+	}
 	seen := map[string]bool{}
 	var total int64
 	record := func(name string, kind byte, size int64) error {
@@ -300,7 +311,7 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 	scanned := map[string]bool{}
 	var consume func(string, bool, bool) error
 	consume = func(name string, allowMissing, followLink bool) error {
-		if name == skip || seen[name] {
+		if skipped[name] || seen[name] {
 			return nil
 		}
 		if err := ctx.Err(); err != nil {
@@ -381,7 +392,7 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			if name == skip {
+			if skipped[name] {
 				return nil
 			}
 			relative, err := filepath.Rel(moduleRoot, name)

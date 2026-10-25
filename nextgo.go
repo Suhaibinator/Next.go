@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Suhaibinator/Next.go/actions"
+
 	"github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/cache"
 	"github.com/Suhaibinator/Next.go/cache/shared"
@@ -177,10 +179,14 @@ type Config struct {
 	Headers           http.Header
 	Handlers          map[string]http.Handler
 	Actions           http.Handler
-	Images            http.Handler
-	Redirects         []RedirectRule
-	Rewrites          []RewriteRule
-	Proxy             ProxyOptions
+	// ActionRegistrars install native action modules on an application-owned
+	// router. An existing *actions.Router is cloned; opaque handlers cannot be
+	// combined with declarations. Register handlers here before serving traffic.
+	ActionRegistrars []func(*actions.Router)
+	Images           http.Handler
+	Redirects        []RedirectRule
+	Rewrites         []RewriteRule
+	Proxy            ProxyOptions
 	// Streaming bounds progressive-page rendering and deferred callbacks across
 	// this application, including managed locale mounts.
 	Streaming       StreamingOptions
@@ -394,6 +400,9 @@ func newApp(c Config) (*App, error) {
 		return nil, err
 	}
 	if err := a.initCacheProfiles(); err != nil {
+		return nil, err
+	}
+	if err := a.initActionRegistrars(); err != nil {
 		return nil, err
 	}
 	if err := a.validateSharedPages(); err != nil {
