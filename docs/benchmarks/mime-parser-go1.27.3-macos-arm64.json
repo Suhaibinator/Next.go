@@ -1,0 +1,113 @@
+{
+  "scope": "Controlled dependency experiment from an isolated source snapshot of commit 467ba2f, using one identical generated demo core entrypoint and identical lazy descriptors. Only MIME parser package placement/target wrappers differ. This is not a current whole-application release benchmark, startup/CPU/memory measurement, or Next.js comparison.",
+  "source": {
+    "baseCommit": "467ba2f5bf0565bf526ea732b61f46dc4e562168",
+    "vcsModified": true,
+    "whyModified": "Identical tracked .gitignore marker sets both build variants dirty; the candidate also contains the isolated MIME extraction. Production worktree was not compiled for byte comparison.",
+    "liveImplementation": "ui/media_type_native.go uses SDK mime; ui/media_type_js.go uses internal/mediatype. Native media behavior remains on the installed SDK."
+  },
+  "toolchain": {
+    "go": "go version go1.27.3 darwin/arm64",
+    "node": "v25.7.0",
+    "zlib": "1.3.1-e00f703",
+    "target": "js/wasm",
+    "flags": [
+      "-trimpath",
+      "-ldflags=-s -w"
+    ],
+    "jsonPolicy": "Installed SDK defaults; no GOEXPERIMENT/nojsonv2 override"
+  },
+  "baseline": {
+    "raw": 8320548,
+    "gzip9": 2142555,
+    "sha256": "6c990c63ff55614aaec012b7b290ea2a630940d9cd5d017c798e2af9c4009f5f"
+  },
+  "targetWrapperCandidate": {
+    "raw": 8220143,
+    "gzip9": 2115841,
+    "sha256": "e0bd6993d0846234af733315b8c083c5d2038ca00aa0ee450d336865850a1085"
+  },
+  "directPureParserReference": {
+    "raw": 8220143,
+    "gzip9": 2115841,
+    "sha256": "dad9e89f27e19ab472803b9fa94044db8f0aaa4bfe36319516bd838cba7e3cff"
+  },
+  "difference": {
+    "rawBytesSaved": 100405,
+    "nodeGzip9BytesSaved": 26714
+  },
+  "wrapperEquivalence": {
+    "allStandardWasmSectionsIdenticalToDirectPureParserReference": true,
+    "codeSectionBytes": 5417686,
+    "dataSectionBytes": 2788839,
+    "wholeFileSHAIdentical": false,
+    "reason": "The custom go:buildid section differs when source changes; all standard WASM sections are byte-identical, and raw/gzip-9 counts match."
+  },
+  "dependencyDifference": {
+    "removed": [
+      "mime",
+      "bufio"
+    ],
+    "added": [
+      "github.com/Suhaibinator/Next.go/internal/mediatype"
+    ],
+    "explanation": "The shared ui import no longer retains MIME extension-database/OS-discovery initialization in WASM. Video/Audio still have the complete MIME type/parameter parser when called."
+  },
+  "matchingRuntimeAssets": {
+    "wasmExecSHA256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+    "bootstrapSHA256": "26afab8a89fa1f2108230ee7e7e176b2953b14f1017bf75f4c2b8d31568155ff"
+  },
+  "linkedCodeProfile": {
+    "method": "A separate named diagnostic build has a byte-identical code section to the default stripped baseline; function body byte lengths are grouped by exact normalized package prefixes. Excludes data/type metadata, section framing, compression and runtime allocations.",
+    "defaultCodeSectionBytes": 5489157,
+    "defaultDataSectionBytes": 2817644,
+    "candidateCodeSectionBytes": 5417686,
+    "candidateDataSectionBytes": 2788839,
+    "namedDiagnosticCodeSectionIdenticalToDefault": true,
+    "functionCount": 4239,
+    "selectedPackageBodyBytes": {
+      "github.com/Suhaibinator/Next.go/client": 1272095,
+      "runtime": 1200128,
+      "encoding/json/v2": 448427,
+      "encoding/json/jsontext": 199910,
+      "encoding/json/internal/jsonwire": 54718,
+      "encoding/json": 36915,
+      "reflect": 266277,
+      "internal/reflectlite": 32187,
+      "mime": 40359,
+      "bufio": 7332,
+      "fmt": 180262,
+      "time": 159053,
+      "github.com/Suhaibinator/Next.go/mutation": 195524
+    },
+    "functionFamilyBodyBytes": {
+      "BindSubmit": 99789,
+      "BindText": 38813,
+      "BindMultiple": 28144,
+      "KeyedList.Set": 18751,
+      "mutation.callTransport": 52963,
+      "mutation.refreshTransport": 17994,
+      "InstallModuleHost": 24215
+    },
+    "remainingFactoringNotes": "Generic DOM submission/typed transport contain repeated model-shape bodies, but these totals are not fully removable savings. Core JSON reflection remains necessary for current generic APIs; no default runtime-policy or feature-removal recommendation follows."
+  },
+  "focusedVerification": {
+    "nativeGo127": "go test -race ./internal/mediatype ./ui",
+    "wasmGo127": "Matching Go 1.27.3 runtime, internal/mediatype + ui tests pass",
+    "nativeGo124": "Go 1.24.13 read-only Linux source, parser + UI corpus pass",
+    "wasmGo124": "Matching Go 1.24.13 runtime with Node 24.22.1, parser + UI corpus pass",
+    "differentialFuzz": {
+      "executions": 416679,
+      "durationSeconds": 10,
+      "result": "PASS",
+      "limitation": "Short installed-SDK oracle fuzz observation, not sustained release fuzz qualification"
+    }
+  },
+  "referenceBudgets": {
+    "coreRawBytes": 6291456,
+    "coreNodeGzip9Bytes": 1677721,
+    "candidateRawPass": false,
+    "candidateNodeGzip9Pass": false,
+    "result": "FAIL; production performance and all parity gates remain open"
+  }
+}

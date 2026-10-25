@@ -1,6 +1,10 @@
 package nextgo
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Suhaibinator/Next.go/metadatafiles"
+)
 
 // StaticExportScope identifies one document/navigation ownership namespace.
 // Prefix is relative to the application's global BasePath. Configuration is
@@ -14,11 +18,12 @@ type StaticExportScope struct {
 // ExportConfig is the bounded native build-tool contract for static publication.
 // It contains public URL/compatibility information, never loaders or secrets.
 type ExportConfig struct {
-	Version int                 `json:"version"`
-	Build   string              `json:"build"`
-	Paths   PathConfig          `json:"paths"`
-	Scopes  []StaticExportScope `json:"scopes"`
-	Domain  string              `json:"domain,omitempty"`
+	Version  int                   `json:"version"`
+	Build    string                `json:"build"`
+	Paths    PathConfig            `json:"paths"`
+	Scopes   []StaticExportScope   `json:"scopes"`
+	Domain   string                `json:"domain,omitempty"`
+	Metadata []metadatafiles.Entry `json:"metadata,omitempty"`
 }
 
 // StaticExportOptions selects one configured public host. Domain routing must
@@ -73,6 +78,13 @@ func (a *App) StaticExportConfig(options ...StaticExportOptions) (ExportConfig, 
 		}
 	}
 	result := ExportConfig{Version: 1, Build: a.config.BuildID, Paths: a.Paths()}
+	if a.config.metadataSet != nil {
+		result.Metadata = a.config.metadataSet.Entries()
+		if len(result.Metadata) > 0 {
+			// Earlier exporters must reject rather than omit declared resources.
+			result.Version = 2
+		}
+	}
 	result.Domain = domain
 	if a.locales == nil {
 		result.Scopes = []StaticExportScope{{Configuration: a.configurationID}}

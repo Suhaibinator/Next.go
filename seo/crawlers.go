@@ -22,6 +22,16 @@ type SitemapEntry struct {
 // Sitemap validates and snapshots entries into an XML HTTP handler. Applications
 // with more than 50,000 URLs must split them into multiple sitemap documents.
 func Sitemap(entries []SitemapEntry) (http.Handler, error) {
+	data, err := MarshalSitemap(entries)
+	if err != nil {
+		return nil, err
+	}
+	return staticHandler("application/xml; charset=utf-8", data), nil
+}
+
+// MarshalSitemap validates entries and returns their escaped XML representation.
+// It shares Sitemap's 50,000 URL and 50 MiB limits and does not fetch any URLs.
+func MarshalSitemap(entries []SitemapEntry) ([]byte, error) {
 	if len(entries) > 50000 {
 		return nil, fmt.Errorf("seo: sitemap exceeds 50000 URLs")
 	}
@@ -69,7 +79,7 @@ func Sitemap(entries []SitemapEntry) (http.Handler, error) {
 	if len(data) > 50*1024*1024 {
 		return nil, fmt.Errorf("seo: sitemap exceeds 50 MiB")
 	}
-	return staticHandler("application/xml; charset=utf-8", data), nil
+	return data, nil
 }
 
 type SitemapIndexEntry struct {
@@ -127,6 +137,16 @@ type RobotsOptions struct {
 // Robots returns a robots.txt handler. A rule without UserAgents targets "*".
 // Rules are crawler instructions; they do not enforce access control.
 func Robots(options RobotsOptions) (http.Handler, error) {
+	data, err := MarshalRobots(options)
+	if err != nil {
+		return nil, err
+	}
+	return staticHandler("text/plain; charset=utf-8", data), nil
+}
+
+// MarshalRobots validates options and returns crawler directives as plain text.
+// It shares Robots' syntax, does not fetch sitemap URLs and is not access control.
+func MarshalRobots(options RobotsOptions) ([]byte, error) {
 	var b strings.Builder
 	validLine := func(s string) bool {
 		return strings.IndexFunc(s, func(r rune) bool { return unicode.IsControl(r) }) < 0
@@ -164,7 +184,7 @@ func Robots(options RobotsOptions) (http.Handler, error) {
 		}
 		fmt.Fprintf(&b, "Sitemap: %s\n", sitemap)
 	}
-	return staticHandler("text/plain; charset=utf-8", []byte(b.String())), nil
+	return []byte(b.String()), nil
 }
 
 func staticHandler(contentType string, data []byte) http.Handler {

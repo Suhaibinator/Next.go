@@ -4,12 +4,17 @@ A Go full-stack web framework with server-rendered HTML, file routes, nested lay
 
 **Experimental: feature parity and production maturity are unfinished.** The target is a Go alternative to Next.js, without React/JSX source compatibility. [The capability inventory and release gates](docs/PARITY.md) distinguish implemented subsets from remaining work. Native race tests, Chromium production/development/static-host suites and Firefox/WebKit production checks cover implemented subsets. Recorded integrated checks qualify their named source checkpoints; complete browser qualification, release security review, performance and operational release gates remain open.
 
-The current resource, social-image, embed, asset-tool and inspection increment
+The preceding resource, social-image, embed, asset-tool and inspection increment
 has passing scoped qualification: 373 host browser checks and 44 Linux
 cross-engine feature checks, both SDK native/WASM checks, 228 existing executable
 checks and eight new local mock Lambda cases. These are separate result groups,
 not real AWS or full release qualification. Historical ASCII-build and browser
 results below describe their own checkpoints.
+
+The new configuration-phase, managed-metadata and bounded-content increment
+has passing native/WASM, focused example and final Linux metadata/CSS browser
+checks for its bounded contracts. These are scoped results, recorded separately
+in [the inventory](docs/PARITY.md), not full release qualification.
 
 ## Run the example
 
@@ -101,6 +106,12 @@ returning and propagate its error. Export rejects the declaration before
 publishing HTML/navigation bodies, preserving prior output. It is an explicit
 dependency declaration, not automatic Go/API analysis. See
 [static deployment dependencies](docs/STATIC_DEPENDENCIES.md).
+
+`Config.Phase` distinguishes development, production, prerender capture and
+static export before `Configure` runs. Export selects its own configuration and
+cache identity, renders fresh output and leaves production private snapshot/seed
+imports untouched. This is native startup purpose, not request authorization.
+See [phase validation and isolation](docs/CONFIG_PHASES.md).
 
 The controlled ASCII-validator build comparison reduces the Go 1.27.3 example
 core from 8,689,715 to 8,191,328 raw bytes (2,233,505 to 2,107,698 gzip-9).
@@ -503,7 +514,24 @@ Body: ui.El("main", nil,
 
 Full-document requests flush the initial shell and later inert templates. Go/WASM waits for each template's matching outside completion marker before moving its existing nodes into the boundary and hydrating its islands; no executable inline patch scripts are generated. The fallback remains visible while the HTML parser has only part of a chunk. **Deferred chunks require WASM to become visible**; the no-script view keeps fallback content. Negotiated navigation commits a validated shell, then independently nested chunks as they arrive. Older clients still receive complete buffered envelopes. Explicit partial shells with registered request-time regions are available; automatic partial-shell analysis, metadata streaming and independent route/slot ownership remain unfinished. Failures after headers flush use generic boundary error content. See [the streaming sample](examples/demo/app/stream/page.go) and [completion contract](docs/STREAMING.md#initial-document-completion).
 
-`seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, manifests/file discovery, automatic font download/subsetting and broader script integration remain outstanding. Local font/stylesheet resources are available through the assets API below.
+`seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, broader metadata-file conventions, automatic font download/subsetting and broader script integration remain outstanding. Local font/stylesheet resources are available through the assets API below.
+
+Managed app-root metadata discovers six explicit public files (`robots.txt`,
+`sitemap.xml`, `favicon.ico`, `icon.png`, `apple-icon.png`,
+`manifest.webmanifest`) and optional native `Robots`, `Sitemap` and `Manifest`
+startup factories. They publish global mounted public bytes, independent of
+request cookies, locale negotiation and asset CDN prefixes. These paths bypass
+page middleware, rewrites and draft binding; declare only public bytes. Typed head defaults
+can inherit, override or clear icon/manifest groups. Export validates the
+declared version-2 inventory before publication. See
+[metadata format/trust limits](metadatafiles/README.md) and the styled
+[metadata example](examples/metadata-site/README.md).
+
+`content.Parse` renders an explicit bounded Markdown subset through escaped
+`ui.Node` values, with no raw HTML, document code or implicit file/network load.
+Compose trusted Go components around the result. It is neither CommonMark nor
+MDX; the [syntax and limits](docs/CONTENT.md) and styled
+[content example](examples/content/README.md) describe native/static use.
 
 `socialimage.Render` and `socialimage.NewHandler` compose bounded typed layouts, bitmap
 text and supplied image bytes into PNGs using Go's standard library. The
@@ -740,6 +768,20 @@ Current automated results, toolchain/browser counts and remaining release gates 
 
 Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to use an existing Chromium binary. Go normally uses its standard caches; restricted environments can set `GOCACHE` and `GOMODCACHE` to writable directories.
 
+The metadata and Lambda browser helpers use existing production binaries and
+never rebuild them. For example, after building the corresponding applications:
+
+```sh
+NEXTGO_METADATA_SERVER_BINARY=/absolute/path/metadata-site/server npm run test:metadata-files
+NEXTGO_E2E_SERVER_BINARY=/absolute/path/demo/server npm run test:lambda:browser
+```
+
+`NEXTGO_METADATA_STATIC_ROOT` optionally adds a separately exported metadata tree
+to its browser fixture. The Lambda helper drives a local Runtime API gateway;
+its browser results do not establish actual AWS behavior or qualify a different
+binary. [Metadata setup](examples/metadata-site/README.md) documents build/export
+and mounted/CDN settings.
+
 ## Using the framework in another module
 
 This repository is the source distribution; no published release is assumed. For local development, create a module and point it at your checkout:
@@ -768,7 +810,7 @@ Each lazy package runs a separate Go runtime with copied dependencies and docume
 
 Implemented foundations and package-tested subsets include expanded routing, route boundaries, configuration/middleware/conditional redirects and bounded external rewrites, local data/public-page caching and invalidation, explicit server actions/progressive forms, compression, typed metadata/crawler resources, local image optimization, staged page response controls, local font/stylesheet resources and a Lambda adapter. Persistent layout identity/state, native browser view transitions, intent prefetch, streamed chunks and rich head updates are exercised by Chromium integration tests. Their broader parity and production semantics remain partial.
 
-Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, advanced CSS tooling/module semantics and Markdown content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
+Outstanding work includes replicated cache authorities, nested lifetime propagation and implicit cached-function scopes, complete invalidation coordination and shared-prerender operational release qualification, automatic partial-shell analysis and complete Cache Components semantics, independent slot streaming/head composition and advanced intercepted-overlay ownership, retained whole-page state, automatic route-specific WASM splitting and shared dependency grouping, state-preserving HMR, inline server closures and complete action-view form/state coordination, automatic SSR reconciliation and optimistic-list coordination, managed authentication, full locale/translation tooling, negotiated static publication and static-host redirect generation, remote/modern-format images, automatic font optimization and remaining script strategies/integration, advanced CSS tooling/module semantics and richer Markdown/component content pipelines, complete OpenTelemetry SDK/semantic support, metrics and browser/build instrumentation, and production performance/security/recovery qualification. Static export has verified basic static-host behavior and explicit server-feature restrictions; hybrid prerender analysis and full ISR release qualification remain unfinished; explicit parent enumeration and authority-admitted shared seeds have separate bounded contracts. [PARITY.md](docs/PARITY.md) retains all 79 capability rows and 11 open release gates; this feature list does not replace that target.
 
 The [compatibility and upgrade policy](docs/COMPATIBILITY.md),
 [changelog](CHANGELOG.md) and [security-reporting status](SECURITY.md) describe

@@ -75,6 +75,9 @@ func (a *App) StaticPaths(ctx context.Context) ([]string, error) {
 			if len(path) > 8192 {
 				return nil, fmt.Errorf("static path exceeds 8 KiB")
 			}
+			if a.config.metadataSet != nil && a.config.metadataSet.Handles(a.paths.BasePath+path) {
+				return nil, fmt.Errorf("static path %q for %s is shadowed by managed metadata", path, route.Pattern)
+			}
 			for _, selected := range a.routes {
 				if _, ok := match(selected.Pattern, path); ok {
 					if selected.Pattern != route.Pattern {

@@ -13,7 +13,6 @@ import (
 )
 
 func TestGeneratedStylesheetReferenceAndRevalidation(t *testing.T) {
-	t.Setenv("NEXTGO_CSS_STATIC", "")
 	for _, prefix := range []string{"", "/cdn"} {
 		config := nextgo.Config{BuildID: "css-example", AssetPrefix: prefix, Assets: fstest.MapFS{"public/style.css": {Data: []byte("body { color: blue; }")}}, Routes: []nextgo.Route{{Pattern: "/", Page: Page}}}
 		Configure(&config)
@@ -38,7 +37,6 @@ func TestGeneratedStylesheetReferenceAndRevalidation(t *testing.T) {
 }
 
 func TestGeneratedStylesheetRenderedWithBasePathAndAbsoluteCDN(t *testing.T) {
-	t.Setenv("NEXTGO_CSS_STATIC", "")
 	config := nextgo.Config{BuildID: "css-example-cdn", BasePath: "/site", AssetPrefix: "https://cdn.test/static", Assets: fstest.MapFS{"public/style.css": {Data: []byte("body { color: blue; }")}}, Routes: []nextgo.Route{{Pattern: "/", Page: Page}}}
 	Configure(&config)
 	app, err := nextgo.New(config)
@@ -65,7 +63,6 @@ func TestGeneratedStylesheetRenderedWithBasePathAndAbsoluteCDN(t *testing.T) {
 }
 
 func TestNativeCSSPolicyRejectsStaticExport(t *testing.T) {
-	t.Setenv("NEXTGO_CSS_STATIC", "")
 	config := nextgo.Config{BuildID: "css-native-export-check", Routes: []nextgo.Route{{Pattern: "/", Page: Page}}}
 	Configure(&config)
 	app, err := nextgo.New(config)
@@ -80,9 +77,8 @@ func TestNativeCSSPolicyRejectsStaticExport(t *testing.T) {
 	}
 }
 
-func TestStaticCSSDeploymentModeSupportsExport(t *testing.T) {
-	t.Setenv("NEXTGO_CSS_STATIC", "true")
-	config := nextgo.Config{BuildID: "css-static-export-check", BasePath: "/site", AssetPrefix: "https://cdn.test/static", Assets: fstest.MapFS{"public/style.css": {Data: []byte("body { color: blue; }")}}, Routes: []nextgo.Route{{Pattern: "/", Page: Page}}}
+func TestStaticCSSPhaseSupportsExport(t *testing.T) {
+	config := nextgo.Config{Phase: nextgo.PhaseStaticExport, BuildID: "css-static-export-check", BasePath: "/site", AssetPrefix: "https://cdn.test/static", Assets: fstest.MapFS{"public/style.css": {Data: []byte("body { color: blue; }")}}, Routes: []nextgo.Route{{Pattern: "/", Page: Page}}}
 	Configure(&config)
 	if len(config.HeaderRules) != 0 {
 		t.Fatal("static deployment mode retained native-only header rule")

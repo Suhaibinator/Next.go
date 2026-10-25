@@ -14,11 +14,11 @@ import (
 )
 
 // Metadata describes a document head. Empty fields inherit when Merge is used.
-// URLs other than icon paths require absolute HTTP(S) values unless BaseURL
+// URLs other than icon/manifest paths require absolute HTTP(S) values unless BaseURL
 // is set; BaseURL enables validated relative canonical/social/alternate URLs.
 type Metadata struct {
 	// BaseURL is a trusted absolute HTTP(S) directory base for canonical, social
-	// and alternate URLs. Icon paths remain application asset references.
+	// and alternate URLs. Icon/manifest paths remain application asset references.
 	BaseURL                               string
 	TitleTemplate                         string
 	AbsoluteTitle                         bool
@@ -29,6 +29,9 @@ type Metadata struct {
 	Twitter                               Twitter
 	Alternates                            map[string]string
 	Icons                                 []Icon
+	// Manifest is a public asset URL. Nil inherits; a pointer to an empty string
+	// explicitly disables an inherited manifest. BaseURL does not rewrite it.
+	Manifest *string
 }
 
 type OpenGraph struct {
@@ -118,6 +121,12 @@ func Elements(m Metadata) ([]Element, error) {
 			return nil, err
 		}
 		link("canonical", m.Canonical, nil)
+	}
+	if m.Manifest != nil && *m.Manifest != "" {
+		if err := manifestURL(*m.Manifest); err != nil {
+			return nil, err
+		}
+		link("manifest", *m.Manifest, nil)
 	}
 	og := m.OpenGraph
 	for _, kv := range [][2]string{{"title", og.Title}, {"description", og.Description}, {"type", og.Type}, {"site_name", og.SiteName}, {"locale", og.Locale}} {
@@ -218,7 +227,8 @@ func (n metadataNode) Render(w io.Writer) error {
 
 // Merge inherits empty scalar fields, merges alternate languages, and replaces
 // image/icon lists when the child's slice is non-nil (an empty slice clears it).
-// The returned maps and slices do not alias either input.
+// Manifest inherits only when nil; an explicit empty string disables it.
+// The returned pointers, maps and slices do not alias either input.
 func Merge(parent, child Metadata) Metadata {
 	m := child
 	inherit := func(dst *string, src string) {
@@ -243,6 +253,14 @@ func Merge(parent, child Metadata) Metadata {
 		m.Viewport = &copy
 	}
 	inherit(&m.BaseURL, parent.BaseURL)
+	manifest := child.Manifest
+	if manifest == nil {
+		manifest = parent.Manifest
+	}
+	if manifest != nil {
+		value := *manifest
+		m.Manifest = &value
+	}
 	inherit(&m.Title, parent.Title)
 	inherit(&m.Description, parent.Description)
 	inherit(&m.Canonical, parent.Canonical)

@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"mime"
 	"strings"
 )
 
@@ -101,7 +100,7 @@ func mediaElement(tag string, options MediaOptions, attrs Attrs) Node {
 		}
 		sourceAttrs := Attrs{"src": source.Src}
 		if source.Type != "" {
-			mediaType, _, err := mime.ParseMediaType(source.Type)
+			mediaType, err := parseMediaType(source.Type)
 			if err != nil || !strings.HasPrefix(mediaType, tag+"/") {
 				return resourceError(fmt.Errorf("ui: source MIME type must match %s", tag))
 			}

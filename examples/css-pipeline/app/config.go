@@ -2,16 +2,12 @@
 
 package app
 
-import (
-	"os"
-
-	nextgo "github.com/Suhaibinator/Next.go"
-)
+import nextgo "github.com/Suhaibinator/Next.go"
 
 func Configure(config *nextgo.Config) {
-	// Static hosts publish their own response headers. This explicit example
-	// deployment mode lets export proceed without a native-only header rule.
-	if os.Getenv("NEXTGO_CSS_STATIC") == "true" {
+	// Static hosts publish their own response headers. The exporter selects
+	// this native startup phase before calling Configure.
+	if config.Phase == nextgo.PhaseStaticExport {
 		return
 	}
 	// This example keeps a stable filename, so every browser reuse must

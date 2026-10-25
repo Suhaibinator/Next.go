@@ -71,6 +71,11 @@ func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Bui
 	if err != nil {
 		return nil, err
 	}
+	if hasStaticMetadata(p) {
+		if err = CopyMetadataFiles(ctx, p, filepath.Join(buildDir, "server", "assets", "metadata")); err != nil {
+			return nil, err
+		}
+	}
 	modules, err := compileLazy(ctx, p, buildDir, fingerprint, moduleTags, output)
 	if err != nil {
 		return nil, err
@@ -285,6 +290,11 @@ func serverSource(p *Project, id string, dev bool) string {
 	if p.Configure != "" {
 		imports[p.Configure] = true
 	}
+	for _, metadata := range p.MetadataFiles {
+		if !metadata.Static() {
+			imports[metadata.Import] = true
+		}
+	}
 	if len(p.Actions) > 0 {
 		imports[p.Import+"/actionrefs"] = true
 	}
@@ -311,7 +321,7 @@ nextgo "` + framework + `"
 		aliases[key] = alias
 		fmt.Fprintf(&b, "%s %q\n", alias, key)
 	}
-	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");flag.Parse();if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
+	b.WriteString(")\n//go:embed all:assets all:private\nvar embedded embed.FS\nfunc main(){\nprerenderOut:=flag.String(\"prerender-out\",\"\",\"write private build snapshots and exit\");addr:=flag.String(\"addr\",\":3000\",\"listen address\");staticPaths:=flag.Bool(\"static-paths\",false,\"write static route paths as JSON and exit\");pathConfig:=flag.Bool(\"path-config\",false,\"write deployment paths as JSON and exit\");staticExport:=flag.Bool(\"static-export\",false,\"serve for static publication\");exportCheck:=flag.Bool(\"export-check\",false,\"validate static export support and exit\");exportConfig:=flag.Bool(\"export-config\",false,\"write static publication configuration as JSON and exit\");exportDomain:=flag.String(\"export-domain\",\"\",\"select a configured locale host for static export\");envDir:=flag.String(\"env-dir\",os.Getenv(\"NEXTGO_ENV_DIR\"),\"explicit application environment directory\");envMode:=flag.String(\"env-mode\",\"production\",\"environment mode\");devGeneration:=flag.String(\"dev-generation\",\"\",\"development reload token\");flag.Parse();exporting:=*staticExport||*staticPaths||*exportCheck||*exportConfig;if *prerenderOut!=\"\"&&exporting{log.Fatal(\"prerender and static export purposes conflict\")};if *envDir!=\"\" {if err:=environment.Apply(*envDir,environment.Mode(*envMode));err!=nil{log.Fatal(err)}}\nassets,err:=fs.Sub(embedded,\"assets\");if err!=nil{log.Fatal(err)}\n")
 	fmt.Fprintf(&b, "config:=nextgo.Config{Assets:assets,BuildID:%q,Dev:%t,", id, dev)
 	if p.NotFound != "" {
 		fmt.Fprintf(&b, "NotFound:%s.NotFound,", aliases[p.NotFound])
@@ -325,7 +335,8 @@ nextgo "` + framework + `"
 	for _, r := range p.Routes {
 		writeRoute(&b, r, aliases, p.NotFound)
 	}
-	b.WriteString("}}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
+	b.WriteString("}}\nconfig.Phase=nextgo.PhaseProduction\nif config.Dev{config.Phase=nextgo.PhaseDevelopment}\nif exporting{config.Phase=nextgo.PhaseStaticExport}\nif *prerenderOut!=\"\"{config.Phase=nextgo.PhasePrerender}\nconfig.DevGeneration=*devGeneration\nconfig.PrerenderBuildMode=*prerenderOut!=\"\"\nconfig.PrerenderFS,err=fs.Sub(embedded,\"private\");if err!=nil{log.Fatal(err)}\n")
+	writeMetadataSources(&b, p, aliases)
 	if p.Configure != "" {
 		fmt.Fprintf(&b, "%s.Configure(&config)\n", aliases[p.Configure])
 	}

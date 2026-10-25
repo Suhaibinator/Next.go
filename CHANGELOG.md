@@ -3,16 +3,91 @@
 This repository is an experimental source distribution. No versioned release
 or support window is established here. Historical entries identify committed
 checkpoints, not published packages or a production certification. That history
-ends at `be8c96a`; the separate unreleased section records current source work
+ends at `467ba2f`; the separate unreleased section records current source work
 and its scoped verification. See
 [compatibility and upgrade policy](docs/COMPATIBILITY.md),
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
-## Unreleased — verified experimental subsets
+## Unreleased — native phases, public metadata and bounded content
 
 These changes have scoped frozen-source verification below. They are not a
 published release, complete capability parity or production certification.
+
+- Added typed native `Config.Phase` values for development, production,
+  prerender capture and static export, selected before the unchanged
+  `Configure(*nextgo.Config)` hook. Export configuration, enumeration and serving
+  now use the same explicit phase. Export has a separate opaque cache identity
+  and does not import production prerender snapshots or consume production
+  shared-seed tickets. Phase is native startup data, not a request capability.
+  See [configuration phases](docs/CONFIG_PHASES.md).
+- Added managed public `MetadataFiles`: six exact application-root filenames
+  (`robots.txt`, `sitemap.xml`, `favicon.ico`, `icon.png`, `apple-icon.png`,
+  `manifest.webmanifest`) and three optional typed native startup factories
+  (`Robots`, `Sitemap`, `Manifest`). Validated bytes are frozen before serving;
+  discovery/copy reject conflicting declarations, invalid files and source drift.
+  These resources are explicitly public, mounted at the global base path and
+  independent of locale/CDN routing. See [metadata files](metadatafiles/README.md)
+  and the [standalone example](examples/metadata-site).
+- Added `seo.Metadata.Manifest *string`: nil inherits; an explicit empty string
+  disables inheritance. Explicit page manifest/icons override managed head
+  defaults. Static export verifies metadata identities/digests and publishes
+  exact files before replacing output. Native `ExportConfig` uses version 2
+  only when metadata is nonempty; the new CLI accepts 1/2, and an older CLI
+  rejects 2 instead of silently omitting resources. Static route-artifact
+  formats `nextgo-static-v1`/`v2` remain unchanged with an added metadata inventory.
+- Added portable bounded `content.Parse` with a named Markdown subset, explicit
+  byte/line/node/depth limits, owned input, early link validation and escaped
+  UI nodes. Raw HTML remains text; content cannot execute components or access
+  native resources. The embedded-content example composes ordinary Go components
+  outside parsed content and supports native/static serving. This is not
+  CommonMark/MDX compatibility. See [content contract](docs/CONTENT.md).
+- Isolated UI MIME parsing on `js && wasm` behind a private licensed parser port
+  from Go 1.27.3; native UI still calls the installed SDK parser. Both SDK/native
+  and matching-WASM corpora pass; a short differential fuzz run passes 416,679
+  executions. Content's short two-worker fuzz session passes 35,269 executions.
+  These are bounded observations, not sustained release fuzz qualification.
+- Corrected the final examples' stylesheet publication with explicit
+  `examples/content/public/style.css` and `examples/metadata-site/public/style.css`
+  files. The earlier snapshot's known stylesheet 404 is retained as failed
+  provenance; final checks require real stylesheet bytes and computed styles.
+  The metadata sample explicitly enables `PreserveLayouts`; its retained counter
+  expectation was corrected from 3 to 2, with an actual negative control.
+
+The final Go 1.27.3 source passes full native race tests across **56 packages**,
+vet, matching core/module WASM tests and vet, with a stable **821-file** input
+manifest. Go 1.24 passes the same native/WASM checks before the final two
+stylesheet-only additions; no Go source changed after that minimum-SDK run.
+The current Go-source host matrix passes **373** browser checks. A freshly built
+final-asset artifact separately passes **20** essential checks. Metadata passes
+**15** host and **20** Linux native/static browser checks; content has **16**
+harness checks plus **20** Chromium assertions covering actual styles, WASM,
+native and static output. A fresh Linux build/export repeat passes **20** styled
+metadata/content browser checks with no skips, failures or flaky outcomes,
+including real CSS/WASM responses and no HTTP errors. All **819** Go/module
+hashes remain unchanged from the qualified SDK/WASM matrix. These counts are
+scoped evidence, not a combined full-release total.
+
+Security scan `9e1f4938-9cb5-43c6-b086-816de9738d2a` completes with **zero
+reported findings** for immutable snapshot `272acabad…`, covering **88 changed
+source files** (52 inventory entries plus 36 additional files). The scan recorded
+no warnings and no fixes were made during review. This is a bounded diff review,
+not an independent immutable-release security audit. The current core measures
+**8,225,235 bytes raw / 2,117,285 bytes with Node gzip level 9**; both eager size
+budgets still fail. See [exact final artifact measurement](docs/benchmarks/metadata-phase-go1.27.3-macos-arm64.json).
+The separate [controlled MIME experiment](docs/benchmarks/mime-parser-go1.27.3-macos-arm64.json)
+reduces 100,405 raw / 26,714 gzip-9 bytes on its paired inputs; that comparison
+does not attribute all differences between whole-application artifacts to MIME.
+
+Core/module ABI **4**, navigation **3** and action/action-view **1** are unchanged
+by this batch. Existing browser-through-local-Lambda evidence below uses the
+preceding `467ba2f` artifact; new metadata-specific Lambda and actual AWS
+qualification remain open. All **79 capability rows and 11 open release gates**
+remain tracked, and no release/tag/support commitment is introduced.
+
+## Source checkpoints, newest first
+
+### `467ba2f` — scoped resources, safe media and staged build tooling
 
 - Added scoped byte-oriented `ResourceStore`/`AsyncResource` APIs with explicit
   source ownership, load/retry, bounded public reuse and in-flight sharing,
@@ -54,7 +129,7 @@ published release, complete capability parity or production certification.
   whose application API behavior is unavailable on a plain static host; it is not
   automatic dependency analysis. See [static dependencies](docs/STATIC_DEPENDENCIES.md).
 
-The final frozen Go source passes full native race/vet on Go 1.24 and 1.27,
+That checkpoint's frozen Go source passes full native race/vet on Go 1.24 and 1.27,
 matching core/module WASM tests and vet. Host browser checks pass **373** cases
 (335 primary, 15 resource and 23 separate-export checks); Linux passes **44**
 new feature checks across Chromium, Firefox, WebKit and touch (20 resource,
@@ -64,12 +139,16 @@ New-feature Node assertions also pass **8** local mock-Lambda event cases
 (4 host, 4 Linux), covering buffered/streaming responses at root and mounted
 CDN/trailing-slash configurations: useful SSR, navigation protocol 3, resource
 JSON, PNG/ETag, embed CSP, three lazy WASM modules and matching support/media
-asset bytes. These direct Runtime API assertions do not exercise browser
-hydration through Lambda. Browser-through-Lambda, actual AWS, ingress/CDN,
-physical-device, accessibility, load/soak and complete recovery qualification
-remain open. Exact feature scope and exclusions remain in the linked contracts.
+asset bytes. Separate browser-through-local-Lambda checks pass **18** host and
+**24** Linux cases on this `467ba2f` artifact; those results do not qualify newer
+metadata behavior or real AWS. Remote CI's five jobs succeed for this source,
+including **1,528** browser checks with **3** skips, **280** streaming checks,
+**285** container checks, both SDK jobs and four Node cases per SDK. Actual AWS,
+ingress/CDN, physical-device, accessibility, load/soak and complete recovery
+qualification remain open. These earlier artifact/CI results are distinct from
+the newer source checks above.
 
-The measured Go 1.27.3 host core is **8,320,548 bytes raw / 2,142,557 bytes with
+That Go 1.27.3 host core measured **8,320,548 bytes raw / 2,142,557 bytes with
 Node gzip level 9**; both eager size budgets still fail. See the
 [measurement artifact](docs/benchmarks/seven-feature-go1.27.3-macos-arm64.json)
 and [performance limits](docs/PERFORMANCE.md). The security scan reported no
@@ -77,15 +156,13 @@ findings for its original pre-fix source snapshot; it is not an audit of the
 final source or a clean immutable-release security review. All 11 release gates
 remain open.
 
-## Unreleased policy work
+Support policy included at that checkpoint:
 
 - Added a compatibility/support/deprecation policy, independent protocol/ABI
   identity inventory, concrete upgrade/rollback procedure and security-reporting
   guidance. Public mixed-generation conformance fixtures accompany the policy.
 - No release was tagged. No support period, private response SLA or release
   gate closure follows from adding these documents.
-
-## Source checkpoints, newest first
 
 ### `be8c96a` — browser validator size and production SDK pin
 

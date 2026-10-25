@@ -165,3 +165,23 @@ absent referrer, visible fallback, native media metadata and captions, and
 frame disposal/history navigation across Chromium, Firefox, WebKit and touch
 WebKit. A test file's existence does not establish a successful qualification;
 record actual browser outcomes for the deployment being reviewed.
+
+## MIME validation and browser dependencies
+
+`ui.Video` and `ui.Audio` keep the same source-type and parameter validation on
+server and browser targets. Native builds use the installed Go SDK's
+`mime.ParseMediaType`. The `js && wasm` wrapper uses a parser-only extraction,
+retaining quoted parameters, conflicting-duplicate checks and RFC 2231 support
+without linking MIME extension databases or operating-system MIME discovery.
+Its [upstream version, source checksums and BSD license](../internal/mediatype/UPSTREAM.md)
+are explicit. Installed-SDK oracle tests run on both native and WASM targets;
+this extraction requires maintenance when supported SDK behavior changes.
+
+The [controlled Go 1.27.3 experiment](benchmarks/mime-parser-go1.27.3-macos-arm64.json)
+uses the same frozen demo entrypoint and default production flags in an isolated
+467ba2f source snapshot. The target-wrapper variant measures 8,220,143 raw /
+2,115,841 Node gzip-9 core bytes, versus 8,320,548 / 2,142,555 in that matched
+baseline. Its standard WASM sections are byte-identical to the corresponding
+direct pure-parser variant; only the custom build-ID section differs. This is
+a dependency measurement, not a current whole-application release result or
+startup improvement. Both the 6-MiB raw and 1.6-MiB gzip-9 size budgets still fail.

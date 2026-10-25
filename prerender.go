@@ -359,6 +359,19 @@ func (a *App) initPrerenderRuntime() error {
 	if !hasPolicy {
 		return nil
 	}
+	if a.config.Phase == PhaseStaticExport {
+		// Export renders its own phase configuration. Enumerate fallback
+		// membership, but never read/import production artifacts or consume
+		// their local/shared bootstrap tickets into this separate namespace.
+		_, known, err := a.collectPrerenderMembership(a.config.startupContext, prerenderManifest{}, scopes)
+		if err != nil {
+			return err
+		}
+		for app, paths := range known {
+			app.prerenderKnown = paths
+		}
+		return nil
+	}
 	var manifest prerenderManifest
 	if !a.config.Dev {
 		if a.config.PrerenderFS == nil {

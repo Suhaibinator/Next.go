@@ -1,0 +1,12 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #123b35; background: #f4faf8; }
+body { max-width: 72ch; margin: 0 auto; padding: 1.5rem 1rem; line-height: 1.65; }
+header, footer { padding: 1rem 0; border-bottom: 1px solid #c5d7cd; }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+main { padding: 2rem 0; }
+h1, h2 { line-height: 1.2; }
+a { color: #07593d; text-underline-offset: .2em; }
+button { padding: .45rem .8rem; border: 1px solid #07593d; border-radius: .35rem; background: white; color: #123b35; font: inherit; cursor: pointer; }
+button:disabled { opacity: .65; cursor: default; }
+code { font-family: ui-monospace, monospace; }
+.eyebrow { font-size: .8rem; letter-spacing: .12em; }
+:focus-visible { outline: 3px solid #a44d00; outline-offset: 3px; }

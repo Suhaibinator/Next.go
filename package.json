@@ -23,7 +23,9 @@
     "test:resources": "node scripts/test-browser.mjs --config tests/resources.config.mjs",
     "test:embeds": "node scripts/test-browser.mjs --config tests/embeds.config.mjs",
     "test:social-image": "node scripts/test-browser.mjs --config tests/social-image.config.mjs",
-    "test:lambda:features": "node --test tests/seven-feature-lambda.test.mjs"
+    "test:lambda:features": "node --test tests/seven-feature-lambda.test.mjs",
+    "test:lambda:browser": "node scripts/test-browser.mjs --config tests/lambda-features.config.mjs",
+    "test:metadata-files": "node scripts/test-browser.mjs --config tests/metadata-files.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

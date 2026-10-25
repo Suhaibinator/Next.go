@@ -4,7 +4,23 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"unicode"
 )
+
+// Manifest references are asset URLs, independent of the metadata base.
+func manifestURL(value string) error {
+	if value == "" || len(value) > 32<<10 || strings.Contains(value, "\\") || strings.IndexFunc(value, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
+		return fmt.Errorf("seo: invalid manifest URL")
+	}
+	u, err := url.Parse(value)
+	if err != nil || u.User != nil || u.Opaque != "" {
+		return fmt.Errorf("seo: invalid manifest URL")
+	}
+	if strings.HasPrefix(value, "/") && !strings.HasPrefix(value, "//") && u.Scheme == "" && u.Host == "" {
+		return nil
+	}
+	return AbsoluteURL(value)
+}
 
 // ResolveURL resolves a relative metadata URL against a trusted BaseURL. A base
 // path is treated as a directory. Absolute HTTP(S) URLs remain independent.

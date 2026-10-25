@@ -192,19 +192,22 @@ config.HeaderRules = append(config.HeaderRules, nextgo.HeaderRule{
 This policy requires browser revalidation before reusing the stable CSS URL.
 Native response header rules cause `StaticExportConfig` and `nextgo export`
 to refuse static publication: static-host header publication is not implemented.
-The example provides an explicit, application-specific deployment mode:
+The exporter selects the typed native `PhaseStaticExport` before calling the
+application's unchanged `Configure(*nextgo.Config)` hook. The example uses that
+phase to omit its native-only stylesheet header rule:
 
 ```sh
-NEXTGO_CSS_STATIC=true go run ./cmd/nextgo export -out /tmp/nextgo-css-export ./examples/css-pipeline
+go run ./cmd/nextgo export -out /tmp/nextgo-css-export ./examples/css-pipeline
 ```
 
-That mode omits the example's native stylesheet header rule. It does not add
-response headers to exported files. Before serving this export, configure
+This does not add response headers to exported files. Before serving the export, configure
 `Cache-Control: no-cache, must-revalidate` for `assets/style.css` at the static
 host/CDN, or adapt the tool and resource references to content-hashed filenames.
-Ordinary `dev` and native `build` deployments keep the stylesheet revalidation
-rule when `NEXTGO_CSS_STATIC` is unset. Other applications choose their own
-deployment configuration; this variable is not a framework setting.
+Ordinary development and production serving keep the stylesheet revalidation
+rule. Other applications choose their own phase-specific configuration; the
+framework continues to reject unsupported native header policies. See
+[configuration phases](CONFIG_PHASES.md) for the startup contract and private
+snapshot/cache isolation.
 
 Input and output names must be clean relative slash paths. Symlinks, special
 files, traversal, private directories, `.env` variants, credential filenames,

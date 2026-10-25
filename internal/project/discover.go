@@ -75,6 +75,7 @@ type Project struct {
 	Routes                                                   []Route
 	Components                                               []Component
 	Actions                                                  []Action
+	MetadataFiles                                            []MetadataFile
 }
 
 func ignored(name string) bool {
@@ -165,6 +166,10 @@ func Discover(root string) (*Project, error) {
 		return nil, fmt.Errorf("at most eight lazy components are supported")
 	}
 	sort.Slice(p.Components, func(i, j int) bool { return p.Components[i].Name < p.Components[j].Name })
+	p.MetadataFiles, err = DiscoverMetadataFiles(p)
+	if err != nil {
+		return nil, err
+	}
 	return p, nil
 }
 

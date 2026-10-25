@@ -1,0 +1,411 @@
+{
+  "measuredAt": "2026-10-25T05:21:19.512Z",
+  "scope": "Size-only observation of the exact standalone Go 1.27.3 demo artifact, served from an empty task-owned working directory outside the checkout on an ephemeral loopback port. Server environment contains PATH only, excluding demo/Lambda/env-dir configuration. Actual identity HTTP response bytes were measured without executing browser/WASM code. This is not timing, allocation, RSS, initial-page transfer, all-public-asset inventory, or a before/after causal comparison; lazy modules were explicitly fetched for size accounting.",
+  "artifact": {
+    "nativeSHA256": "15494d970754dcb0abc99524ae0b171de30609ec2ac29e9fc428fa37f6f449ce",
+    "nativeBytes": 37335490,
+    "goBuildInfo": "/private/tmp/nextgo-metadata-assets-final/demo/server: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025043414-467ba2f5bf05+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=467ba2f5bf0565bf526ea732b61f46dc4e562168\n\tbuild\tvcs.time=2026-10-25T04:34:14Z\n\tbuild\tvcs.modified=true",
+    "measurementGitHEAD": "467ba2f5bf0565bf526ea732b61f46dc4e562168",
+    "runtimeBuildID": "8379fa5da09422c7a02a"
+  },
+  "environment": {
+    "node": "v25.7.0",
+    "zlib": "1.3.1-e00f703",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "27.0.0"
+  },
+  "document": {
+    "path": "/",
+    "contentType": "text/html; charset=utf-8",
+    "contentEncoding": "identity",
+    "cacheControl": "no-store",
+    "rawBytes": 10406,
+    "nodeGzip9Bytes": 3106,
+    "sha256": "606136113b05eb278306633b4f546eabb755839f2fa2f4527cb643ff812d683d"
+  },
+  "navigationManifest": {
+    "source": "Entity-decoded data-nextgo-navigation attribute in the actual root HTML response",
+    "rawBytes": 2786,
+    "nodeGzip9Bytes": 804,
+    "sha256": "0605caaf489f51bec47bd1d1f5e95c0097f5c0219726c45ae657134096fa3530",
+    "routeCount": 84,
+    "endpointCount": 9
+  },
+  "components": {
+    "method": "Frozen source discovery of client_js.go/component.json; compiled lazy asset descriptors independently extracted from exact served core WASM and fetched with filename-digest verification.",
+    "total": 20,
+    "eager": 17,
+    "lazy": 3,
+    "compiledLazyWasmAssetCount": 3,
+    "records": [
+      {
+        "name": "actionview",
+        "loading": "eager",
+        "clientSourceSHA256": "449984162b63a53a5c069405a734401121d6cb627ebb6f15ff012d1da8ea2ca6"
+      },
+      {
+        "name": "actionviewlazy",
+        "loading": "lazy",
+        "clientSourceSHA256": "1d68739f9c41e27a3b17bb7f100b8630771f1ce6fa9b64db841910b33e14c422",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "choiceform",
+        "loading": "eager",
+        "clientSourceSHA256": "f7fe186b260e04bea8304420387cc56b4b465ae35db3301994a9f5af0ee6acbb"
+      },
+      {
+        "name": "composition",
+        "loading": "eager",
+        "clientSourceSHA256": "6f6874eaee7fa016f391b8cebce48a44e5148b7f4359fd962ff420304cb1c348"
+      },
+      {
+        "name": "counter",
+        "loading": "eager",
+        "clientSourceSHA256": "042a9cb8a5bd1937842249ad07a8d6404298735bf4cf882f8633e09c437ef2f1"
+      },
+      {
+        "name": "fileform",
+        "loading": "eager",
+        "clientSourceSHA256": "dba62fe3ddb32bff093f35e90cd12392d3995a4c82c28883c985d627e4fb46b2"
+      },
+      {
+        "name": "generatedaction",
+        "loading": "eager",
+        "clientSourceSHA256": "4c8b2c86de1feac62d1d8ceed4503681a4dc6cb03c6d5278195202bc1748dcbf"
+      },
+      {
+        "name": "keyedlist",
+        "loading": "eager",
+        "clientSourceSHA256": "36462971643f3cde783459596393cfc0a20fd82bcb3f7b3356c3caa53a3c376a"
+      },
+      {
+        "name": "layoutstate",
+        "loading": "eager",
+        "clientSourceSHA256": "54a31e1b79b6868564a768c11ea53d1e073365926b341e681b2046613fe9d934"
+      },
+      {
+        "name": "lazycounter",
+        "loading": "lazy",
+        "clientSourceSHA256": "5ba9417122f4443ec9c25a28a797f5e10277e9495c3d5e490577905a089e4f1b",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "modal",
+        "loading": "eager",
+        "clientSourceSHA256": "c2eb9bebcd79abe55c6759988089fef34d6982ae5f9992109191b61b1b8ad0a1"
+      },
+      {
+        "name": "optimistic",
+        "loading": "eager",
+        "clientSourceSHA256": "cfdaa0828f87158d2500cd7ac01f65b968fcccca32982145ce2e587e5cbaee93"
+      },
+      {
+        "name": "profileform",
+        "loading": "eager",
+        "clientSourceSHA256": "cde671ac9b98de9dfb43f0a29dac2d4c9ec3ac3c3e446afd21286342327d790b"
+      },
+      {
+        "name": "resourcepanel",
+        "loading": "lazy",
+        "clientSourceSHA256": "58db3525dbf935a895d2091bc6483bbdecd102c1d16e85f14925630cae351bcb",
+        "configSHA256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04"
+      },
+      {
+        "name": "scriptwidget",
+        "loading": "eager",
+        "clientSourceSHA256": "6c629466e91d121ba10b61fe8115c832bc2229bbf5ef7724f49baaad3ff65307"
+      },
+      {
+        "name": "selectionnav",
+        "loading": "eager",
+        "clientSourceSHA256": "7955397061bbdc8f3612518c661882de065745efcc95cd31aaf199835a377ff2"
+      },
+      {
+        "name": "sessionpanel",
+        "loading": "eager",
+        "clientSourceSHA256": "b4d4d64eadf989ace7738e50b8d3fb3f62de1eb34111b95b79cf7c83b925b142"
+      },
+      {
+        "name": "settings",
+        "loading": "eager",
+        "clientSourceSHA256": "59408f77cc24cf6fd7e8c622014a4d32691d23faee672e90bef3661dc27b6f22"
+      },
+      {
+        "name": "toolbox",
+        "loading": "eager",
+        "clientSourceSHA256": "293ebf2c4cffdff021a661c582975a09d59e2248a63e9904c432cae847f59806"
+      },
+      {
+        "name": "transitioncard",
+        "loading": "eager",
+        "clientSourceSHA256": "568d757bcba3fd3fc20a61a4da2afdd911287a65a9e252cb8cb5c0f81e560f22"
+      }
+    ]
+  },
+  "assets": [
+    {
+      "kind": "core-wasm",
+      "path": "/_nextgo/8379fa5da09422c7a02a/app.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 8225235,
+      "nodeGzip9Bytes": 2117285,
+      "sha256": "9080e814f176faab07104a651b465dedf2a74e21f546c534c5293ee143ff3ceb",
+      "wasmSections": {
+        "code": {
+          "bytes": 5421949,
+          "sha256": "a11d05521e940392dfbd19502dd910457ca731455c11f799be9693c59cdb0949"
+        },
+        "data": {
+          "bytes": 2789668,
+          "sha256": "fac38dd05ae19f8213d4ee91a065f6228f6b9214e9d3b0a8082ab5862718baad"
+        }
+      }
+    },
+    {
+      "kind": "go-runtime-support",
+      "path": "/_nextgo/8379fa5da09422c7a02a/wasm_exec.js",
+      "contentType": "text/javascript; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 16992,
+      "nodeGzip9Bytes": 4348,
+      "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+    },
+    {
+      "kind": "bootstrap",
+      "path": "/_nextgo/8379fa5da09422c7a02a/boot.js",
+      "contentType": "text/javascript; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 2224,
+      "nodeGzip9Bytes": 864,
+      "sha256": "26afab8a89fa1f2108230ee7e7e176b2953b14f1017bf75f4c2b8d31568155ff"
+    },
+    {
+      "kind": "lazy-wasm",
+      "path": "/_nextgo/8379fa5da09422c7a02a/module-8611b334d18d4571912439da34a84d14da593c0201129ed6cb337df3c3db23f8.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5231571,
+      "nodeGzip9Bytes": 1439944,
+      "sha256": "8611b334d18d4571912439da34a84d14da593c0201129ed6cb337df3c3db23f8",
+      "wasmSections": {
+        "code": {
+          "bytes": 3365739,
+          "sha256": "c6a95c6e8ca49721afb4c84803d1dd43c918b9ad073874ebfaf4c8faae73ad93"
+        },
+        "data": {
+          "bytes": 1856042,
+          "sha256": "3b5ab2acb59d6beffe19120f4887d32d9bbd0ed0bb42203f188fd6ee28634709"
+        }
+      }
+    },
+    {
+      "kind": "lazy-wasm",
+      "path": "/_nextgo/8379fa5da09422c7a02a/module-b8e8f950f8fbd0082c552cb56c93952f4977fe770238f82ab3f5f9f79008cfea.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5336858,
+      "nodeGzip9Bytes": 1465300,
+      "sha256": "b8e8f950f8fbd0082c552cb56c93952f4977fe770238f82ab3f5f9f79008cfea",
+      "wasmSections": {
+        "code": {
+          "bytes": 3428866,
+          "sha256": "4d2e5a8309093108a127491b826da7e9fb39123b32ad3be87f1d55d02b9057b5"
+        },
+        "data": {
+          "bytes": 1897972,
+          "sha256": "53c7ce9043a5bffa8a0a85e6f2f03d82620cfc9208e34cbd1b88a2bf514a2973"
+        }
+      }
+    },
+    {
+      "kind": "lazy-wasm",
+      "path": "/_nextgo/8379fa5da09422c7a02a/module-c9561d2c6f14b472b52d6f07619a1ddeb71fba4d578739f1c928959bbcddc98b.wasm",
+      "contentType": "application/wasm",
+      "contentEncoding": "identity",
+      "cacheControl": "public, max-age=31536000, immutable",
+      "rawBytes": 5361695,
+      "nodeGzip9Bytes": 1472984,
+      "sha256": "c9561d2c6f14b472b52d6f07619a1ddeb71fba4d578739f1c928959bbcddc98b",
+      "wasmSections": {
+        "code": {
+          "bytes": 3454174,
+          "sha256": "605efa2dc316b30248e63931cbb604c206a8c814ff57b1bb26146c4dacb963db"
+        },
+        "data": {
+          "bytes": 1897414,
+          "sha256": "e0d4cdf2c1f1c083f0f4d9cfd558c8930ad90d9726e58170e8da983193d0e268"
+        }
+      }
+    },
+    {
+      "kind": "root-html-linked-asset",
+      "path": "/assets/style.css",
+      "contentType": "text/css; charset=utf-8",
+      "contentEncoding": "identity",
+      "cacheControl": null,
+      "rawBytes": 8625,
+      "nodeGzip9Bytes": 2774,
+      "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+    }
+  ],
+  "totals": {
+    "runtimeRawBytes": 24174575,
+    "runtimeNodeGzip9Bytes": 6500725
+  },
+  "referenceBudgets": {
+    "coreRawBytes": 6291456,
+    "coreNodeGzip9Bytes": 1677721,
+    "coreRawPass": false,
+    "coreNodeGzip9Pass": false,
+    "result": "FAIL; release performance gate remains open"
+  },
+  "skippedExternalReferences": [],
+  "assetRefreshCodeSectionComparison": {
+    "scope": "Byte equality of the standard WASM Code section payload (section 10, excluding its id/length framing) in the exact before/after native artifacts. This checks generated browser executable code only; it does not prove complete WASM byte identity, HTML/CSS equivalence, or full release qualification. No timing or causal size attribution is made.",
+    "beforeNativeSHA256": "4f3398b678f23555cb399b7846009119f227df1a79b256e6790754cd9455bc02",
+    "afterNativeSHA256": "15494d970754dcb0abc99524ae0b171de30609ec2ac29e9fc428fa37f6f449ce",
+    "beforeRuntimeBuildID": "a3125aceb3f91a27c95f",
+    "afterRuntimeBuildID": "8379fa5da09422c7a02a",
+    "core": {
+      "codeSectionIdentical": true,
+      "before": {
+        "rawBytes": 8225235,
+        "sha256": "e11e8ec72d3df9b445fef29f856cfdd3cdda889450c43f9b85196584e9ebef95",
+        "wasmSections": {
+          "code": {
+            "bytes": 5421949,
+            "sha256": "a11d05521e940392dfbd19502dd910457ca731455c11f799be9693c59cdb0949"
+          },
+          "data": {
+            "bytes": 2789668,
+            "sha256": "890cfb181dfee49e90f2dd49c4c4423c3ff9939b3f29f4df4db687d15c85ea0c"
+          }
+        }
+      },
+      "after": {
+        "rawBytes": 8225235,
+        "sha256": "9080e814f176faab07104a651b465dedf2a74e21f546c534c5293ee143ff3ceb",
+        "wasmSections": {
+          "code": {
+            "bytes": 5421949,
+            "sha256": "a11d05521e940392dfbd19502dd910457ca731455c11f799be9693c59cdb0949"
+          },
+          "data": {
+            "bytes": 2789668,
+            "sha256": "fac38dd05ae19f8213d4ee91a065f6228f6b9214e9d3b0a8082ab5862718baad"
+          }
+        }
+      },
+      "dataSectionIdentical": false
+    },
+    "lazyModules": [
+      {
+        "codeSectionIdentical": true,
+        "before": {
+          "rawBytes": 5231571,
+          "sha256": "163edcd9abc94da93602a0f98534d9646fb51e431bfdb6be6ce74652804f3890",
+          "wasmSections": {
+            "code": {
+              "bytes": 3365739,
+              "sha256": "c6a95c6e8ca49721afb4c84803d1dd43c918b9ad073874ebfaf4c8faae73ad93"
+            },
+            "data": {
+              "bytes": 1856042,
+              "sha256": "99eecf308eae3d0a35b60c8e11e21a68661f5514dd86b6b9fee79521f6a9a56e"
+            }
+          }
+        },
+        "after": {
+          "rawBytes": 5231571,
+          "sha256": "8611b334d18d4571912439da34a84d14da593c0201129ed6cb337df3c3db23f8",
+          "wasmSections": {
+            "code": {
+              "bytes": 3365739,
+              "sha256": "c6a95c6e8ca49721afb4c84803d1dd43c918b9ad073874ebfaf4c8faae73ad93"
+            },
+            "data": {
+              "bytes": 1856042,
+              "sha256": "3b5ab2acb59d6beffe19120f4887d32d9bbd0ed0bb42203f188fd6ee28634709"
+            }
+          }
+        },
+        "dataSectionIdentical": false
+      },
+      {
+        "codeSectionIdentical": true,
+        "before": {
+          "rawBytes": 5336858,
+          "sha256": "67efd245e7bf166523f286d0242148000ae48601e252824934f1221ce23502d9",
+          "wasmSections": {
+            "code": {
+              "bytes": 3428866,
+              "sha256": "4d2e5a8309093108a127491b826da7e9fb39123b32ad3be87f1d55d02b9057b5"
+            },
+            "data": {
+              "bytes": 1897972,
+              "sha256": "7aa4151098971bd01ebead8a9b9cefc05bc3bffc3850dc60a7a10cc6f245b5bc"
+            }
+          }
+        },
+        "after": {
+          "rawBytes": 5336858,
+          "sha256": "b8e8f950f8fbd0082c552cb56c93952f4977fe770238f82ab3f5f9f79008cfea",
+          "wasmSections": {
+            "code": {
+              "bytes": 3428866,
+              "sha256": "4d2e5a8309093108a127491b826da7e9fb39123b32ad3be87f1d55d02b9057b5"
+            },
+            "data": {
+              "bytes": 1897972,
+              "sha256": "53c7ce9043a5bffa8a0a85e6f2f03d82620cfc9208e34cbd1b88a2bf514a2973"
+            }
+          }
+        },
+        "dataSectionIdentical": false
+      },
+      {
+        "codeSectionIdentical": true,
+        "before": {
+          "rawBytes": 5361695,
+          "sha256": "bc6883b6c3d0f1c01a91d27e20df3bcf5ebabbf4194582f5ed5f7fe74d0c292b",
+          "wasmSections": {
+            "code": {
+              "bytes": 3454174,
+              "sha256": "605efa2dc316b30248e63931cbb604c206a8c814ff57b1bb26146c4dacb963db"
+            },
+            "data": {
+              "bytes": 1897414,
+              "sha256": "2f6b97ce2cd74015faa22aaa3b493427c9c7b6cfd9d0831216abef3e70ca6a46"
+            }
+          }
+        },
+        "after": {
+          "rawBytes": 5361695,
+          "sha256": "c9561d2c6f14b472b52d6f07619a1ddeb71fba4d578739f1c928959bbcddc98b",
+          "wasmSections": {
+            "code": {
+              "bytes": 3454174,
+              "sha256": "605efa2dc316b30248e63931cbb604c206a8c814ff57b1bb26146c4dacb963db"
+            },
+            "data": {
+              "bytes": 1897414,
+              "sha256": "e0d4cdf2c1f1c083f0f4d9cfd558c8930ad90d9726e58170e8da983193d0e268"
+            }
+          }
+        },
+        "dataSectionIdentical": false
+      }
+    ],
+    "allFourCodeSectionsIdentical": true,
+    "dataSectionNote": "Core and all three corresponding lazy Data section payloads differ; their lengths remain equal in this pair. Data/build fingerprints, module content digests, runtime URLs, complete WASM bytes, and native artifact hashes change. Code-section identity does not establish semantic equivalence of arbitrary Data changes."
+  },
+  "measurementCompletion": "Both task-owned ephemeral native servers were terminated with SIGTERM and their exit events awaited in finally blocks before the measurement commands returned; their empty temporary working directories were removed. No user server or source build was touched."
+}

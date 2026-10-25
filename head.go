@@ -79,6 +79,17 @@ func pageHeadPaths(page Page, deployment paths.Config) (head []seo.Element, mark
 		}
 		nodes = append(nodes, ui.El(element.Tag, attrs))
 	}
+	// These links already contain the final global BasePath. They must not pass
+	// through the normal locale/asset resolver above a second time.
+	beforeManaged := len(head)
+	head = appendManagedHead(head, page.managedHead)
+	for _, element := range head[beforeManaged:] {
+		attrs := ui.Attrs{"data-nextgo-head": ""}
+		for key, value := range element.Attrs {
+			attrs[key] = value
+		}
+		nodes = append(nodes, ui.El(element.Tag, attrs))
+	}
 	if len(page.JSONLD) > 16 {
 		return nil, "", fmt.Errorf("too many structured-data nodes")
 	}

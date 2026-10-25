@@ -410,6 +410,9 @@ func (r *localeRouter) serveHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
+	if r.mounts[0].app.serveManagedMetadata(w, req) {
+		return
+	}
 	local, ok := r.root.Strip(req.URL.EscapedPath())
 	if !ok {
 		http.NotFound(w, req)

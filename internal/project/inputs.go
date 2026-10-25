@@ -15,6 +15,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Suhaibinator/Next.go/metadatafiles"
 )
 
 type moduleVersion struct{ Path, Version string }
@@ -27,6 +29,7 @@ type moduleInfo struct{ Dir, Path, GoMod string }
 type inputPlan struct {
 	Roots, Files             []string
 	GeneratedRoot            string
+	MetadataRoot             string
 	Overlays, OverlaySources map[string]string
 }
 
@@ -164,6 +167,7 @@ func resolveInputs(ctx context.Context, root string) (inputPlan, error) {
 		}
 	}
 	plan.GeneratedRoot = filepath.Join(canonicalInput(root), ".nextgo", "generated")
+	plan.MetadataRoot = filepath.Join(canonicalInput(root), "app")
 	record(validateGeneratedVirtualRoot(canonicalInput(root)))
 	overlay, overlayErr := readCallerOverlay(ctx, root)
 	plan.Files = append(plan.Files, overlay.Files...)
@@ -463,7 +467,13 @@ func hashInputsContext(ctx context.Context, plan inputPlan, skip string) (string
 				}
 			}
 			ext := filepath.Ext(name)
-			if ext != ".go" && ext != ".mod" && ext != ".sum" && filepath.Base(name) != "component.json" && !publicAsset {
+			metadataInput := false
+			if filepath.Dir(name) == plan.MetadataRoot {
+				for _, known := range metadatafiles.Names() {
+					metadataInput = metadataInput || strings.EqualFold(d.Name(), known)
+				}
+			}
+			if ext != ".go" && ext != ".mod" && ext != ".sum" && filepath.Base(name) != "component.json" && !publicAsset && !metadataInput {
 				return nil
 			}
 			if err := consume(name, false, !publicAsset); err != nil {

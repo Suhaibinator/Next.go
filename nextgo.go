@@ -29,6 +29,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/postresponse"
 	"github.com/Suhaibinator/Next.go/internal/publicconfig"
 	"github.com/Suhaibinator/Next.go/internal/routing"
+	"github.com/Suhaibinator/Next.go/metadatafiles"
 	"github.com/Suhaibinator/Next.go/scripts"
 	"github.com/Suhaibinator/Next.go/seo"
 	_ "github.com/Suhaibinator/Next.go/serveronly"
@@ -72,6 +73,7 @@ type Page struct {
 	// Stream enables progressive ui.Defer boundaries on full-document requests.
 	Stream       bool
 	preparedHead *renderedHead
+	managedHead  []seo.Element
 	document     *Document
 	partial      *partialResponse
 }
@@ -132,6 +134,9 @@ type Route struct {
 	StaticParamsLayers []StaticParamsLayer
 }
 type Config struct {
+	// Phase is the native startup purpose, set before generated Configure calls.
+	// Zero preserves legacy Dev/PrerenderBuildMode selection, otherwise production.
+	Phase Phase
 	// PrerenderFS is a trusted private build artifact, separate from Assets.
 	PrerenderFS fs.FS
 	// PrerenderBuildMode is for the CLI build probe, never a public server.
@@ -141,6 +146,12 @@ type Config struct {
 	// EarlyScripts are trusted classic dependencies shared by every document.
 	// They execute in parser order before the Go bootstrap.
 	EarlyScripts []scripts.Script
+	// MetadataFiles declares explicitly public app-root crawler/icon/manifest
+	// resources. Startup validates and snapshots them once, shared by all locale
+	// mounts. Public dispatch bypasses page middleware; do not include secrets.
+	MetadataFiles    metadatafiles.Sources
+	metadataSet      *metadatafiles.Set
+	metadataBasePath string
 	// Public explicitly publishes runtime settings into every browser document.
 	// Values are public data. New validates and freezes this map.
 	Public map[string]string
@@ -314,6 +325,9 @@ func NewContext(ctx context.Context, c Config) (*App, error) {
 }
 
 func newApp(c Config) (*App, error) {
+	if err := normalizeConfigPhase(&c); err != nil {
+		return nil, err
+	}
 	var earlyErr error
 	c.EarlyScripts, earlyErr = freezeEarlyScripts(c.EarlyScripts)
 	if earlyErr != nil {
@@ -331,6 +345,9 @@ func newApp(c Config) (*App, error) {
 		if err := c.Draft.Validate(); err != nil {
 			return nil, err
 		}
+	}
+	if err := freezeManagedMetadata(&c); err != nil {
+		return nil, err
 	}
 	if c.Locales != nil {
 		return newLocaleApp(c)
@@ -418,7 +435,7 @@ func newApp(c Config) (*App, error) {
 	if c.localeScope != nil {
 		manifest.Locale = c.localeScope.identity()
 	}
-	manifest.Cache = a.cachePolicyIdentity()
+	manifest.Cache = configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest()))
 	manifest.Rules = a.rulesIdentity()
 	manifest.Parallel = a.parallelIdentity()
 	for _, rules := range [][]compiledRule{a.redirects, a.rewrites} {
@@ -434,6 +451,7 @@ func newApp(c Config) (*App, error) {
 	for path := range a.config.Handlers {
 		manifest.Handlers = append(manifest.Handlers, path)
 	}
+	manifest.Handlers = append(manifest.Handlers, a.metadataEndpointPatterns()...)
 	sort.Strings(manifest.Handlers)
 	manifestJSON, _ := json.Marshal(manifest)
 	a.navigationJSON = string(manifestJSON)
@@ -488,6 +506,9 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
 	if a.locales != nil {
 		a.locales.serveHTTP(w, r)
+		return
+	}
+	if a.serveManagedMetadata(w, r) {
 		return
 	}
 	// An explicit alternate asset prefix is a public asset-only mount.
@@ -653,6 +674,7 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) render(c *Context, r Route) (page Page, status int) {
 	status = 200
+	defer func() { page = a.withManagedMetadataHead(page) }()
 	defer func() {
 		if v := recover(); v != nil {
 			a.config.Logger.Printf("page panic: %v", v)
@@ -841,11 +863,12 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		p.Meta = meta
 		p.preparedHead = nil
 	}
+	p = a.withManagedMetadataHead(p)
 	var metadataErr error
 	p, metadataErr = normalizePageMetadata(p)
 	if metadataErr != nil {
 		a.config.Logger.Printf("metadata: %v", metadataErr)
-		p = a.localeMetadata(errorPage())
+		p = a.withManagedMetadataHead(a.localeMetadata(errorPage()))
 		status = 500
 	}
 	if p.Title == "" {

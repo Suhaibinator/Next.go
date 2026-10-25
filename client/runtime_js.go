@@ -13,6 +13,7 @@ import (
 	"strings"
 	"syscall/js"
 	"time"
+	"unicode"
 )
 
 type Mount func(*Scope, json.RawMessage) error
@@ -1140,12 +1141,29 @@ func buildHead(elements []headElement) (js.Value, error) {
 		}
 		if element.Tag == "link" {
 			switch element.Attrs["rel"] {
-			case "canonical", "alternate", "icon", "apple-touch-icon", "mask-icon", "stylesheet", "preload":
+			case "canonical", "alternate", "icon", "apple-touch-icon", "mask-icon", "manifest", "stylesheet", "preload":
 			default:
 				return fragment, fmt.Errorf("invalid navigation metadata link relation")
 			}
-			u := win.Get("URL").New(element.Attrs["href"], doc.Get("baseURI"))
 			rel := element.Attrs["rel"]
+			if rel == "manifest" {
+				href := element.Attrs["href"]
+				parsed, err := url.Parse(href)
+				if err != nil || href == "" || len(href) > 32<<10 || strings.HasPrefix(href, "//") || strings.Contains(href, "\\") || strings.IndexFunc(href, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }) >= 0 {
+					return fragment, fmt.Errorf("invalid navigation manifest URL")
+				}
+				rootRelative := strings.HasPrefix(href, "/") && parsed.Scheme == "" && parsed.Host == ""
+				absolute := (parsed.Scheme == "http" || parsed.Scheme == "https") && parsed.Hostname() != ""
+				if parsed.User != nil || parsed.Opaque != "" || !(rootRelative || absolute) {
+					return fragment, fmt.Errorf("invalid navigation manifest URL")
+				}
+				for name, value := range element.Attrs {
+					if name != "rel" && name != "href" && !(name == "type" && value == "application/manifest+json") {
+						return fragment, fmt.Errorf("invalid navigation manifest attribute")
+					}
+				}
+			}
+			u := win.Get("URL").New(element.Attrs["href"], doc.Get("baseURI"))
 			if rel == "stylesheet" || rel == "preload" {
 				href := element.Attrs["href"]
 				_, inside := deployment.Strip(u.Get("pathname").String())

@@ -1,0 +1,9 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #123b35; background: #f4faf8; }
+body { max-width: 72ch; margin: 0 auto; padding: 2rem 1rem; line-height: 1.65; }
+h1, h2, h3 { line-height: 1.2; }
+a { color: #07593d; text-underline-offset: .2em; }
+pre, aside, blockquote { padding: 1rem; border: 1px solid #c5d7cd; border-radius: .4rem; background: #e8f2ec; }
+pre { overflow-x: auto; }
+code { font-family: ui-monospace, monospace; }
+aside { margin-top: 2rem; }
+:focus-visible { outline: 3px solid #a44d00; outline-offset: 3px; }

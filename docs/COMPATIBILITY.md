@@ -88,6 +88,14 @@ bridge uses experimental `syscall/js`. Next.go does not promise a Go runtime ABI
 across SDKs or a native binary ABI for linking framework/plugin objects. Rebuild
 the complete application when changing framework revision or SDK.
 
+UI MIME parsing uses a private licensed Go 1.27.3 parser source port only under
+`js && wasm`; native UI continues to use the installed SDK's parser. The port
+is compiled with the selected WASM SDK, not linked to a different Go runtime.
+Its source grammar does not automatically change when the compiler changes.
+Rerun the native/WASM corpora and differential checks when updating either the
+port or SDK; the short current fuzz observation is not a compatibility guarantee
+for every MIME input or future SDK revision.
+
 The generated native executable requires its target OS/CPU and any application's
 native dependencies. Existing deployment fixtures cover macOS and non-root,
 read-only Linux; they do not establish a universal OS/architecture matrix.
@@ -106,16 +114,15 @@ retain their documented fallback. See [deployment](DEPLOYMENT.md),
 
 ## Independent identities and negotiation
 
-The current source changes module ABI 3 to **4** because resource invalidation
-epochs are mandatory core/module state. Rebuild all core and lazy artifacts
-together; older bundles fail ABI negotiation. The frozen source passes Go 1.24
-and 1.27 native race/vet and matching core/module WASM tests/vet, with scoped
-browser coverage recorded in [the changelog](../CHANGELOG.md). A corrected
-late-hydration path prevents old SSR DOM from adopting a pre-mutation resource
-seed; the preceding behavior fails its browser counterfactual. These checks do
+Module ABI **4** was introduced at `467ba2f` because resource invalidation epochs
+are mandatory core/module state. Rebuild all core and lazy artifacts together;
+older bundles fail ABI negotiation. A corrected late-hydration path prevents old
+SSR DOM from adopting a pre-mutation resource seed; the preceding behavior fails
+its browser counterfactual. The newer phase/metadata/content/MIME batch leaves
+ABI 4, navigation 3 and action/action-view 1 unchanged. Current SDK and browser
+evidence is recorded in [the changelog](../CHANGELOG.md); those scoped checks do
 not establish released-version migration or production qualification.
-Historical cookie/dispatch checkpoints remain ABI 3. Navigation version 3 and
-action/action-view version 1 are unchanged.
+Historical cookie/dispatch checkpoints remain ABI 3.
 
 These numbers are separate compatibility boundaries. A number in one row does
 not imply support for the same number in another row.
@@ -132,6 +139,9 @@ not imply support for the same number in another row.
 | Eager/lazy browser bridge | Module ABI **4**, descriptor epoch plus SHA-256 digest/length and content-addressed module name; resource invalidation epochs are mandatory. | Cross-generation/ABI registration fails. Publish/rebuild all modules with the core; SSR remains available when a lazy component fails. Old-origin DOM cannot reseed invalidated resources. There is no supported independently upgraded module plugin ABI. |
 | Asset-tool manifest | `nextgo.assets.json` version **1**; declared native commands/hooks, inputs and public outputs. | Unsupported/invalid manifests fail build preparation. Tool versions and dependencies are application build inputs; changing them requires regeneration and checksum review. Tools execute with trusted native authority. See [asset pipeline](ASSET_PIPELINE.md). |
 | Development inspection | Read-only protocol version **1**, bounded public graph/status metadata, loopback-only access policy. | Inspection consumers must check schema version; node IDs are scoped to a graph rather than persistent cross-build identities. This development endpoint is absent from production servers. See [inspection](DEV_INSPECTION.md). |
+| Native startup phase | `Config.Phase` selects development, production, prerender or static export before the unchanged Configure hook. No browser phase field. | Unset programmatic phase follows existing native mode flags; unknown or conflicting modes fail construction. Export has separate cache ownership and does not import production prerender snapshots/tickets. See [phases](CONFIG_PHASES.md). |
+| Managed public metadata | Six fixed root filenames, frozen validated public bytes, optional Robots/Sitemap/Manifest startup factories. | Static/factory collisions and invalid source/format/size fail before serving. Paths use global BasePath rather than locale/CDN prefixes. Explicit head manifest/icons override defaults; these files cannot depend on page middleware for privacy. See [metadata files](../metadatafiles/README.md). |
+| Native export configuration | Version **2** when the managed metadata inventory is nonempty; otherwise **1**. New CLI accepts 1/2. | Earlier CLI rejects 2, preventing silent resource omission. Pair CLI/framework revisions. Published route-artifact formats remain `nextgo-static-v1`/`v2` with an added metadata inventory; metadata bytes are revalidated before publication. |
 | Static runtime declaration | `Context.RequireServer()` stages `X-Nextgo-Requires-Server: 1`; no JSON/protocol bump. | Export refuses marked HTML or navigation before body consumption/publication. This supplements existing dynamic-feature checks and does not infer arbitrary Go/API dependencies. See [static dependencies](STATIC_DEPENDENCIES.md). |
 | Shared-cache HTTP | Protocol **3**, strict request/response shape. Application `Namespace`/`Schema`/key identities are separate. | Unknown/older protocol fails closed; there is no rolling translation layer or silent local outage fallback. Pair authority/client revisions or use separate authorities for an incompatible transition. |
 | Private prerender artifact | Manifest versions 1/2/3 are currently recognized; shared seeds require their supported shape and partial regions require version 3. Bytes are bound to final build identity. | This is trusted private build input, not an upload/interchange format. Regenerate on upgrade. Startup rejects artifact/build/shape mismatches; do not edit embedded bytes to bypass checks. |
@@ -142,6 +152,23 @@ See [streaming](STREAMING.md), [action views](ACTION_VIEWS.md),
 [shared cache](SHARED_CACHE.md), and [prerendering](PRERENDER.md) for the
 authoritative behavior and bounds of each subset. This table is not a public
 implementation API for internal decoders.
+
+For a custom server that calls application `Configure` itself, populate
+`Config.Phase` before that call. `New` does not invoke Configure automatically.
+Changing phase does not select an environment-file mode, bypass authorization or
+set up a static host's response headers. Existing header-rule/draft/request-time
+feature refusals remain in force during export. Applications own phase-specific
+data-cache keys and external writes; separate framework snapshot identity is
+not application database isolation.
+
+Managed metadata is an explicit public declaration, including output from native
+factories. Factories run once during startup and receive no incoming request;
+keep private data outside their output. `seo.Metadata.Manifest` is a pointer:
+nil inherits, a pointer to `""` disables inheritance, and a nonempty pointer
+supplies an explicit manifest link. Explicit icons similarly override managed
+defaults. Use these typed controls rather than depending on DOM marker details.
+The [content parser](CONTENT.md) has a separate named grammar and bounds; it does
+not import CommonMark/MDX source compatibility into the Go package contract.
 
 ## A reversible application upgrade
 
@@ -208,17 +235,23 @@ old-document rejection before writes and explicit action revision coexistence.
 unsupported wire versions; `tests/skew.spec.mjs` exercises local process rollout
 and rollback. These are current-source fixtures, not published-version support.
 
-Current feature verification is recorded in [CHANGELOG.md](../CHANGELOG.md).
-It includes the scoped resource/media/social, asset-pipeline and inspection
-checks as well as the existing HTTP/mock-Lambda regression matrix. Eight
-new-feature Node cases pass against the local mock Runtime API (four host,
-four Linux), checking both response modes, root/mounted CDN/slash configuration,
-SSR/navigation/API responses and exact runtime/media assets. These are event
-conformance assertions; browser hydration through Lambda, actual cloud and
-production upgrade behavior remain unqualified. The earlier scan with
-zero reported findings covers its original pre-fix source snapshot, not the
-final source or an immutable release security audit. Current measured eager
-WASM transfer/raw size budgets still fail.
+Current and historical feature verification are separated in
+[CHANGELOG.md](../CHANGELOG.md). The current source has Go 1.27.3 full race/vet
+across 56 packages and matching core/module WASM/vet; Go 1.24 passes the same Go
+checks before two final stylesheet-only changes. The recorded metadata/content,
+MIME, CSS, browser and export checks qualify only their stated subsets. A fresh
+Linux build/export repeat passes 20 styled metadata/content browser checks, with
+819 Go/module hashes unchanged from the qualified SDK/WASM matrix. Prior
+`467ba2f` remote CI and local browser-through-Lambda results do not qualify new
+metadata-specific Lambda behavior; actual AWS and production upgrade behavior
+remain unqualified.
+
+Scan `9e1f4938-9cb5-43c6-b086-816de9738d2a` reports zero findings across 88
+changed source files in immutable snapshot `272acabad…`, without fixes during
+review. It is a bounded diff review, not an independent release security audit.
+The earlier pre-fix scan belongs to its historical source snapshot. Current
+measured eager WASM transfer/raw size budgets still fail; the separate controlled
+MIME experiment does not establish whole-application performance improvement.
 
 G11 remains open: publish immutable release tags and verified install examples,
 an actual support/backport table, migration notes for every incompatible change,

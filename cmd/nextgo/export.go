@@ -25,6 +25,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/project"
 	"github.com/Suhaibinator/Next.go/internal/routing"
+	"github.com/Suhaibinator/Next.go/metadatafiles"
 )
 
 func executeExport(ctx context.Context, args []string) error {
@@ -91,7 +92,7 @@ func executeExport(ctx context.Context, args []string) error {
 		return err
 	}
 	defer stop()
-	if err := exportWithScopes(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Domain); err != nil {
+	if err := exportWithMetadata(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Metadata, config.Domain); err != nil {
 		return err
 	}
 	dir, _ := filepath.Abs(*output)
@@ -248,6 +249,10 @@ func exportApplication(ctx context.Context, base, assets, output, buildID string
 }
 
 func exportWithScopes(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, domains ...string) error {
+	return exportWithMetadata(ctx, base, assets, output, buildID, paths, deployment, scopes, nil, domains...)
+}
+
+func exportWithMetadata(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, domains ...string) error {
 	domain := ""
 	if len(domains) > 1 {
 		return fmt.Errorf("export requires at most one domain")
@@ -259,6 +264,9 @@ func exportWithScopes(ctx context.Context, base, assets, output, buildID string,
 		return err
 	}
 	if err := deployment.Validate(); err != nil {
+		return err
+	}
+	if err := validateMetadataInventory(deployment, metadata); err != nil {
 		return err
 	}
 	if scopes != nil {
@@ -357,7 +365,10 @@ func exportWithScopes(ctx context.Context, base, assets, output, buildID string,
 			}
 		}
 	}
-	publication := exportManifest{Format: "nextgo-static-v1", Protocol: nextgo.NavigationProtocolVersion, Configuration: configurationID, Build: buildID, Paths: paths, BasePath: deployment.BasePath, AssetPrefix: deployment.AssetPrefix, TrailingSlash: deployment.TrailingSlash}
+	if err := exportManagedMetadata(ctx, client, base, stage, deployment, domain, buildID, metadata); err != nil {
+		return err
+	}
+	publication := exportManifest{Format: "nextgo-static-v1", Protocol: nextgo.NavigationProtocolVersion, Configuration: configurationID, Build: buildID, Paths: paths, BasePath: deployment.BasePath, AssetPrefix: deployment.AssetPrefix, TrailingSlash: deployment.TrailingSlash, Metadata: metadata}
 	for _, scope := range scopes {
 		if scope.Locale != "" {
 			publication.Format, publication.Configuration, publication.Scopes = "nextgo-static-v2", "", scopes
@@ -494,6 +505,7 @@ type exportManifest struct {
 	Paths         []string                   `json:"paths"`
 	Scopes        []nextgo.StaticExportScope `json:"scopes,omitempty"`
 	Domain        string                     `json:"domain,omitempty"`
+	Metadata      []metadatafiles.Entry      `json:"metadata,omitempty"`
 }
 
 func validateExportDestination(destination string) error {
@@ -537,7 +549,7 @@ func startExportServerEnv(ctx context.Context, binary string, env []string) (str
 	}
 	addr := listener.Addr().String()
 	_ = listener.Close()
-	command := exec.CommandContext(ctx, binary, "-addr", addr)
+	command := exec.CommandContext(ctx, binary, "-static-export", "-addr", addr)
 	command.Stdout, command.Stderr = os.Stdout, os.Stderr
 	// Static export always exercises the native HTTP path, including in CI that
 	// happens to provide Lambda-related environment variables.

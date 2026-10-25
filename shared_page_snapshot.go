@@ -275,6 +275,13 @@ func sharedSnapshotLink(attrs map[string]string) bool {
 	allowed := map[string]bool{"rel": true, "href": true}
 	switch attrs["rel"] {
 	case "canonical":
+	case "manifest":
+		if kind, ok := attrs["type"]; ok {
+			if kind != "application/manifest+json" {
+				return false
+			}
+			allowed["type"] = true
+		}
 	case "alternate":
 		allowed["hreflang"] = true
 		if attrs["hreflang"] == "" || len(attrs["hreflang"]) > 255 {

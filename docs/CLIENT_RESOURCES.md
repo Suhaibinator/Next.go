@@ -118,8 +118,11 @@ private origin epoch on each island DOM node when first observed. That metadata
 survives delayed lazy mounting and same-node download retries: a store created
 later on old-origin DOM cannot adopt a pre-mutation seed and starts invalidated.
 A different node delivered by a fresh navigation receives the current epoch, so
-its new seed remains adoptable after earlier mutations. The marker contains no
-payload and disappears with its DOM node; it is not a global retained-node map. `AdoptSeed` itself
+its new seed remains adoptable after earlier mutations. The private marker is a decimal epoch recorded once by the document hydrator;
+resource code does not refresh it when the same node is retried or rebound. It
+contains no payload and disappears with its DOM node. It is implementation
+metadata on a node shared by the paired core/module runtime, not a public API, a
+server-authentication token or a global retained-node map. `AdoptSeed` itself
 returns `ErrResourceSeed` when adoption is refused. Adoption that cannot fit the
 store byte budget is refused rather than silently losing the seed. A second
 view can adopt the same already-owned public value without issuing a request.
@@ -138,8 +141,10 @@ navigation cache, including failed/aborted mutation transports: a transport erro
 does not prove server rollback. The core forwards an invalidation epoch to loaded
 lazy modules. This mandatory freshness propagation raises the module ABI from 3
 to 4. Old/new mixed ABI hosts and modules fail their handshake before mounting;
-rebuild and deploy the paired core and lazy assets together. Only epochs cross that ABI; payloads and Go objects remain in their
-own WASM runtimes. Unchanged module epochs do not invalidate again. `Refresh`
+rebuild and deploy the paired core and lazy assets together. The host shares the
+original DOM reference with its module, including the private first-observed
+origin marker; JSON snapshots carry the current invalidation epoch. Resource
+payloads and Go objects remain in their own WASM runtimes. Unchanged module epochs do not invalidate again. `Refresh`
 also applies the document cache fence. `client.InvalidateResources()` explicitly
 applies the same fence for application-managed API mutations or authentication
 changes; ordinary raw API writes are not automatically detected.

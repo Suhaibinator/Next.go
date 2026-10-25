@@ -34,8 +34,11 @@ func readExportConfigEnv(ctx context.Context, binary, build, domain string, env 
 	if output.overflow || json.Unmarshal(output.Bytes(), &config) != nil {
 		return config, fmt.Errorf("invalid static export configuration; write application build logs to stderr")
 	}
-	if config.Version != 1 || config.Build != build {
+	if (config.Version != 1 && config.Version != 2) || config.Build != build || (config.Version == 1 && len(config.Metadata) > 0) || (config.Version == 2 && len(config.Metadata) == 0) {
 		return config, fmt.Errorf("incompatible static export configuration")
+	}
+	if err := validateMetadataInventory(config.Paths, config.Metadata); err != nil {
+		return config, err
 	}
 	expected := ""
 	if domain != "" {
