@@ -6,7 +6,10 @@ A Go full-stack web framework with server-rendered HTML, file routes, nested lay
 
 ## Run the example
 
-Install **Go 1.24+**, then run from this repository:
+Install **Go 1.24+** for the minimum language/compatibility target. Use a
+supported production SDK; the Docker build currently pins Go 1.27.3 and its
+matching WASM support. See the [toolchain policy](docs/DEPLOYMENT.md#build-toolchain-policy).
+Then run from this repository:
 
 ```sh
 go run ./cmd/nextgo dev ./examples/demo
@@ -82,6 +85,14 @@ unfinished.
 go run ./cmd/nextgo build --out ./dist/demo ./examples/demo
 ./dist/demo/server -addr :3000
 ```
+
+The controlled ASCII-validator build comparison reduces the Go 1.27.3 example
+core from 8,689,715 to 8,191,328 raw bytes (2,233,505 to 2,107,698 gzip-9).
+Both WASM size budgets still fail. [Paired artifacts and measurement limits](docs/PERFORMANCE.md#ascii-validator-build-comparison-october-25-2026-utc)
+separate this bundle reduction from startup-speed and production-maturity claims.
+The selected final checks record 828 browser passes and three existing platform
+skips, alongside both SDK native/WASM and host/Linux deployment checks; this
+does not complete the [release gates](docs/PARITY.md).
 
 The output is a **single native server executable** containing public assets, WebAssembly, its matching `wasm_exec.js`, and the loader. Copy this executable to a compatible host and run it from any directory. Production needs neither Go nor Node installed. The default listen address is `:3000`; TLS can terminate at a reverse proxy.
 

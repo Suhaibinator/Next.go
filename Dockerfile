@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM golang:1.24-bookworm AS source
+# Pin a supported production SDK; override GO_IMAGE for explicit compatibility tests.
+ARG GO_IMAGE=golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5
+FROM --platform=$BUILDPLATFORM ${GO_IMAGE} AS source
 ARG TARGETOS=linux
 ARG TARGETARCH
 ARG APP=./examples/demo

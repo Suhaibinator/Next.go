@@ -8,9 +8,10 @@ import (
 	"html"
 	"io"
 	"net/url"
-	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/Suhaibinator/Next.go/internal/ascii"
 )
 
 // Node is a server-renderable value. Custom components are functions returning Nodes.
@@ -21,7 +22,6 @@ func (n nodeFunc) Render(w io.Writer) error { return n(w) }
 
 type Attrs map[string]string
 
-var name = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9:_-]*$`)
 var void = map[string]bool{"area": true, "base": true, "br": true, "col": true, "embed": true, "hr": true, "img": true, "input": true, "link": true, "meta": true, "param": true, "source": true, "track": true, "wbr": true}
 
 func Text(s string) Node {
@@ -45,7 +45,7 @@ func Fragment(children ...Node) Node {
 func El(tag string, attrs Attrs, children ...Node) Node {
 	tag = strings.ToLower(tag)
 	return nodeFunc(func(w io.Writer) error {
-		if !name.MatchString(tag) || tag == "script" || tag == "style" || tag == "iframe" || tag == "object" || tag == "embed" || tag == "base" || tag == "animate" || tag == "set" || tag == "animatemotion" || tag == "animatetransform" || tag == "discard" {
+		if !ascii.HTMLName(tag) || tag == "script" || tag == "style" || tag == "iframe" || tag == "object" || tag == "embed" || tag == "base" || tag == "animate" || tag == "set" || tag == "animatemotion" || tag == "animatetransform" || tag == "discard" {
 			return fmt.Errorf("ui: unsupported tag %q", tag)
 		}
 		var b strings.Builder
@@ -57,7 +57,7 @@ func El(tag string, attrs Attrs, children ...Node) Node {
 		sort.Strings(keys)
 		for _, k := range keys {
 			lower := strings.ToLower(k)
-			if !name.MatchString(k) || strings.HasPrefix(lower, "on") || lower == "srcdoc" || lower == "style" || lower == "http-equiv" {
+			if !ascii.HTMLName(k) || strings.HasPrefix(lower, "on") || lower == "srcdoc" || lower == "style" || lower == "http-equiv" {
 				return fmt.Errorf("ui: unsupported attribute %q", k)
 			}
 			v := attrs[k]

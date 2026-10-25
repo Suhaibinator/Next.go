@@ -6,9 +6,34 @@ mock Runtime API. **Real AWS deployment, IAM, cold-start latency, and platform
 limits have not been validated in a cloud account.** CI configuration is included;
 its remote results must be checked before treating a revision as release-ready.
 
+## Build toolchain policy
+
+Use an upstream-supported Go SDK for production. The Dockerfile defaults to the
+official `golang:1.27.3-bookworm` image, pinned by its multi-architecture manifest
+digest. As checked on October 24, 2026, Go supports the 1.26 and 1.27 release
+lines: support ends when two newer major releases exist. Go 1.27.3 includes a
+`crypto/x509` security fix. See the [official Go release policy and history](https://go.dev/doc/devel/release)
+and [current stable downloads](https://go.dev/dl/?mode=json).
+
+Go 1.24 remains the framework's minimum language and compatibility-test target;
+it is outside upstream support and is not the recommended production SDK.
+Update the production SDK pin deliberately as supported patches arrive, then
+rerun native, matching-toolchain WASM, executable and browser qualification.
+The generated WASM bundle and `wasm_exec.js` must come from the same SDK; publish
+them with their server as one generation.
+
+The global `GO_IMAGE` build argument applies to all compiler stages. To reproduce
+the minimum-SDK compatibility image explicitly:
+
+```sh
+docker build --target deployment-test \
+  --build-arg GO_IMAGE=golang:1.24.13-bookworm@sha256:1a6d4452c65dea36aac2e2d606b01b4a029ec90cc1ae53890540ce6173ea77ac \
+  -t nextgo-go124-compatibility .
+```
+
 ## Self-hosted executable
 
-Build on the target OS and CPU architecture with Go 1.24 or newer:
+Build on the target OS and CPU architecture with a supported Go SDK:
 
 ```sh
 go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
@@ -18,10 +43,16 @@ go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
 Opted-in [prerendered pages](PRERENDER.md) are captured during the build using a
 temporary host executable, then embedded privately in the final target binary.
 Build loaders need their public data sources available. Both HTTP servers and
-Lambda processes import the same snapshot bytes with their original ages. Runtime
-regenerations and invalidations are process-local: cold starts/restarts can serve
-an old embedded generation stale while it refreshes. Durable shared ISR remains
-unimplemented.
+Lambda processes import the same snapshot bytes with their original ages.
+Regeneration and invalidation are process-local by default: cold starts/restarts
+can serve an old embedded generation stale while it refreshes. Opting into
+`PrerenderPolicy.Shared` with `Config.SharedCache` uses an online authority for
+bounded build-seed admission, runtime regeneration and acknowledged cross-instance
+invalidation. The authority must be reachable during the build and startup.
+Its optional file backend retains acknowledged shared state across local
+authority recovery. See [shared build seeds and regeneration](PRERENDER.md#shared-build-seeds-and-regeneration)
+and [shared-cache limits](SHARED_CACHE.md). Replication/HA, machine-power-loss,
+actual-cloud and operational recovery qualification remain open.
 
 The executable embeds the application assets and matching WASM runtime. It can
 run outside the source checkout with no Go, Node, or source files installed. Send
@@ -40,9 +71,9 @@ at your reverse proxy/CDN or use deployment affinity during rollout.
 
 ## Container
 
-The multistage Dockerfile builds a static Linux executable and copies it and CA
-certificates into a scratch image. It runs as UID/GID 65532 and needs no writable
-filesystem for the demo.
+The multistage Dockerfile uses the pinned production SDK above to build a static
+Linux executable and copies it and CA certificates into a scratch image. It runs
+as UID/GID 65532 and needs no writable filesystem for the demo.
 
 ```sh
 docker build -t nextgo-demo .
@@ -197,7 +228,8 @@ and [HTTP integration framing](https://aws.amazon.com/blogs/compute/using-respon
 ./scripts/test-deployment-container.sh
 ```
 
-This builds the demo and a black-box Go test runner with Go 1.24. They run from
+This builds the demo and a black-box Go test runner with the Dockerfile's pinned
+production SDK (or an explicitly supplied `GO_IMAGE` override). They run from
 a scratch image as UID/GID 65532 with a read-only filesystem, no external
 network, dropped capabilities, and bounded container memory/processes. The
 fixture launches the actual generated executable from `/`, first as a native
@@ -378,9 +410,10 @@ paths, per-language data directories and host redirect responsibility.
 ./scripts/test-static-browser-container.sh
 ```
 
-This development-only image pairs Go 1.24 with the matching Playwright browser
-image, builds/exports the sample, stops the application servers, and serves only
-files to Firefox, WebKit and a touch viewport. Nine scenarios per browser cover
+This development-only image uses the same pinned Go SDK and its matching WASM
+runtime inside the Playwright browser image, builds/exports the sample, stops the
+application servers, and serves only files to Firefox, WebKit and a touch
+viewport. Nine scenarios per browser cover
 SSR, hydration identity, navigation/history, mounted assets, mixed-generation
 recovery, fail-closed unsupported publication, deterministic language scopes and
 separate domain artifacts with cross-origin language switching and explicit host

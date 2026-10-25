@@ -9,15 +9,93 @@ These are measurements of this framework before and after one change. They are
 not comparisons against Next.js, production field results, or evidence of full
 framework performance parity.
 
-The latest recorded browser sample is the
-[cookie/dispatch artifact observation](#cookie-dispatch-artifact-observation-october-25-2026-utc).
+The latest controlled build/startup sample is the
+[ASCII-validator comparison](#ascii-validator-build-comparison-october-25-2026-utc).
 The separate [seed-ledger observation](#seed-ledger-lease-bookkeeping-observation-october-24-2026-utc)
 measures native allocation/bookkeeping work.
 Earlier reports remain historical measurements of their specific artifacts.
 
+## ASCII-validator build comparison (October 25, 2026 UTC)
+
+The [controlled build pair](benchmarks/ascii-build-pair-go1.27.3-macos-arm64.json)
+compares production builds with Go 1.27.3/macOS arm64, default caller
+`GOFLAGS`/`GOEXPERIMENT`, the same `a57f53e` VCS revision with
+`vcs.modified=true`, stable generated package paths and the complete example's
+17 eager components/two lazy modules. The patch replaces the recorded validators
+and adds differential tests; source-fingerprint/module-digest strings update
+accordingly, and their compression effects are included in the measured delta.
+Native prerender ages intentionally differ, so this is not a
+native-binary reproducibility comparison. Node 25.7.0/zlib level-9 recompression
+provides the gzip figures; it is distinct from actual HTTP encoding.
+
+| WASM artifact | Baseline raw / gzip-9 bytes | Candidate raw / gzip-9 bytes | Reduction raw / gzip-9 bytes |
+| --- | ---: | ---: | ---: |
+| Core | 8,689,715 / 2,233,505 | 8,191,328 / 2,107,698 | 498,387 / 125,807 |
+| `actionviewlazy` | 5,725,781 / 1,562,260 | 5,326,564 / 1,461,721 | 399,217 / 100,539 |
+| `lazycounter` | 5,617,567 / 1,537,361 | 5,218,315 / 1,437,768 | 399,252 / 99,593 |
+
+The candidate dependency graph removes `regexp` and `regexp/syntax`, adding
+`internal/ascii`; SDK support and bootstrap bytes are identical. HTML names
+retain their ASCII byte classes, existing Unicode tag lowercasing stays in
+place, stream/region IDs retain their 128-byte bound, and lazy digest/epoch
+identity remains exact lowercase hexadecimal. Differential native fuzz checks
+ran three two-second targets (75,628 HTML-name, 123,591 identifier and 162,196
+hex executions), alongside native/WASM/helper/UI and race/vet checks. This is
+a behavior-preserving bundle reduction, not added Next.js feature parity.
+
+The paired [baseline startup report](benchmarks/ascii-baseline-go1.27.3-macos-arm64.json)
+and [candidate startup report](benchmarks/ascii-candidate-go1.27.3-macos-arm64.json)
+record ten fresh Chromium contexts each, with meaningful SSR, no browser errors
+and a Go counter changing from 3 to 4 in all 20. The standalone servers run
+from empty temporary working directories outside the checkout. Each variant
+uses its own browser process with ten fresh contexts, warm OS/server state,
+loopback, default caching and no
+CPU/network throttle; qualification ran concurrently. Compiled-code reuse and
+instrumentation limit timing interpretation.
+
+| Startup observation | Baseline | Candidate |
+| --- | ---: | ---: |
+| Browser navigation-to-ready median (range), ms | 115.8 (114.1–140.7) | 106.5 (102.8–124.8) |
+| Node `goto`-to-observed-ready median (range), ms | 141.10 (138.29–165.96) | 135.26 (131.07–154.19) |
+| Exported memory capacity at instantiation, bytes | 4,915,200 | 4,718,592 |
+| Exported memory capacity at readiness, bytes | 6,815,744 | 6,291,456 |
+| Actual HTTP gzip WASM body, bytes | 2,326,165 | 2,198,048 |
+
+Browser and Node observations use different clocks/windows; these results do
+not establish startup-speed improvement or regression. Memory is actual
+exported linear-memory capacity, excluding JavaScript buffers; it is not live
+heap, physical commitment, peak memory or RSS. No cold/mobile/field,
+concurrent-load or competing-framework performance claim follows.
+
+The candidate core SHA-256 is
+`13a266ee3eb0dc73246483d1cc15fdfc5adf89cd2ebb5d3cfa91a7c1dbc5b4c2`;
+its native server is
+`7f121d9428652f7e11389e1343b4a5c3b44b1377756e08fbe18d7cfcfc00e6e8`.
+Both **6-MiB raw / 1.6-MiB gzip-9 reference budgets still fail**.
+
+The build report separately records an explicit Go 1.27
+`GOEXPERIMENT=nojsonv2` probe: 7,197,550 raw / 1,844,100 gzip-9 core bytes,
+also failing both budgets. This is **build/bytes-only, runtime-unqualified**
+evidence, not a recommended default. The framework does not inject that setting;
+applications importing `encoding/json/v2` or `jsontext` can stop compiling,
+and Go 1.24 must not receive it. The normal compiler/runtime pairing and
+[production SDK policy](DEPLOYMENT.md#build-toolchain-policy) remain intact.
+
+Both SDK full native race/vet and matching core/mutation/module WASM/vet pass
+for the final 718-input source checkpoint. Its selected browser matrix records
+**828 passes / three existing platform skips from 831 executions**, without
+failures or flaky results: host 244 exact-candidate checks plus 23 separate
+fresh static checks, and Linux Go 1.27.3 450 expanded plus 111 targeted passes
+with three existing CDP-only cache-hit-proof skips. These counts exclude the
+20 startup samples and historical/diagnostic repeats. Full host standalone
+deployment under race passes in 113.150 s; the default Go 1.27.3 isolated Linux
+deployment passes 228 checks without skips. These functional checks support
+this bounded optimization/SDK increment, not production performance, full
+feature parity or closure of the release gates.
+
 ## Cookie-dispatch artifact observation (October 25, 2026 UTC)
 
-The [actual startup report](benchmarks/cookie-dispatch-go1.27.3-macos-arm64.json)
+The preceding [actual startup report](benchmarks/cookie-dispatch-go1.27.3-macos-arm64.json)
 records the clean `d41ed6c` standalone artifact with Go 1.27.3/macOS arm64,
 Chromium 156.0.8078.4, Node 25.7.0 and Apple M4 Max. Ten fresh contexts in one
 browser process load `/prefetch` over warm loopback without CPU/network

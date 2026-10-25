@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"regexp"
-)
 
-var boundaryID = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
+	"github.com/Suhaibinator/Next.go/internal/ascii"
+)
 
 type deferredNode struct {
 	id       string
@@ -31,7 +30,7 @@ func (d *deferredNode) Render(w io.Writer) error {
 	if RenderContext(w).Value(shellCaptureKey{}) == true {
 		return fmt.Errorf("ui: shell capture requires registered request regions, not Defer callbacks")
 	}
-	if len(d.id) > 128 || !boundaryID.MatchString(d.id) {
+	if len(d.id) > 128 || !ascii.Identifier(d.id) {
 		return fmt.Errorf("ui: invalid streaming boundary ID %q", d.id)
 	}
 	if d.loader == nil {
@@ -126,7 +125,7 @@ func (w *streamWriter) deferNode(d *deferredNode) error {
 	if w.fallback {
 		return fmt.Errorf("ui: deferred fallbacks cannot contain deferred boundaries")
 	}
-	if len(d.id) > 128 || !boundaryID.MatchString(d.id) || d.loader == nil {
+	if len(d.id) > 128 || !ascii.Identifier(d.id) || d.loader == nil {
 		return fmt.Errorf("ui: invalid deferred boundary")
 	}
 	if w.depth >= MaxStreamDepth || w.total+len(w.tasks) >= MaxStreamBoundaries {

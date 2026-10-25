@@ -10,6 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/Suhaibinator/Next.go/internal/ascii"
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
 )
 
@@ -63,7 +64,7 @@ func WithRegionResolver(ctx context.Context, resolver RegionResolver) context.Co
 func regionHeader(id string) string {
 	return `<div aria-busy="true" data-nextgo-boundary="` + html.EscapeString(id) + `">`
 }
-func validRegionName(id string) bool { return len(id) <= 128 && boundaryID.MatchString(id) }
+func validRegionName(id string) bool { return len(id) <= 128 && ascii.Identifier(id) }
 func validateRegionProps(raw json.RawMessage) error {
 	if len(raw) == 0 || len(raw) > MaxRegionPropsBytes || !utf8.Valid(raw) || wirejson.Unique(raw) != nil {
 		return fmt.Errorf("ui: invalid request-region props")

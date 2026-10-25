@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"unicode/utf8"
 
+	"github.com/Suhaibinator/Next.go/internal/ascii"
 	"github.com/Suhaibinator/Next.go/internal/wirejson"
 )
 
@@ -18,7 +18,6 @@ const StreamMediaType = "application/x-nextgo-stream+json"
 const MaxStreamFrame = 2 << 20
 const MaxStreamBytes = 8 << 20
 const MaxStreamFrames = 130 // shell, up to 128 boundaries, done
-var streamID = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]{0,127}$`)
 
 type StreamFrame struct {
 	Version int             `json:"version"`
@@ -29,7 +28,7 @@ type StreamFrame struct {
 	Failed  bool            `json:"failed,omitempty"`
 }
 
-func ValidStreamID(id string) bool { return streamID.MatchString(id) }
+func ValidStreamID(id string) bool { return len(id) <= 128 && ascii.Identifier(id) }
 
 func DecodeStreamFrame(data []byte) (StreamFrame, error) {
 	var frame StreamFrame
@@ -62,7 +61,7 @@ func DecodeStreamFrame(data []byte) (StreamFrame, error) {
 			return frame, fmt.Errorf("invalid stream shell")
 		}
 	case "chunk":
-		if !streamID.MatchString(frame.ID) || frame.Page != nil {
+		if !ValidStreamID(frame.ID) || frame.Page != nil {
 			return frame, fmt.Errorf("invalid stream boundary")
 		}
 	case "done":

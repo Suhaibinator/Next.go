@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25T03:30:34.540Z",
+  "scope": "Controlled production WASM byte/dependency comparison, not timing, RSS, cold-field, Next.js comparison or release qualification. Full example component set and compiler/runtime pairing preserved.",
+  "controls": {
+    "revision": "a57f53ea0315d5c156a68a8cd3c4ea266e163468",
+    "vcsModified": true,
+    "go": "go version go1.27.3 darwin/arm64",
+    "node": "v25.7.0",
+    "zlib": "1.3.1-e00f703",
+    "compression": "Node gzipSync level9; modeled rather than actual HTTP encoding",
+    "frameworkCompiler": "same current Compile production pipeline, stable virtual package paths; private source retained for dependency audit",
+    "buildOnlyEnvironment": "NEXTGO_DEMO_PARTIAL_REGION_FAIL=true",
+    "flags": "default caller GOFLAGS/GOEXPERIMENT, no override in either paired build",
+    "nativePrerenderAges": "Clocked native artifacts intentionally differ; no native-binary byte reproducibility claim.",
+    "metadata": "Validator implementation and differential tests change source fingerprints and lazy-module digest strings. Exact gzip deltas include these legitimate metadata changes; same Go/VCS/flag settings and support bytes are independently checked."
+  },
+  "sourceChanges": [
+    {
+      "path": "client/lazy_js.go",
+      "beforeSHA256": "f6fe041181b3bba4b9698de918267bf2b342b9de264ed23cdf1dafbdeafb7293",
+      "afterSHA256": "552159d686a58b93681b707d69919971c0c36288120df5f58af5113f452dcb2e"
+    },
+    {
+      "path": "internal/navigation/stream.go",
+      "beforeSHA256": "61a01ec03c1584dc962b3a33959bfb3f4df15357141cd5be2f014e515c83bc81",
+      "afterSHA256": "91f423c05614774145e87b0b160b07e88f85a4f3a716fb928db2bb9cd960edda"
+    },
+    {
+      "path": "ui/ui.go",
+      "beforeSHA256": "f4d9d2636a40aa19d5bd128e50a852c62e0f217ac7d6005f3b1acdebac9f9f6a",
+      "afterSHA256": "86541b164f0463f1d5369c18fd3edf6ee67b88411f7641d0b16bb4723eb18279"
+    },
+    {
+      "path": "ui/stream.go",
+      "beforeSHA256": "b6cd18831855a6e234a0d98adf46ef3ecf5d92456e1b2d555eb09f4f726f79d9",
+      "afterSHA256": "7cc1f137e8ddbbb7e8b6a1844a8374fede8ca925a9b661812253ebc18103db80"
+    },
+    {
+      "path": "ui/request_region.go",
+      "beforeSHA256": "3c421372815c0355bab8d7989202d53657ba0b6133e6045b755de55bb5f0f7e1",
+      "afterSHA256": "c951f5cc27e811c9c7186e1c1e41d61390924d85fe556051b6918076b02ec265"
+    },
+    {
+      "path": "internal/ascii/validate.go",
+      "beforeSHA256": null,
+      "afterSHA256": "c2da27920a5168acee8f4333470f08a49f822854c9c75af4571de4225ce789a1"
+    }
+  ],
+  "baseline": {
+    "runtimeIdentity": "e8d9b32663474274618c",
+    "inputFingerprint": "5c6975cffd7c244429a79f32b913ac54f7c8111e712592e8b1835f4a9638d740",
+    "nativeSHA256": "3d4f68537dfdbe467e5f92178504c64119f171c06d9cf9c84d2ff9763331d5a4",
+    "buildInfo": "/private/tmp/nextgo-ascii-baseline/server: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025031345-a57f53ea0315+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=a57f53ea0315d5c156a68a8cd3c4ea266e163468\n\tbuild\tvcs.time=2026-10-25T03:13:45Z\n\tbuild\tvcs.modified=true\n",
+    "core": {
+      "file": "app.wasm",
+      "bytes": 8689715,
+      "gzip9": 2233505,
+      "sha256": "0937f4224ba967595fbdb91bb18a0ab59767bdb7a39f27a28da26b9af90d08cb",
+      "pythonGzip9": 2215555
+    },
+    "lazy": [
+      {
+        "component": "actionviewlazy",
+        "file": "module-eee82bd24e2931bb247e959bb54e12451a32ff8d42c3d89f1d78f7e13939bc27.wasm",
+        "bytes": 5725781,
+        "gzip9": 1562260,
+        "sha256": "eee82bd24e2931bb247e959bb54e12451a32ff8d42c3d89f1d78f7e13939bc27",
+        "pythonGzip9": 1547675
+      },
+      {
+        "component": "lazycounter",
+        "file": "module-3ec0d7eb3edae2db558f1621ec6625efb61e0238e6d67b31538e9956828998bd.wasm",
+        "bytes": 5617567,
+        "gzip9": 1537361,
+        "sha256": "3ec0d7eb3edae2db558f1621ec6625efb61e0238e6d67b31538e9956828998bd",
+        "pythonGzip9": 1522529
+      }
+    ],
+    "eagerComponentCount": 17,
+    "support": [
+      {
+        "file": "boot.js",
+        "bytes": 2224,
+        "gzip9": 864,
+        "sha256": "26afab8a89fa1f2108230ee7e7e176b2953b14f1017bf75f4c2b8d31568155ff",
+        "pythonGzip9": 871
+      },
+      {
+        "file": "wasm_exec.js",
+        "bytes": 16992,
+        "gzip9": 4348,
+        "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+        "pythonGzip9": 4352
+      }
+    ]
+  },
+  "candidate": {
+    "runtimeIdentity": "9d95e285d8aab6e0cbeb",
+    "inputFingerprint": "5960ea79c11134f9c7d16ad570a13774c7310cfdcd32091c69da9da3a5d2a1bd",
+    "nativeSHA256": "7f121d9428652f7e11389e1343b4a5c3b44b1377756e08fbe18d7cfcfc00e6e8",
+    "buildInfo": "/private/tmp/nextgo-ascii-candidate/server: go1.27.3\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025031345-a57f53ea0315+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=a57f53ea0315d5c156a68a8cd3c4ea266e163468\n\tbuild\tvcs.time=2026-10-25T03:13:45Z\n\tbuild\tvcs.modified=true\n",
+    "core": {
+      "file": "app.wasm",
+      "bytes": 8191328,
+      "gzip9": 2107698,
+      "sha256": "13a266ee3eb0dc73246483d1cc15fdfc5adf89cd2ebb5d3cfa91a7c1dbc5b4c2"
+    },
+    "lazy": [
+      {
+        "component": "actionviewlazy",
+        "file": "module-e44cbdea8a17c048560407132a8be538cd3b35702ecc6f0f6c0631897e023b4e.wasm",
+        "bytes": 5326564,
+        "gzip9": 1461721,
+        "sha256": "e44cbdea8a17c048560407132a8be538cd3b35702ecc6f0f6c0631897e023b4e"
+      },
+      {
+        "component": "lazycounter",
+        "file": "module-3fef19fd71caf93f25ac2138e9d378c292e9142bebe83dceccce0775f8affef6.wasm",
+        "bytes": 5218315,
+        "gzip9": 1437768,
+        "sha256": "3fef19fd71caf93f25ac2138e9d378c292e9142bebe83dceccce0775f8affef6"
+      }
+    ],
+    "eagerComponentCount": 17,
+    "support": [
+      {
+        "file": "boot.js",
+        "bytes": 2224,
+        "gzip9": 864,
+        "sha256": "26afab8a89fa1f2108230ee7e7e176b2953b14f1017bf75f4c2b8d31568155ff"
+      },
+      {
+        "file": "wasm_exec.js",
+        "bytes": 16992,
+        "gzip9": 4348,
+        "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+      }
+    ]
+  },
+  "dependencies": {
+    "baselineCount": 161,
+    "candidateCount": 160,
+    "removed": [
+      "regexp/syntax",
+      "regexp"
+    ],
+    "added": [
+      "github.com/Suhaibinator/Next.go/internal/ascii"
+    ]
+  },
+  "reduction": {
+    "coreRawBytes": 498387,
+    "coreGzip9Bytes": 125807,
+    "lazy": [
+      {
+        "component": "actionviewlazy",
+        "rawBytes": 399217,
+        "gzip9Bytes": 100539
+      },
+      {
+        "component": "lazycounter",
+        "rawBytes": 399252,
+        "gzip9Bytes": 99593
+      }
+    ]
+  },
+  "referenceBudgets": {
+    "rawBytes": 6291456,
+    "gzip9Bytes": 1677721,
+    "candidateRawPass": false,
+    "candidateGzipPass": false,
+    "result": "FAIL; broader performance/release gate remains open"
+  },
+  "experimentOnly": {
+    "selection": "GOEXPERIMENT=nojsonv2 on same candidate source and Go1.27 SDK",
+    "runtimeIdentity": "2fc720e2517d10236a84",
+    "inputFingerprint": "5960ea79c11134f9c7d16ad570a13774c7310cfdcd32091c69da9da3a5d2a1bd",
+    "nativeSHA256": "e53e694c9218b9ea699aae63ab0c93e56481ed7b08b667404eb2583967beb9d4",
+    "buildInfo": "/private/tmp/nextgo-ascii-jsonv1-probe/server: go1.27.3-X:nojsonv2\n\tpath\tgithub.com/Suhaibinator/Next.go/examples/demo/.nextgo/generated/server\n\tmod\tgithub.com/Suhaibinator/Next.go\tv0.0.0-20261025031345-a57f53ea0315+dirty\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tDefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,httpservecontentmaxranges=1,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0\n\tbuild\tCGO_ENABLED=1\n\tbuild\tGOARCH=arm64\n\tbuild\tGOEXPERIMENT=nojsonv2\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=a57f53ea0315d5c156a68a8cd3c4ea266e163468\n\tbuild\tvcs.time=2026-10-25T03:13:45Z\n\tbuild\tvcs.modified=true\n",
+    "core": {
+      "file": "app.wasm",
+      "bytes": 7197550,
+      "gzip9": 1844100,
+      "sha256": "c472e3c196d40b8b7752a481efa3bafde9e6a6267970838002eca4eb95ee5542"
+    },
+    "lazy": [
+      {
+        "component": "actionviewlazy",
+        "file": "module-a867afe97e6d96d4cbde802d324023b546e969f09e982ae78643af2cc89b9507.wasm",
+        "bytes": 4272562,
+        "gzip9": 1184691,
+        "sha256": "a867afe97e6d96d4cbde802d324023b546e969f09e982ae78643af2cc89b9507"
+      },
+      {
+        "component": "lazycounter",
+        "file": "module-519f1d9bd85ddcadcfcba61be8c81b3b8b3b42380e68c6e6f7e083f0ed8449fc.wasm",
+        "bytes": 4132803,
+        "gzip9": 1153534,
+        "sha256": "519f1d9bd85ddcadcfcba61be8c81b3b8b3b42380e68c6e6f7e083f0ed8449fc"
+      }
+    ],
+    "eagerComponentCount": 17,
+    "support": [
+      {
+        "file": "boot.js",
+        "bytes": 2224,
+        "gzip9": 864,
+        "sha256": "26afab8a89fa1f2108230ee7e7e176b2953b14f1017bf75f4c2b8d31568155ff"
+      },
+      {
+        "file": "wasm_exec.js",
+        "bytes": 16992,
+        "gzip9": 4348,
+        "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+      }
+    ],
+    "qualification": "Build/bytes only. Not runtime/browser qualification or recommended default; direct encoding/json/v2 and jsontext users can stop compiling, and Go1.24 must not receive this flag.",
+    "rawPass": false,
+    "gzipPass": false,
+    "result": "Both budgets still FAIL; framework/production compiler experiment defaults unchanged."
+  }
+}

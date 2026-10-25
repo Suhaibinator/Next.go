@@ -8,10 +8,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 	"syscall/js"
 	"time"
+
+	"github.com/Suhaibinator/Next.go/internal/ascii"
 )
 
 // LazyModule describes one compiler-generated, content-addressed Go module.
@@ -33,14 +34,12 @@ var lazyModules = map[string]*lazyState{}
 var lazyRetryScope *Scope
 
 var lazySlots = make(chan struct{}, 2)
-var lazyEpoch = regexp.MustCompile(`^[a-f0-9]{64}$`)
-var lazyFile = regexp.MustCompile(`^module-[a-f0-9]{64}\.wasm$`)
 
 const moduleABI = 3
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
-	if registry[name] != nil || lazyModules[name] != nil || len(lazyModules) >= 8 || !lazyFile.MatchString(module.File) || module.File != "module-"+module.Digest+".wasm" || !lazyEpoch.MatchString(module.Epoch) || module.Size <= 0 || module.Size > 8<<20 {
+	if registry[name] != nil || lazyModules[name] != nil || len(lazyModules) >= 8 || !ascii.LowerHex(module.Digest, 64) || module.File != "module-"+module.Digest+".wasm" || !ascii.LowerHex(module.Epoch, 64) || module.Size <= 0 || module.Size > 8<<20 {
 		panic("invalid lazy component registration")
 	}
 	lazyModules[name] = &lazyState{descriptor: module, exports: js.Undefined()}
