@@ -31,7 +31,7 @@ func Fragment(children ...Node) Node {
 	return nodeFunc(func(w io.Writer) error {
 		for _, c := range children {
 			if c != nil {
-				if err := c.Render(w); err != nil {
+				if err := renderClientFallbackNode(w, c); err != nil {
 					return err
 				}
 			}
@@ -45,6 +45,23 @@ func Fragment(children ...Node) Node {
 func El(tag string, attrs Attrs, children ...Node) Node {
 	tag = strings.ToLower(tag)
 	return nodeFunc(func(w io.Writer) error {
+		if RenderContext(w).Value(clientFallbackKey{}) == true {
+			if budget, ok := RenderContext(w).Value(clientFallbackElementsKey{}).(*int); ok {
+				*budget = *budget + 1
+				if *budget > 2000 {
+					return fmt.Errorf("ui: client fallback exceeds 2000 elements")
+				}
+			}
+			switch tag {
+			case "template", "link", "meta":
+				return fmt.Errorf("ui: unsupported client fallback tag %q", tag)
+			}
+			for name := range attrs {
+				if strings.HasPrefix(strings.ToLower(name), "data-nextgo-") {
+					return fmt.Errorf("ui: client fallbacks cannot contain framework markers")
+				}
+			}
+		}
 		if !ascii.HTMLName(tag) || tag == "script" || tag == "style" || tag == "iframe" || tag == "object" || tag == "embed" || tag == "base" || tag == "animate" || tag == "set" || tag == "animatemotion" || tag == "animatetransform" || tag == "discard" {
 			return fmt.Errorf("ui: unsupported tag %q", tag)
 		}
@@ -145,12 +162,81 @@ func safeURL(s string) bool {
 // behavior to this exact root; it never renders this subtree again.
 func Island(component string, props any, body Node) Node {
 	return nodeFunc(func(w io.Writer) error {
+		if RenderContext(w).Value(clientFallbackKey{}) == true {
+			return fmt.Errorf("ui: client fallbacks cannot contain islands")
+		}
 		data, err := json.Marshal(props)
 		if err != nil {
 			return fmt.Errorf("island %s: %w", component, err)
 		}
 		return El("div", Attrs{"data-nextgo-island": component, "data-nextgo-props": string(data)}, body).Render(w)
 	})
+}
+
+// ClientIsland emits an explicit browser-only view boundary. Its fallback remains
+// useful without WASM and until Mount calls Scope.ClientView successfully. Unlike
+// Island, only this boundary's children may be replaced during mounting. Props
+// are public browser data. Fallbacks must be immediate, bounded UI without nested
+// islands, deferred work or framework markers (64 KiB, 2000 typed elements).
+// Custom Nodes remain trusted Go
+// code; the browser also validates their rendered fallback before mounting.
+func ClientIsland(component string, props any, fallback Node) Node {
+	return nodeFunc(func(w io.Writer) error {
+		if RenderContext(w).Value(clientFallbackKey{}) == true {
+			return fmt.Errorf("ui: client fallbacks cannot contain islands")
+		}
+		if strings.TrimSpace(component) == "" || fallback == nil {
+			return fmt.Errorf("ui: client island requires a component and fallback")
+		}
+		data, err := json.Marshal(props)
+		if err != nil {
+			return fmt.Errorf("client island %s: %w", component, err)
+		}
+		var output clientFallbackHTML
+		ctx := context.WithValue(RenderContext(w), clientFallbackKey{}, true)
+		elements := 0
+		ctx = context.WithValue(ctx, clientFallbackElementsKey{}, &elements)
+		writer := &contextWriter{ctx: ctx, w: &output}
+		if err := renderClientFallbackNode(writer, fallback); err != nil {
+			return fmt.Errorf("client island %s: %w", component, err)
+		}
+		body := nodeFunc(func(w io.Writer) error {
+			_, err := io.WriteString(w, output.String())
+			return err
+		})
+		return El("div", Attrs{"data-nextgo-island": component, "data-nextgo-props": string(data), "data-nextgo-client": "1"}, body).Render(w)
+	})
+}
+
+type clientFallbackKey struct{}
+type clientFallbackElementsKey struct{}
+
+func renderClientFallbackNode(w io.Writer, node Node) error {
+	if node == nil {
+		return nil
+	}
+	if RenderContext(w).Value(clientFallbackKey{}) == true {
+		if _, deferred := node.(*deferredNode); deferred {
+			return fmt.Errorf("ui: client fallbacks cannot contain deferred work")
+		}
+	}
+	return node.Render(w)
+}
+
+// Keep the SSR fallback within the same 64 KiB bound as browser view rendering.
+type clientFallbackHTML struct{ strings.Builder }
+
+func (b *clientFallbackHTML) Write(p []byte) (int, error) {
+	if len(p) > 64<<10-b.Len() {
+		return 0, fmt.Errorf("ui: client fallback exceeds 64 KiB")
+	}
+	return b.Builder.Write(p)
+}
+func (b *clientFallbackHTML) WriteString(value string) (int, error) {
+	if len(value) > 64<<10-b.Len() {
+		return 0, fmt.Errorf("ui: client fallback exceeds 64 KiB")
+	}
+	return b.Builder.WriteString(value)
 }
 
 func HTML(n Node) (string, error) { return HTMLContext(context.Background(), n) }

@@ -73,14 +73,31 @@ func hydrate() {
 	syncLazyModules()
 
 	nodes := doc.Call("getElementById", "nextgo-app").Call("querySelectorAll", "[data-nextgo-island]")
+	// Record fallback ancestry before any mount detaches fallback nodes. The
+	// static NodeList retains those nodes after replacement.
+	fallbacks := make([]bool, nodes.Length())
+	for i := range fallbacks {
+		fallbacks[i] = insideClientFallback(nodes.Index(i))
+	}
 	ok := true
 	for i := 0; i < nodes.Length(); i++ {
 		root := nodes.Index(i)
+		// A static query snapshot can retain fallback descendants even after a
+		// preceding boundary mounted. Never initialize behavior inside fallback.
+		if fallbacks[i] || insideClientFallback(root) {
+			continue
+		}
 		recordResourceOrigin(root)
 		if root.Call("hasAttribute", "data-nextgo-hydrated").Bool() {
 			if state := root.Call("getAttribute", "data-nextgo-hydrated").String(); state == "error" || state == "loading" {
 				ok = false
 			}
+			continue
+		}
+		if _, err := validateClientBoundary(root); err != nil {
+			root.Call("setAttribute", "data-nextgo-hydrated", "error")
+			report(err.Error())
+			ok = false
 			continue
 		}
 		scope := &Scope{Root: Element{root}}

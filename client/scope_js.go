@@ -31,6 +31,10 @@ func (e Event) PreventDefault()    { e.Value.Call("preventDefault") }
 func (e Event) InputValue() string { return e.Value.Get("target").Get("value").String() }
 
 type Scope struct {
+	mountOpen              bool
+	mountClient            bool
+	clientViewUsed         bool
+	clientView             *clientViewTransaction
 	lifetime               *Lifetime
 	parent                 *Scope
 	children               map[*Scope]struct{}
@@ -120,15 +124,46 @@ func DecodeProps[T any](raw json.RawMessage) (T, error) {
 
 // mountScoped gives eager and module islands the same failure/cleanup contract.
 func mountScoped(scope *Scope, mount Mount, raw json.RawMessage) (err error) {
+	if scope == nil || !scope.active() || scope.mountOpen {
+		return fmt.Errorf("nextgo: component mount is unavailable")
+	}
+	boundary, err := validateClientBoundary(scope.Root.Value)
+	if err != nil {
+		scope.dispose()
+		return err
+	}
+	scope.mountOpen = true
+	scope.mountClient = boundary
+	returned := false
 	defer func() {
+		scope.mountOpen = false
+		scope.mountClient = false
 		if failure := recover(); failure != nil {
 			err = fmt.Errorf("mount panic: %v", failure)
 		}
+		if !returned && err == nil {
+			err = fmt.Errorf("nextgo: component Mount did not return")
+		}
+		if err == nil && boundary {
+			if scope.clientView == nil {
+				err = fmt.Errorf("nextgo: client island Mount must call ClientView")
+			} else {
+				err = scope.clientView.validateCommit(scope)
+			}
+		}
 		if err != nil {
 			scope.dispose()
+			if scope.clientView != nil {
+				scope.clientView.rollback()
+			}
 		}
+		// Successful mounting releases the detached fallback. On failure rollback
+		// has already restored its exact nodes after scoped behavior was disposed.
+		scope.clientView = nil
 	}()
-	return mount(scope, raw)
+	err = mount(scope, raw)
+	returned = true
+	return err
 }
 
 func (s *Scope) islandRoot() js.Value {
@@ -174,6 +209,6 @@ func (s *Scope) active() bool {
 // Effects, providers, child scopes and keyed ownership need separate transfer
 // contracts before a runtime containing them can be retired in place.
 func refreshScopeSupported(s *Scope) bool {
-	return s != nil && !s.closed && s.lifetime == nil && len(s.children) == 0 &&
+	return s != nil && !s.closed && !s.clientViewUsed && s.lifetime == nil && len(s.children) == 0 &&
 		len(s.keyedLists) == 0 && !s.selectionCleanup && !s.locationCleanup && !s.linkStatusCleanup
 }

@@ -8,9 +8,9 @@ GOOS=js GOARCH=wasm go test -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./clie
 # The private component target uses compile-time branches. Exercise its public
 # document-API forwarding separately from the core router's fixture tests.
 GOOS=js GOARCH=wasm go test -tags=nextgo_module -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./client \
-  -run '^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL)'
+  -run '^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL)'
 # Private development entries retain the complete refresh/state/drain contract.
 # Production tests above run without this tag and must remain independently green.
 GOOS=js GOARCH=wasm go test -tags=nextgo_devrefresh -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./client ./mutation "$@"
 GOOS=js GOARCH=wasm go test -tags='nextgo_module nextgo_devrefresh' -exec="$task_goroot/lib/wasm/go_js_wasm_exec" ./client \
-  -run '^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL)'
+  -run '^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL)'

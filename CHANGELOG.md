@@ -8,6 +8,32 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — explicit client-only component boundaries
+
+- Add `ui.ClientIsland` with a useful server fallback and one synchronous
+  `Scope.ClientView` call during Mount. The outer island remains stable; the
+  returned child scope owns the bounded browser-created view and its behavior.
+  Ordinary islands retain their existing SSR hydration contract. Mount failure
+  disposes owned work and restores the original fallback; arbitrary application
+  side effects are not rolled back. [Contract](docs/CLIENT_ONLY.md).
+- Both SDKs pass 13 scoped native/WASM/vet/format commands with all 11 distinct
+  new source test groups passing at their required targets. Production checks
+  pass five steps on Go 1.24 and six on Go 1.27, including a Darwin cross-build.
+  Native HTTP verifies eight runtime assets, including all five lazy modules.
+- Actual browser fixtures pass 20 cases per SDK across four profiles: 40 new
+  cases, without failures, skips, retries or flaky results, with both outer
+  controllers and cleanup checks passing. They cover eager/lazy boundaries,
+  retained ordinary-island identity, independent state, error/panic rollback,
+  focus, disposal/navigation return and superseded downloads. Goexit has focused
+  WASM unit coverage, not a browser scenario; the unit suite's predeclared
+  existing development-module skip is documented separately.
+- Correct V17's description of pre-existing exported navigation data: declared
+  static routes already publish HTML and JSON envelopes. Full client-only page
+  routing, unexported-route/catch-all fallback, new-boundary static-host,
+  retained-layout/streamed-insertion/development-refresh integration and physical
+  device qualification remain open. No ABI migration, prior-campaign rerun,
+  performance, cloud or release-gate closure is claimed.
+
 ## Unreleased — explicit inherited metadata clearing
 
 - Add `seo.Metadata.Clear` / `seo.ScalarClears` for inherited description,

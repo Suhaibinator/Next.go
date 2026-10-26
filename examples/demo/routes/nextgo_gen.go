@@ -88,6 +88,9 @@ func ChoicePreview() string { return "/choice-preview" }
 // Choices constructs the application path for page /choices.
 func Choices() string { return "/choices" }
 
+// ClientOnly constructs the application path for page /client-only.
+func ClientOnly() string { return "/client-only" }
+
 // Composition constructs the application path for page /composition.
 func Composition() string { return "/composition" }
 

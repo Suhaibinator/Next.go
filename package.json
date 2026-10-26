@@ -38,7 +38,8 @@
     "test:refresh-production": "node --test tests/refresh-production.test.mjs",
     "test:refresh-production:browser": "node scripts/test-browser.mjs --config tests/refresh-production.config.mjs",
     "test:offline": "node scripts/test-browser.mjs --config tests/offline.config.mjs",
-    "test:metadata-clear": "node scripts/test-browser.mjs --config tests/metadata-clear.config.mjs"
+    "test:metadata-clear": "node scripts/test-browser.mjs --config tests/metadata-clear.config.mjs",
+    "test:client-only": "node scripts/test-browser.mjs --config tests/client-only.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"
