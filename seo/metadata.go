@@ -13,7 +13,17 @@ import (
 	"github.com/Suhaibinator/Next.go/ui"
 )
 
-// Metadata describes a document head. Empty fields inherit when Merge is used.
+// ScalarClears explicitly removes selected inherited scalar metadata. A nonempty
+// value in the same contribution takes precedence over its clear flag. Clears
+// survive empty descendants and defensive Merge snapshots until replaced.
+// They do not remove explicit Page fields, legacy named metadata, or access
+// denial directives enforced by the server.
+type ScalarClears struct {
+	Description, Canonical, Robots bool
+}
+
+// Metadata describes a document head. Empty fields inherit when Merge is used,
+// except for fields explicitly selected by Clear.
 // URLs other than icon/manifest paths require absolute HTTP(S) values unless BaseURL
 // is set; BaseURL enables validated relative canonical/social/alternate URLs.
 type Metadata struct {
@@ -25,6 +35,7 @@ type Metadata struct {
 	Language, Direction                   string
 	Viewport                              *Viewport
 	Title, Description, Canonical, Robots string
+	Clear                                 ScalarClears
 	OpenGraph                             OpenGraph
 	Twitter                               Twitter
 	Alternates                            map[string]string
@@ -227,6 +238,8 @@ func (n metadataNode) Render(w io.Writer) error {
 
 // Merge inherits empty scalar fields, merges alternate languages, and replaces
 // image/icon lists when the child's slice is non-nil (an empty slice clears it).
+// Clear disables inheritance for selected empty scalars. Nonempty child values
+// win over Clear; empty descendants retain an inherited clear.
 // Manifest inherits only when nil; an explicit empty string disables it.
 // The returned pointers, maps and slices do not alias either input.
 func Merge(parent, child Metadata) Metadata {
@@ -262,9 +275,9 @@ func Merge(parent, child Metadata) Metadata {
 		m.Manifest = &value
 	}
 	inherit(&m.Title, parent.Title)
-	inherit(&m.Description, parent.Description)
-	inherit(&m.Canonical, parent.Canonical)
-	inherit(&m.Robots, parent.Robots)
+	m.Description, m.Clear.Description = mergeScalar(parent.Description, child.Description, parent.Clear.Description, child.Clear.Description)
+	m.Canonical, m.Clear.Canonical = mergeScalar(parent.Canonical, child.Canonical, parent.Clear.Canonical, child.Clear.Canonical)
+	m.Robots, m.Clear.Robots = mergeScalar(parent.Robots, child.Robots, parent.Clear.Robots, child.Clear.Robots)
 	p, o := parent.OpenGraph, &m.OpenGraph
 	inherit(&o.Title, p.Title)
 	inherit(&o.Description, p.Description)
@@ -309,4 +322,14 @@ func Merge(parent, child Metadata) Metadata {
 		}
 	}
 	return m
+}
+
+func mergeScalar(parent, child string, parentClear, childClear bool) (string, bool) {
+	if child != "" {
+		return child, false
+	}
+	if childClear {
+		return "", true
+	}
+	return parent, parent == "" && parentClear
 }

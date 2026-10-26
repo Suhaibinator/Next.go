@@ -271,6 +271,9 @@ func ReadMarketByCategorySummary(values map[string]string) (MarketByCategorySumm
 // Media constructs the application path for page /media.
 func Media() string { return "/media" }
 
+// MetadataClear constructs the application path for page /metadata-clear.
+func MetadataClear() string { return "/metadata-clear" }
+
 // MetadataStream constructs the application path for page /metadata-stream.
 func MetadataStream() string { return "/metadata-stream" }
 

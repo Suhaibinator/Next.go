@@ -8,6 +8,27 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — explicit inherited metadata clearing
+
+- Add `seo.Metadata.Clear` / `seo.ScalarClears` for inherited description,
+  canonical and robots strings. Empty values with clear flags suppress
+  inheritance through defensive snapshots; nonempty child values win and reset
+  their flags. Existing explicit-page/legacy precedence and enforced access-
+  denial `noindex` remain unchanged. Titles, social metadata, document settings,
+  resources and JSON-LD keep their existing rules.
+- Add `/metadata-clear` and its prebuilt-only browser fixture. Late clearing
+  preserves the Go controls, focus, description element and frozen head
+  companions. [Contract and test command](docs/METADATA.md#explicit-scalar-clearing).
+- Fresh reconstructed-source qualification passes seven focused native/WASM/
+  vet/format commands per SDK, five Go 1.24 production checks and six Go 1.27
+  checks including a Darwin cross-build. Browser fixtures pass eight cases per
+  SDK across four profiles: 16 new cases, without skips, retries or flaky
+  results, with both outer controllers passing. Three initial fixture
+  expectation failures remain recorded separately; their correction did not
+  change production code. This does not rerun the prior 344-case campaign or
+  add LOCAL/Lambda/AWS proof. All 79 capability rows and 11 open release gates
+  remain; no capability or gate closes.
+
 ## Unreleased — bounded deferred typed metadata
 
 - Add `Page.DeferredMetadata` using the existing typed `MetadataFunc`, an owned

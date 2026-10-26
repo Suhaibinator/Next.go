@@ -45,6 +45,8 @@ is a separate snapshot: editing its maps/images cannot accidentally modify
 ancestor values. Return those edits explicitly if they are intended.
 
 - Empty string fields inherit. Nonempty child strings override parents.
+  `Metadata.Clear` explicitly suppresses inheritance for three empty scalars,
+  as described below.
 - Open Graph and Twitter fields merge individually.
 - Nil image/icon slices inherit; a non-nil empty slice clears that list.
 - Language alternates merge by key, with child values taking precedence.
@@ -60,9 +62,83 @@ description is absent. Typed URL fields remain validated even when a legacy name
 masks their rendered tag. Arbitrary meta names do not become Open Graph property
 attributes; prefer typed fields for social metadata.
 
-Empty strings do not explicitly clear inherited scalar fields, and alternates
-cannot yet delete a parent key. The deferred metadata subset below preserves
-those merge rules; broader typed metadata fields remain work.
+Empty strings alone do not clear inherited scalars, and alternates cannot yet
+delete a parent key. Broader typed metadata fields remain work.
+
+### Explicit scalar clearing
+
+`seo.Metadata.Clear` has three boolean fields in
+`seo.ScalarClears`: `Description`, `Canonical` and `Robots`. Return an empty
+literal together with its clear flag to suppress an inherited typed value:
+
+```go
+return seo.Metadata{
+    Clear: seo.ScalarClears{
+        Description: true,
+        Canonical: true,
+        Robots: true,
+    },
+}, nil
+```
+
+Without a flag, an empty child still inherits. A nonempty child literal wins
+over its flag and resets that field's clear state; ordinary metadata validation
+still applies. Empty clear intent survives defensive `seo.Merge` snapshots and
+empty descendants until a later nonempty contribution replaces it. The same
+contribution rules apply to directory providers, `Page.Metadata` and a deferred
+metadata callback.
+
+This clears typed inherited values, not higher-precedence explicit
+`Page.Description` or legacy `Page.Meta` entries. Server-enforced access-denial
+`noindex` is unaffected. Normal document rendering keeps its single description
+meta element with empty content; typed canonical and robots descriptors are
+omitted. It does not clear titles, title templates, social metadata, alternates,
+document language/direction/viewport, resources or JSON-LD. Their existing
+ownership and validation rules remain unchanged.
+
+The [`/metadata-clear` sample](../examples/demo/app/metadata-clear/page.go)
+reuses the native deferred loader with an inherited description, canonical URL
+and robots value. Its deferred contribution clears those three scalars while
+retaining the body, Go counter, input/focus, description element, stylesheet and
+JSON-LD.
+
+Fresh reconstructed-source checks pass seven native/WASM/vet/format commands
+on each Linux ARM64 Go 1.24.13 and 1.27.3 SDK. They include 15 named native test
+groups for this increment, six portable SEO groups and seven existing core
+metadata groups; these are source groups, not totals multiplied across runs.
+Production checks pass five steps on Go 1.24 and six on Go 1.27, the latter
+including a Darwin cross-build. Initial-HTML and negotiated Go-navigation
+fixtures pass eight browser cases per SDK across Chromium, Firefox, WebKit and
+touch WebKit: 16 new cases, without skips, retries or flaky results. Both outer
+controllers pass. The fixture records each native close/join with exit 0 and
+no KILL, and four browser exit-0 observations per SDK; final source/artifact
+pins and owned-container cleanup checks pass.
+
+An initial reconstructed run failed three fixture expectations; corrected
+expectations left production code unchanged. That failed run and earlier
+lost-source SDK evidence remain historical, separate from these fresh v2
+results. This checkpoint does not rerun the earlier 344-case metadata/affected
+campaign or add LOCAL/Lambda/AWS proof. Complete framework combinations,
+physical devices and release qualification remain open. All 79 capability rows
+and 11 open release gates remain.
+
+To run the new browser fixture from the repository root, first build the demo,
+then pin the actual prebuilt executable:
+
+```sh
+go run ./cmd/nextgo build -out /tmp/nextgo-metadata-clear ./examples/demo
+export NEXTGO_E2E_SERVER_BINARY=/tmp/nextgo-metadata-clear/server
+export NEXTGO_METADATA_STREAM_SERVER_SHA256="$(node -p 'require("node:crypto").createHash("sha256").update(require("node:fs").readFileSync(process.env.NEXTGO_E2E_SERVER_BINARY)).digest("hex")')"
+npm run test:metadata-clear
+```
+
+The shared fixture requires that absolute executable path and its actual
+lowercase 64-hex SHA-256; it verifies the bytes and has no automatic compiler
+fallback. It starts its own native process and held loopback source on the
+metadata fixture ports. Node/Playwright are development test tooling, not
+production application dependencies. Install their existing test dependencies
+before running the command, and stop any manually started metadata fixture
+server first.
 
 ## Deferred metadata
 
