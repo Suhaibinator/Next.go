@@ -798,3 +798,51 @@ go test -run '^$' -bench '^BenchmarkFileLeaseChurnWithSeedLedger$' \
 This native observation provides no new browser-bundle measurement. The latest
 recorded sample above still exceeds both the **6-MiB raw and 1.6-MiB gzip-9 WASM
 budgets**. No production performance gate is satisfied by this benchmark.
+
+## Lazy-host registration observation (October 26, 2026 UTC)
+
+Successful `RegisterLazy` calls now select the existing module-host installer;
+`Run` invokes it at the same startup point. Public APIs and ABI 5 are unchanged.
+Applications without lazy registrations avoid `Run`'s direct installer reference.
+An application that registers lazy packages still retains the full host, even
+when the current page has no lazy islands.
+
+A controlled Linux/arm64 pair used an identical private two-page eager-counter
+diagnostic with no lazy registrations. These are **decoded core WASM bytes** and
+Node 24.22.1 gzip level 9 recompressions (`zlib 1.3.2.1-motley-285e94b`), not HTTP
+wire-transfer measurements:
+
+| Go SDK | Raw before → after | Gzip-9 before → after |
+| --- | ---: | ---: |
+| 1.27.3 | 6,493,071 → 6,293,386 | 1,743,662 → 1,696,890 |
+| 1.24.13 | 5,235,786 → 5,001,219 | 1,403,263 → 1,356,465 |
+
+Each SDK built baseline, candidate and a fresh baseline reproduction for both
+the diagnostic and unchanged full demo. Only `client/runtime_js.go` and
+`client/lazy_js.go` differed in production inputs; generated references,
+application imports, SDK/shim, flags, stable virtual package paths and absence
+of VCS metadata were controlled. Actual HTTP response buffers, SHA-256 values
+and derived gzip buffers matched between each baseline and reproduction.
+Clocked full-demo prerender data changed native/runtime identities; those were
+recorded without normalization or a native reproducibility claim. The source
+reference change does not establish removal of particular linked symbols.
+
+The full demo retains four lazy modules. Its candidate eager core remains over
+both reference budgets:
+
+| Go SDK | Candidate core raw / gzip-9 | Core + four modules change, raw / gzip-9 |
+| --- | ---: | ---: |
+| 1.27.3 | 8,482,973 / 2,179,059 | +114 / +19 |
+| 1.24.13 | 7,403,818 / 1,862,289 | +102 / +7 |
+
+Bootstrap and paired shim bytes were unchanged. The diagnostic is not a new
+benchmark or replacement budget: **G05 and the full-demo 6-MiB raw / 1.6-MiB
+gzip-9 gates still fail**.
+
+Both SDKs pass focused core/module/development WASM tests and vets. Candidate
+browser proof passes 40 cases per SDK, with no skips, retries or flaky results:
+two diagnostic journeys and eight existing lazy/action/resource/link-feedback
+scenarios on each of four profiles. Playwright 1.64.1 used Chromium's default
+headless shell 156.0.8078.4, Firefox 157.0 and WebKit 27.2, including its touch
+profile. These checks establish scoped behavior, not CPU, startup, heap/RSS,
+runtime-retirement or production-performance qualification.

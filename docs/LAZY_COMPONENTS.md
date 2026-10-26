@@ -22,6 +22,15 @@ Application tags selected through `GOFLAGS` remain enabled in both browser targe
 
 The core bundle imports eager components and registers generated descriptors for lazy packages. Each descriptor binds the component name, source epoch, byte size and SHA-256 hash. A module filename is `module-<sha256>.wasm`, published beside `app.wasm` under the same versioned runtime directory. All module identities participate in the build version. The CLI validates each module's browser import graph using the same rules as the core: server routes, loaders and unguarded server-only dependencies cannot enter it. Native and browser builds use their selected Go compiler; runtime support is copied from that compiler. Go requires matching compiler/runtime support versions. [Go WebAssembly guidance](https://go.dev/wiki/WebAssembly).
 
+Successful `RegisterLazy` registrations select the complete host installer;
+`Run` invokes it after deployment and early-script validation, at its existing
+startup point. Invalid registrations do not enable it, and registration after
+`Run` does not gain automatic installation behavior. Public APIs and ABI 5 are
+unchanged. This boundary helps applications with no lazy registrations; merely
+viewing a page without lazy islands does not remove a host registered elsewhere
+in the application. The [controlled size observation](PERFORMANCE.md#lazy-host-registration-observation-october-26-2026-utc)
+retains the full four-module demo and leaves G05 failed.
+
 The Go core fetches a module, checks its final URL, status, exact size and digest, instantiates it through browser WebAssembly APIs and starts another instance of the supplied Go runtime. The current module ABI is **5**: its versioned handshake checks the ABI, expected component and source epoch before accepting exports. ABI 5 adds [per-anchor pending-link subscriptions](LINK_STATUS.md) to the core/module contract and retains mandatory resource invalidation epochs. The small JavaScript bootstrap remains responsible for starting the core; component loading and lifecycle policy are implemented in Go.
 
 Rebuild the eager core, every lazy module and development entries together from the same framework revision and selected Go SDK, with that SDK's paired runtime support. Mixed ABI assets fail registration; an older module or development entry cannot be upgraded independently. The FIFO and resource checkpoints used ABI 3 and 4 respectively; their recorded results retain that historical scope and do not qualify ABI 5. Link-status subscriptions do not add a state-transfer contract for development refresh; a component using them requires ordinary full-document recovery when changed.

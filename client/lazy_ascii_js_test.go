@@ -9,8 +9,8 @@ import (
 )
 
 func TestLazyDescriptorMatchesLegacyHexFilenameAndEpoch(t *testing.T) {
-	oldRegistry, oldModules := registry, lazyModules
-	t.Cleanup(func() { registry, lazyModules = oldRegistry, oldModules })
+	oldRegistry, oldModules, oldInstaller := registry, lazyModules, registeredModuleHostInstaller
+	t.Cleanup(func() { registry, lazyModules, registeredModuleHostInstaller = oldRegistry, oldModules, oldInstaller })
 	registry = map[string]Mount{}
 	epoch := strings.Repeat("b", 64)
 	digest := strings.Repeat("a", 64)

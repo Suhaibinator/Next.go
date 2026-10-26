@@ -10,8 +10,8 @@ import (
 )
 
 func TestLazyRegistrationRejectsInvalidAndMixedGenerations(t *testing.T) {
-	oldModules, oldRegistry := lazyModules, registry
-	t.Cleanup(func() { lazyModules, registry = oldModules, oldRegistry })
+	oldModules, oldRegistry, oldInstaller := lazyModules, registry, registeredModuleHostInstaller
+	t.Cleanup(func() { lazyModules, registry, registeredModuleHostInstaller = oldModules, oldRegistry, oldInstaller })
 	good := LazyModule{File: "module-" + strings.Repeat("a", 64) + ".wasm", Digest: strings.Repeat("a", 64), Epoch: strings.Repeat("b", 64), Size: 123}
 	rejects := func(fn func()) {
 		t.Helper()

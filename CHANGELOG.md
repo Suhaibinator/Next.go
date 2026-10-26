@@ -8,6 +8,19 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — lazy-host registration boundary
+
+- Move the module-host installer reference from `Run` to successful
+  `RegisterLazy` registrations. Installation stays at the same startup point;
+  public APIs, ABI 5 and invalid/late-registration behavior remain unchanged.
+- Paired Linux/arm64 measurements reduce core bytes in a controlled no-lazy
+  diagnostic. The full four-module demo retains its host and grows slightly;
+  both size budgets and G05 still fail. See the [measurement and
+  controls](docs/PERFORMANCE.md#lazy-host-registration-observation-october-26-2026-utc).
+- Focused WASM/vet and production controls pass on both SDKs. Candidate browser
+  checks pass 40 cases per SDK across four profiles. This adds no startup,
+  CPU/RSS, runtime-retirement or production-maturity claim.
+
 ## Unreleased — scoped link feedback and explicit asset dependencies
 
 - Add `Scope.ObserveLinkStatus` for one owned anchor, including immediate

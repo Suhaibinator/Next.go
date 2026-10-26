@@ -58,6 +58,9 @@ func RegisterLazy(name string, module LazyModule) {
 		panic("invalid lazy component registration")
 	}
 	lazyModules[name] = &lazyState{descriptor: module, exports: js.Undefined()}
+	// Generated registrations precede Run. Select the existing host here, while
+	// leaving installation at Run's original point rather than during registration.
+	registeredModuleHostInstaller = installModuleHost
 }
 func lazyHydrate(scope *Scope, name string) {
 	root := scope.Root.Value

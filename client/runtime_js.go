@@ -19,6 +19,7 @@ import (
 type Mount func(*Scope, json.RawMessage) error
 
 var registry = map[string]Mount{}
+var registeredModuleHostInstaller func()
 var mounted []*Scope
 var globalFunctions []js.Func
 var doc = js.Global().Get("document")
@@ -150,7 +151,9 @@ func Run() {
 		report(err.Error())
 		return
 	}
-	installModuleHost()
+	if install := registeredModuleHostInstaller; install != nil {
+		install()
+	}
 	installActionViewLifecycle()
 	if raw := doc.Get("body").Call("getAttribute", "data-nextgo-navigation"); !raw.IsNull() {
 		if err := json.Unmarshal([]byte(raw.String()), &routeManifest); err != nil {
