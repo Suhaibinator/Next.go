@@ -351,7 +351,7 @@ jobs:
         shell: bash
         run: |
           set -eu
-          go build -trimpath -o "$NEXTGO_OFFLINE_CI/nextgo" ./cmd/nextgo
+          go build -trimpath -buildvcs=false -o "$NEXTGO_OFFLINE_CI/nextgo" ./cmd/nextgo
           export NEXTGO_TEST_NEXTGO_BINARY="$NEXTGO_OFFLINE_CI/nextgo"
           export NEXTGO_TEST_NEXTGO_BINARY_SHA256="$(sha256sum "$NEXTGO_TEST_NEXTGO_BINARY" | cut -d ' ' -f 1)"
           node tests/offline-build-fixture.mjs --source "$GITHUB_WORKSPACE" --out "$NEXTGO_OFFLINE_CI/build"
@@ -435,7 +435,7 @@ jobs:
         shell: bash
         run: |
           set -eu
-          go build -trimpath -o "$NEXTGO_LINK_STATUS_CI/nextgo" ./cmd/nextgo
+          go build -trimpath -buildvcs=false -o "$NEXTGO_LINK_STATUS_CI/nextgo" ./cmd/nextgo
           "$NEXTGO_LINK_STATUS_CI/nextgo" build -out "$NEXTGO_LINK_STATUS_CI/demo" ./examples/demo
           chmod 0500 "$NEXTGO_LINK_STATUS_CI/nextgo" "$NEXTGO_E2E_SERVER_BINARY"
           echo "NEXTGO_LINK_STATUS_SERVER_SHA256=$(sha256sum "$NEXTGO_E2E_SERVER_BINARY" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
