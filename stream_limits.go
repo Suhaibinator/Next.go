@@ -7,7 +7,7 @@ import (
 	"github.com/Suhaibinator/Next.go/ui"
 )
 
-// StreamingOptions bounds rendering of pages which explicitly set Page.Stream.
+// StreamingOptions bounds progressive pages and Page.DeferredMetadata jobs.
 // Zero fields select 32 admitted renders, 64 running deferred callbacks and a
 // 30-second render budget. Admission is immediate; a full render budget returns
 // HTTP 503 before the shell is committed. Admitted workers wait for loader
@@ -18,15 +18,20 @@ import (
 // goroutines created by application code. Callbacks must respect context; a
 // callback ignoring cancellation keeps its loader slot until it returns.
 // Progressive render loops stop at the deadline even if a callback is stuck;
-// buffered legacy/HEAD rendering calls callbacks synchronously and therefore
-// also retains its render slot until such a callback returns.
+// Deferred metadata uses the same physical callback budget even when its HTTP
+// representation is buffered. Its timed-out callback and outstanding Memo work
+// retain their physical loader slot until they actually finish.
 type StreamingOptions struct {
+	Metadata   MetadataStreamingOptions
 	MaxStreams int
 	MaxLoaders int
 	Timeout    time.Duration
 }
 
 func initStreaming(c *Config) error {
+	if err := normalizeMetadataStreaming(&c.Streaming.Metadata); err != nil {
+		return err
+	}
 	if c.Streaming.MaxStreams == 0 {
 		c.Streaming.MaxStreams = 32
 	}

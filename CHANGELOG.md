@@ -8,6 +8,33 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — bounded deferred typed metadata
+
+- Add `Page.DeferredMetadata` using the existing typed `MetadataFunc`, an owned
+  fallback and request Memo. Read-only late work shares render/callback admission
+  and preserves document settings, resources and JSON-LD; it cannot change
+  response policy or register `After` work.
+- Keep initial HTML blocking by default. Explicit production browser opt-in can
+  deliver fallback then a Go-only head update; negotiated production navigation
+  works independently of that flag. Development buffers, build captures resolve,
+  and partial public shells reject the callback. See [contract and
+  sample](docs/METADATA.md).
+- Both SDKs pass 13 focused native/WASM/vet/format commands and five production
+  checks each. Actual browser application checks pass 44 per SDK across four
+  profiles; the Go 1.27 outer post-removal observation failure remains recorded
+  separately, with independently verified cleanup and no rerun. LOCAL checks
+  pass 15 cases plus two syntax checks per SDK across native HTTP and local
+  buffered/streaming mock Lambda; they do not contact AWS. Per-case cleanup is
+  fixture-asserted, with independent final Node/namespace cleanup only.
+- Unchanged affected core/location/lazy/navigation-stream suites pass 128 cases
+  per SDK: 256 existing cases, for 344 browser application cases including the
+  88 new metadata cases. No skips, retries or flaky results occur in these
+  completed suites. Native/browser exits are observed; the legacy proxy identity
+  is later kernel-absent, with its exit code and request/socket joins unobserved.
+  These selected suites are not the complete framework matrix. Full crawler/
+  proxy/CDN, all framework combinations and production qualification remain
+  open; no capability or release gate closes.
+
 ## Unreleased — lazy-host registration boundary
 
 - Move the module-host installer reference from `Run` to successful

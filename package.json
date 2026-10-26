@@ -26,6 +26,7 @@
     "test:lambda:features": "node --test tests/seven-feature-lambda.test.mjs",
     "test:lambda:browser": "node scripts/test-browser.mjs --config tests/lambda-features.config.mjs",
     "test:metadata-files": "node scripts/test-browser.mjs --config tests/metadata-files.config.mjs",
+    "test:metadata-stream": "node scripts/test-browser.mjs --config tests/metadata-stream.config.mjs",
     "test:form-validation": "node scripts/test-browser.mjs --config tests/form-validation.config.mjs",
     "test:form-validation:deployment": "node --test tests/form-validation-deployment.test.mjs",
     "test:zones": "node scripts/test-browser.mjs --config tests/zones.config.mjs",

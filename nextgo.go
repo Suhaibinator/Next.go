@@ -69,7 +69,16 @@ type Page struct {
 	Description string
 	Meta        map[string]string
 	Metadata    seo.Metadata
-	JSONLD      []seo.StructuredData
+	// DeferredMetadata contributes read-only SEO metadata after synchronous work.
+	// Non-streaming, crawler, HEAD, cache and build paths resolve it blocking.
+	DeferredMetadata MetadataFunc
+	deferredContext  *Context
+	deferredPlan     *deferredMetadataPlan
+	deferredJob      *metadataJob
+	metadataOwner    string
+	metadataIndices  []int
+	deferredErr      error
+	JSONLD           []seo.StructuredData
 	// Resources declares local stylesheets and font preloads for this page.
 	Resources []assets.Resource
 	// Stream enables progressive ui.Defer boundaries on full-document requests.
@@ -456,7 +465,7 @@ func newApp(c Config) (*App, error) {
 	if c.localeScope != nil {
 		manifest.Locale = c.localeScope.identity()
 	}
-	manifest.Cache = a.offlineConfigurationPolicy(configurationZonePolicy(configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest())), c.Zone()))
+	manifest.Cache = metadataConfigurationPolicy(a.offlineConfigurationPolicy(configurationZonePolicy(configurationPhasePolicy(c.Phase, configurationMetadataPolicy(a.cachePolicyIdentity(), c.metadataSet.Digest())), c.Zone())), c.Streaming.Metadata)
 	manifest.Rules = a.rulesIdentity()
 	manifest.Parallel = a.parallelIdentity()
 	for _, rules := range [][]compiledRule{a.redirects, a.rewrites} {
@@ -722,6 +731,11 @@ func (a *App) render(c *Context, r Route) (page Page, status int) {
 	}
 	c, r = a.selectPrimary(c, r)
 	page, err := r.Page(c)
+	if err == nil && r.Prerender != nil && r.Prerender.Partial && page.DeferredMetadata != nil {
+		page = errorPage()
+		page.deferredErr = ErrDeferredMetadataPartial
+		return page, http.StatusInternalServerError
+	}
 	if accessStatus(err) != 0 {
 		c.disablePrimaryRetention()
 		return a.renderAccess(c, r, err)
@@ -750,6 +764,9 @@ func (a *App) render(c *Context, r Route) (page Page, status int) {
 	}
 	if c.parallel != nil && c.parallel.status > status {
 		status = c.parallel.status
+	}
+	if page.DeferredMetadata != nil && status == http.StatusOK {
+		page.deferredContext = c
 	}
 	return page, status
 }
@@ -878,6 +895,7 @@ func (a *App) respond(w http.ResponseWriter, r *http.Request, p Page, status int
 	telemetry.Handle(w, r, telemetry.Info{Name: "nextgo.render"}, func(w http.ResponseWriter, r *http.Request) { a.respondPage(w, r, p, status) })
 }
 func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status int) {
+	metadataAdmitted := false
 	if capture := offlineCaptureFor(r); capture != nil && capture.fallback {
 		respondOfflineFallback(w, capture, status)
 		return
@@ -888,6 +906,12 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		clearNavigationReuse(w.Header())
 	}
 	p = a.localeMetadata(p)
+	if status != http.StatusOK {
+		p.DeferredMetadata = nil
+		p.deferredContext = nil
+		p.deferredPlan = nil
+		p.deferredJob = nil
+	}
 	if status == http.StatusUnauthorized || status == http.StatusForbidden {
 		w.Header().Set("Cache-Control", "private, no-store")
 		w.Header().Set("X-Robots-Tag", "noindex")
@@ -904,6 +928,81 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		p.preparedHead = nil
 	}
 	p = a.withManagedMetadataHead(p)
+	if status == http.StatusOK && p.DeferredMetadata != nil {
+		w.Header().Set("Cache-Control", "private, no-store")
+		clearNavigationReuse(w.Header())
+		w.Header().Add("Vary", navigation.MetadataHeader)
+		if p.Stream && (a.config.Streaming.Metadata.HTML || r.Header.Get("X-Nextgo-Navigate") == "1") {
+			w.Header().Add("Vary", "User-Agent")
+		}
+		c := p.deferredContext
+		if c == nil {
+			c = &Context{Context: r.Context(), Request: r, Params: map[string]string{}, Query: r.URL.Query()}
+		}
+		plan, err := a.prepareDeferredMetadata(c, p)
+		if err != nil {
+			a.config.Logger.Printf("deferred metadata fallback failed (%T)", err)
+			a.respondPage(w, r, errorPage(), 500)
+			return
+		}
+		if r.Header.Get(navigation.PurposeHeader) == "prefetch" {
+			w.Header().Set(navigation.ConfigurationHeader, a.configurationID)
+			w.Header().Set(navigation.ProtocolHeader, fmt.Sprint(navigation.ProtocolVersion))
+			w.Header().Add("Vary", "X-Nextgo-Navigate, X-Nextgo-Stream, X-Nextgo-Purpose")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		progressive := a.deferredAllowed(r, p)
+		owner := ""
+		if progressive {
+			owner, err = metadataOwner()
+			if err != nil {
+				a.respondPage(w, r, errorPage(), 500)
+				return
+			}
+		}
+		fallback, err := plan.build(plan.fallback, owner)
+		if err != nil {
+			a.respondPage(w, r, errorPage(), 500)
+			return
+		}
+		if _, err = metadataTerminal(fallback, "00000000000000000000000000000000", false); err != nil {
+			a.respondPage(w, r, errorPage(), 500)
+			return
+		}
+		work, cancel, release, job, err := a.beginMetadata(r.Context(), plan)
+		if err != nil {
+			if errors.Is(err, ui.ErrStreamCapacity) {
+				w.Header().Set("Retry-After", "1")
+				w.Header().Set(navigation.StreamAdmissionHeader, "busy")
+				a.respondPage(w, r, streamBusyPage(), 503)
+			} else {
+				a.respondPage(w, r, errorPage(), 500)
+			}
+			return
+		}
+		defer cancel()
+		defer release()
+		r = r.WithContext(work)
+		metadataAdmitted = true
+		if progressive {
+			p = fallback.page
+			p.preparedHead = &renderedHead{elements: fallback.head, markup: fallback.markup}
+			p.deferredPlan = plan
+			p.deferredJob = job
+			p.metadataOwner = owner
+			p.metadataIndices = fallback.indices
+		} else {
+			result := waitMetadata(work, job)
+			if result.err != nil {
+				a.config.Logger.Printf("deferred metadata failed (%T)", result.err)
+				a.respondPage(w, r, errorPage(), 500)
+				return
+			}
+			p = result.page
+			p.preparedHead = &renderedHead{elements: result.head, markup: result.markup}
+		}
+	}
 	var metadataErr error
 	p, metadataErr = normalizePageMetadata(p)
 	if metadataErr != nil {
@@ -939,7 +1038,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		w.WriteHeader(204)
 		return
 	}
-	if p.Stream && status == http.StatusOK {
+	if p.Stream && status == http.StatusOK && !metadataAdmitted {
 		ctx, cancel := context.WithTimeout(r.Context(), a.config.Streaming.Timeout)
 		defer cancel()
 		work, release, err := a.config.streamLimiter.Begin(ctx)

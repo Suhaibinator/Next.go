@@ -36,6 +36,14 @@ var (
 // This process-local facility has no persistence or retries. Use a durable queue
 // for required mutations, payments, or other work that must survive process loss.
 func After(ctx context.Context, run func(context.Context) error) error {
+	if ctx != nil {
+		if state, ok := ctx.Value(deferredMetadataReadonlyKey{}).(*responseState); ok {
+			state.mu.Lock()
+			state.err = ErrAfterDeferredMetadata
+			state.mu.Unlock()
+			return ErrAfterDeferredMetadata
+		}
+	}
 	if run == nil {
 		return ErrAfterScope
 	}

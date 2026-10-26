@@ -487,6 +487,15 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 	copyContext := &Context{Context: ctx, Request: request, Params: maps.Clone(params), Query: cloneQuery(query), response: responseState{public: true}}
 	defer copyContext.response.seal()
 	page, status := a.render(copyContext, route)
+	if page.deferredErr != nil {
+		return cachedPage{}, page.deferredErr
+	}
+	if partial && page.DeferredMetadata != nil {
+		return cachedPage{}, ErrDeferredMetadataPartial
+	}
+	if page.DeferredMetadata != nil && input.Header.Get(navigation.PurposeHeader) == "prefetch" {
+		status = http.StatusNoContent
+	}
 	if status != 200 || page.Stream && !partial {
 		if copyContext.response.seal().violated {
 			return cachedPage{}, ErrPublicCacheResponse
@@ -494,6 +503,16 @@ func (a *App) snapshotPage(ctx context.Context, input *http.Request, params map[
 		return cachedPage{}, &uncacheable{page: page, status: status}
 	}
 	page = a.localeMetadata(page)
+	if page.DeferredMetadata != nil {
+		var deferredErr error
+		page, deferredErr = a.resolveSnapshotMetadata(copyContext, page)
+		if deferredErr != nil {
+			if errors.Is(deferredErr, ui.ErrStreamCapacity) {
+				return cachedPage{}, &uncacheable{page: streamBusyPage(), status: http.StatusServiceUnavailable}
+			}
+			return cachedPage{}, deferredErr
+		}
+	}
 	head, headHTML, err := pageHeadPaths(page, a.offlineRenderPaths(ctx))
 	if err != nil {
 		return cachedPage{}, err

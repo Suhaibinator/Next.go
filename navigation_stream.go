@@ -30,14 +30,12 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 	}
 	a.draftResponse(w, r)
 	committed, used := false, 0
-	write := func(frame navigation.StreamFrame) error {
-		if err := ctx.Err(); err != nil {
+	writeEncoded := func(encoded []byte, terminal bool) error {
+		if err := ctx.Err(); err != nil && !terminal {
 			return err
 		}
-		frame.Version = navigation.StreamVersion
-		encoded, err := json.Marshal(frame)
-		if err != nil {
-			return err
+		if terminal && page.deferredPlan != nil && page.deferredPlan.context.Err() != nil {
+			return page.deferredPlan.context.Err()
 		}
 		if len(encoded) > navigation.MaxStreamFrame || len(encoded)+1 > navigation.MaxStreamBytes-used {
 			return fmt.Errorf("navigation stream exceeds byte limits")
@@ -57,7 +55,18 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 		}
 		return nil
 	}
-	err := ui.RenderEvents(ctx, page.Body, func(event ui.StreamEvent) error {
+	write := func(frame navigation.StreamFrame) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		frame.Version = navigation.StreamVersion
+		encoded, err := json.Marshal(frame)
+		if err != nil {
+			return err
+		}
+		return writeEncoded(encoded, false)
+	}
+	emitBody := func(event ui.StreamEvent) error {
 		if event.ID == "" {
 			html := string(event.HTML)
 			if shellRef {
@@ -67,13 +76,35 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 			if err != nil {
 				return err
 			}
-			return write(navigation.StreamFrame{Type: "shell", Page: payload})
+			frame := navigation.StreamFrame{Type: "shell", Page: payload}
+			if page.deferredJob != nil {
+				frame.MetadataPending = true
+				frame.MetadataOwner = page.metadataOwner
+				frame.MetadataIndices = append([]int{}, page.metadataIndices...)
+			}
+			return write(frame)
 		}
 		if event.Err != nil {
 			a.config.Logger.Printf("deferred boundary %s: %v", event.ID, event.Err)
 		}
 		return write(navigation.StreamFrame{Type: "chunk", ID: event.ID, HTML: string(event.HTML), Failed: event.Err != nil})
-	})
+	}
+	var err error
+	if page.deferredJob == nil {
+		err = ui.RenderEvents(ctx, page.Body, emitBody)
+	} else {
+		w.Header().Set(navigation.MetadataHeader, "1")
+		err = renderMetadataEvents(ctx, page, emitBody, func(result metadataResult) error {
+			if result.err != nil {
+				a.config.Logger.Printf("deferred metadata failed (%T)", result.err)
+			}
+			data, e := metadataTerminal(result, page.metadataOwner, result.err != nil)
+			if e != nil {
+				return e
+			}
+			return writeEncoded(data, true)
+		})
+	}
 	if err == nil {
 		err = write(navigation.StreamFrame{Type: "done"})
 	}
@@ -81,6 +112,7 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 		a.config.Logger.Printf("navigation stream: %v", err)
 		if !committed {
 			w.Header().Del(navigation.StreamHeader)
+			w.Header().Del(navigation.MetadataHeader)
 			a.respond(w, r, errorPage(), 500)
 		}
 	}

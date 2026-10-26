@@ -171,6 +171,7 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 	defer cancel()
 	started := time.Now()
 	headers := map[string]string{"Cache-Control": "no-cache", "X-Nextgo-Navigate": "1", navigation.StreamHeader: fmt.Sprint(navigation.StreamVersion)}
+	headers[navigation.MetadataHeader] = fmt.Sprint(navigation.MetadataVersion)
 	headers[navigation.ShellProtocolHeader] = fmt.Sprint(navigation.ShellVersion)
 	if hint != nil && hint.epoch == cacheEpoch {
 		headers[navigation.ShellHeader] = hint.page.Shell
@@ -185,7 +186,7 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 	}
 	var response Response
 	var buffered []byte
-	var decoder navigation.StreamDecoder
+	decoder := &navigation.StreamDecoder{}
 	var session *navigationStream
 	isStream := false
 	defer func() {
@@ -216,6 +217,16 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 		if isStream && (value.StatusCode != 200 || value.Header.Get(navigation.StreamHeader) != fmt.Sprint(navigation.StreamVersion) || value.Header.Get(navigation.ConfigurationHeader) != documentConfiguration()) {
 			return errStreamFallback
 		}
+		metadataAck, metadataAckErr := navigation.MetadataAcknowledged(value.Header.Values(navigation.MetadataHeader))
+		if metadataAckErr != nil {
+			return errStreamFallback
+		}
+		if metadataAck {
+			if !isStream {
+				return errStreamFallback
+			}
+			decoder = navigation.NewMetadataStreamDecoder()
+		}
 		if !isStream && media != "application/json" {
 			return errStreamFallback
 		}
@@ -241,6 +252,12 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 				}
 				if replaceDocument {
 					return errStreamFallback
+				}
+				if frame.MetadataPending {
+					data.metadata, err = newNavigationMetadata(ctx, id, frame.MetadataOwner, frame.MetadataIndices, data)
+					if err != nil {
+						return err
+					}
 				}
 				parsed := win.Get("DOMParser").New().Call("parseFromString", data.HTML, "text/html")
 				if _, e := streamBoundaryNodes(parsed.Get("body")); e != nil {
@@ -268,7 +285,20 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 					return fmt.Errorf("stream boundary precedes shell")
 				}
 				return session.apply(frame)
+			case "metadata":
+				if session == nil || data.metadata == nil {
+					return fmt.Errorf("metadata completion precedes shell")
+				}
+				if e := data.metadata.apply(frame); e != nil {
+					return e
+				}
+				if frame.Failed {
+					session.failed = true
+				}
 			case "done":
+				if data.metadata != nil && !data.metadata.completed {
+					return fmt.Errorf("stream completed with unfinished metadata")
+				}
 				if session == nil || len(session.pending) != 0 {
 					return fmt.Errorf("stream completed with unfinished boundaries")
 				}

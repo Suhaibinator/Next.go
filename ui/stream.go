@@ -264,21 +264,21 @@ func RenderEvents(ctx context.Context, node Node, emit func(StreamEvent) error) 
 	return ctx.Err()
 }
 
-func resolveDeferred(ctx context.Context, loader func(context.Context) (Node, error)) (node Node, err error) {
-	defer func() {
-		if failure := recover(); failure != nil {
-			node, err = nil, fmt.Errorf("ui: deferred loader panic: %v", failure)
+func resolveDeferred(ctx context.Context, loader func(context.Context) (Node, error)) (Node, error) {
+	var node Node
+	err := RunStreamLoader(ctx, func(work context.Context) error {
+		loaded, err := loader(work)
+		if err == nil {
+			node = loaded
 		}
-	}()
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	work, release, err := acquireStreamLoader(ctx)
+		return err
+	})
 	if err != nil {
+		// A canceled waiter may return before the callback writes node. Do not
+		// read that captured value without the successful completion handoff.
 		return nil, err
 	}
-	defer release()
-	return loader(work)
+	return node, nil
 }
 
 // RenderStream writes inert HTML templates for the initial document consumer.

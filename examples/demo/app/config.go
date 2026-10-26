@@ -24,6 +24,16 @@ import (
 // Configure is called by generated entrypoints before starting the application.
 func Configure(config *nextgo.Config) {
 	configureStreaming(config)
+	// Initial HTML metadata streaming is an explicit operator opt-in. The
+	// default remains blocking, and request values cannot change this policy.
+	switch os.Getenv("NEXTGO_DEMO_METADATA_HTML") {
+	case "", "false":
+		config.Streaming.Metadata.HTML = false
+	case "true":
+		config.Streaming.Metadata.HTML = true
+	default:
+		panic("NEXTGO_DEMO_METADATA_HTML must be true or false")
+	}
 	configurePartialControls(config)
 	configureScripts(config)
 	configureHeaderRules(config)

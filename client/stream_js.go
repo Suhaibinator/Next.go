@@ -29,6 +29,9 @@ func completedStreamTemplate(template js.Value) (js.Value, bool) {
 
 func startStreaming() {
 	streamingActive = true
+	if err := startInitialMetadata(); err != nil {
+		report("Invalid initial page metadata.")
+	}
 	applyStreamChunks()
 	callback := js.FuncOf(func(_ js.Value, _ []js.Value) any {
 		defer func() {
@@ -46,10 +49,12 @@ func startStreaming() {
 
 func stopStreaming() {
 	streamingActive = false
+	stopInitialMetadata()
 	applyStreamChunks()
 }
 
 func applyStreamChunks() {
+	applyMetadataCarriers()
 	templates := doc.Call("querySelectorAll", "template[data-nextgo-chunk]")
 	for i := 0; i < templates.Length(); i++ {
 		template := templates.Index(i)

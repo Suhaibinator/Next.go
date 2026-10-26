@@ -41,6 +41,19 @@ type responseSnapshot struct {
 	err      error
 }
 
+func (s *responseState) recordDeferredViolation() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.public {
+		s.violated = true
+	}
+}
+func (s *responseState) hasDeferredViolation() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.public && s.violated
+}
+
 // Context views for retained primary pages share response controls without
 // copying a mutex or changing the request visible to an outer layout.
 func (c *Context) responseControls() *responseState {
@@ -53,12 +66,12 @@ func (c *Context) responseControls() *responseState {
 func (s *responseState) mutate(change func() error) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.sealed {
-		return ErrHeadersCommitted
-	}
 	if s.readonly != nil {
 		s.err = s.readonly
 		return s.readonly
+	}
+	if s.sealed {
+		return ErrHeadersCommitted
 	}
 	if s.public {
 		s.violated = true

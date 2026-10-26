@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/Suhaibinator/Next.go/internal/streamguard"
+	"github.com/Suhaibinator/Next.go/ui"
 )
 
 var (
@@ -19,9 +22,11 @@ var (
 type memoScopeKey struct{}
 type memoStackKey struct{}
 type memoScope struct {
-	mu      sync.Mutex
-	root    context.Context
-	entries map[string]*memoEntry
+	mu          sync.Mutex
+	root        context.Context
+	entries     map[string]*memoEntry
+	pending     int
+	streamGroup *streamguard.Group
 }
 type memoEntry struct {
 	done         chan struct{}
@@ -45,10 +50,15 @@ func (c memoLoadContext) Deadline() (time.Time, bool) { return c.request.Deadlin
 
 // WithRequestMemo creates an isolated request cache. App installs one for every
 // request, including API/action handlers. The context's cancellation/deadline
-// governs shared loaders. Calling this explicitly starts a fresh scope.
+// governs shared loaders. Calling this explicitly starts a fresh key/value
+// scope; inherited physical stream ownership is intentionally preserved.
 func WithRequestMemo(ctx context.Context) context.Context {
-	scope := &memoScope{entries: make(map[string]*memoEntry)}
-	scope.root = context.WithValue(context.WithValue(ctx, memoScopeKey{}, scope), memoStackKey{}, []string(nil))
+	group := streamguard.GroupFrom(ctx)
+	if group == nil {
+		group = streamguard.NewGroup()
+	}
+	scope := &memoScope{entries: make(map[string]*memoEntry), streamGroup: group}
+	scope.root = streamguard.WithLineage(context.WithValue(context.WithValue(ctx, memoScopeKey{}, scope), memoStackKey{}, []string(nil)), group)
 	return scope.root
 }
 
@@ -110,20 +120,23 @@ func Memo[T any](ctx context.Context, key string, load func(context.Context) (T,
 	}
 	if entry == nil {
 		entry = &memoEntry{done: make(chan struct{}), resultType: reflect.TypeFor[T](), dependencies: make(map[string]int)}
+		physical := scope.streamGroup.EntryStarted(ctx)
 		scope.entries[key] = entry
+		scope.pending++
 		chain := append(append([]string(nil), stack...), key)
 		base, cancel := context.WithCancelCause(context.WithoutCancel(ctx))
 		stop := context.AfterFunc(scope.root, func() { cancel(context.Cause(scope.root)) })
 		if err := scope.root.Err(); err != nil {
 			cancel(context.Cause(scope.root))
 		}
-		loaderCtx := context.WithValue(memoLoadContext{Context: base, request: scope.root}, memoStackKey{}, chain)
+		loaderCtx := streamguard.WithEntry(context.WithValue(memoLoadContext{Context: base, request: scope.root}, memoStackKey{}, chain), physical)
 		go func() {
 			var value T
 			err := errors.New("memoized loader exited without returning")
 			defer func() {
+				physical.Deactivate()
 				if failure := recover(); failure != nil {
-					err = fmt.Errorf("memoized loader panic: %v", failure)
+					err = errors.New("memoized loader panic")
 				}
 				stop()
 				cancel(context.Canceled)
@@ -133,6 +146,8 @@ func Memo[T any](ctx context.Context, key string, load func(context.Context) (T,
 				entry.complete = true
 				entry.dependencies = nil
 				close(entry.done)
+				scope.pending--
+				physical.Finish()
 				scope.mu.Unlock()
 			}()
 			value, err = load(loaderCtx)
@@ -186,4 +201,48 @@ func (s *memoScope) reaches(from, to string, seen map[string]bool) bool {
 		}
 	}
 	return false
+}
+
+// metadataMemoLease observes physical Memo completion across the inherited
+// request lineage, while each explicit WithRequestMemo keeps its own key cache.
+// There is one shared pending count and one channel per lease, no observer
+// goroutine per entry, and no promise to track arbitrary future app goroutines.
+type metadataMemoLease struct {
+	physical *streamguard.Lease
+	done     <-chan struct{}
+}
+
+// Use the exact admitted RunStreamLoader callback context: its physical owner
+// and request Memo lineage must survive readonly/value wrappers. Cancellation
+// does not prevent joining dependencies which are still physically alive.
+// A lease inside an active same-lineage Memo would drain its own ancestor;
+// reject that cycle before invoking a metadata provider.
+func beginMetadataMemoLease(ctx context.Context) (*metadataMemoLease, error) {
+	if ctx == nil {
+		return nil, ErrMemoScope
+	}
+	scope, _ := ctx.Value(memoScopeKey{}).(*memoScope)
+	if scope == nil {
+		return nil, ErrMemoScope
+	}
+	if streamguard.ActiveAncestor(ctx, scope.streamGroup) {
+		return nil, ui.ErrStreamReentrant
+	}
+	physical := scope.streamGroup.BeginLease(streamguard.Owner(ctx))
+	return &metadataMemoLease{physical: physical, done: physical.Done()}, nil
+}
+
+// FinishCallback is idempotent and must precede Wait, including panic/Goexit.
+func (lease *metadataMemoLease) FinishCallback() {
+	if lease != nil {
+		lease.physical.FinishCallback()
+	}
+}
+
+// Wait joins physical dependencies, including canceled descendants in fresh
+// Memo scopes. It does not follow waiter cancellation or release a loader slot.
+func (lease *metadataMemoLease) Wait() {
+	if lease != nil {
+		lease.physical.Wait()
+	}
 }

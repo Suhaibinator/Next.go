@@ -4,6 +4,10 @@ A Go full-stack web framework with server-rendered HTML, file routes, nested lay
 
 **Experimental: feature parity and production maturity are unfinished.** The target is a Go alternative to Next.js, without React/JSX source compatibility. [The capability inventory and release gates](docs/PARITY.md) distinguish implemented subsets from remaining work. Native race tests, Chromium production/development/static-host suites and Firefox/WebKit production checks cover implemented subsets. Recorded integrated checks qualify their named source checkpoints; complete browser qualification, release security review, performance and operational release gates remain open.
 
+`Page.DeferredMetadata` adds an owned late typed SEO-head contribution over a
+complete fallback; initial HTML remains blocking by default. See the
+[metadata contract and scoped verification](docs/METADATA.md).
+
 The preceding resource, social-image, embed, asset-tool and inspection increment
 has passing scoped qualification: 373 host browser checks and 44 Linux
 cross-engine feature checks, both SDK native/WASM checks, 228 existing executable
@@ -89,6 +93,7 @@ The example includes:
 | `/evergreen` | Non-expiring default profile, bounded browser reuse, stale refresh and strict invalidation |
 | `/profiles` | Named profiles, bounded Go browser reuse, stale publication, and mutation without page refresh |
 | `/stream` | Early HTML shell and deferred Go-rendered island |
+| `/metadata-stream` | Complete metadata fallback and deferred typed SEO head with retained Go state |
 | `/transitions` | Native browser transitions for explicit Go state updates and optional navigation |
 | `/boards/chart`, `/boards/settings`, `/boards/activity`, `/boards/drill`, `/boards/reports`, `/boards/reports/summary` | Named/implicit-primary slots, slot-only URLs, server defaults, retained Go islands and history selections |
 | `/gallery`, `/photos/one`, `/photos/two` | Contextual Go dialogs, retained gallery state and standalone shareable photo URLs |

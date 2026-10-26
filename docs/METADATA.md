@@ -27,7 +27,8 @@ HTML, stream shell, navigation response or public snapshot is committed. HTTP
 endpoints bypass them. Providers receive the final route's parameters, query,
 request and cancellation context. They share request `nextgo.Memo` values with
 pages and layouts, so the same data loader can supply the body and dynamic head.
-Providers are awaited; slow metadata currently delays the initial response.
+These synchronous providers are awaited; slow providers delay the initial
+response. The separate deferred callback is described below.
 
 The generator registers `Route.Metadata []nextgo.MetadataLayer`. Each layer has
 `Load MetadataFunc` and a safe outer `Layouts` prefix. Hand-written registrations
@@ -60,8 +61,178 @@ masks their rendered tag. Arbitrary meta names do not become Open Graph property
 attributes; prefer typed fields for social metadata.
 
 Empty strings do not explicitly clear inherited scalar fields, and alternates
-cannot yet delete a parent key. Metadata streaming and broader typed metadata
-fields remain work.
+cannot yet delete a parent key. The deferred metadata subset below preserves
+those merge rules; broader typed metadata fields remain work.
+
+## Deferred metadata
+
+This bounded implementation has scoped native/WASM, production-build, browser
+and LOCAL transport checks on Go 1.24.13 and 1.27.3. The qualification boundary
+and remaining checks are recorded below; no capability or release gate closes.
+Existing synchronous metadata conventions and defaults remain available.
+
+`Page.DeferredMetadata MetadataFunc` uses the existing
+`func(*nextgo.Context, seo.Metadata) (seo.Metadata, error)` signature. There is
+no new directory filename or replacement for `metadata.go`. Directory providers
+remain synchronous. The deferred callback runs after successful synchronous
+page/layout/metadata work and returns a typed SEO contribution over its owned
+fallback snapshot; it does not render a second body.
+
+Put a complete fallback in `Page.Metadata`. Leave legacy `Page.Title` and
+`Page.Description` empty when the deferred contribution should change them:
+those legacy fields retain their existing highest precedence. For example,
+inside a native page function:
+
+```go
+return nextgo.Page{
+    Stream: true,
+    Metadata: seo.Metadata{
+        Title: "Article", Description: "Public article summary.",
+    },
+    DeferredMetadata: func(c *nextgo.Context, parent seo.Metadata) (seo.Metadata, error) {
+        // Application-defined loader: observe c.Context and return public SEO data.
+        value, err := loadPublicArticleMetadata(c.Context)
+        if err != nil { return seo.Metadata{}, err }
+        return seo.Metadata{Title: value.Title, Description: value.Description}, nil
+    },
+    Body: ui.El("main", nil, ui.Text("Useful article body.")),
+}, nil
+```
+
+`loadPublicArticleMetadata` is an application function, not a framework API.
+The callback may finish before the shell; late delivery is not guaranteed.
+Normal inheritance, title templates, URL validation and owned contribution
+merging still apply. The callback cannot change effective language, direction
+or viewport, including theme/color-scheme settings. Resources and JSON-LD are
+evaluated/frozen with the fallback and retain their existing head nodes.
+
+### Blocking and progressive representations
+
+Initial HTML stays blocking by default. A trusted native configuration can
+enable its progressive representation:
+
+```go
+config.Streaming.Metadata = nextgo.MetadataStreamingOptions{
+    HTML: true,
+    HTMLLimitedBots: []string{"my-audit-crawler"},
+}
+```
+
+Progressive delivery requires `Page.Stream=true`, a production GET, and a
+recognized browser user agent. Built-in bot tokens, configured literal blockers,
+unknown agents and oversized/missing agents retain blocking metadata. Additional
+blockers are case-insensitive literal substrings, not regular expressions;
+at most 64 values of 1–128 bytes are accepted. This is a compatibility policy,
+not crawler identity, authentication or a guarantee for every search engine.
+
+Negotiated production Go navigation can receive a metadata terminal independently
+of the initial-HTML `HTML` setting. The framework requests and validates that
+representation; applications should not manufacture its protocol headers.
+Development, non-streaming pages, HEAD, unnegotiated/buffered clients and build
+captures resolve metadata before publication. Uncached speculative requests for a
+still-deferred representation return 204 without starting the callback. Already
+frozen, approved public snapshots retain their existing prefetch behavior. Partial
+public shells explicitly reject deferred metadata. Public snapshot/cache paths
+publish only resolved metadata under their existing rules; a streamed response
+is not a reusable pending public snapshot.
+
+Progressive initial HTML carries a complete fallback and inert completion data.
+The Go client updates only the owned typed SEO head, without replacing the body,
+rehydrating islands or moving focus. Superseded-document completions cannot own
+the new page's head. Without the Go/WASM client, an opted-in progressive HTML
+response retains its fallback; use blocking delivery when final metadata must
+be present without that client. Live deferred responses use private/no-store
+delivery; this does not make application-private metadata safe for public caches.
+
+### Read-only work, bounds and failures
+
+The callback receives cloned parameters, query and request headers, no live
+request body, and a defensive metadata parent. It shares request-scoped `Memo`
+with preceding loaders. Response controls and `After` registration are refused;
+ignoring those errors still invalidates the contribution. Do not use this path
+for status, redirect, header, cookie or cache-policy decisions.
+Refused controls use `ErrDeferredMetadataResponse` or `ErrAfterDeferredMetadata`;
+document changes use `ErrDeferredMetadataDocument`, and partial shells use
+`ErrDeferredMetadataPartial`. HTTP failure output stays generic.
+
+Deferred work shares `Config.Streaming` admission, physical callback slots and
+deadlines: defaults are 32 renders, 64 callbacks and 30 seconds. Saturation
+before commitment produces the existing busy response. Canceled/timed-out work,
+including its owned outstanding Memo work, retains capacity until it actually
+finishes. Go cannot stop an uncooperative callback; arbitrary application
+goroutines, allocations and process memory are outside this accounting.
+Completion data is bounded to 256 KiB and 256 typed SEO elements.
+
+A failure before commitment produces a generic error result. After commitment,
+callback errors, invalid contributions or refused response mutations preserve
+the complete fallback and send failure rather than a replacement head; no loader
+replay or late status change is promised. Late access/status interrupts, arbitrary
+head HTML/scripts, broader route/slot ownership and full proxy/CDN/crawler/runtime
+qualification remain open.
+
+The [native sample and operator settings](../examples/demo/app/metadata-stream/README.md)
+show a cancellable loader, one stylesheet resource evaluation, frozen JSON-LD,
+retained Go counter/input identity and an optional trusted loopback fixture.
+Its fixture controls are not application browser data.
+
+### Scoped qualification
+
+The frozen private metadata source `ab559a01` passes 13 native/WASM/vet/format
+commands and five production build/generation/asset checks per SDK on Linux
+ARM64 with Go 1.24.13 and 1.27.3. The actual production-browser fixtures pass
+44 cases per SDK across Chromium, Firefox, WebKit and touch WebKit: 88
+application cases, without retries or skipped cases. They exercise a held real
+HTTP metadata source and metadata-only head completion with retained Go state.
+
+The Go 1.27 outer controller nevertheless failed its post-removal observation
+classifier. That failed report remains failed; a read-only derivation records
+the 44 application passes and independently verified physical cleanup, without
+rerunning them. The Go 1.24 outer run passes completely. These distinctions are
+part of the recorded proof, rather than a single all-green campaign claim.
+
+A separate LOCAL suite passes 15 cases per SDK, plus two syntax checks each:
+actual native HTTP, local buffered mock Lambda and local streaming mock Lambda.
+It checks blocking representations, opted-in browser HTML, negotiated navigation,
+generic late failures and cancellation. The fixture asserts each case's cleanup;
+independent final evidence establishes Node/process-namespace/listener cleanup,
+not 15 independent per-case cleanup receipts. These are local adapters, not AWS
+or browser-through-Lambda qualification.
+
+The unchanged affected core/location/lazy/navigation-stream suites also pass
+128 cases per SDK across 16 projects: 256 existing cases, with no failures,
+skips, retries or flaky results. Together these are 344 browser application cases,
+separate from the 30 LOCAL transport cases. Each affected run records native
+close/join with exit 0 and no KILL, removed temporary working directories and
+16 browser exit-0 observations. The legacy proxy's exact PID/start/argv identity
+was observed and later absent from the kernel; its exit code and request/handler/
+socket joins remain unobserved. There is no separate final TCP-listener sampler
+in that legacy inner driver; final no-new-live-process and complete owned-
+container drain are the observed boundary. Metadata-fixture cleanup receipts
+are not transplanted onto those legacy cases.
+
+These selected suites are not the complete framework matrix. Export,
+development-watch, all framework combinations and full crawler/proxy/CDN/cloud/
+resource qualification remain open. All 79 capability rows and 11 open release
+gates remain.
+
+### Run the production browser fixture
+
+Build the production demo as shown in the [sample](../examples/demo/app/metadata-stream/README.md),
+then run from the repository root with the
+Node development-test dependencies and Playwright browsers installed:
+
+```sh
+export NEXTGO_E2E_SERVER_BINARY=/tmp/nextgo-metadata-stream/server
+export NEXTGO_METADATA_STREAM_SERVER_SHA256="$(node -p 'require("node:crypto").createHash("sha256").update(require("node:fs").readFileSync(process.env.NEXTGO_E2E_SERVER_BINARY)).digest("hex")')"
+npm run test:metadata-stream
+```
+
+`NEXTGO_E2E_SERVER_BINARY` must be an absolute path to an executable production
+binary; `NEXTGO_METADATA_STREAM_SERVER_SHA256` must be its actual lowercase
+64-hex SHA-256. The fixture verifies the bytes and has no compiler fallback.
+It starts its own native process and held loopback data source; do not start
+another copy on its fixture ports. Node is development test tooling, not an
+application or production runtime dependency.
 
 ## Title templates
 

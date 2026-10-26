@@ -8,8 +8,10 @@ import (
 
 // MetadataFunc returns this directory's contribution. parent is an independent
 // snapshot of already merged ancestors; the framework merges the return value.
-// Functions run on the server after a successful page/layout load and before
-// any document or stream is committed. They share the request Memo scope.
+// Route providers run synchronously after a successful page/layout load, before
+// commit. Page.DeferredMetadata uses the same signature with a read-only request
+// view and defensive fallback; it may finish after a progressive shell commits.
+// Both share the request Memo scope. Deferred work cannot own a request body.
 type MetadataFunc func(*Context, seo.Metadata) (seo.Metadata, error)
 
 // MetadataLayer pairs a provider with the safe outer layout prefix used if it
@@ -20,6 +22,11 @@ type MetadataLayer struct {
 }
 
 func (a *App) resolveMetadata(c *Context, route Route, page Page) (Page, error) {
+	if page.DeferredMetadata != nil {
+		if err := preflightMetadata(page.Metadata, page.Title, page.Description, page.Meta); err != nil {
+			return Page{}, err
+		}
+	}
 	var err error
 	page, err = normalizePageMetadata(page)
 	if err != nil {
@@ -37,9 +44,19 @@ func (a *App) resolveMetadata(c *Context, route Route, page Page) (Page, error) 
 		if err := c.Err(); err != nil {
 			return Page{}, err
 		}
+		if page.DeferredMetadata != nil {
+			if err := preflightMetadata(contribution, "", "", nil); err != nil {
+				return Page{}, err
+			}
+		}
 		inherited, err = seo.ResolveContribution(inherited, contribution)
 		if err != nil {
 			return Page{}, err
+		}
+		if page.DeferredMetadata != nil {
+			if err := preflightMetadata(inherited, "", "", nil); err != nil {
+				return Page{}, err
+			}
 		}
 	}
 	page.Metadata, err = seo.ResolveContribution(inherited, page.Metadata)

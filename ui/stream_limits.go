@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+
+	"github.com/Suhaibinator/Next.go/internal/streamguard"
 )
 
 var (
@@ -14,6 +16,8 @@ var (
 	// ErrStreamReentrant prevents a deferred callback from synchronously waiting
 	// for another callback on the same limiter while it holds a physical slot.
 	// Return nested Defer nodes instead; the renderer schedules them afterward.
+	// It also refuses a retained request-Memo dependency waiting for the same
+	// physical limiter owned by live metadata work, including old inactive frames.
 	ErrStreamReentrant = errors.New("ui: reentrant deferred loader on the same stream limiter")
 )
 
@@ -80,17 +84,81 @@ func acquireStreamLoader(ctx context.Context) (context.Context, func(), error) {
 			return nil, nil, ErrStreamReentrant
 		}
 	}
-	select {
-	case limiter.loaders <- struct{}{}:
-	case <-ctx.Done():
-		return nil, nil, ctx.Err()
-	}
-	if err := ctx.Err(); err != nil {
-		<-limiter.loaders
-		return nil, nil, err
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, nil, err
+		}
+		blocked, changed := streamguard.State(ctx, limiter)
+		if blocked {
+			return nil, nil, ErrStreamReentrant
+		}
+		select {
+		case limiter.loaders <- struct{}{}:
+			if err := ctx.Err(); err != nil {
+				<-limiter.loaders
+				return nil, nil, err
+			}
+			if blocked, _ := streamguard.State(ctx, limiter); blocked {
+				<-limiter.loaders
+				return nil, nil, ErrStreamReentrant
+			}
+		case <-changed:
+			continue
+		case <-ctx.Done():
+			return nil, nil, ctx.Err()
+		}
+		break
 	}
 	frame := &streamLoaderFrame{limiter: limiter, parent: previous}
 	frame.active.Store(true)
-	work := context.WithValue(ctx, streamLoaderKey{}, frame)
+	work := streamguard.WithOwner(context.WithValue(ctx, streamLoaderKey{}, frame), limiter)
 	return work, func() { frame.active.Store(false); <-limiter.loaders }, nil
+}
+
+// RunStreamLoader runs one callback using the same physical slots and reentrancy
+// checks as Defer. A canceled caller returns promptly, but the callback keeps its
+// slot until it actually returns, panics, or exits. The callback must join any
+// framework-owned physical dependencies before returning. Arbitrary application
+// goroutines are not tracked or forcibly stopped by this helper.
+//
+// Pass a context returned by StreamLimiter.Begin to enforce shared application
+// limits. Without an attached limiter the behavior matches ordinary Defer: no
+// physical admission limit is introduced by this wrapper.
+func RunStreamLoader(ctx context.Context, load func(context.Context) error) error {
+	if ctx == nil || load == nil {
+		return fmt.Errorf("ui: stream loader requires a context and callback")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	work, release, err := acquireStreamLoader(ctx)
+	if err != nil {
+		return err
+	}
+	result := make(chan error, 1)
+	go func() {
+		resultErr := errors.New("ui: stream loader exited without returning")
+		defer func() {
+			if failure := recover(); failure != nil {
+				resultErr = errors.New("ui: deferred loader panic")
+			}
+			release()
+			// A buffered single result cannot strand a sender after HTTP exit.
+			result <- resultErr
+		}()
+		if err := work.Err(); err != nil {
+			resultErr = err
+			return
+		}
+		resultErr = load(work)
+	}()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-result:
+		if canceled := ctx.Err(); canceled != nil {
+			return canceled
+		}
+		return err
+	}
 }

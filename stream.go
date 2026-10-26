@@ -3,6 +3,7 @@ package nextgo
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/scripts"
 	"github.com/Suhaibinator/Next.go/ui"
@@ -104,12 +105,60 @@ func (a *App) respondStream(w http.ResponseWriter, r *http.Request, p Page, head
 		b.WriteString(` data-nextgo-draft="` + state + `"`)
 	}
 	b.WriteString(` data-nextgo-configuration="` + a.configurationID + `" data-nextgo-navigation="` + html.EscapeString(a.navigationJSON) + `"`)
+	if p.deferredJob != nil {
+		b.WriteString(` data-nextgo-metadata-version="1" data-nextgo-metadata-owner="` + p.metadataOwner + `"`)
+	}
 	b.WriteString(`><div id="nextgo-status" role="status" aria-live="polite" hidden></div>` + routeAnnouncer + `<div id="nextgo-app" tabindex="-1">`)
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 	stream := &initialStreamWriter{ResponseWriter: w, cancel: cancel, bootstrap: runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), nonce)}
 	_, _ = io.WriteString(stream, b.String())
-	if err := ui.RenderStream(ctx, stream, p.Body); err != nil {
+	var renderErr error
+	if p.deferredJob == nil {
+		renderErr = ui.RenderStream(ctx, stream, p.Body)
+	} else {
+		used := len(b.String()) + len(`</div><span id="nextgo-initial-ready" hidden></span>`) + len(stream.bootstrap) + len(`<noscript>Deferred content requires WebAssembly. Use a non-streaming page for complete content without scripting.</noscript></body></html>`)
+		write := func(data []byte) error {
+			if len(data) > ui.MaxStreamBytes-used {
+				return ui.ErrStreamLimit
+			}
+			used += len(data)
+			n, err := stream.Write(data)
+			if err == nil && n != len(data) {
+				err = io.ErrShortWrite
+			}
+			if err == nil {
+				stream.Flush()
+				err = stream.err
+			}
+			return err
+		}
+		renderErr = renderMetadataEvents(ctx, p, func(event ui.StreamEvent) error {
+			data := event.HTML
+			if event.ID != "" {
+				attr := ""
+				if event.Err != nil {
+					attr = ` data-nextgo-stream-error="true"`
+				}
+				data = []byte(`<template data-nextgo-chunk="` + html.EscapeString(event.ID) + `"` + attr + `>` + string(data) + `</template><span hidden data-nextgo-chunk-ready="` + html.EscapeString(event.ID) + `"></span>`)
+			}
+			return write(data)
+		}, func(result metadataResult) error {
+			if result.err != nil {
+				a.config.Logger.Printf("deferred metadata failed (%T)", result.err)
+			}
+			encoded, err := metadataTerminal(result, p.metadataOwner, result.err != nil)
+			if err != nil {
+				return err
+			}
+			carrier := `<template data-nextgo-metadata="` + p.metadataOwner + `">` + html.EscapeString(string(encoded)) + `</template><span hidden data-nextgo-metadata-ready="` + p.metadataOwner + `"></span>`
+			if p.deferredPlan.context.Err() != nil {
+				return fmt.Errorf("metadata request canceled")
+			}
+			return write([]byte(carrier))
+		})
+	}
+	if err := renderErr; err != nil {
 		a.config.Logger.Printf("stream: %v", err)
 		if !stream.ready {
 			// The shell and tree are still buffered: ordinary error rendering can

@@ -1,0 +1,3 @@
+.metadata-stream-demo [data-metadata-input] { display: block; width: min(100%, 32rem); margin: .5rem 0 1.5rem; padding: .7rem; border: 1px solid currentColor; border-radius: .4rem; font: inherit; }
+.metadata-stream-demo [data-metadata-input]:focus-visible { outline: 3px solid #b57320; outline-offset: 3px; }
+.metadata-stream-demo [data-metadata-counter] { max-width: 36rem; }

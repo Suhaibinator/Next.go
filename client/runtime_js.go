@@ -671,6 +671,7 @@ type headElement struct {
 }
 
 type envelope struct {
+	metadata      *metadataHead
 	Document      navigation.Document `json:"document"`
 	Version       int                 `json:"version"`
 	Configuration string              `json:"configuration"`
@@ -1041,6 +1042,12 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 	head, err := buildHead(data.Head)
 	if err != nil {
 		return err
+	}
+	if data.metadata != nil {
+		if err := data.metadata.capture(head); err != nil {
+			return err
+		}
+		data.metadata.committedURL = target
 	}
 	navigationOpener = active
 	modalReturnFocus = js.Undefined()
