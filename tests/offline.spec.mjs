@@ -162,7 +162,21 @@ async function enable(shelf, page) {
   await expect(controls(page)).toHaveAttribute('data-offline-active-generation', /^[a-f0-9]{64}$/);
   // Installation deliberately does not claim an already open client.
   await page.reload(); await ready(page);
+  const previousCompletion = await controls(page).getAttribute('data-offline-completed-operations');
+  expect(previousCompletion).toMatch(/^(0|[1-9][0-9]{0,9})$/);
+  expect(BigInt(previousCompletion)).toBeLessThan(1n << 32n);
+  const nextCompletion = ((BigInt(previousCompletion) + 1n) % (1n << 32n)).toString();
   await page.locator('[data-offline-status-button]').click();
+  // Wait for exactly this operation to settle, not an already-true controller flag.
+  await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', nextCompletion);
+  const confirmation = await controls(page).evaluate(root => ({
+    phase: root.querySelector('[data-offline-status-output]').getAttribute('data-offline-state'),
+    stateError: root.getAttribute('data-offline-last-error'),
+    operationError: root.getAttribute('data-offline-operation-error'),
+    enabled: root.getAttribute('data-offline-enabled'),
+    controlling: root.getAttribute('data-offline-controlling'),
+  }));
+  expect(confirmation).toEqual({phase: 'ready', stateError: '', operationError: '', enabled: 'true', controlling: 'true'});
   await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
   return controls(page).getAttribute('data-offline-active-generation');
 }
