@@ -254,6 +254,54 @@ func TestRetainedSoleOwnerCollectorsIncludeIslandErrorAndScroll(t *testing.T) {
 	}
 }
 
+// The fixture verifies setter admission and synchronous restoration, not the
+// browser's native caret scrolling. The real-browser owner/history assertions
+// independently require the retained container/window positions to stay exact.
+func TestRetainedFocusPreservesUnchangedNativeSelection(t *testing.T) {
+	for _, changed := range []string{"unchanged", "start", "end", "direction"} {
+		t.Run(changed, func(t *testing.T) {
+			f := retainedRouterEnvironment(t)
+			view := retainedCurrent
+			js.Global().Get("Function").New("node", `
+node.selectionStart=2;node.selectionEnd=7;node.selectionDirection='backward';
+node.selectionCalls=0;node.focusCalls=0;node.preventedScroll=false;
+node.focus=function(options){this.focusCalls++;this.preventedScroll=options?.preventScroll===true;};
+node.setSelectionRange=function(start,end,direction){this.selectionCalls++;this.selectionStart=start;this.selectionEnd=end;this.selectionDirection=direction;};
+`).Invoke(f.draft)
+			f.old.Set("scrollTop", 73)
+			captureRetained(view)
+			switch changed {
+			case "start":
+				f.draft.Set("selectionStart", 3)
+			case "end":
+				f.draft.Set("selectionEnd", 8)
+			case "direction":
+				f.draft.Set("selectionDirection", "forward")
+			}
+			f.old.Set("scrollTop", 0)
+			retainedFocus = view
+			restoreRetainedFocus(true)
+			wantCalls := 1
+			if changed == "unchanged" {
+				wantCalls = 0
+			}
+			if got := f.draft.Get("selectionCalls").Int(); got != wantCalls {
+				t.Fatalf("selection setters = %d, want %d", got, wantCalls)
+			}
+			if f.draft.Get("selectionStart").Int() != 2 || f.draft.Get("selectionEnd").Int() != 7 || f.draft.Get("selectionDirection").String() != "backward" {
+				t.Fatal("saved differing selection was not restored")
+			}
+			if f.draft.Get("focusCalls").Int() != 1 || !f.draft.Get("preventedScroll").Bool() || f.old.Get("scrollTop").Int() != 73 || retainedFocus != nil {
+				t.Fatal("focus, owner scroll, or one-use focus ownership was not restored")
+			}
+			restoreRetainedFocus(true)
+			if f.draft.Get("selectionCalls").Int() != wantCalls || f.draft.Get("focusCalls").Int() != 1 {
+				t.Fatal("consumed retained focus was replayed")
+			}
+		})
+	}
+}
+
 func TestRetainedChangedOutputPlansColdOwnerAndEvictsOldHistorySnapshot(t *testing.T) {
 	f := retainedRouterEnvironment(t)
 	id, key := strings.Repeat("d", 32), strings.Repeat("e", 32)

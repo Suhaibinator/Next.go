@@ -563,7 +563,14 @@ func restoreRetainedFocus(pop bool) {
 	if view.focus.Truthy() && view.focus.Get("isConnected").Bool() && view.root.Call("contains", view.focus).Bool() {
 		view.focus.Call("focus", map[string]any{"preventScroll": true})
 		if view.selectionDirection != "" && view.focus.Get("setSelectionRange").Type() == js.TypeFunction {
-			view.focus.Call("setSelectionRange", view.selectionStart, view.selectionEnd, view.selectionDirection)
+			start, end, direction := view.focus.Get("selectionStart"), view.focus.Get("selectionEnd"), view.focus.Get("selectionDirection")
+			// Retained inputs already preserve their native selection. Avoid a
+			// redundant setter: it can schedule native caret scrolling after the
+			// synchronous focus and scroll restoration below.
+			unchanged := start.Type() == js.TypeNumber && end.Type() == js.TypeNumber && direction.Type() == js.TypeString && start.Int() == view.selectionStart && end.Int() == view.selectionEnd && direction.String() == view.selectionDirection
+			if !unchanged {
+				view.focus.Call("setSelectionRange", view.selectionStart, view.selectionEnd, view.selectionDirection)
+			}
 		}
 	}
 	for _, entry := range view.scroll {
