@@ -6,6 +6,22 @@ import { adminToken } from './access-fixture.mjs';
 // native lifecycle qualification free of tracing and request interception.
 test.use({ trace: 'off' });
 
+// Traverse native browser history without evaluating in the departing renderer
+// or waiting for network navigation events that BFCache need not produce.
+async function nativeBack(page, expectedURL) {
+  const session = await page.context().newCDPSession(page);
+  try {
+    const history = await session.send('Page.getNavigationHistory');
+    const previous = history.entries[history.currentIndex - 1];
+    expect(previous).toBeDefined();
+    expect(Number.isInteger(previous.id)).toBe(true);
+    expect(previous.url).toBe(expectedURL);
+    await session.send('Page.navigateToHistoryEntry', { entryId: previous.id });
+  } finally {
+    await session.detach();
+  }
+}
+
 for (const enabled of [false, true]) {
   test(`native Chromium history ${enabled ? 'revalidates private preview under browser cache policy' : 'preserves published Go state through actual BFCache'}`, async () => {
     // Playwright disables BFCache by default. Use full Chromium with that
@@ -28,7 +44,7 @@ for (const enabled of [false, true]) {
       });
       let probes = 0; page.on('request', r => { if (r.url() === origin + '/_nextgo/draft') probes++; });
       await page.goto('http://localhost:4100/about'); await expect(page).toHaveTitle('Architecture — Next.go');
-      await page.evaluate(() => history.back());
+      await nativeBack(page, origin + '/preview');
       await expect(page).toHaveURL(origin + '/preview');
       await expect(page.locator('[data-count]')).toBeVisible();
       const restored = await page.evaluate(() => window.nativeRestores);
@@ -75,7 +91,7 @@ test('native history after preview-cookie removal cannot reveal the prior privat
     await expect(page.getByRole('heading', { name: 'Unpublished field note' })).toBeVisible();
     await page.evaluate(() => { window.priorPrivatePage = true; });
     await page.goto('http://localhost:4100/about'); await context.clearCookies();
-    await page.evaluate(() => history.back());
+    await nativeBack(page, origin + '/preview');
     await expect(page).toHaveURL(origin + '/preview');
     await expect(page.locator('body')).toHaveAttribute('data-nextgo-draft', '0');
     await expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');

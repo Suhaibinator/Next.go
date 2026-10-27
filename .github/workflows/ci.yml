@@ -4,12 +4,11 @@ on:
   pull_request:
 permissions:
   contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  # Finish the running checkpoint so later pushes do not erase its evidence.
-  cancel-in-progress: false
 jobs:
   go:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-go-${{ matrix.go }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -101,6 +100,9 @@ jobs:
           kill -TERM "$server_pid"
           wait "$server_pid"
   browser:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-browser
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +115,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 30
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - run: npm test
       - run: npm run test:crossbrowser
       - run: npm run test:shared-cache
@@ -156,6 +167,9 @@ jobs:
           include-hidden-files: true
           retention-days: 7
   refresh:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-refresh
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -173,7 +187,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 15
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - name: Build refresh qualification artifacts
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -206,6 +229,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   independent-zones:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-independent-zones-${{ matrix.go }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -228,7 +254,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 15
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - name: Build independent releases and immutable ingress snapshots
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -257,10 +292,46 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   streaming:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-streaming
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --shm-size 512m
+    defaults:
+      run:
+        shell: bash
+    env:
+      GOTOOLCHAIN: local
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
+      - name: Own streaming home and compiler paths
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          command -v git
+          streaming_root=$(mktemp -d "$RUNNER_TEMP/nextgo-streaming-ci.XXXXXX")
+          mkdir -m 700 "$streaming_root/home" "$streaming_root/go-cache" "$streaming_root/mod-cache" "$streaming_root/tmp"
+          test "$(stat -c %u "$streaming_root/home")" = "$(id -u)"
+          {
+            echo "NEXTGO_STREAMING_CI=$streaming_root"
+            echo "HOME=$streaming_root/home"
+            echo "GOCACHE=$streaming_root/go-cache"
+            echo "GOMODCACHE=$streaming_root/mod-cache"
+            echo "TMPDIR=$streaming_root/tmp"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
+      - name: Trust only the checked-out streaming workspace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test "$(stat -c %u "$HOME")" = "$(id -u)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -270,9 +341,41 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Install browsers and system dependencies
-        timeout-minutes: 30
-        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Validate preinstalled browsers and installer policy parsing
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { constants } from 'node:fs';
+          import { access, readFile, realpath, stat } from 'node:fs/promises';
+          import { isAbsolute, relative } from 'node:path';
+          import { chromium, firefox, webkit } from '@playwright/test';
+          const core = JSON.parse(await readFile('node_modules/playwright-core/package.json', 'utf8'));
+          const declared = JSON.parse(await readFile('package.json', 'utf8')).devDependencies['@playwright/test'];
+          assert.equal(core.version, '1.64.1');
+          assert.equal(declared, core.version);
+          assert.equal(process.platform, 'linux');
+          assert.equal(process.versions.node.split('.')[0], '22');
+          const home = await realpath(process.env.HOME);
+          const owned = await realpath(process.env.NEXTGO_STREAMING_CI);
+          assert.equal(relative(owned, home), 'home');
+          assert.equal((await stat(home)).uid, process.getuid());
+          const browsers = await realpath('/ms-playwright');
+          const executables = {};
+          for (const [name, browser] of Object.entries({ chromium, firefox, webkit })) {
+            const executable = await realpath(browser.executablePath());
+            const rel = relative(browsers, executable);
+            assert.ok(rel && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../'));
+            assert.ok((await stat(executable)).isFile());
+            await access(executable, constants.X_OK);
+            executables[name] = executable;
+          }
+          console.log(JSON.stringify({ phase: 'preinstalled-browser-metadata', playwright: core.version,
+            node: process.version, platform: process.platform, arch: process.arch, uid: process.getuid(),
+            ownedHome: home, executables, browserLaunches: 0 }));
+          NODE
       - name: Deterministic initial-stream parser conformance
         run: npm run test:stream-parser
       - name: Stream admission and recoverable navigation
@@ -297,6 +400,9 @@ jobs:
           include-hidden-files: true
           retention-days: 7
   offline:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-offline
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
@@ -318,6 +424,12 @@ jobs:
             apt-get install --yes --no-install-recommends git
           fi
       - uses: actions/checkout@v4
+      - name: Trust the exact checked-out workspace
+        shell: bash
+        run: |
+          set -eu
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
@@ -351,13 +463,22 @@ jobs:
         shell: bash
         run: |
           set -eu
-          go build -trimpath -o "$NEXTGO_OFFLINE_CI/nextgo" ./cmd/nextgo
+          go build -trimpath -buildvcs=false -o "$NEXTGO_OFFLINE_CI/nextgo" ./cmd/nextgo
           export NEXTGO_TEST_NEXTGO_BINARY="$NEXTGO_OFFLINE_CI/nextgo"
           export NEXTGO_TEST_NEXTGO_BINARY_SHA256="$(sha256sum "$NEXTGO_TEST_NEXTGO_BINARY" | cut -d ' ' -f 1)"
           node tests/offline-build-fixture.mjs --source "$GITHUB_WORKSPACE" --out "$NEXTGO_OFFLINE_CI/build"
       - name: Managed offline fixed browser matrix
         timeout-minutes: 30
-        run: npm run test:offline -- --reporter=line,json
+        shell: bash
+        run: |
+          set -eu
+          nextgo_offline_browser_home=$(mktemp -d "$NEXTGO_OFFLINE_CI/browser-home.XXXXXX")
+          test -d "$nextgo_offline_browser_home"
+          test ! -L "$nextgo_offline_browser_home"
+          test "$(realpath -- "$nextgo_offline_browser_home")" = "$nextgo_offline_browser_home"
+          test "$(stat -c '%u' -- "$nextgo_offline_browser_home")" = "$(id -u)"
+          test "$(stat -c '%a' -- "$nextgo_offline_browser_home")" = 700
+          env HOME="$nextgo_offline_browser_home" npm run test:offline -- --reporter=line,json
       - name: Collect bounded offline failure evidence
         if: failure()
         shell: bash
@@ -376,6 +497,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   link-status:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-link-status
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
@@ -397,6 +521,12 @@ jobs:
             apt-get install --yes --no-install-recommends git
           fi
       - uses: actions/checkout@v4
+      - name: Trust the exact checked-out workspace
+        shell: bash
+        run: |
+          set -eu
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.3'
@@ -435,7 +565,7 @@ jobs:
         shell: bash
         run: |
           set -eu
-          go build -trimpath -o "$NEXTGO_LINK_STATUS_CI/nextgo" ./cmd/nextgo
+          go build -trimpath -buildvcs=false -o "$NEXTGO_LINK_STATUS_CI/nextgo" ./cmd/nextgo
           "$NEXTGO_LINK_STATUS_CI/nextgo" build -out "$NEXTGO_LINK_STATUS_CI/demo" ./examples/demo
           chmod 0500 "$NEXTGO_LINK_STATUS_CI/nextgo" "$NEXTGO_E2E_SERVER_BINARY"
           echo "NEXTGO_LINK_STATUS_SERVER_SHA256=$(sha256sum "$NEXTGO_E2E_SERVER_BINARY" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
@@ -444,7 +574,13 @@ jobs:
         shell: bash
         run: |
           set -eu
-          node scripts/test-browser.mjs --config=tests/link-status.config.mjs --reporter=line,json
+          nextgo_link_status_browser_home=$(mktemp -d "$NEXTGO_LINK_STATUS_CI/browser-home.XXXXXX")
+          test -d "$nextgo_link_status_browser_home"
+          test ! -L "$nextgo_link_status_browser_home"
+          test "$(realpath -- "$nextgo_link_status_browser_home")" = "$nextgo_link_status_browser_home"
+          test "$(stat -c '%u' -- "$nextgo_link_status_browser_home")" = "$(id -u)"
+          test "$(stat -c '%a' -- "$nextgo_link_status_browser_home")" = 700
+          env HOME="$nextgo_link_status_browser_home" node scripts/test-browser.mjs --config=tests/link-status.config.mjs --reporter=line,json
           node --input-type=module <<'NODE'
           import fs from 'node:fs/promises';
           import {constants} from 'node:fs';
@@ -589,6 +725,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   container:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-container
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
