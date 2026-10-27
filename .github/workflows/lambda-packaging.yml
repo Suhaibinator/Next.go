@@ -1,0 +1,152 @@
+name: Lambda package qualification
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  linux:
+    # Public standard runners; no container, cgroup or AWS qualification claim.
+    if: github.event.repository.visibility == 'public'
+    name: Lambda Go ${{ matrix.go }} / ${{ matrix.platform.arch }}
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.13', '1.27.3']
+        platform:
+          - {runner: ubuntu-24.04, arch: amd64, machine: x86_64, node: x64}
+          - {runner: ubuntu-24.04-arm, arch: arm64, machine: aarch64, node: arm64}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-linux-${{ matrix.platform.arch }}-${{ matrix.go }}
+      cancel-in-progress: false
+    env:
+      GOTOOLCHAIN: local
+      GOENV: 'off'
+      GOWORK: auto
+      GOFLAGS: '-p=1'
+      GOMAXPROCS: '1'
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      CGO_ENABLED: '1'
+      EXPECTED_GO: ${{ matrix.go }}
+      EXPECTED_ARCH: ${{ matrix.platform.arch }}
+      EXPECTED_MACHINE: ${{ matrix.platform.machine }}
+      EXPECTED_NODE_ARCH: ${{ matrix.platform.node }}
+    steps:
+      - uses: actions/checkout@v4
+        timeout-minutes: 5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        timeout-minutes: 10
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        timeout-minutes: 5
+        with:
+          node-version: '24.22.1'
+      - name: Record native SDK, Node and immutable source; own fresh task caches
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ $(uname -s) == Linux && $(uname -m) == "$EXPECTED_MACHINE" ]]
+          [[ $(id -u) != 0 && $(node -p 'process.platform') == linux ]]
+          [[ $(node -p 'process.arch') == "$EXPECTED_NODE_ARCH" && $(node --version) == v24.22.1 ]]
+          task_root=$(mktemp -d "${RUNNER_TEMP:?}/nextgo-lambda-${EXPECTED_ARCH}-${EXPECTED_GO}-XXXXXXXX")
+          chmod 700 "$task_root"
+          printf 'nextgo-lambda-qualification-v1\n' > "$task_root/.owned"
+          mkdir "$task_root/evidence" "$task_root/go-cache" "$task_root/modules" "$task_root/tmp" "$task_root/go-tmp"
+          {
+            printf 'NEXTGO_LAMBDA_CI=%s\n' "$task_root"
+            printf 'GOCACHE=%s/go-cache\nGOMODCACHE=%s/modules\n' "$task_root" "$task_root"
+            printf 'TMPDIR=%s/tmp\nGOTMPDIR=%s/go-tmp\n' "$task_root" "$task_root"
+            printf 'CC=%s\n' "$(command -v gcc)"
+          } >> "$GITHUB_ENV"
+          [[ $(go version) == "go version go${EXPECTED_GO} linux/${EXPECTED_ARCH}" ]]
+          [[ $(go env GOWORK) == '' && $(go env GOFLAGS) == '-p=1' ]]
+          {
+            git rev-parse HEAD
+            git rev-parse HEAD^{tree}
+            go version
+            go env GOOS GOARCH GOROOT GOENV GOWORK GOFLAGS CGO_ENABLED
+            node --version
+            node -p 'process.arch'
+            uname -s -m
+            id -u
+            gcc --version
+          } > "$task_root/evidence/toolchain.txt"
+          task_sdk=$(go env GOROOT)
+          sha256sum "$task_sdk/bin/go" "$task_sdk/pkg/tool/linux_${EXPECTED_ARCH}/compile" "$task_sdk/pkg/tool/linux_${EXPECTED_ARCH}/link" "$task_sdk/lib/wasm/wasm_exec.js" "$(command -v node)" "$(readlink -f "$(command -v gcc)")" > "$task_root/evidence/toolchain.sha256"
+          git ls-tree -r HEAD > "$task_root/evidence/source-tree.txt"
+          sha256sum cmd/nextgo/main.go cmd/nextgo/build_lambda.go cmd/nextgo/build_lambda_test.go internal/project/build.go internal/project/lambda.go internal/project/lambda_test.go .github/workflows/lambda-packaging.yml > "$task_root/evidence/source.sha256"
+      - name: Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights
+        timeout-minutes: 37
+        shell: bash
+        run: |
+          set -euo pipefail
+          task_filter='^(TestLambdaCLIRejectsInvalidTargetBeforeDiscovery|TestLambdaGeneratedZIPArchitecturesAndRuntime|TestLambdaPackageLimitsAndUnknownDirectoryStayFailClosed|TestLambdaArchitectureRejectedBeforeDiscovery|TestLambdaOutputDoesNotEnterFutureInputClosure|TestCompileLambdaPreservesHostPrerenderBeforeTargetLink|TestLambdaOutputPlacementAndCancellation)$'
+          set +e
+          timeout --signal=TERM --kill-after=20s 35m go test -race -count=1 -timeout=10m -json -run "$task_filter" ./cmd/nextgo ./internal/project 2>&1 | tee "$NEXTGO_LAMBDA_CI/evidence/native.json"
+          task_status=("${PIPESTATUS[@]}")
+          set -e
+          printf 'go=%s\ntee=%s\n' "${task_status[0]}" "${task_status[1]}" > "$NEXTGO_LAMBDA_CI/evidence/test-exit.txt"
+          [[ ${task_status[0]} == 0 && ${task_status[1]} == 0 ]]
+      - name: Vet both native packages
+        timeout-minutes: 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=20s 10m go vet ./cmd/nextgo ./internal/project 2>&1 | tee "$NEXTGO_LAMBDA_CI/evidence/vet.log"
+          printf 'PASS\n' > "$NEXTGO_LAMBDA_CI/evidence/vet-status.txt"
+      - name: Require seven groups, two targets and all fourteen actual native flights
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import collections, json, os, pathlib
+          root = pathlib.Path(os.environ['NEXTGO_LAMBDA_CI']) / 'evidence'
+          arch = os.environ['EXPECTED_ARCH']
+          packages = {'github.com/Suhaibinator/Next.go/cmd/nextgo': ['TestLambdaCLIRejectsInvalidTargetBeforeDiscovery', 'TestLambdaGeneratedZIPArchitecturesAndRuntime', 'TestLambdaPackageLimitsAndUnknownDirectoryStayFailClosed'], 'github.com/Suhaibinator/Next.go/internal/project': ['TestLambdaArchitectureRejectedBeforeDiscovery', 'TestLambdaOutputDoesNotEnterFutureInputClosure', 'TestCompileLambdaPreservesHostPrerenderBeforeTargetLink', 'TestLambdaOutputPlacementAndCancellation']}
+          expected = {(pkg, name) for pkg, names in packages.items() for name in names}
+          pkg = 'github.com/Suhaibinator/Next.go/cmd/nextgo'
+          parent = 'TestLambdaGeneratedZIPArchitecturesAndRuntime'
+          expected.update((pkg, parent + '/' + target) for target in ['amd64', 'arm64'])
+          expected.update((pkg, parent + '/' + arch + '/' + mode) for mode in ['buffered', 'streaming'])
+          flights = {(pkg, parent + '/' + arch + '/' + mode + '/flight-%02d' % index) for mode in ['buffered', 'streaming'] for index in range(7)}
+          expected.update(flights)
+          events = [json.loads(line) for line in (root / 'native.json').read_text().splitlines() if line.strip()]
+          assert all(event.get('Action') not in ('fail', 'skip') for event in events), 'failed or skipped event'
+          runs = collections.Counter((e.get('Package'), e['Test']) for e in events if e.get('Action') == 'run' and 'Test' in e)
+          passes = collections.Counter((e.get('Package'), e['Test']) for e in events if e.get('Action') == 'pass' and 'Test' in e)
+          assert runs == passes == collections.Counter({key: 1 for key in expected}), 'missing, duplicate or unexpected test/subtest evidence'
+          package_passes = collections.Counter(e.get('Package') for e in events if e.get('Action') == 'pass' and 'Test' not in e)
+          assert package_passes == collections.Counter({name: 1 for name in packages}), 'package completion evidence'
+          assert (root / 'test-exit.txt').read_text() == 'go=0\ntee=0\n'
+          assert (root / 'vet-status.txt').read_text() == 'PASS\n'
+          (root / 'selected-proof.json').write_text(json.dumps({'status': 'PASS', 'go': os.environ['EXPECTED_GO'], 'arch': arch, 'groups': 7, 'crossBuiltTargets': ['amd64', 'arm64'], 'actualNativeFlights': 14, 'observedPasses': sorted([list(key) for key in passes]), 'scope': 'Real generated ZIP bootstrap with local mock Runtime API; no AWS, physical isolation, G06 failure-ownership or production-maturity claim.'}, indent=2) + '\n')
+          PY
+          sha256sum --check "$NEXTGO_LAMBDA_CI/evidence/source.sha256"
+          sha256sum --check "$NEXTGO_LAMBDA_CI/evidence/toolchain.sha256"
+          [[ -z $(git status --porcelain --untracked-files=all) ]]
+      - name: Preserve text evidence only
+        if: always() && env.NEXTGO_LAMBDA_CI != ''
+        timeout-minutes: 3
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-${{ matrix.platform.arch }}-go${{ matrix.go }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/*.txt
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/*.sha256
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/source-tree.txt
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/native.json
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/vet.log
+            ${{ env.NEXTGO_LAMBDA_CI }}/evidence/selected-proof.json

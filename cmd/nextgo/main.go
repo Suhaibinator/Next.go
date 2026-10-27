@@ -27,7 +27,7 @@ func main() {
 	}
 }
 func execute(ctx context.Context, args []string) error {
-	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-out dist/demo] <app> | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin ORIGIN -out DIR <zones.json> | nextgo zones ingress -manifest FILE | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
+	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-target native|lambda] [-arch amd64|arm64] [-out DIR] <app> | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin ORIGIN -out DIR <zones.json> | nextgo zones ingress -manifest FILE | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
 	if len(args) == 0 {
 		return fmt.Errorf("%s", usage)
 	}
@@ -42,6 +42,9 @@ func execute(ctx context.Context, args []string) error {
 	}
 	if args[0] == "init" {
 		return executeInit(ctx, args[1:])
+	}
+	if args[0] == "build" {
+		return executeBuild(ctx, args[1:], os.Stdout)
 	}
 	if args[0] == "export" {
 		return executeExport(ctx, args[1:])
@@ -85,7 +88,7 @@ func execute(ctx context.Context, args []string) error {
 	}
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	addr := flags.String("addr", "localhost:3000", "development listen address")
-	out := flags.String("out", "dist/demo", "production output directory")
+	flags.String("out", "dist/demo", "production output directory")
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
 	}
@@ -96,29 +99,6 @@ func execute(ctx context.Context, args []string) error {
 	switch args[0] {
 	case "dev":
 		return dev.Run(ctx, root, *addr, os.Stdout)
-	case "build":
-		build, err := project.Compile(ctx, root, false, os.Stdout)
-		if err != nil {
-			return err
-		}
-		defer os.RemoveAll(build.Dir)
-		dir, err := filepath.Abs(*out)
-		if err != nil {
-			return err
-		}
-		if err = os.MkdirAll(dir, 0755); err != nil {
-			return err
-		}
-		data, err := os.ReadFile(build.Binary)
-		if err != nil {
-			return err
-		}
-		binary := filepath.Join(dir, "server")
-		if err = publishBinary(binary, data); err != nil {
-			return err
-		}
-		fmt.Printf("Production binary: %s\nRun: %s -addr :3000\n", binary, binary)
-		return nil
 	default:
 		return fmt.Errorf("unknown command %q", args[0])
 	}
