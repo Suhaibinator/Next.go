@@ -8,6 +8,32 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — experimental static public shell (public CI pending)
+
+- Add `Config.StaticShell` with `StaticShell{Pattern, Component}` for one
+  exclusive literal-
+  prefix optional catchall and one public ClientIsland seed. Native HTTP stays
+  unchanged. Portable `Location.RouteParams` and browser `CurrentRouteParams`
+  read committed actual deep paths using the existing eager/lazy location state.
+- Add opt-in native export configuration 3, `nextgo-static-v3` publication
+  and descriptor 1 binding exact immutable seed bytes. Ordinary versions 1/2,
+  navigation protocol 3 and module ABI 5 retain their existing contracts.
+- Require generic public head/props/fallback, explicit host document admission,
+  exact-files-first handling and the final-decoded-segment seven-suffix rule.
+  Layout/selection/cache/prerender and other documented combinations remain
+  refused; client missing-screens do not change HTTP status. [Contract and qualification limits](docs/STATIC_SHELL.md).
+- Earlier candidate source passes 14 focused unit/CLI-export/vet commands per
+  SDK. Go 1.27.3 additionally completes all seven producer commands and four
+  actual eager/lazy root/mounted exports, including genuine generated helpers.
+  Go 1.24 sample exports never launched; no local static-shell browser cases
+  have run. Earlier failed admission/allowlist attempts remain failed.
+- Add a [public functional CI plan](.github/workflows/static-shell.yml) for both
+  SDKs on Linux AMD64, with four exports and exactly 48 required browser cases
+  each. The workflow is unexecuted: these are future assertions, not passes.
+  Earlier candidate proof does not qualify the new public source packaging/CI,
+  the held ARM64 resource profile, providers, production or full SPA parity.
+  All 79 capability rows and 11 open release gates remain.
+
 ## Unreleased — explicit client-only component boundaries
 
 - Add `ui.ClientIsland` with a useful server fallback and one synchronous

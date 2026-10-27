@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,11 +11,13 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	nextgo "github.com/Suhaibinator/Next.go"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/paths"
 	"github.com/Suhaibinator/Next.go/internal/project"
+	"github.com/Suhaibinator/Next.go/internal/wirejson"
 )
 
 func readExportConfig(ctx context.Context, binary, build, domain string) (nextgo.ExportConfig, error) {
@@ -31,11 +34,41 @@ func readExportConfigEnv(ctx context.Context, binary, build, domain string, env 
 	if err := command.Run(); err != nil {
 		return config, fmt.Errorf("read static export configuration: %w: %s", err, diagnostic.String())
 	}
-	if output.overflow || json.Unmarshal(output.Bytes(), &config) != nil {
+	if output.overflow {
+		return config, fmt.Errorf("static export configuration exceeds 128 KiB")
+	}
+	return decodeExportConfig(output.Bytes(), build, domain)
+}
+
+func decodeExportConfig(data []byte, build, domain string) (nextgo.ExportConfig, error) {
+	var config nextgo.ExportConfig
+	// Versions 1/2 keep their original encoding/json extension behavior.
+	// Strict and duplicate-free shapes belong to the new version 3 contract.
+	if len(data) == 0 || len(data) > 128<<10 || json.Unmarshal(data, &config) != nil {
 		return config, fmt.Errorf("invalid static export configuration; write application build logs to stderr")
 	}
-	if (config.Version != 1 && config.Version != 2) || config.Build != build || (config.Version == 1 && len(config.Metadata) > 0) || (config.Version == 2 && len(config.Metadata) == 0) {
+	if config.Build != build || config.Version < 1 || config.Version > 3 || config.Version == 1 && len(config.Metadata) > 0 || config.Version == 2 && len(config.Metadata) == 0 || config.Version != 3 && config.StaticShell != nil {
 		return config, fmt.Errorf("incompatible static export configuration")
+	}
+	if config.Version == 3 {
+		if !utf8.Valid(data) || wirejson.Unique(data) != nil || wirejson.Strict(data, &config) != nil {
+			return config, fmt.Errorf("invalid version 3 static export configuration")
+		}
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(data, &fields) != nil || fields == nil {
+			return config, fmt.Errorf("invalid static export configuration object")
+		}
+		for _, field := range []string{"version", "build", "paths", "scopes", "staticShell"} {
+			if len(fields[field]) == 0 || bytes.Equal(bytes.TrimSpace(fields[field]), []byte("null")) {
+				return config, fmt.Errorf("invalid static export configuration field %s", field)
+			}
+		}
+		if config.StaticShell == nil {
+			return config, fmt.Errorf("version 3 requires one static shell declaration")
+		}
+	}
+	if err := validateStaticShellExportDeclaration(config.StaticShell, config.Paths, config.Scopes, config.Domain); err != nil {
+		return config, err
 	}
 	if err := validateMetadataInventory(config.Paths, config.Metadata); err != nil {
 		return config, err
@@ -198,4 +231,18 @@ func expandExportPaths(selected []string, scopes []nextgo.StaticExportScope) ([]
 		}
 	}
 	return result, nil
+}
+
+func validateStaticShellExportDeclaration(shell *nextgo.StaticShellDeclaration, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, domain string) error {
+	if shell == nil {
+		return nil
+	}
+	seed, err := navigation.ValidateStaticShellDeclaration(shell.Pattern, shell.Component)
+	if err != nil || shell.Version != 1 || shell.SeedPath != seed {
+		return fmt.Errorf("invalid static shell declaration")
+	}
+	if domain != "" || len(scopes) != 1 || scopes[0].Prefix != "" || scopes[0].Locale != "" {
+		return fmt.Errorf("static shell v1 requires one unlocalized ownership scope")
+	}
+	return validateExportScopes(deployment, scopes)
 }

@@ -9,6 +9,7 @@ import (
 	htmlstd "html"
 	"io"
 	"io/fs"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -68,31 +69,32 @@ func executeExport(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err := validateStaticShellProject(p, config.StaticShell); err != nil {
+		return err
+	}
 	if *selected == "" {
-		candidates, err := readStaticPathsEnv(ctx, build.Binary, exportEnv, config.Domain)
-		if err != nil {
-			return err
-		}
-		paths, err = validateScopedExportPaths(p, candidates, config)
-		if err != nil {
-			return err
-		}
+		paths, err = readStaticPathsEnv(ctx, build.Binary, exportEnv, config.Domain)
 	} else {
 		paths, err = expandExportPaths(paths, config.Scopes)
-		if err != nil {
-			return err
-		}
-		paths, err = validateScopedExportPaths(p, paths, config)
-		if err != nil {
-			return err
-		}
+	}
+	if err != nil {
+		return err
+	}
+	if config.StaticShell != nil {
+		// Optional catchalls without StaticParams are intentionally absent from
+		// StaticPaths. Only this native declaration can add the generic seed.
+		paths = append(paths, config.StaticShell.SeedPath)
+	}
+	paths, err = validateScopedExportPaths(p, paths, config)
+	if err != nil {
+		return err
 	}
 	base, stop, err := startExportServerEnv(ctx, build.Binary, exportEnv)
 	if err != nil {
 		return err
 	}
 	defer stop()
-	if err := exportWithMetadata(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Metadata, config.Domain); err != nil {
+	if err := exportWithStaticShell(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Metadata, config.StaticShell, config.Domain); err != nil {
 		return err
 	}
 	dir, _ := filepath.Abs(*output)
@@ -253,6 +255,10 @@ func exportWithScopes(ctx context.Context, base, assets, output, buildID string,
 }
 
 func exportWithMetadata(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, domains ...string) error {
+	return exportWithStaticShell(ctx, base, assets, output, buildID, paths, deployment, scopes, metadata, nil, domains...)
+}
+
+func exportWithStaticShell(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, shell *nextgo.StaticShellDeclaration, domains ...string) error {
 	domain := ""
 	if len(domains) > 1 {
 		return fmt.Errorf("export requires at most one domain")
@@ -272,6 +278,20 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 	if scopes != nil {
 		if err := validateExportScopes(deployment, scopes); err != nil {
 			return err
+		}
+	}
+	if err := validateStaticShellExportDeclaration(shell, deployment, scopes, domain); err != nil {
+		return err
+	}
+	if shell != nil {
+		paths = append([]string(nil), paths...)
+		found := false
+		for _, pagePath := range paths {
+			found = found || pagePath == shell.SeedPath
+		}
+		if !found {
+			paths = append(paths, shell.SeedPath)
+			sort.Strings(paths)
 		}
 	}
 	mount := filepath.FromSlash(strings.TrimPrefix(deployment.BasePath, "/"))
@@ -295,6 +315,7 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 	}
 	client := &http.Client{Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	configurationID := ""
+	var shellDescriptor *navigation.StaticShellDescriptor
 	for _, pagePath := range paths {
 		canonical, decoded, err := exportPath(pagePath)
 		if err != nil {
@@ -314,7 +335,7 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 		if err != nil {
 			return err
 		}
-		html, err := exportResponse(ctx, client, base+publicPath, false, domain)
+		html, err := exportResponseChecked(ctx, client, base+publicPath, false, domain, shell != nil && canonical == shell.SeedPath)
 		if err != nil {
 			return err
 		}
@@ -328,7 +349,7 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 			return fmt.Errorf("cannot export %s: response is not the expected Next.go document", canonical)
 		}
 		html = bytes.Replace(html, []byte("<body "), []byte(`<body data-nextgo-export="true" `), 1)
-		data, err := exportResponse(ctx, client, base+publicPath, true, domain)
+		data, err := exportResponseChecked(ctx, client, base+publicPath, true, domain, shell != nil && canonical == shell.SeedPath)
 		if err != nil {
 			return err
 		}
@@ -347,6 +368,13 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 			return fmt.Errorf("cannot export %s: deployment configuration changed during export", canonical)
 		}
 		configurationID = envelope.Configuration
+		if shell != nil && canonical == shell.SeedPath {
+			descriptor, err := stageStaticShell(stage, deployment, buildID, *shell, html, data, envelope)
+			if err != nil {
+				return fmt.Errorf("cannot export static shell: %w", err)
+			}
+			shellDescriptor = &descriptor
+		}
 		for name, content := range map[string][]byte{
 			filepath.Join(filepath.FromSlash(strings.TrimPrefix(decoded, "/")), "index.html"): html,
 			dataPath: data,
@@ -365,6 +393,14 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 			}
 		}
 	}
+	if shell != nil {
+		if shellDescriptor == nil {
+			return fmt.Errorf("static shell seed was not exported")
+		}
+		if err := injectStaticShellDocuments(stage, paths, deployment, *shellDescriptor); err != nil {
+			return err
+		}
+	}
 	if err := exportManagedMetadata(ctx, client, base, stage, deployment, domain, buildID, metadata); err != nil {
 		return err
 	}
@@ -379,12 +415,20 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 		return fmt.Errorf("domain export requires declared locale ownership scopes")
 	}
 	publication.Domain = domain
+	if shellDescriptor != nil {
+		publication.Format, publication.StaticShell = "nextgo-static-v3", shellDescriptor
+	}
 	manifest, err := json.Marshal(publication)
 	if err != nil {
 		return err
 	}
 	if err := os.WriteFile(filepath.Join(stage, ".nextgo-export.json"), manifest, 0644); err != nil {
 		return err
+	}
+	if shellDescriptor != nil {
+		if err := validateStaticShellDestination(stage, manifest, publication); err != nil {
+			return fmt.Errorf("invalid staged static shell publication: %w", err)
+		}
 	}
 	if err := ctx.Err(); err != nil {
 		return err
@@ -393,6 +437,10 @@ func exportWithMetadata(ctx context.Context, base, assets, output, buildID strin
 }
 
 func exportResponse(ctx context.Context, client *http.Client, target string, navigation bool, domain string) ([]byte, error) {
+	return exportResponseChecked(ctx, client, target, navigation, domain, false)
+}
+
+func exportResponseChecked(ctx context.Context, client *http.Client, target string, navigation bool, domain string, shellSeed bool) ([]byte, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	if err != nil {
 		return nil, err
@@ -410,6 +458,12 @@ func exportResponse(ctx context.Context, client *http.Client, target string, nav
 		return nil, err
 	}
 	defer response.Body.Close()
+	if shellSeed && (len(response.Header.Values("Set-Cookie")) != 0 || len(response.Header.Values("WWW-Authenticate")) != 0) {
+		return nil, fmt.Errorf("cannot export static shell: seed sets cookies or requests authentication")
+	}
+	if shellSeed && (response.Header.Get("X-Nextgo-Metadata") != "" || response.Header.Get("X-Nextgo-Stream") != "" || staticShellDeferredVary(response.Header.Values("Vary"))) {
+		return nil, fmt.Errorf("cannot export static shell: streaming or deferred metadata response")
+	}
 	if response.Header.Get(nextgo.RequiresServerHeader) == "1" {
 		return nil, fmt.Errorf("cannot export %s: page declares runtime dependencies that require a server", target)
 	}
@@ -432,10 +486,19 @@ func exportResponse(ctx context.Context, client *http.Client, target string, nav
 	if !strings.Contains(response.Header.Get("Content-Type"), expectedType) {
 		return nil, fmt.Errorf("cannot export %s: expected %s", target, expectedType)
 	}
-	const maxBody = 16 << 20
-	data, err := io.ReadAll(io.LimitReader(response.Body, maxBody+1))
+	maxBody := 16 << 20
+	if shellSeed {
+		mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
+		if err != nil || mediaType != expectedType {
+			return nil, fmt.Errorf("cannot export static shell: invalid response MIME")
+		}
+		if navigation {
+			maxBody = 8 << 20
+		}
+	}
+	data, err := io.ReadAll(io.LimitReader(response.Body, int64(maxBody)+1))
 	if err == nil && len(data) > maxBody {
-		err = fmt.Errorf("cannot export %s: page exceeds 16 MiB", target)
+		err = fmt.Errorf("cannot export %s: page exceeds %d bytes", target, maxBody)
 	}
 	return data, err
 }
@@ -495,17 +558,18 @@ func publishExport(stage, destination string) error {
 }
 
 type exportManifest struct {
-	Protocol      int                        `json:"protocol"`
-	Configuration string                     `json:"configuration"`
-	TrailingSlash bool                       `json:"trailingSlash,omitempty"`
-	BasePath      string                     `json:"basePath,omitempty"`
-	AssetPrefix   string                     `json:"assetPrefix,omitempty"`
-	Format        string                     `json:"format"`
-	Build         string                     `json:"build"`
-	Paths         []string                   `json:"paths"`
-	Scopes        []nextgo.StaticExportScope `json:"scopes,omitempty"`
-	Domain        string                     `json:"domain,omitempty"`
-	Metadata      []metadatafiles.Entry      `json:"metadata,omitempty"`
+	StaticShell   *navigation.StaticShellDescriptor `json:"staticShell,omitempty"`
+	Protocol      int                               `json:"protocol"`
+	Configuration string                            `json:"configuration"`
+	TrailingSlash bool                              `json:"trailingSlash,omitempty"`
+	BasePath      string                            `json:"basePath,omitempty"`
+	AssetPrefix   string                            `json:"assetPrefix,omitempty"`
+	Format        string                            `json:"format"`
+	Build         string                            `json:"build"`
+	Paths         []string                          `json:"paths"`
+	Scopes        []nextgo.StaticExportScope        `json:"scopes,omitempty"`
+	Domain        string                            `json:"domain,omitempty"`
+	Metadata      []metadatafiles.Entry             `json:"metadata,omitempty"`
 }
 
 func validateExportDestination(destination string) error {
@@ -523,10 +587,17 @@ func validateExportDestination(destination string) error {
 	if err != nil || len(entries) == 0 {
 		return err
 	}
-	data, err := os.ReadFile(filepath.Join(destination, ".nextgo-export.json"))
+	data, err := readStaticShellArtifact(destination, "/.nextgo-export.json", 32<<20)
 	var manifest exportManifest
-	if err != nil || json.Unmarshal(data, &manifest) != nil || manifest.Format != "nextgo-static-v1" && manifest.Format != "nextgo-static-v2" || manifest.Build == "" || len(manifest.Paths) == 0 {
+	if err != nil || json.Unmarshal(data, &manifest) != nil || manifest.Format != "nextgo-static-v1" && manifest.Format != "nextgo-static-v2" && manifest.Format != "nextgo-static-v3" || manifest.Build == "" || len(manifest.Paths) == 0 {
 		return fmt.Errorf("refusing to replace nonempty directory %s: it is not a previous Next.go export", destination)
+	}
+	if manifest.Format == "nextgo-static-v3" {
+		if err := validateStaticShellDestination(destination, data, manifest); err != nil {
+			return fmt.Errorf("refusing to replace invalid static shell export %s: %w", destination, err)
+		}
+	} else if manifest.StaticShell != nil {
+		return fmt.Errorf("refusing to replace legacy export with a static shell descriptor")
 	}
 	if manifest.Format == "nextgo-static-v2" {
 		if err := validateExportDomain(manifest.Domain); err != nil {

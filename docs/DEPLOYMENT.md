@@ -411,6 +411,39 @@ host at the static server/CDN; its manifest records ownership but cannot enforce
 Host on its own. Request-time negotiation is rejected before publication. See [locale export/hosting limits](LOCALES.md), including canonical
 paths, per-language data directories and host redirect responsibility.
 
+### Static publication versions and explicit client shells
+
+Ordinary exports continue to publish concrete HTML plus navigation JSON. Native
+`ExportConfig` versions 1/2 keep their existing contracts (including their
+existing parser extension behavior); published `nextgo-static-v1` ordinary and
+`nextgo-static-v2` locale-scope artifacts retain their existing meanings.
+These native DTO versions and published format versions are separate axes.
+
+Experimental `Config.StaticShell` opts one exclusive
+literal-prefix optional catchall into native export configuration 3 and
+`nextgo-static-v3` publication with descriptor 1. No declaration means no version
+3 transition. Older CLIs must reject unsupported version 3; use one fresh paired
+CLI/framework/core/lazy artifact. Descriptor 1 requires the actual 20-lowercase-
+hex CLI build ID; navigation protocol 3 and module ABI 5 remain unchanged.
+
+Only a generic public ClientIsland seed is reusable. The host must reject all
+methods except GET/HEAD before any file/document lookup, serve exact retained
+files/documents first, then apply a validated HTML-Accept fallback
+inside the declared literal subtree, with reserved namespaces and the seven
+virtual-resource suffixes excluded. Unknown outside paths remain errors. A
+client missing-screen still has the generic document's HTTP 200 status. Export
+does not install a provider rule, authenticate users or analyze trusted Go
+loaders for captured secrets. Read the [declaration, exclusions, immutable-
+envelope validation and complete host contract](STATIC_SHELL.md) before attempting
+publication. Earlier candidate proof includes both-SDK focused unit checks and
+four actual Go 1.27.3 eager/lazy root/mounted exports. Go 1.24 sample exports
+never launched; no local static-shell browser cases have run. The new
+[public CI workflow](../.github/workflows/static-shell.yml) is pending, as is
+static-host browser acceptance; earlier candidate evidence does not qualify its
+exact checkout or new packaging. [CI proof scope](../tests/STATIC_SHELL_CI.md)
+is Linux AMD64 functional validation, not the separately held ARM64 resource
+profile or provider/cloud qualification.
+
 ### Static host browser matrix
 
 ```sh
