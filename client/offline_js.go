@@ -258,7 +258,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 			return ErrOfflineUnavailable
 		}
 		if selection.recovered {
-			if err = c.recoveredRegistrationFence(ctx, selection, js.Undefined(), false); err != nil {
+			if err = c.recoveredRegistrationFence(ctx, selection, js.Undefined(), false, "registration-proof-empty-update"); err != nil {
 				return err
 			}
 		}
@@ -303,7 +303,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 				c.notify()
 			}
 			if selection.recovered {
-				if err = c.recoveredRegistrationFence(ctx, selection, worker, true); err != nil {
+				if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-message"); err != nil {
 					return err
 				}
 			}
@@ -333,7 +333,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 	}
 	if command == "disable" && registration.Truthy() {
 		if selection.recovered {
-			if err = c.recoveredRegistrationFence(ctx, selection, worker, true); err != nil {
+			if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-unregister"); err != nil {
 				return err
 			}
 		}
@@ -534,13 +534,13 @@ func (c *offlineController) registrationForOperation(ctx context.Context, use of
 	return offlineRegistrationSelection{registration: inventory.exact, statusWorker: js.Undefined()}, nil
 }
 
-func (c *offlineController) requireRegistrationProof(registration js.Value) error {
+func (c *offlineController) requireRegistrationProof(registration js.Value, emptyReason string) error {
 	ownership, err := c.registrationOwnership(registration)
 	if err != nil {
 		return err
 	}
 	if ownership != offlineRegistrationOwned {
-		return c.ownershipConflict("registration-proof-empty")
+		return c.ownershipConflict(emptyReason)
 	}
 	return nil
 }
@@ -565,7 +565,7 @@ func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Val
 	if !candidate.Truthy() {
 		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
 	}
-	if err = c.requireRegistrationProof(candidate); err != nil {
+	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-lookup"); err != nil {
 		return offlineRegistrationSelection{}, err
 	}
 	if ctx.Err() != nil {
@@ -589,7 +589,7 @@ func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Val
 		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-changed")
 	}
 	// Re-read strict fields AFTER the last awaited read and controller check.
-	if err = c.requireRegistrationProof(candidate); err != nil {
+	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-final-inventory"); err != nil {
 		return offlineRegistrationSelection{}, err
 	}
 	if ctx.Err() != nil {
@@ -601,14 +601,14 @@ func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Val
 // These synchronous fences protect the next recovered-path dispatch after an
 // awaited message. They are not an atomic registry lock against other writers,
 // nor a rollback of a worker message which has already completed.
-func (c *offlineController) recoveredRegistrationFence(ctx context.Context, selection offlineRegistrationSelection, worker js.Value, requireActive bool) error {
+func (c *offlineController) recoveredRegistrationFence(ctx context.Context, selection offlineRegistrationSelection, worker js.Value, requireActive bool, emptyReason string) error {
 	if ctx.Err() != nil {
 		return context.Cause(ctx)
 	}
 	if _, err := c.registrationController(selection.container); err != nil {
 		return err
 	}
-	if err := c.requireRegistrationProof(selection.registration); err != nil {
+	if err := c.requireRegistrationProof(selection.registration, emptyReason); err != nil {
 		return err
 	}
 	if requireActive {

@@ -135,7 +135,7 @@ func TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired(t *testin
 			}
 			err := EnableOffline(context.Background())
 			if !populate {
-				if err != ErrOfflineConflict || r.lists != 1 || r.lookups != 1 || r.f.c.conflictReason != "registration-proof-empty" {
+				if err != ErrOfflineConflict || r.lists != 1 || r.lookups != 1 || r.f.c.conflictReason != "registration-proof-empty-lookup" {
 					t.Fatalf("cached empty object was trusted: %v", err)
 				}
 				r.noEffects(t)
@@ -256,6 +256,9 @@ func TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt(
 			tc.configure(r)
 			if err := DisableOffline(context.Background()); err != ErrOfflineConflict || r.lists != 2 || r.lookups != 1 {
 				t.Fatalf("late proof change was accepted: %v lists=%d lookup=%d", err, r.lists, r.lookups)
+			}
+			if (tc.name == "became-empty" || tc.name == "lost-proof-during-final-controller-read") && r.f.c.conflictReason != "registration-proof-empty-final-inventory" {
+				t.Fatalf("empty proof reported the wrong final-read stage: %q", r.f.c.conflictReason)
 			}
 			r.noEffects(t)
 		})
@@ -403,6 +406,16 @@ func TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages(t *testing.
 			if err := call(context.Background()); err != ErrOfflineConflict {
 				t.Fatal("post-message ownership loss allowed further mutation", err)
 			}
+			wantEmptyReason := ""
+			switch tc.name {
+			case "enable-status-lost-active", "disable-status-lost-active":
+				wantEmptyReason = "registration-proof-empty-message"
+			case "disable-completed-blocks-unregister":
+				wantEmptyReason = "registration-proof-empty-unregister"
+			}
+			if wantEmptyReason != "" && r.f.c.conflictReason != wantEmptyReason {
+				t.Fatalf("empty proof reported the wrong dispatch stage: %q", r.f.c.conflictReason)
+			}
 			f := r.f
 			if r.lists != 2 || r.lookups != 1 || len(f.commands) != tc.messages || f.registers != 0 || f.updates != 0 || f.unregisters != 0 || f.c.busy {
 				t.Fatalf("post-message rejection had extra effects: %+v", f.commands)
@@ -419,7 +432,7 @@ func TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch(t *testing
 	r.beforeFinal = func() {
 		js.Global().Get("Function").New("sw", "record", "worker", `let reads=0;Object.defineProperty(sw,"controller",{configurable:true,get(){if(++reads>=2)record.active=null;return worker;}});`).Invoke(r.f.sw, r.candidate, r.f.worker)
 	}
-	if err := CheckOfflineUpdate(context.Background()); err != ErrOfflineConflict || r.lists != 2 || r.lookups != 1 {
+	if err := CheckOfflineUpdate(context.Background()); err != ErrOfflineConflict || r.lists != 2 || r.lookups != 1 || r.f.c.conflictReason != "registration-proof-empty-update" {
 		t.Fatal("pre-dispatch ownership loss was accepted", err)
 	}
 	r.noEffects(t)
