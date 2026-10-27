@@ -640,7 +640,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}-client-only-${{ matrix.go }}
       cancel-in-progress: false
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 210
     strategy:
       fail-fast: false
       matrix:
@@ -690,6 +690,15 @@ jobs:
       - name: Discover and qualify the unchanged client-only browser matrix
         timeout-minutes: 25
         run: node scripts/client-only-ci.mjs qualify
+      - name: Discover and qualify the unchanged metadata-stream browser matrix
+        timeout-minutes: 25
+        run: node scripts/client-only-ci.mjs metadata-stream
+      - name: Discover and qualify the unchanged metadata-clear browser matrix
+        timeout-minutes: 25
+        run: node scripts/client-only-ci.mjs metadata-clear
+      - name: Qualify the unchanged metadata Node adapter families
+        timeout-minutes: 15
+        run: node scripts/client-only-ci.mjs metadata-deployment
       - name: Collect bounded client-only qualification evidence
         if: always()
         timeout-minutes: 3

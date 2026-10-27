@@ -133,8 +133,9 @@ async function originalGone(proof) {
     return 'pid-reused-original-gone';
   } catch (error) {if (error.code === 'ENOENT') return 'absent'; throw error;}
 }
-async function validateProof(record, artifact) {
-  const result = record.test.results[0], attachments = result.attachments.filter(value => value.name === 'client-only-native-process-and-wire-proof');
+async function validateProof(record, artifact, suite = 'client-only') {
+  const attachmentName = suite === 'client-only' ? 'client-only-native-process-and-wire-proof' : 'native-data-source-and-wire-proof';
+  const result = record.test.results[0], attachments = result.attachments.filter(value => value.name === attachmentName);
   assert.equal(attachments.length, 1); const attachment = attachments[0];
   assert(attachment.contentType === 'application/json' && typeof attachment.body === 'string' && attachment.body.length < 1400000 && !attachment.path, 'Expected bounded inline genuine fixture proof');
   const bytes = Buffer.from(attachment.body, 'base64'); assert(bytes.length <= 1 << 20);
@@ -149,18 +150,28 @@ async function validateProof(record, artifact) {
   assert(!proof.gatewayListening && !proof.sourceListening && proof.httpJoined && proof.sockets === 0 && proof.upstreams === 0);
   assert.equal(proof.listeners.length, 2); assert.deepEqual(proof.listeners.map(value => value.port).sort(), [4160, 4162]);
   assert(proof.listeners.every(value => value.started && value.bindJoined && value.closed && !value.listening && !value.failedBind && value.errors.length === 0));
-  assert.deepEqual(proof.source, []); assert(proof.wire.length > 0 && proof.wire.length <= 256 && proof.wire.every(value => !value.observerError));
-  assert(proof.wire.some(value => value.path.startsWith('/client-only') && value.status === 200 && value.headersReceived));
+  assert(proof.wire.length > 0 && proof.wire.length <= 256 && proof.wire.every(value => !value.observerError));
+  if(suite === 'client-only') {
+    assert.deepEqual(proof.source, []);
+    assert(proof.wire.some(value => value.path.startsWith('/client-only') && value.status === 200 && value.headersReceived));
+  } else {
+    assert(['metadata-stream','metadata-clear'].includes(suite));
+    assert(Array.isArray(proof.source) && proof.source.length <= 64 && proof.source.every(value=>value.unexpected === false));
+    // The existing speculative stream case deliberately gets 204 and no loader.
+    const speculative = record.spec.title === 'uncached speculative requests return conservative 204 without invoking the metadata data source';
+    if(speculative) assert.deepEqual(proof.source, []); else assert(proof.source.length > 0);
+    assert(proof.wire.some(value=>value.path.startsWith('/'+suite) && value.status === (speculative ? 204 : 200) && value.headersReceived));
+  }
   return {case: record.key, pid: p.pid, parentUID: p.parentUID, nativeIdentity: id, cwd: p.cwd, cwdRemoved: true, originalProcess: await originalGone(p), proofSHA256: hash(bytes), bytes: bytes.length};
 }
-async function listenerEvidence() {
+async function listenerEvidence(ports = [4160,4161,4162]) {
   const evidence = [];
   for (const name of ['tcp', 'tcp6']) {
     const file = await open(`/proc/net/${name}`, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     let length = 0; const bytes = Buffer.alloc((1 << 20) + 1);
     try {while (length < bytes.length) {const part = await file.read(bytes, length, bytes.length - length, null); if (!part.bytesRead) break; length += part.bytesRead;}} finally {await file.close();}
     assert(length <= 1 << 20, 'Bounded listener inspection exceeded');
-    const rows = bytes.subarray(0, length).toString('utf8').split('\n').slice(1).map(line => line.trim().split(/\s+/)).filter(fields => fields.length > 3 && [4160,4161,4162].includes(parseInt(fields[1].split(':')[1], 16)) && fields[3] === '0A');
+    const rows = bytes.subarray(0, length).toString('utf8').split('\n').slice(1).map(line => line.trim().split(/\s+/)).filter(fields => fields.length > 3 && ports.includes(parseInt(fields[1].split(':')[1], 16)) && fields[3] === '0A');
     evidence.push({table: name, selectedListeningRows: rows});
   }
   return evidence;
@@ -168,9 +179,9 @@ async function listenerEvidence() {
 async function init() {
   const info = await validateRoot(); assert.deepEqual(await readdir(root), []);
   await json(join(root, markerName), info); owned = true;
-  for (const name of ['go-cache','mod-cache','tmp','browser','report','artifacts']) await mkdir(join(root, name), {mode: 0o700});
+  for (const name of ['go-cache','mod-cache','tmp','browser','browser-metadata-stream','browser-metadata-clear','report','artifacts']) await mkdir(join(root, name), {mode: 0o700});
   const sources = [];
-  for (const path of ['tests/client-only.spec.mjs','tests/client-only.config.mjs','tests/serve-metadata-stream.mjs','tests/link-status-gates.mjs','scripts/test-browser.mjs','scripts/client-only-ci.mjs','package.json','package-lock.json','go.mod','.github/workflows/ci.yml']) sources.push(await pin(join(checkout, path), 1 << 20));
+  for (const path of ['tests/client-only.spec.mjs','tests/client-only.config.mjs','tests/serve-metadata-stream.mjs','tests/link-status-gates.mjs','scripts/test-browser.mjs','scripts/client-only-ci.mjs','package.json','package-lock.json','go.mod','.github/workflows/ci.yml','tests/metadata-stream.spec.mjs','tests/metadata-stream.config.mjs','tests/metadata-clear.spec.mjs','tests/metadata-clear.config.mjs','tests/metadata-stream-deployment.test.mjs','tests/metadata-stream-deployment-fixture.mjs','tests/lambda-features-gateway.mjs']) sources.push(await pin(join(checkout, path), 1 << 20));
   await json(join(root, 'report', 'source.json'), {sources, nodeExecutable:await pin(await realpath(process.execPath)), githubSHA: process.env.GITHUB_SHA || '', checkoutHEAD: (await command('checkout-head', 'git', ['rev-parse','HEAD'], 10_000)).trim()});
 }
 async function build() {
@@ -231,11 +242,102 @@ async function qualify() {
   const listeners = await listenerEvidence(); assert(listeners.every(table=>table.selectedListeningRows.length === 0),'Qualification ports still listening');
   await json(join(root,'report','qualification.json'), {version:1,status:'PASS',sdk,node:process.version,platform:process.platform,arch:process.arch,uid,cases:20,profiles:projects,discovered:20,skipped:0,retries:0,artifact,proofs,listeners});
 }
+// These are the existing source-declared cases, including the three instantiated
+// late-mode cases. Discovery must match every title/profile pair exactly.
+const metadataTitles = {
+  'metadata-stream': [
+    'initial browser receives useful fallback HTML and hydrated Go before genuine deferred metadata resolves',
+    'late head completion preserves body, resource and JSON-LD nodes plus focus, input, counter, scroll and history',
+    'crawler, unknown agent and HEAD requests block for final metadata from the same native loader',
+    'disabled initial HTML streaming blocks a recognized browser until final metadata is ready',
+    'negotiated Go navigation commits a fallback shell then exactly one metadata terminal before done',
+    'navigation away cancels the real pending metadata read and cannot commit its stale title',
+    ...['fail','invalid','readonly'].map(mode=>`a committed ${mode} contribution keeps complete fallback with a generic failed receipt`),
+    'missing or unsupported metadata negotiation blocks and preserves the ordinary existing stream shape',
+    'uncached speculative requests return conservative 204 without invoking the metadata data source',
+  ],
+  'metadata-clear': [
+    'initial deferred metadata clears inherited scalars while retaining real Go controls and head companions',
+    'negotiated Go navigation clears inherited scalars without replacing the committed page or reloading the document',
+  ],
+};
+function metadataCases(report,suite) {
+  const wanted = new Set(['chromium','firefox','webkit','webkit-touch'].flatMap(profile=>metadataTitles[suite].map(title=>`${suite}-${profile}\n${title}`)));
+  const records = [];
+  const walk = suites=>{for(const group of suites || []) {for(const spec of group.specs || []) {assert.equal(spec.file,suite+'.spec.mjs');for(const test of spec.tests || []) records.push({spec,test,key:`${test.projectName}\n${spec.title}`});}walk(group.suites);}};
+  walk(report.suites);assert.equal(records.length,wanted.size);assert.equal(new Set(records.map(record=>record.key)).size,wanted.size);
+  for(const record of records) {assert(wanted.has(record.key));assert.equal(record.test.expectedStatus,'passed');}
+  assert.deepEqual(report.errors || [],[]);return records;
+}
+async function pinnedArtifact() {
+  await ownership();await verifySources();
+  const build = await readJSON(join(root,'report','build.json')), artifact = await pin(join(root,'artifacts','demo','server'));
+  assert.deepEqual(artifact,build.artifact);assert(!(artifact.mode & 0o222) && artifact.uid === uid);
+  assert(process.env.NEXTGO_E2E_SERVER_BINARY === artifact.path && process.env.NEXTGO_METADATA_STREAM_SERVER_SHA256 === artifact.sha256);
+  return artifact;
+}
+async function metadataBrowser(suite) {
+  assert(Object.hasOwn(metadataTitles,suite));const artifact = await pinnedArtifact();
+  const count = metadataTitles[suite].length * 4, output = join(root,'browser-'+suite), config = `tests/${suite}.config.mjs`;
+  const pkg = await readJSON(join(checkout,'node_modules','@playwright','test','package.json'),1 << 20);assert.equal(pkg.version,'1.64.1');
+  const cli = join(checkout,'node_modules','@playwright','test','cli.js');
+  await command(suite+'-discovery',process.execPath,[cli,'test','--config',config,'--list','--reporter=json'],60_000,{NEXTGO_E2E_RESULTS:output,PLAYWRIGHT_JSON_OUTPUT_FILE:join(root,'report',suite+'-discovery.json')});
+  const discovery = metadataCases(await readJSON(join(root,'report',suite+'-discovery.json')),suite);
+  assert(discovery.every(record=>record.test.results.length === 0),'Discovery must not execute cases');
+  let log;
+  try {log=await command(suite+'-matrix',process.execPath,[join(checkout,'scripts','test-browser.mjs'),'--config',config,'--reporter=line,json'],22 * 60_000,{NEXTGO_E2E_RESULTS:output,PLAYWRIGHT_JSON_OUTPUT_FILE:join(root,'report',suite+'-report.json'),DEBUG:'pw:browser',DEBUG_COLORS:'0'});}
+  finally {await verifySources();}
+  const launches=[...log.matchAll(/<launching> (\/[^\s]+) /g)].map(match=>match[1]);
+  const launchedPIDs=[...log.matchAll(/<launched> pid=(\d+)/g)].map(match=>Number(match[1]));
+  const exitedPIDs=[...log.matchAll(/\[pid=(\d+)\] <process did exit: exitCode=0, signal=null>/g)].map(match=>Number(match[1]));
+  assert(launchedPIDs.length >= 4 && launchedPIDs.length <= count && launches.length === launchedPIDs.length);
+  assert.equal(new Set(launchedPIDs).size,launchedPIDs.length);assert.deepEqual([...exitedPIDs].sort((a,b)=>a-b),[...launchedPIDs].sort((a,b)=>a-b));
+  const browsers=[];
+  for(const name of ['chromium','firefox','webkit']) {
+    const paths=[...new Set(launches.filter(path=>new RegExp(`/${name}${name === 'chromium' ? '(?:_headless_shell)?' : ''}-[0-9]+/`).test(path)))];
+    assert(paths.length > 0 && paths.length <= 2);
+    for(const path of paths) browsers.push({name,launchPath:path,executable:await pin(await realpath(path),512 << 20)});
+  }
+  const report=await readJSON(join(root,'report',suite+'-report.json')),records=metadataCases(report,suite);
+  assert.equal(report.stats.expected,count);for(const key of ['unexpected','flaky','skipped']) assert.equal(report.stats[key],0);
+  const proofs=[];
+  for(const record of records) {
+    assert(record.spec.ok && record.test.status === 'expected' && record.test.results.length === 1);
+    const result=record.test.results[0];assert(result.status === 'passed' && result.retry === 0 && !(result.errors || []).length);
+    proofs.push(await validateProof(record,artifact,suite));
+  }
+  assert.equal(new Set(proofs.map(proof=>`${proof.pid}:${proof.nativeIdentity.startTimeTicks}`)).size,count);
+  assert.deepEqual(await pin(artifact.path),artifact);
+  const listeners=await listenerEvidence();assert(listeners.every(table=>table.selectedListeningRows.length === 0));
+  await json(join(root,'report',suite+'-qualification.json'),{version:1,status:'PASS',suite,sdk,node:process.version,uid,cases:count,discovered:count,skipped:0,retries:0,artifact,proofs,listeners,browsers,playwright:pkg.version,launchedPIDs,exitedPIDs});
+}
+async function metadataDeployment() {
+  const artifact=await pinnedArtifact();
+  const families=[
+    'unknown UA, HEAD and legacy metadata negotiation block on final',
+    'opted-in browser HTML carries genuine fallback then metadata terminal',
+    'exact v1 navigation acknowledgment has shell metadata done ownership',
+    'late native failure retains fallback and redacts private diagnostics',
+    'client cancellation physically closes source and next real Go invocation runs',
+  ];
+  const wanted=new Set(['http','buffered','streaming'].flatMap(mode=>families.map(title=>`${mode}: ${title}`)));
+  let tap;
+  try {tap=await command('metadata-deployment',process.execPath,['--test','--test-concurrency=1','--test-reporter=tap','tests/metadata-stream-deployment.test.mjs'],13 * 60_000,{NEXTGO_METADATA_DEPLOY_BINARY:artifact.path,NEXTGO_METADATA_DEPLOY_SHA256:artifact.sha256});}
+  finally {await verifySources();}
+  const results=[...tap.matchAll(/^ok (\d+) - ([^\n\r]+)$/gm)];
+  assert.equal(results.length,15);assert.equal(new Set(results.map(match=>match[2])).size,15);
+  for(const [index,match] of results.entries()) {assert.equal(Number(match[1]),index+1);assert(wanted.has(match[2]));}
+  assert(!/^not ok\b/m.test(tap) && !/^(?:not )?ok [^\r\n]* #\s*(?:SKIP|TODO)\b/im.test(tap));assert.equal((tap.match(/^1\.\.15$/gm) || []).length,1);
+  for(const [key,value] of Object.entries({tests:15,suites:0,pass:15,fail:0,cancelled:0,skipped:0,todo:0})) assert.equal((tap.match(new RegExp(`^# ${key} (\\d+)$`,'m')) || [])[1],String(value));
+  assert.deepEqual(await pin(artifact.path),artifact);
+  const listeners=await listenerEvidence([4160,4161,4162,4280]);assert(listeners.every(table=>table.selectedListeningRows.length === 0));
+  await json(join(root,'report','metadata-deployment-qualification.json'),{version:1,status:'PASS',sdk,node:process.version,cases:15,artifact,results:results.map(match=>({number:Number(match[1]),title:match[2]})),tapSHA256:hash(tap),listeners,cleanupEvidence:'Each unchanged test awaits fixture.close with real native/group, listener, socket, cwd and artifact assertions. No durable per-case UID/process receipt is emitted; none is inferred.'});
+}
 async function collect() {
   await ownership();
   const final = {version:1,sourcePinsMatch:false,listeners:null,errors:[],physicalFailureCleanup:'No claim for detached children lacking a fixture receipt; no unidentified process is signaled. Hosted runner teardown is a separate platform boundary.'};
   try {await verifySources(); final.sourcePinsMatch=true;} catch(error) {final.errors.push(String(error).slice(0,1024));}
-  try {final.listeners=await listenerEvidence(); if(final.listeners.some(table=>table.selectedListeningRows.length)) final.errors.push('Selected qualification listener still present');} catch(error) {final.errors.push(String(error).slice(0,1024));}
+  try {final.listeners=await listenerEvidence([4160,4161,4162,4280]); if(final.listeners.some(table=>table.selectedListeningRows.length)) final.errors.push('Selected qualification listener still present');} catch(error) {final.errors.push(String(error).slice(0,1024));}
   await json(join(root,'report','final-observation.json'),final);
   const output = join(checkout,'.nextgo-test-results',`client-only-ci-${sdk}`);
   await mkdir(dirname(output),{recursive:true}); await mkdir(output,{mode:0o700});
@@ -253,13 +355,15 @@ async function collect() {
   await copyTree(join(root,markerName),join(output,markerName),0,false);
   await copyTree(join(root,'report'),join(output,'report'),0,false);
   await copyTree(join(root,'browser'),join(output,'browser'),0,true);
+  for(const suite of ['metadata-stream','metadata-clear']) await copyTree(join(root,'browser-'+suite),join(output,'browser-'+suite),0,true);
   await json(join(output,'collection.json'),summary);
   console.log(`Collected ${summary.files.length} bounded evidence files (${summary.bytes} bytes); omissions ${summary.omitted.length}`);
   assert.deepEqual(final.errors,[],'Final source/listener observation failed; bounded evidence preserved');
 }
 try {
-  assert(['init','build','qualify','collect'].includes(phase) && process.argv.length === 3,'Use init, build, qualify or collect');
-  await ({init,build,qualify,collect})[phase]();
+  const phases={init,build,qualify,collect,'metadata-stream':()=>metadataBrowser('metadata-stream'),'metadata-clear':()=>metadataBrowser('metadata-clear'),'metadata-deployment':metadataDeployment};
+  assert(Object.hasOwn(phases,phase) && process.argv.length === 3,'Use init, build, qualify, metadata-stream, metadata-clear, metadata-deployment or collect');
+  await phases[phase]();
 } catch(error) {
   if(owned && phase!=='collect') {try {await json(join(root,'report',`${phase}-failure.json`),{status:'FAIL',phase,error:String(error).slice(0,4096),sdk,node:process.version,time:new Date().toISOString()});} catch {}}
   console.error(String(error).slice(0,4096)); process.exitCode=1;

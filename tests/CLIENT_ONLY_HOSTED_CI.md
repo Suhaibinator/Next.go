@@ -9,13 +9,14 @@ limit or a cgroup profile. Source review of this job alone is not a passing run.
 
 The Ubuntu 24.04 runner uses its actual nonroot UID. Setup actions install the
 pinned SDK and Node; `npm ci --ignore-scripts` installs locked dependencies, and
-the Playwright installer has a 60-minute limit. The job has a 120-minute limit;
-build and qualification steps each have 25-minute limits. The unchanged browser
-config has a 20-minute campaign timeout, one worker, no retries and fail-fast
+the Playwright installer has a 60-minute limit. The job has a 210-minute limit;
+the existing build and client-only qualification steps each have 25-minute
+limits. The unchanged browser config has a 20-minute campaign timeout, one
+worker, no retries and fail-fast
 after the first failure. Command supervision also has finite deadlines and
 bounded output. These limits do not establish per-process CPU or RSS bounds.
 
-`scripts/client-only-ci.mjs` has four phases:
+The original four phases of `scripts/client-only-ci.mjs` are:
 
 1. `init` verifies a fresh mode-0700, current-UID root under `RUNNER_TEMP`, outside
    the checkout. It creates task-owned compiler/module caches, temporary paths,
@@ -99,3 +100,61 @@ hashes. It does not inherit the evidence or authorization of an older frozen
 local ARM64 packet, and does not bypass that packet's execution prerequisites.
 Metadata-stream, metadata-clear, adapter, cloud and other suites retain their
 separate qualification boundaries. No default test selector changes here.
+
+## Incremental metadata coverage
+
+The same per-SDK job now adds three sequential phases after the existing
+client-only phase. There is still exactly one CLI/demo producer per SDK and no
+cross-job artifact transfer. Every phase reuses the pinned, read-only production
+server, checks source and Node identity, and verifies server bytes afterward.
+The original client-only phase, its config/spec, and all its time bounds remain
+unchanged. The shared native-proof validator retains all original default
+client-only assertions and also accepts the existing metadata attachment name.
+
+`metadata-stream` discovers the existing eleven titles in all four profiles and
+requires exactly 44 passing cases. `metadata-clear` does the same for two titles
+and eight cases. Each uses its unchanged config with its existing 20-minute
+global timeout, a separate 25-minute workflow step, and a 22-minute command cap.
+Discovery, results, qualification receipts and browser output directories are
+separate, so a later suite cannot erase earlier evidence. Every result must be a
+single passing attempt, with no skips, retries, flakes or report errors.
+
+All 52 additional browser cases must attach their actual
+`native-data-source-and-wire-proof`. The shared fixture already produces actual
+native UID/start/parent identity and directory-removal evidence. The CI gate
+requires the same native, listener, socket, process and artifact guarantees as
+client-only. Metadata data-source requests are allowed only when explicitly
+armed; the existing speculative 204 case must leave that source unused. All
+observed Playwright browser PIDs must have successful exit receipts.
+
+`metadata-deployment` runs the existing Node test module once, serially, using
+`NEXTGO_METADATA_DEPLOY_BINARY` and `NEXTGO_METADATA_DEPLOY_SHA256` for the same
+demo. Its TAP gate requires the exact five families for each of HTTP, buffered
+Lambda and streaming Lambda: 15 passing results, no skipped/todo/canceled/failed
+tests, and exact plan/count/title matching. There is no non-executing Node
+discovery claim. The existing per-case 45-second limit remains; the command has
+a 13-minute cap and its workflow step has a 15-minute cap.
+
+Each Node case awaits the original fixture's cleanup assertions, including real
+native PID/group disappearance, source/application listener closure, sockets,
+owned environment directory removal, unchanged artifact, and Lambda gateway
+join when used. That fixture does not emit durable per-case UID/process
+receipts. A passing TAP case proves its assertions completed; this CI helper
+does not invent fifteen external receipts or claim observed native UIDs there.
+Always-run collection additionally observes ports 4160–4162 and 4280; dynamic
+Node source ports are checked inside the existing fixture, not inferred from
+that fixed-port observation.
+
+The job cap increases only to accommodate these new stages. Existing explicit
+step caps plus the new ones total 188 minutes; 210 minutes leaves finite room
+for setup and collection. No timeout is hidden or retried. Collection keeps its
+existing payload/file/entry limits across all three browser directories, so
+large failure evidence can be omitted with a recorded reason.
+
+This source extension remains unexecuted until separately qualified at its own
+commit. Earlier client-only passes at the actual 35a3 merge and the historical
+metadata Go1.27 44-case outer-controller failure remain distinct evidence; this
+proposal does not convert the latter to success. G06 and the controller-death
+ownership boundary above remain open. These additions close selector gaps only
+when their real hosted runs and bounded evidence pass; they do not establish
+full platform maturity.
