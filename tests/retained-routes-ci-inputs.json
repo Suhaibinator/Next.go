@@ -875,9 +875,9 @@
     },
     {
       "path": "tests/offline.spec.mjs",
-      "sha256": "caf48c88903da61510d46a7d587e72134355627ab4eb159fef23ae0a1259b129",
-      "bytes": 27615,
-      "origin": "rootReviewedOfflineFailureOnlyDiagnostic60963"
+      "sha256": "98ad82af51d905df4148b490524112279b8ca5f20d28036af5d9d80dd259e952",
+      "bytes": 27786,
+      "origin": "Fixture observation/setup source-only derivative of exact f1d; no production change or runtime qualification"
     },
     {
       "path": "tests/retained-process-group-census.mjs",
@@ -1031,9 +1031,9 @@
     },
     {
       "path": "tests/retained-routes.spec.mjs",
-      "sha256": "f2e0505413e42f89e0a68f0852910601395fd5ad8859cac1d07c8a0bf8f7afa3",
-      "bytes": 27940,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "5af37c27149dc9910398a6e6881f30db98051de491117621abd3ad6de39f6bf5",
+      "bytes": 27447,
+      "origin": "Fixture observation/setup source-only derivative of exact f1d; no production change or runtime qualification"
     },
     {
       "path": "tests/retained-strict-gateway.mjs",
@@ -1785,7 +1785,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "CI enablement only, contingent on the exact full five-path peer gate. Current181pins include three rebound existing rows and one added test-helper dependency; core164/dev148 and all432browsercases/440closures mandatory. Formatting and static source review do not establish compilation, browser correction, native cause, deployment or maturity.",
+  "readinessMeaning": "CI enablement only, contingent on the external publisher verifying the exact full three-path source manifest and independent peer. Current181pins preserve179rows and rebind only two existing browser fixtures; all required tests, skips,432browsercases/440closures remain mandatory. No current execution, runtime correction, native cause, deployment or maturity qualification.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -1857,17 +1857,31 @@
     "arm64"
   ],
   "architectureQualification": {
-    "status": "SOURCE_ONLY_UNEXECUTED",
+    "status": "CURRENT_FIXTURE_SOURCE_ONLY_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorFixtureObservationArchitectureQualification",
     "selection": "NEXTGO_RETAINED_NATIVE_ARCH exact amd64/arm64; actual Node/Go target/Go host/ELF required",
-    "amd64Resources": "existing Docker hard limits unchanged",
-    "arm64Resources": "public ubuntu-24.04-arm standard hosted runner; no borrowed container hard-limit proof",
-    "nativeCasesPerSDKAndArchitecture": 72,
-    "nativeClosuresPerSDKAndArchitecture": 73,
-    "unqualified": [
-      "mock Lambda modes",
-      "real Lambda packaging/deployment",
-      "full79/11release gates"
-    ]
+    "nativeCasesPerSDKAndArchitecture": 144,
+    "nativeClosuresPerSDKAndArchitecture": 146,
+    "allModesCasesAndClosures": {
+      "native": [
+        144,
+        146
+      ],
+      "buffered": [
+        144,
+        146
+      ],
+      "streaming": [
+        144,
+        146
+      ],
+      "total": [
+        432,
+        440
+      ]
+    },
+    "runtimeQualified": false,
+    "meaning": "Historical72/73 architecture foundation is preserved verbatim, not the current two-application campaign contract. Current native/buffered/streaming requirements remain144/146 each and432/440 overall."
   },
   "priorCombinedSourceInput": {
     "integrationBaseCommit": "37d520e02497210da2efd445edf24170a8388365",
@@ -1921,19 +1935,19 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "CURRENT_FIVE_PATH_SOURCE_COMPOSITION_PREPARED_REQUIRES_BOUND_PEER_CI_ONLY",
-    "integrationBaseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
-    "integrationBaseTree": "b48afd51dd819913dce76edcde931d6c277fa0bd",
-    "priorSnapshot": "priorWindowScrollCombinedSourceInput",
+    "status": "CURRENT_THREE_PATH_FIXTURE_SOURCE_COMPOSITION_CI_ENABLEMENT_ONLY_EXTERNAL_PEER_REQUIRED",
+    "integrationBaseCommit": "f1d58166320767977d898a5d6c97006a1c129fef",
+    "integrationBaseTree": "1304ee3d7cb485498619a8747dd1f81db5cb4e06",
+    "priorSnapshot": "priorFixtureObservationCombinedSourceInput",
     "sourcePinCount": 181,
-    "sourcePinsTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "sourcePinsTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
     "treeEncoding": "sortedpathUTF8+NUL+exact overlaybytes+NUL; excludesinputself",
     "immediateBaseGoFiles": 1282,
     "currentGoFiles": 1282,
-    "immediateModifiedProductionGoFiles": 1,
-    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateModifiedProductionGoFiles": 0,
+    "immediateModifiedExistingGoTestFiles": 0,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1280,
+    "otherImmediateBaseGoFilesUnchanged": 1282,
     "cumulativeCommonBaseCommit": "533b54be676a54c87e77e9a6079804dccec3b652",
     "cumulativeCommonBaseGoFiles": 1281,
     "cumulativeUnchangedExistingGoFiles": 1277,
@@ -1941,15 +1955,15 @@
     "cumulativeModifiedProductionGoFiles": 3,
     "cumulativeModifiedExistingGoTestFiles": 1,
     "cumulativeAddedHeaderGoTestFiles": 1,
-    "previous180RowsUnchanged": 177,
-    "previous180ExistingRowsRebound": 3,
+    "previous181RowsUnchanged": 179,
+    "previous181ExistingRowsRebound": 2,
     "originalLambda173SourcePinPathsPreserved": 173,
-    "originalLambda173RowsUnchanged": 169,
-    "originalLambda173ExistingRowsRebound": 4,
+    "originalLambda173RowsUnchanged": 168,
+    "originalLambda173ExistingRowsRebound": 5,
     "headerAdded7RowsUnchanged": 7,
     "LambdaImplementationWorkflowBytesChanged": 0,
-    "currentWholeSourceQualification": "PENDING actualCI. Five paths: two existing Go, one existing offline spec, one new failure-only JS helper, and this input. No prior runtime result promoted to this source.",
-    "currentNewSourcePins": 1
+    "currentWholeSourceQualification": "SOURCE_ONLY; only retained owner fixture setup, one existing failure-observer invocation, and this input differ from f1d. All1282Go, production, application, ABI and workflow bytes unchanged. No corrected browser result inherited.",
+    "currentNewSourcePins": 0
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2647,9 +2661,9 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "CURRENT_WINDOW_SCROLL_180PIN_CUMULATIVE_SOURCE_ONLY_PENDING_REVIEW_RUNTIME_UNQUALIFIED",
-    "historicalSnapshot": "priorWindowScrollQueryRefreshQualification",
-    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "status": "CURRENT_FIXTURE_OBSERVATION_181PIN_SOURCE_ONLY_CI_ENABLEMENT_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorFixtureObservationQueryRefreshQualification",
+    "baseCommit": "f1d58166320767977d898a5d6c97006a1c129fef",
     "sourcePins": 181,
     "sourcePinCap": 192,
     "currentRequiredCounts": {
@@ -2667,9 +2681,10 @@
     "perMockModeWorkerClosures": 146,
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
-    "currentQualification": "windowScrollQualification",
+    "currentQualification": "fixtureObservationQualification",
     "runtimeExecuted": false,
-    "meaning": "CurrentGo1282=1277unchangedexisting+4modifiedexisting+1addedheader test since533b. Full181pin composition additionally changes offline spec and adds one test-only helper. All runtime qualification pending."
+    "runtimeQualified": false,
+    "meaning": "Immediate test-only fixture composition preserves all1282Go bytes. Cumulative533b Go counters remain in combinedSourceInput; prior180PIN status text is preserved only in the historical snapshot."
   },
   "commandGroupCensus": {
     "status": "SOURCE_ONLY_UNEXECUTED_FAILURE_DIAGNOSTIC",
@@ -2782,20 +2797,15 @@
     "executed": false
   },
   "sourceFormattingQualification": {
-    "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
-    "scope": "ONLY2existingwindow-orderproduction/testGo; notall1282Go ornewbrowserexecution",
-    "formatterManifestSHA256": "0a830f3208a184231845bc3e2393059d4f7c2b7fa99ed2131c736758d4b72341",
-    "controllerResultSHA256": "951c175c31d42e15b5dbbb3517167a3fd7d1007cf1541acc96ec80ac56466119",
-    "rawSourceManifestSHA256": "b2e7ed3c72b209372d8632382bb2f07a7aa8d25871ec8d4bfa888b17637ff4d1",
-    "patchSHA256": "1baf116c778a3d83e4a02fea4fc29cfbda2b4c4654cf9fcb1a1c6ad05998a08f",
-    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
-    "rawGoBytes": 107474,
-    "formattedGoBytes": 108042,
-    "GoFiles": 2,
-    "stderrBytes": 0,
+    "status": "NO_CURRENT_FORMATTER_PARSER_COMPILER_OR_TEST_EXECUTION_TEST_ONLY_FIXTURE_CHANGE",
+    "priorSnapshot": "priorFixtureObservationSourceFormattingQualification",
+    "immediateGoFilesChanged": 0,
+    "wholeGoFilesUnchangedFromBase": 1282,
+    "baseCommit": "f1d58166320767977d898a5d6c97006a1c129fef",
+    "formatterExecuted": false,
+    "parserExecuted": false,
     "buildsOrTestsExecuted": false,
-    "hardMemoryLimitEstablished": false,
-    "priorSnapshot": "priorWindowScrollSourceFormattingQualification"
+    "meaning": "Prior root Go formatting receipts remain historical and bytes unchanged; no new JavaScript parse or browser result is claimed."
   },
   "metadataCounterCorrection": {
     "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
@@ -2881,18 +2891,18 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "CURRENT full5path overlay of exactd4:2 existing Go modified;1 existing offline spec modified;1 new test-only JS helper;thisinput. 181selectedpins=177unchangedexisting+3reboundexisting+1newhelper. Go1282 unchanged except1production+1existingtest; noaddedGo. Originaltestarrays preserved withoneproductioncoregroup164/dev148. Prior historical snapshots remain unchanged. CI enablement only; all432cases440closures/79capabilities11gates unqualified.",
+  "sourceInputScope": "CURRENT exactf1d181pin input plus only two existing browser fixture changes.179 selected rows exact+2rebound; no new pin/path. All1282Go byte-identical to f1d; no production/application/workflow/ABI change. Cumulative533bGo1282=1277unchangedexisting+4modifiedexisting(3production1existingtest)+1newheader test, inherited unchanged. Historical preflight receipts and browser failure evidence do not qualify this fixture revision. Current scope is fixtureObservationQualification; all432cases/440closures remain mandatory.",
   "finalSourceReadinessReview": {
-    "status": "FULL_FIVE_PATH_PREPARED_REQUIRES_EXACT_BOUND_SOURCE_PEER_FOR_PUBLICATION",
-    "priorSnapshot": "priorWindowScrollFinalSourceReadinessReview",
+    "status": "THREE_PATH_SOURCE_CANDIDATE_CI_ENABLEMENT_ONLY_EXTERNAL_FULL_PEER_REQUIRED",
+    "priorSnapshot": "priorFixtureObservationFinalSourceReadinessReview",
     "sourcePins": 181,
-    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "baseCommit": "f1d58166320767977d898a5d6c97006a1c129fef",
     "ready": true,
     "runtimeQualified": false,
-    "promotionOwner": "Rootfull5pathassembly/finalpeer; no separate3pathreadytruepromotion",
-    "threePathManifestSHA256": "6ed92f34ceb40d7accc3c05daf2be7a9d07539e5d789cf1ec4a8de35d616984a",
-    "offlineDiagnosticManifestSHA256": "60963db086a0028b80c86f87e564cde94ef7918303f793760eaf4db014b26708",
-    "meaning": "Ready permits CI only after external publisher verifies the exact manifest and independent full-patch peer; no runtime result is claimed."
+    "runtimeExecuted": false,
+    "promotionOwner": "Root exact full three-path assembly, independent source peer, and publication",
+    "externalFullThreePathPeerRequired": true,
+    "meaning": "Ready permits CI only after the external publisher binds both reviewed fixture sources and this exact input. No parser, compilation, browser or deployed-runtime qualification."
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -3056,12 +3066,12 @@
     "publishedNativeFixturePath": "client/retained_devrefresh_js_test.go"
   },
   "lambdaSourceReadinessReview": {
-    "status": "HISTORICAL_LAMBDA_HEADER_RETIREMENT_PREFLIGHT_NOT_CURRENT_WINDOW_PASS",
-    "priorSnapshot": "priorWindowScrollLambdaSourceReadinessReview",
+    "status": "HISTORICAL_LAMBDA_PREFLIGHT_NOT_CURRENT_FIXTURE_RUNTIME_QUALIFICATION",
+    "priorSnapshot": "priorFixtureObservationLambdaSourceReadinessReview",
     "currentSourcePins": 181,
     "originalLambdaSourcePinPathsPreserved": 173,
-    "originalLambda173RowsUnchanged": 169,
-    "originalLambda173RowsRebound": 4,
+    "originalLambda173RowsUnchanged": 168,
+    "originalLambda173RowsRebound": 5,
     "sourceChangedAfterPriorReview": true,
     "cumulativeChangesSinceLambdaBase533b": {
       "modifiedProductionGo": 3,
@@ -3070,7 +3080,8 @@
       "wholeGo": 1282
     },
     "LambdaImplementationWorkflowCodeBytesChanged": 0,
-    "runtimeQualified": false
+    "runtimeQualified": false,
+    "meaning": "Two existing selected browser spec hashes additionally change. All Lambda implementation/workflow and Go bytes remain exact f1d; prior Lambda/source/runtime observations are not this fixture revision qualification."
   },
   "priorHeaderAuthorityQueryRefreshQualification": {
     "status": "SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_ACTUAL_CI_NOT_RUNTIME_QUALIFIED",
@@ -3246,12 +3257,13 @@
     "limit": "Onlystandaloneformatter/parsersucceeded; module/native typechecking, actualGo/WASM/browser/productionbehavior and allrelease gates remainunproven."
   },
   "streamHeaderAuthorityQualification": {
-    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
-    "historicalSnapshot": "priorWindowScrollStreamHeaderAuthorityQualification",
-    "headerProductionAndTestBytesUnchangedByWindowOrder": true,
-    "currentQualification": "windowScrollQualification",
+    "status": "HISTORICAL_HEADER_SOURCE_SCOPE_PRESERVED_NOT_CURRENT_FIXTURE_PASS",
+    "historicalSnapshot": "priorFixtureObservationStreamHeaderAuthorityQualification",
+    "currentQualification": "fixtureObservationQualification",
     "currentSourcePinCount": 181,
-    "currentRuntimeQualified": false
+    "currentSourcePinTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
+    "currentRuntimeQualified": false,
+    "meaning": "Prior object preserved verbatim under historicalSnapshot. The current fixture changes do not modify production, Go or existing helper source; prior runtime correction is not inferred."
   },
   "priorRevokedRetirementQueryRefreshQualification": {
     "status": "CURRENT_HEADER_AUTHORITY_SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_CI_RUNTIME_UNQUALIFIED",
@@ -3462,14 +3474,13 @@
     "meaning": "Original173pin/allGo-unchanged Lambda-onlyreview remainsverbatim underpriorHeaderAuthorityLambdaSourceReadinessReview. Its21Lambdaimplementation/workflowbytes remainexact3f4, butitdoesnotverifynewGoheaders/fourgroups/current180source."
   },
   "revokedRetirementQualification": {
-    "status": "HISTORICAL_RETIREMENT_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
-    "historicalSnapshot": "priorWindowScrollRevokedRetirementQualification",
-    "retirementProductionSourceUnchangedByWindowOrder": true,
-    "currentQualification": "windowScrollQualification",
+    "status": "HISTORICAL_RETIREMENT_SOURCE_SCOPE_PRESERVED_NOT_CURRENT_FIXTURE_PASS",
+    "historicalSnapshot": "priorFixtureObservationRevokedRetirementQualification",
+    "currentQualification": "fixtureObservationQualification",
     "currentSourcePinCount": 181,
-    "currentSourcePinTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "currentSourcePinTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
     "currentRuntimeQualified": false,
-    "meaning": "Priorretirement-onlyGo/currenttree andsourcepreflight remainhistorical. Existingretainedtestfile isextendedagain; currentcumulativecountsincludeadditionalruntimeproductionchange."
+    "meaning": "Prior object preserved verbatim under historicalSnapshot. The current fixture changes do not modify production, Go or existing helper source; prior runtime correction is not inferred."
   },
   "priorWindowScrollQueryRefreshQualification": {
     "status": "CURRENT_REVOKED_RETIREMENT_SOURCE_PREFLIGHT_REVIEW_PASS_CI_READY_RUNTIME_UNQUALIFIED",
@@ -3677,6 +3688,144 @@
     "meaning": "Priorreviewobjectsand21Lambdaimplementation/workflowbytespreserved; old173rowhash/allGo-unchanged orheader-only2Go scope doesnotcovercurrentretirement."
   },
   "windowScrollQualification": {
+    "status": "HISTORICAL_WINDOW_ORDER_SOURCE_SCOPE_PRESERVED_NOT_CURRENT_FIXTURE_PASS",
+    "historicalSnapshot": "priorFixtureObservationWindowScrollQualification",
+    "currentQualification": "fixtureObservationQualification",
+    "currentSourcePinCount": 181,
+    "currentSourcePinTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
+    "currentRuntimeQualified": false,
+    "meaning": "Prior object preserved verbatim under historicalSnapshot. The current fixture changes do not modify production, Go or existing helper source; prior runtime correction is not inferred."
+  },
+  "offlineDiagnosticQualification": {
+    "status": "HISTORICAL_OFFLINE_FAILURE_DIAGNOSTIC_SOURCE_SCOPE_PRESERVED_NOT_CURRENT_FIXTURE_PASS",
+    "historicalSnapshot": "priorFixtureObservationOfflineDiagnosticQualification",
+    "currentQualification": "fixtureObservationQualification",
+    "currentSourcePinCount": 181,
+    "currentSourcePinTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
+    "currentRuntimeQualified": false,
+    "meaning": "Prior object preserved verbatim under historicalSnapshot. The current fixture changes do not modify production, Go or existing helper source; prior runtime correction is not inferred."
+  },
+  "priorFixtureObservationQueryRefreshQualification": {
+    "status": "CURRENT_WINDOW_SCROLL_180PIN_CUMULATIVE_SOURCE_ONLY_PENDING_REVIEW_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorWindowScrollQueryRefreshQualification",
+    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "sourcePins": 181,
+    "sourcePinCap": 192,
+    "currentRequiredCounts": {
+      "native": 85,
+      "core": 164,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "nativeBrowserCases": 144,
+    "nativeWorkerClosures": 146,
+    "perMockModeBrowserCases": 144,
+    "perMockModeWorkerClosures": 146,
+    "allModesBrowserCases": 432,
+    "allModesWorkerClosures": 440,
+    "currentQualification": "windowScrollQualification",
+    "runtimeExecuted": false,
+    "meaning": "CurrentGo1282=1277unchangedexisting+4modifiedexisting+1addedheader test since533b. Full181pin composition additionally changes offline spec and adds one test-only helper. All runtime qualification pending."
+  },
+  "priorFixtureObservationCombinedSourceInput": {
+    "status": "CURRENT_FIVE_PATH_SOURCE_COMPOSITION_PREPARED_REQUIRES_BOUND_PEER_CI_ONLY",
+    "integrationBaseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "integrationBaseTree": "b48afd51dd819913dce76edcde931d6c277fa0bd",
+    "priorSnapshot": "priorWindowScrollCombinedSourceInput",
+    "sourcePinCount": 181,
+    "sourcePinsTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "treeEncoding": "sortedpathUTF8+NUL+exact overlaybytes+NUL; excludesinputself",
+    "immediateBaseGoFiles": 1282,
+    "currentGoFiles": 1282,
+    "immediateModifiedProductionGoFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateAddedGoFiles": 0,
+    "otherImmediateBaseGoFilesUnchanged": 1280,
+    "cumulativeCommonBaseCommit": "533b54be676a54c87e77e9a6079804dccec3b652",
+    "cumulativeCommonBaseGoFiles": 1281,
+    "cumulativeUnchangedExistingGoFiles": 1277,
+    "cumulativeModifiedExistingGoFiles": 4,
+    "cumulativeModifiedProductionGoFiles": 3,
+    "cumulativeModifiedExistingGoTestFiles": 1,
+    "cumulativeAddedHeaderGoTestFiles": 1,
+    "previous180RowsUnchanged": 177,
+    "previous180ExistingRowsRebound": 3,
+    "originalLambda173SourcePinPathsPreserved": 173,
+    "originalLambda173RowsUnchanged": 169,
+    "originalLambda173ExistingRowsRebound": 4,
+    "headerAdded7RowsUnchanged": 7,
+    "LambdaImplementationWorkflowBytesChanged": 0,
+    "currentWholeSourceQualification": "PENDING actualCI. Five paths: two existing Go, one existing offline spec, one new failure-only JS helper, and this input. No prior runtime result promoted to this source.",
+    "currentNewSourcePins": 1
+  },
+  "priorFixtureObservationLambdaSourceReadinessReview": {
+    "status": "HISTORICAL_LAMBDA_HEADER_RETIREMENT_PREFLIGHT_NOT_CURRENT_WINDOW_PASS",
+    "priorSnapshot": "priorWindowScrollLambdaSourceReadinessReview",
+    "currentSourcePins": 181,
+    "originalLambdaSourcePinPathsPreserved": 173,
+    "originalLambda173RowsUnchanged": 169,
+    "originalLambda173RowsRebound": 4,
+    "sourceChangedAfterPriorReview": true,
+    "cumulativeChangesSinceLambdaBase533b": {
+      "modifiedProductionGo": 3,
+      "modifiedExistingGoTest": 1,
+      "newHeaderGoTest": 1,
+      "wholeGo": 1282
+    },
+    "LambdaImplementationWorkflowCodeBytesChanged": 0,
+    "runtimeQualified": false
+  },
+  "priorFixtureObservationSourceInputScope": "CURRENT full5path overlay of exactd4:2 existing Go modified;1 existing offline spec modified;1 new test-only JS helper;thisinput. 181selectedpins=177unchangedexisting+3reboundexisting+1newhelper. Go1282 unchanged except1production+1existingtest; noaddedGo. Originaltestarrays preserved withoneproductioncoregroup164/dev148. Prior historical snapshots remain unchanged. CI enablement only; all432cases440closures/79capabilities11gates unqualified.",
+  "priorFixtureObservationFinalSourceReadinessReview": {
+    "status": "FULL_FIVE_PATH_PREPARED_REQUIRES_EXACT_BOUND_SOURCE_PEER_FOR_PUBLICATION",
+    "priorSnapshot": "priorWindowScrollFinalSourceReadinessReview",
+    "sourcePins": 181,
+    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "ready": true,
+    "runtimeQualified": false,
+    "promotionOwner": "Rootfull5pathassembly/finalpeer; no separate3pathreadytruepromotion",
+    "threePathManifestSHA256": "6ed92f34ceb40d7accc3c05daf2be7a9d07539e5d789cf1ec4a8de35d616984a",
+    "offlineDiagnosticManifestSHA256": "60963db086a0028b80c86f87e564cde94ef7918303f793760eaf4db014b26708",
+    "meaning": "Ready permits CI only after external publisher verifies the exact manifest and independent full-patch peer; no runtime result is claimed."
+  },
+  "priorFixtureObservationSourceFormattingQualification": {
+    "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
+    "scope": "ONLY2existingwindow-orderproduction/testGo; notall1282Go ornewbrowserexecution",
+    "formatterManifestSHA256": "0a830f3208a184231845bc3e2393059d4f7c2b7fa99ed2131c736758d4b72341",
+    "controllerResultSHA256": "951c175c31d42e15b5dbbb3517167a3fd7d1007cf1541acc96ec80ac56466119",
+    "rawSourceManifestSHA256": "b2e7ed3c72b209372d8632382bb2f07a7aa8d25871ec8d4bfa888b17637ff4d1",
+    "patchSHA256": "1baf116c778a3d83e4a02fea4fc29cfbda2b4c4654cf9fcb1a1c6ad05998a08f",
+    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
+    "rawGoBytes": 107474,
+    "formattedGoBytes": 108042,
+    "GoFiles": 2,
+    "stderrBytes": 0,
+    "buildsOrTestsExecuted": false,
+    "hardMemoryLimitEstablished": false,
+    "priorSnapshot": "priorWindowScrollSourceFormattingQualification"
+  },
+  "priorFixtureObservationStreamHeaderAuthorityQualification": {
+    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
+    "historicalSnapshot": "priorWindowScrollStreamHeaderAuthorityQualification",
+    "headerProductionAndTestBytesUnchangedByWindowOrder": true,
+    "currentQualification": "windowScrollQualification",
+    "currentSourcePinCount": 181,
+    "currentRuntimeQualified": false
+  },
+  "priorFixtureObservationRevokedRetirementQualification": {
+    "status": "HISTORICAL_RETIREMENT_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
+    "historicalSnapshot": "priorWindowScrollRevokedRetirementQualification",
+    "retirementProductionSourceUnchangedByWindowOrder": true,
+    "currentQualification": "windowScrollQualification",
+    "currentSourcePinCount": 181,
+    "currentSourcePinTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "currentRuntimeQualified": false,
+    "meaning": "Priorretirement-onlyGo/currenttree andsourcepreflight remainhistorical. Existingretainedtestfile isextendedagain; currentcumulativecountsincludeadditionalruntimeproductionchange."
+  },
+  "priorFixtureObservationWindowScrollQualification": {
     "status": "FIVE_PATH_CI_CANDIDATE_REQUIRES_BOUND_PEER_RUNTIME_UNQUALIFIED",
     "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
     "baseTree": "b48afd51dd819913dce76edcde931d6c277fa0bd",
@@ -3842,7 +3991,7 @@
       "tests/offline-update-failure-observation.mjs"
     ]
   },
-  "offlineDiagnosticQualification": {
+  "priorFixtureObservationOfflineDiagnosticQualification": {
     "status": "FAILURE_ONLY_TEST_OBSERVATION_SOURCE_REVIEWED_NOT_EXECUTED",
     "manifestSHA256": "60963db086a0028b80c86f87e564cde94ef7918303f793760eaf4db014b26708",
     "peerSHA256": "dee6c2e11c74cc54891d35af197697800653d0185c644d6c7c42e7734615b82c",
@@ -3856,5 +4005,136 @@
     "originalAssertionsAndCleanupUnchanged": true,
     "productionOwnershipUnchanged": true,
     "limits": "AfteroriginalFirefoxupdatecasefailure only. Fixed DOM scalars, no worker/storage API or repairs. Existingfixturedeadline only, no independent hardRPCjoin claim."
+  },
+  "priorFixtureObservationArchitectureQualification": {
+    "status": "SOURCE_ONLY_UNEXECUTED",
+    "selection": "NEXTGO_RETAINED_NATIVE_ARCH exact amd64/arm64; actual Node/Go target/Go host/ELF required",
+    "amd64Resources": "existing Docker hard limits unchanged",
+    "arm64Resources": "public ubuntu-24.04-arm standard hosted runner; no borrowed container hard-limit proof",
+    "nativeCasesPerSDKAndArchitecture": 72,
+    "nativeClosuresPerSDKAndArchitecture": 73,
+    "unqualified": [
+      "mock Lambda modes",
+      "real Lambda packaging/deployment",
+      "full79/11release gates"
+    ]
+  },
+  "priorFixtureObservationReadinessMeaning": "CI enablement only, contingent on the exact full five-path peer gate. Current181pins include three rebound existing rows and one added test-helper dependency; core164/dev148 and all432browsercases/440closures mandatory. Formatting and static source review do not establish compilation, browser correction, native cause, deployment or maturity.",
+  "fixtureObservationQualification": {
+    "status": "SOURCE_ONLY_FIXTURE_SETUP_AND_FAILURE_OBSERVATION_CI_ENABLEMENT_EXTERNAL_FULL_PEER_REQUIRED",
+    "baseCommit": "f1d58166320767977d898a5d6c97006a1c129fef",
+    "baseTree": "1304ee3d7cb485498619a8747dd1f81db5cb4e06",
+    "rootInputSHA256": "85b7f767b8c97e833ec4c44934ab83075d8dd71d93cf4e2c5b7a7550d936e652",
+    "rootInputBytes": 202444,
+    "sourcePinCount": 181,
+    "sourcePinCap": 192,
+    "sourcePinTreeSHA256": "c4e482c407f9a5d25c3e784fe78c7373bca8ff5785aefb747ca2a2754050e108",
+    "pinRowsUnchanged": 179,
+    "pinRowsRebound": 2,
+    "newSourcePins": 0,
+    "reboundExistingPinPaths": [
+      "tests/offline.spec.mjs",
+      "tests/retained-routes.spec.mjs"
+    ],
+    "sourceDependencies": {
+      "tests/retained-routes.spec.mjs": {
+        "manifestPath": ".nextgo-test-results/recovery/retained-owner-setup-f1d-v1/MANIFEST.json",
+        "manifestSHA256": "c8da4e7656d488828e5d3c8af9bff7630b0abcdecfd08d6fdb11a0fb0f22fbb7",
+        "sourceSHA256": "5af37c27149dc9910398a6e6881f30db98051de491117621abd3ad6de39f6bf5",
+        "sourceBytes": 27447
+      },
+      "tests/offline.spec.mjs": {
+        "manifestPath": ".nextgo-test-results/recovery/offline-update-registration-observer-f1d-v1/MANIFEST.json",
+        "manifestSHA256": "d9c811f51b0e1e3fbd924ff8084994d7be50f6950feed8ea9267c95f8a393502",
+        "sourceSHA256": "98ad82af51d905df4148b490524112279b8ca5f20d28036af5d9d80dd259e952",
+        "sourceBytes": 27786
+      }
+    },
+    "requiredCounts": {
+      "native": 85,
+      "core": 164,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "allRequiredArraysTitlesSkipsAndCaseContractsUnchanged": true,
+    "allModesCasesAndClosures": {
+      "native": [
+        144,
+        146
+      ],
+      "buffered": [
+        144,
+        146
+      ],
+      "streaming": [
+        144,
+        146
+      ],
+      "total": [
+        432,
+        440
+      ]
+    },
+    "immediateGoFilesUnchanged": 1282,
+    "productionApplicationWorkflowABIChanged": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "priorFailureEvidence": {
+      "armFirstRed": {
+        "path": ".nextgo-test-results/qualification/ci-f1d58166-pr8/producer-arm64-go124-first-red-audit-v1.json",
+        "sha256": "36edc167eb25dc1d024c7180f0a0a7b1c85eecd6211dee602453d6d2e0669e46",
+        "bytes": 2735
+      },
+      "amdFirstRed": {
+        "path": ".nextgo-test-results/qualification/ci-f1d58166-pr8/producer-amd64-go127-first-red-audit-v1.json",
+        "sha256": "f8c2535f10b95f96c718b39f555a94d26e97213fe53f7e136f541d3539103b10",
+        "bytes": 2730
+      },
+      "amdTemporalTrace": {
+        "path": ".nextgo-test-results/qualification/ci-f1d58166-pr8/producer-amd64-go127-first-trace-temporal-audit-v1.json",
+        "sha256": "4a50cbc0894eb1f4b31ce7e7ef0b5afb7014f008a290bd45f89cbeb235205dbc",
+        "bytes": 2405
+      },
+      "offlineFirefox": {
+        "path": ".nextgo-test-results/qualification/ci-f1d58166-pr8/offline-firefox-update-independent-audit-v1.json",
+        "sha256": "512c999010af2f825b69455898428988956fa98593064127508b1c0355581491",
+        "bytes": 2111
+      }
+    },
+    "nativeFirstRedSummary": {
+      "head": "f1d58166320767977d898a5d6c97006a1c129fef",
+      "bothCells": {
+        "passed": 30,
+        "failed": 1,
+        "retainedUnrun": 41,
+        "mergeUnrun": 72
+      },
+      "project": "retained-firefox",
+      "case": "a sole eager island owner retains its own identity state and scroll container",
+      "laterAssertions": "NOT_REACHED",
+      "armObservation": "Expected owner200; actual1201 already displaced BEFORE outgoing click.",
+      "amdObservation": "Owner200 at immediate outgoing observation, then1270 WHILE outgoing loading/appBusy true BEFORE B readiness and BEFORE back. Temporal trace supersedes coarser post-return-only interpretation.",
+      "temporalLimit": "Both observed owner movements precede B. Exact native focus/caret/selection/layout/anchoring cause remains UNPROVEN; Go capture instant/value not directly instrumented."
+    },
+    "offlineFirstRedSummary": {
+      "passed": 14,
+      "failed": 1,
+      "unrun": 17,
+      "project": "offline-firefox",
+      "observedError": "a conflicting service worker owns an overlapping scope [registration-proof-empty-lookup]",
+      "underlyingLookupReason": "UNPROVEN",
+      "change": "One additional invocation of the existing read-only failure observer after an existing matching update failure; no helper, ownership, retry, activation, success behavior or assertion changes."
+    },
+    "fixtureSetupChange": "Deterministic native uncontrolled draft assignment and preventScroll focus; owner200 recording and real eligible anchor dispatch in one synchronous task. Original strict return200, identity, state, scroll and document assertions remain required; this is not a complete fix claim.",
+    "limits": [
+      "No current parser/Node/Go/browser/CI/SDK execution.",
+      "Source setup and observer changes require a fresh full campaign; neither failure is claimed fixed.",
+      "Prior Go results are exact-f1d evidence only; no new runtime qualification inherited.",
+      "Native cause and capture instant remain unproven; temporal evidence does not prove a post-return-only restoration failure.",
+      "All79 capabilities and11 release gates remain open."
+    ]
   }
 }

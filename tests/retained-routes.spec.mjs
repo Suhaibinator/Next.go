@@ -158,18 +158,25 @@ test('a sole eager island owner retains its own identity state and scroll contai
   try{
   await page.goto(native.origin+'/owner');await ready(page);
   await expect(page.locator('#nextgo-app > [data-nextgo-island="retentionpanel"]')).toHaveAttribute('data-nextgo-hydrated','true');
-  await part(page,'increment').click();await part(page,'draft').fill('Owner island draft');
+  await part(page,'increment').click();
   const sampled=await page.evaluate(()=>{
-    const owner=document.querySelector('#nextgo-app > [data-nextgo-island]');globalThis.retainedOwner=owner;globalThis.ownerDocument=document;owner.scrollTop=200;
+    const owner=document.querySelector('#nextgo-app > [data-nextgo-island]'),draft=owner.querySelector('[data-retained-draft]');
+    globalThis.retainedOwner=owner;globalThis.ownerDocument=document;
+    // Establish native draft/focus/scroll state without an earlier fill action's
+    // caret-reveal work. Capture and dispatch the eligible anchor in this same
+    // synchronous task, so observation and native dispatch cannot drift between tasks.
+    draft.value='Owner island draft';draft.focus({preventScroll:true});owner.scrollTop=200;
     // Sample the original actual scroll field before any diagnostic reads.
     const actual=owner.scrollTop;
     const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
-    return {actual,observation:read()};
-  });const scroll=sampled.actual;savedActual=scroll;savedObservation=sampled.observation;expect(scroll).toBeGreaterThan(0);
-  outgoingObservation=await page.evaluate(()=>{
-    const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
-    const before=read();retainedOwner.querySelector('a[href="/b"]').click();return {before,after:read()};
-  });await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
+    const before=read();owner.querySelector('a[href="/b"]').click();
+    return {actual,observation:before,outgoing:{before,after:read()}};
+  });const scroll=sampled.actual;savedActual=scroll;savedObservation=sampled.observation;outgoingObservation=sampled.outgoing;
+  expect(scroll).toBe(200);expect(savedObservation.focusedDraft).toBe(true);
+  expect(outgoingObservation.before.complete&&outgoingObservation.after.complete).toBe(true);
+  expect(outgoingObservation.before.ownerY).toEqual({present:true,value:200});
+  expect(outgoingObservation.after.ownerY).toEqual(outgoingObservation.before.ownerY);
+  await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
   await page.goBack();await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','OWNER');
   expect(await page.evaluate(()=>retainedOwner===document.querySelector('#nextgo-app > [data-nextgo-view-active]')&&document===ownerDocument)).toBe(true);
   const restored=await page.evaluate(()=>{
@@ -178,7 +185,7 @@ test('a sole eager island owner retains its own identity state and scroll contai
     const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
     return {actual,observation:read()};
   });afterBackActual=restored.actual;afterBackObservation=restored.observation;
-  expect(restored.actual).toBe(scroll);await expect(part(page,'count')).toHaveText('3');await expect(part(page,'draft')).toHaveValue('Owner island draft');
+  expect(restored.actual).toBe(scroll);expect(afterBackObservation.focusedDraft).toBe(true);await expect(part(page,'count')).toHaveText('3');await expect(part(page,'draft')).toHaveValue('Owner island draft');
   }finally{
     // Fixed scalar observations do not reveal component text, props or URLs.
     // Outgoing commit-time capture is unobserved; these are click/back samples.

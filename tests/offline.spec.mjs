@@ -134,6 +134,7 @@ const test = base.extend({
       if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
           info.title === 'a genuine new generation waits while the old client is open and activates only after every scoped client closes') {
         try {await observeOfflineUpdateFailure(context, info);} catch {} // Never replace the original failure.
+        try {await observeOfflineRegistrationProof(context, info, fixture.origin);} catch {console.warn('Offline registration diagnostic unavailable before attachment');}
       }
       if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
           info.title === 'explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation') {
