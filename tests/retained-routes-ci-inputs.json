@@ -53,15 +53,15 @@
     },
     {
       "path": "client/offline_conflict_js_test.go",
-      "sha256": "6d9dbd3a2e96956c77383bb5dfce494d4a089a10a4c6c37b934f0e04d3f005d1",
-      "bytes": 8155,
-      "origin": "immutable baseline768 dependency/protected input"
+      "sha256": "d6f8d5f8653c0f883a31e4b38265907b291c52c9dea4f675ed3e839119b7367a",
+      "bytes": 8175,
+      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
     },
     {
       "path": "client/offline_js.go",
-      "sha256": "7232542b1f467cbea376e13dbbee9f5f15650abf7a2392d8873d501214e04498",
-      "bytes": 23937,
-      "origin": "immutable baseline768 dependency/protected input"
+      "sha256": "f92ad4597a2533dafe4be2346213b14685adb874848921e571ec4b0fd3e8f75d",
+      "bytes": 23938,
+      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
     },
     {
       "path": "client/offline_registration_status_js_test.go",
@@ -293,9 +293,9 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "39b75b4d1b01f81069acd205924b4b69a54f58f214cf9cb84fc0f66f64cc3607",
-      "bytes": 47225,
-      "origin": "separate unexecuted hosted producer overlay"
+      "sha256": "6e7b3b44ed89d0b75d4975bf06531de9e78aa1e5efa15bffad8583290f813624",
+      "bytes": 47268,
+      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
@@ -532,5 +532,23 @@
   "newDevcoreRegressionCount": 22,
   "existingDevcoreRequiredCounterpartCount": 1,
   "ready": true,
-  "readinessMeaning": "Exact corrected source and producer hashes are ready for reviewed hosted execution only; no runtime qualification, publication authorization or maturity claim."
+  "readinessMeaning": "Exact corrected source and producer hashes are ready for reviewed hosted execution only; no runtime qualification, publication authorization or maturity claim.",
+  "formattingCorrection": {
+    "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
+    "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
+    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
+    "formattedManifestSHA256": "b153dfab99c09a1954010ed7c701a4adb01803083fc1cc868f943f04326f2e1c",
+    "previousInputContractSHA256": "aba80759faace8b616c18cf20ff9c5dd34c65c09e27d80b77d75c781e6951e35",
+    "paths": [
+      "client/offline_conflict_js_test.go",
+      "client/offline_js.go"
+    ],
+    "unchanged": [
+      "format gate",
+      "all suites/assertions/skips/timeouts",
+      "framework semantics",
+      "72 browser cases and73 native closures per SDK"
+    ],
+    "runtimeQualified": false
+  }
 }

@@ -376,6 +376,7 @@ func (c *offlineController) controlling() (owned bool) {
 	}()
 	return c.ownedWorker(win.Get("navigator").Get("serviceWorker").Get("controller"))
 }
+
 // A record with the exact scope but no worker slots does not prove ownership.
 // Status may instead query an independently validated controller; mutations must
 // still establish ownership from the registration itself.
