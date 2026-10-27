@@ -115,8 +115,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 60
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 30
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - run: npm test
       - run: npm run test:crossbrowser
       - run: npm run test:shared-cache
@@ -179,8 +187,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 30
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 15
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - name: Build refresh qualification artifacts
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -238,8 +254,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 30
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 15
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - name: Build independent releases and immutable ingress snapshots
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -284,9 +308,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Install browsers and system dependencies
-        timeout-minutes: 30
-        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 15
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - name: Deterministic initial-stream parser conformance
         run: npm run test:stream-parser
       - name: Stream admission and recoverable navigation
