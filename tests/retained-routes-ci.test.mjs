@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment} from './retained-routes-ci.mjs';
 
+import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
+
 const clone=value=>structuredClone(value),source=fileURLToPath(new URL('..',import.meta.url));
 const pkg='github.com/Suhaibinator/Next.go/client';
 const events=values=>Buffer.from(values.map(value=>JSON.stringify(value)).join('\n')+'\n');
@@ -55,4 +57,34 @@ test('proof attachment audit rejects wrong MIME malformed encoding and foreign p
   const payload={known:true},body=Buffer.from(JSON.stringify(payload)).toString('base64');
   assert.deepEqual(await proofAttachment({contentType:'application/json',body},'/tmp/qualification'),payload);
   for(const attachment of [{contentType:'text/plain',body},{contentType:'application/json',body:'%%%='},{contentType:'application/json',body:'='.repeat((3<<20)+1)},{contentType:'application/json',path:'/tmp/foreign-proof.json'}])await assert.rejects(proofAttachment(attachment,'/tmp/qualification'));
+});
+
+// Synthetic headers below exercise audit rejection only, not artifact production.
+test('native target requires explicit supported architecture and matching actual Node host',()=>{
+  assert.equal(nativeTarget('amd64','linux','x64').goArch,'amd64');
+  assert.equal(nativeTarget('arm64','linux','arm64').goArch,'arm64');
+  for(const args of [[undefined,'linux','x64'],['x64','linux','x64'],['__proto__','linux','x64'],['arm64','linux','x64'],['amd64','linux','arm64'],['arm64','darwin','arm64']])assert.throws(()=>nativeTarget(...args));
+});
+test('native SDK tools and ELF reject borrowed architectures, WASM, class and endian',()=>{
+  for(const arch of ['amd64','arm64']){
+    const target=nativeTarget(arch,'linux',arch==='amd64'?'x64':'arm64');
+    assert.deepEqual(nativeToolPaths(target).filter(name=>name.startsWith('pkg/tool/')),['compile','link','vet'].map(name=>'pkg/tool/linux_'+arch+'/'+name));
+    const header=Buffer.alloc(20);header.set(Buffer.from('7f454c460201','hex'));header.set(Buffer.from(target.elfMachine,'hex'),18);assert.doesNotThrow(()=>assertNativeELF(header,target));
+    const other=nativeTarget(arch==='amd64'?'arm64':'amd64','linux',arch==='amd64'?'arm64':'x64');assert.throws(()=>assertNativeELF(header,other));
+    for(const mutate of [h=>{h[4]=1;},h=>{h[5]=2;},h=>{h[0]=0;}]){const invalid=Buffer.from(header);mutate(invalid);assert.throws(()=>assertNativeELF(invalid,target));}
+    assert.throws(()=>assertNativeELF(Buffer.from('0061736d01000000','hex'),target));
+  }
+  assert.throws(()=>nativeToolPaths({goArch:'arm64'}));
+});
+test('native Go environment rejects cross target and host while preserving the selected pair',()=>{
+  const target=nativeTarget('arm64','linux','arm64'),env={GOOS:'linux',GOARCH:'arm64',GOHOSTOS:'linux',GOHOSTARCH:'arm64'};
+  assert.doesNotThrow(()=>assertNativeGoEnvironment(env,target));
+  for(const key of Object.keys(env))assert.throws(()=>assertNativeGoEnvironment({...env,[key]:key.includes('ARCH')?'amd64':'darwin'},target));
+  assert.throws(()=>assertNativeGoEnvironment({GOOS:'linux',GOARCH:'arm64'},target));
+});
+test('actual build metadata requires the selected SDK and native target in each executable record',()=>{
+  const target=nativeTarget('arm64','linux','arm64'),record='/owned/server: go1.27.3\n\tbuild\tGOOS=linux\n\tbuild\tGOARCH=arm64\n\tbuild\tCGO_ENABLED=1\n';
+  assert.doesNotThrow(()=>assertNativeBuildInfo(record,'/owned/server','1.27.3',target));
+  for(const invalid of [record.replace('GOARCH=arm64','GOARCH=amd64'),record.replace('go1.27.3','go1.24.13'),record.replace('CGO_ENABLED=1','CGO_ENABLED=0'),record+record,record.replace('\tbuild\tGOOS=linux\n',''),'/foreign'+record,record+'\tbuild\tGOARCH=amd64\n',record+'\tbuild\tGOARCH=arm64\n'])assert.throws(()=>assertNativeBuildInfo(invalid,'/owned/server','1.27.3',target));
+  assert.throws(()=>assertNativeBuildInfo('/other: go1.27.3\n\tbuild\tGOARCH=arm64\n'+record.replace('GOARCH=arm64','GOARCH=amd64'),'/owned/server','1.27.3',target));
 });

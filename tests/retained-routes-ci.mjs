@@ -8,6 +8,9 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {check,sha,readBounded,writeJSON,json,inventory,commandEnvironment} from './static-shell-ci-build.mjs';
+import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
+const selectedTarget=()=>nativeTarget(process.env.NEXTGO_RETAINED_NATIVE_ARCH,process.platform,process.arch);
+const browserPath=root=>selectedTarget().goArch==='amd64'?'/ms-playwright':join(root,'playwright');
 
 const self=fileURLToPath(import.meta.url),profiles=['chromium','firefox','webkit','webkit-touch'];
 const moduleFilter='^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL)';
@@ -85,7 +88,7 @@ async function owned(){
   return {root,source};
 }
 async function init(){
-  check(process.platform==='linux'&&process.arch==='x64'&&process.version==='v24.22.1','Linux AMD64 Node24.22.1 required');
+  const target=selectedTarget();check(process.version==='v24.22.1','exact native Node24.22.1 required');
   const source=await realpath(process.env.GITHUB_WORKSPACE||process.cwd()),temp=await realpath(process.env.RUNNER_TEMP||'');
   const root=await mkdtemp(join(temp,'nextgo-retained-ci.'));await chmod(root,0o700);
   check(outside(source,root)&&!/[\s'"\\]/.test(root),'owned output must be outside checkout and shell-wrapper-safe');
@@ -97,17 +100,17 @@ async function init(){
   const before=await inventory(source,true);await writeJSON(join(root,'source-before.json'),before,8<<20);
   const contract=await json(join(source,'tests','retained-routes-ci-inputs.json'),1<<20);
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
-  check(contract.version===1&&contract.scope==='Linux AMD64 native HTTP only'&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=128,'reviewed input contract required');
+  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=128,'reviewed input contract required');
   for(const target of ['native','core','devcore','portable','ui'])check(Array.isArray(contract.tests?.[target])&&contract.tests[target].length>0&&contract.tests[target].length<=128&&new Set(contract.tests[target]).size===contract.tests[target].length&&contract.tests[target].every(name=>/^Test[A-Za-z0-9_]+$/.test(name)),'named target PASS contract: '+target);
   check(Array.isArray(contract.browserTitles)&&contract.browserTitles.length===18&&new Set(contract.browserTitles).size===18&&contract.browserTitles.every(title=>typeof title==='string'&&title.length<=1024),'exact18 reviewed browser titles required');
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
-  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
+  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
   await writeJSON(join(root,'inputs.json'),contract,1<<20);
-  await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','ARM64','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
+  await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,nativeTarget:target.goArch,resourceEnvelope:target.goArch==='amd64'?'container: cpu2 memory4GiB no-extra-swap pids768 shm512MiB':'standard public ubuntu-24.04-arm hosted job; container hard limits not asserted',sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','other architectures/platforms and separate SDK/arch cells','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
 }
 function childEnv(root,source,extras={}){
-  return commandEnvironment(root,{HOME:join(root,'home'),TMPDIR:join(root,'tmp'),PLAYWRIGHT_BROWSERS_PATH:'/ms-playwright',PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD:'1',npm_config_cache:join(root,'npm-cache'),npm_config_userconfig:'/dev/null',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'safe.directory',GIT_CONFIG_VALUE_0:source,GITHUB_WORKSPACE:source,RUNNER_TEMP:process.env.RUNNER_TEMP,GITHUB_RUN_ID:process.env.GITHUB_RUN_ID,GITHUB_RUN_ATTEMPT:process.env.GITHUB_RUN_ATTEMPT,GITHUB_JOB:process.env.GITHUB_JOB,NEXTGO_RETAINED_CI:root,...extras});
+  return commandEnvironment(root,{HOME:join(root,'home'),TMPDIR:join(root,'tmp'),PLAYWRIGHT_BROWSERS_PATH:browserPath(root),NEXTGO_RETAINED_NATIVE_ARCH:selectedTarget().goArch,PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD:'1',npm_config_cache:join(root,'npm-cache'),npm_config_userconfig:'/dev/null',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'safe.directory',GIT_CONFIG_VALUE_0:source,GITHUB_WORKSPACE:source,RUNNER_TEMP:process.env.RUNNER_TEMP,GITHUB_RUN_ID:process.env.GITHUB_RUN_ID,GITHUB_RUN_ATTEMPT:process.env.GITHUB_RUN_ATTEMPT,GITHUB_JOB:process.env.GITHUB_JOB,NEXTGO_RETAINED_CI:root,...extras});
 }
 async function executablePath(name){for(const directory of process.env.PATH.split(delimiter)){try{const path=await realpath(join(directory,name));if((await lstat(path)).isFile())return path;}catch{}}throw Error('required executable missing: '+name);}
 async function sdk(root,source){
@@ -117,9 +120,9 @@ async function sdk(root,source){
   const version=(await readBounded(join(sdkRoot,'VERSION'),4096)).toString('utf8');
   check(['1.24.13','1.27.3'].includes(process.env.GO_VERSION)&&version.split('\n')[0]==='go'+process.env.GO_VERSION,'exact approved SDK required');
   if(process.env.GOROOT)check(await realpath(process.env.GOROOT)===sdkRoot,'PATH/GOROOT mismatch');
-  const files={};for(const name of ['bin/go','bin/gofmt','pkg/tool/linux_amd64/compile','pkg/tool/linux_amd64/link','pkg/tool/linux_amd64/vet','lib/wasm/go_js_wasm_exec','lib/wasm/wasm_exec_node.js','lib/wasm/wasm_exec.js']){const data=await readBounded(join(sdkRoot,name),128<<20);files[name]={bytes:data.length,sha256:sha(data)};}
-  const node=await realpath(process.execPath),data=await readBounded(node,128<<20);
-  return {go,root:sdkRoot,version:version.split('\n')[0],files,node:{path:node,version:process.version,sha256:sha(data)},platform:process.platform,architecture:process.arch,uid:process.getuid()};
+  const target=selectedTarget(),files={};for(const name of nativeToolPaths(target)){const data=await readBounded(join(sdkRoot,name),128<<20);if(name.startsWith('bin/')||name.startsWith('pkg/tool/'))assertNativeELF(data,target);files[name]={bytes:data.length,sha256:sha(data)};}
+  const node=await realpath(process.execPath),data=await readBounded(node,128<<20);assertNativeELF(data,target);
+  return {go,root:sdkRoot,version:version.split('\n')[0],files,node:{path:node,version:process.version,sha256:sha(data)},platform:process.platform,architecture:process.arch,nativeTarget:target.goArch,uid:process.getuid()};
 }
 async function unchanged(source,before){check(JSON.stringify(before)===JSON.stringify(await inventory(source,true)),'source changed outside explicit generation');}
 async function step(state,name,command,args,env,timeoutMS,stdoutLimit=1<<20){
@@ -141,6 +144,16 @@ async function dependencies(){
   await unchanged(source,await json(join(root,'source-before.json'),8<<20));report.status='DEPENDENCIES_READY';await writeJSON(join(root,'campaign.json'),report,8<<20);
 }
 
+async function installBrowsers(){
+  const {root,source}=await owned(),report=await json(join(root,'campaign.json'),8<<20);
+  check(selectedTarget().goArch==='arm64'&&report.status==='DEPENDENCIES_READY'&&process.getuid()!==0,'native nonroot ARM dependency phase required');
+  const cli=join(source,'node_modules','@playwright','test','cli.js');
+  await step({root,source,report},'install-native-browsers',process.execPath,[cli,'install','--with-deps','chromium','firefox','webkit'],childEnv(root,source),55*60000,4<<20);
+  await unchanged(source,await json(join(root,'source-before.json'),8<<20));
+  report.browserInstallation={mode:'locked Playwright supported native ARM binaries plus system dependencies',path:browserPath(root),status:'COMMAND_CLOSED_0'};
+  await writeJSON(join(root,'campaign.json'),report,8<<20);
+}
+
 // -exec is transparent: metadata never enters test stdout or alters test args.
 // The test stays in its Go-owned package cwd and supervisor process group.
 async function testExec(){
@@ -149,11 +162,11 @@ async function testExec(){
   const mode=process.env.NEXTGO_RETAINED_TEST_MODE,phase=process.env.NEXTGO_RETAINED_TEST_PHASE;
   check(['native','wasm'].includes(mode)&&/^[a-z0-9-]+$/.test(phase||'')&&args.length<=64,'test execution identity');
   const before=await testArtifact(binary),wasm=before.header.startsWith('0061736d01000000');
-  check((mode==='wasm')===wasm&&(mode!=='native'||before.header.startsWith('7f454c460201')&&before.header.slice(36,40)==='3e00'),'test compiler target/magic mismatch');
+  check((mode==='wasm')===wasm,'test compiler target/magic mismatch');if(mode==='native')assertNativeELF(Buffer.from(before.header,'hex'),selectedTarget());
   const executable=mode==='wasm'?join(report.sdk.root,'lib/wasm/go_js_wasm_exec'):binary;
   const argv=mode==='wasm'?[binary,...args]:args;
   const packageDirectory=relative(source,await realpath(process.cwd())).split(sep).join('/');
-  const proof={version:1,phase,mode,cwd:await realpath(process.cwd()),package:'github.com/Suhaibinator/Next.go'+(packageDirectory?'/'+packageDirectory:''),binary,bytes:before.bytes,sha256:before.sha256,header:before.header,dev:before.dev,inode:before.inode,runner:executable,args:argv,pid:null,closed:false,code:null,signal:null,unchanged:false};
+  const proof={version:1,phase,mode,nativeTarget:selectedTarget().goArch,cwd:await realpath(process.cwd()),package:'github.com/Suhaibinator/Next.go'+(packageDirectory?'/'+packageDirectory:''),binary,bytes:before.bytes,sha256:before.sha256,header:before.header,dev:before.dev,inode:before.inode,runner:executable,args:argv,pid:null,closed:false,code:null,signal:null,unchanged:false};
   let child;try{
     child=spawn(executable,argv,{cwd:process.cwd(),env:process.env,stdio:'inherit',detached:false});proof.pid=child.pid??null;
     await new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',(code,signal)=>{proof.closed=true;proof.code=code;proof.signal=signal;resolve();});});
@@ -185,11 +198,11 @@ async function units(){
   const {root,source}=await owned(),report=await json(join(root,'campaign.json'),8<<20),inputs=await json(join(root,'inputs.json'),1<<20);
   check(report.status==='DEPENDENCIES_READY','dependency phase required');report.sdk=await sdk(root,source);await writeJSON(join(root,'campaign.json'),report,8<<20);
   const state={root,source,report},env=childEnv(root,source,{GOROOT:report.sdk.root,PATH:dirname(report.sdk.go)+delimiter+dirname(report.sdk.node.path)+delimiter+'/usr/bin:/bin',CGO_ENABLED:'1'});
-  const cc=await executablePath('gcc'),compiler=await testArtifact(cc);env.CC=cc;
+  const cc=await executablePath('gcc'),compiler=await testArtifact(cc);assertNativeELF(Buffer.from(compiler.header,'hex'),selectedTarget());env.CC=cc;
   const ccVersion=await step(state,'cc-version',cc,['--version'],env,60000,64<<10);report.nativeCompiler={path:cc,sha256:compiler.sha256,bytes:compiler.bytes,version:ccVersion.toString('utf8')};
-  const version=await step(state,'go-version',report.sdk.go,['version'],env,60000,64<<10);report.goVersion=version.toString('utf8');check(report.goVersion==='go version go'+process.env.GO_VERSION+' linux/amd64\n','actual executing SDK version mismatch');
-  const goEnv=await step(state,'go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],env,60000,64<<10);report.goEnvironment=JSON.parse(goEnv.toString('utf8'));
-  check(report.goEnvironment.GOOS==='linux'&&report.goEnvironment.GOARCH==='amd64'&&report.goEnvironment.GOROOT===report.sdk.root&&report.goEnvironment.GOVERSION===report.sdk.version&&report.goEnvironment.GOTOOLCHAIN==='local'&&report.goEnvironment.GOWORK==='off'&&report.goEnvironment.CGO_ENABLED==='1'&&report.goEnvironment.CC===cc&&report.goEnvironment.GOCACHE===join(root,'go-cache')&&report.goEnvironment.GOMODCACHE===join(root,'mod-cache'),'actual isolated producer Go environment mismatch');
+  const version=await step(state,'go-version',report.sdk.go,['version'],env,60000,64<<10);report.goVersion=version.toString('utf8');check(report.goVersion==='go version go'+process.env.GO_VERSION+' linux/'+selectedTarget().goArch+'\n','actual executing SDK version mismatch');
+  const goEnv=await step(state,'go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOHOSTOS','GOHOSTARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],env,60000,64<<10);report.goEnvironment=JSON.parse(goEnv.toString('utf8'));assertNativeGoEnvironment(report.goEnvironment,selectedTarget());
+  check(report.goEnvironment.GOOS==='linux'&&report.goEnvironment.GOARCH===selectedTarget().goArch&&report.goEnvironment.GOROOT===report.sdk.root&&report.goEnvironment.GOVERSION===report.sdk.version&&report.goEnvironment.GOTOOLCHAIN==='local'&&report.goEnvironment.GOWORK==='off'&&report.goEnvironment.CGO_ENABLED==='1'&&report.goEnvironment.CC===cc&&report.goEnvironment.GOCACHE===join(root,'go-cache')&&report.goEnvironment.GOMODCACHE===join(root,'mod-cache'),'actual isolated producer Go environment mismatch');
   const wrapper=join(root,'exec-wrapper.sh');await writeFile(wrapper,'#!/bin/sh\nexec '+shellQuote(process.execPath)+' '+shellQuote(self)+' test-exec "$@"\n',{mode:0o500,flag:'wx'});
   const formatted=await step(state,'format-check',join(report.sdk.root,'bin/gofmt'),['-l',...inputs.files.filter(file=>file.path.endsWith('.go')).map(file=>file.path)],env,60000);check(formatted.length===0,'source requires separate formatting derivative: '+formatted.toString('utf8').slice(0,4096));
   const cli=join(root,'dist','nextgo');await step(state,'build-cli',report.sdk.go,['build','-trimpath','-buildvcs=false','-o',cli,'./cmd/nextgo'],env,8*60000);
@@ -204,14 +217,16 @@ async function units(){
   // Native workspace/provenance regressions exercise Go's normal discovery and
   // VCS stamping. Keep the isolated build policy for every other phase.
   const nativeTestPolicy=Object.freeze({...inputs.nativeTestEnvironmentPolicy});
-  check(Object.keys(nativeTestPolicy).sort().join(',')==='GOFLAGS,GOWORK'&&nativeTestPolicy.GOWORK==='auto'&&nativeTestPolicy.GOFLAGS==='-p=1','reviewed native test environment policy required');
+  check(Object.keys(nativeTestPolicy).sort().join(',')==='GOENV,GOFLAGS,GOWORK'&&nativeTestPolicy.GOENV==='off'&&nativeTestPolicy.GOWORK==='auto'&&nativeTestPolicy.GOFLAGS==='-p=1','reviewed native test environment policy required');
   report.nativeTestRequestedPolicy={...nativeTestPolicy};
   const nativeTestEnv={...env,...nativeTestPolicy};
-  const nativeGoEnv=await step(state,'native-go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOENV','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],nativeTestEnv,60000,64<<10);
-  report.nativeTestGoEnvironment=JSON.parse(nativeGoEnv.toString('utf8'));
+  check(nativeTestEnv.GOENV==='off','native tests must disable the user Go environment file');
+  const nativeGoEnv=await step(state,'native-go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOHOSTOS','GOHOSTARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOENV','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],nativeTestEnv,60000,64<<10);
+  report.nativeTestGoEnvironment=JSON.parse(nativeGoEnv.toString('utf8'));assertNativeGoEnvironment(report.nativeTestGoEnvironment,selectedTarget());
   await writeJSON(join(root,'campaign.json'),report,8<<20);
   const actualNative=report.nativeTestGoEnvironment;
-  check(actualNative.GOOS==='linux'&&actualNative.GOARCH==='amd64'&&actualNative.GOROOT===report.sdk.root&&actualNative.GOVERSION===report.sdk.version&&actualNative.GOTOOLCHAIN==='local'&&actualNative.GOENV==='off'&&actualNative.GOWORK===''&&actualNative.GOFLAGS==='-p=1'&&actualNative.CGO_ENABLED==='1'&&actualNative.CC===cc&&actualNative.GOCACHE===join(root,'go-cache')&&actualNative.GOMODCACHE===join(root,'mod-cache'),'actual native test Go environment mismatch');
+  // go env GOENV reports the environment-file path, which is empty for GOENV=off.
+  check(actualNative.GOOS==='linux'&&actualNative.GOARCH===selectedTarget().goArch&&actualNative.GOROOT===report.sdk.root&&actualNative.GOVERSION===report.sdk.version&&actualNative.GOTOOLCHAIN==='local'&&actualNative.GOENV===''&&actualNative.GOWORK===''&&actualNative.GOFLAGS==='-p=1'&&actualNative.CGO_ENABLED==='1'&&actualNative.CC===cc&&actualNative.GOCACHE===join(root,'go-cache')&&actualNative.GOMODCACHE===join(root,'mod-cache'),'actual native test Go environment mismatch');
   await tests('native',['-race','./...'],nativeTestPolicy,inputs.tests.native,inputs.tests.nativeSkips||[]);
   await step(state,'vet-native',report.sdk.go,['vet','./...'],env,15*60000);await unchanged(source,after);
   const wasm={GOOS:'js',GOARCH:'wasm',CGO_ENABLED:'0'};
@@ -269,10 +284,10 @@ async function production(){
   check(sha(await readBounded(report.cli.path,128<<20))===report.cli.sha256,'CLI changed');
   await step(state,'build-production',report.cli.path,['build','--out',output,'./examples/retained'],env,20*60000);await unchanged(source,await json(join(root,'source-generated.json'),8<<20));
   const path=join(output,'server'),data=await readBounded(path,128<<20),info=await lstat(path,{bigint:true});await chmod(path,0o500);
-  check(data.subarray(0,6).toString('hex')==='7f454c460201'&&data.subarray(18,20).toString('hex')==='3e00','Linux AMD64 production ELF required');
+  assertNativeELF(data,selectedTarget());
   const parent=await lstat(output,{bigint:true});check(parent.isDirectory()&&await realpath(output)===output&&parent.uid===BigInt(process.getuid())&&(parent.mode&0o022n)===0n,'cooperatively owned producer directory required');
   report.server={path,sha256:sha(data),bytes:data.length,dev:info.dev.toString(),inode:info.ino.toString(),parent:{path:output,dev:parent.dev.toString(),inode:parent.ino.toString()}};await writeJSON(join(root,'campaign.json'),report,8<<20);
-  const metadata=await step(state,'production-build-info',report.sdk.go,['version','-m',report.cli.path,path],env,60000,128<<10);report.productionBuildInfo=metadata.toString('utf8');for(const file of [report.cli.path,path])check(report.productionBuildInfo.includes(file+': go'+process.env.GO_VERSION+'\n'),'actual production build metadata missing selected compiler: '+file);
+  const metadata=await step(state,'production-build-info',report.sdk.go,['version','-m',report.cli.path,path],env,60000,128<<10);report.productionBuildInfo=metadata.toString('utf8');for(const file of [report.cli.path,path])assertNativeBuildInfo(report.productionBuildInfo,file,process.env.GO_VERSION,selectedTarget());
   await step(state,'asset-probe',process.execPath,[self,'asset-probe'],{...env,NEXTGO_RETAINED_SERVER_BINARY:path,NEXTGO_RETAINED_SERVER_SHA256:report.server.sha256,NEXTGO_RETAINED_REQUIRE_LINUX_IDENTITY:'1'},2*60000);
   const probe=await json(join(root,'asset-proof.json'),2<<20);check(probe.status==='PASSED'&&probe.assets['wasm_exec.js'].sha256===report.sdk.files['lib/wasm/wasm_exec.js'].sha256,'actual embedded SDK runtime mismatch');
   await strictNativeProof(probe.native,report,root,source);report.status='PRODUCTION_ATTESTED';await writeJSON(join(root,'campaign.json'),report,8<<20);
@@ -374,6 +389,6 @@ async function cleanup(){
   await rm(root,{recursive:true,force:false,maxRetries:0});try{await lstat(root);throw Error('owned qualification root remains');}catch(error){if(error.code!=='ENOENT')throw error;}
   process.stdout.write('Marker-verified successful qualification root removed; incomplete roots are never silently removed.\n');
 }
-async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
+async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='install-browsers')return installBrowsers();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
 export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment};
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});

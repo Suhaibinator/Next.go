@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "scope": "Linux AMD64 native HTTP only",
+  "scope": "Linux native HTTP only; explicit amd64 or arm64",
   "baseCommit": "768bbb712e9a285b6b8252469c817b6a922739a5",
   "frameworkInput": {
     "sourceCommit": "44564f16484d576088d588407470bd6cfb2b83df",
@@ -17,15 +17,27 @@
   "files": [
     {
       "path": ".github/workflows/retained-routes-browser.yml",
-      "sha256": "8caf6765ed61b0596b262f9caa0d56c121307fc5248fec8cf1893799b6f92299",
-      "bytes": 3390,
-      "origin": "reviewed compiler bootstrap only; peerdf1ad132"
+      "sha256": "fbcd7fb42dfe128ceb4ceadea10699dfedf707c307205d0c76c293831627f5a6",
+      "bytes": 6370,
+      "origin": "ARM native public-hosted job and explicit AMD64 selection atop prior compiler-bootstrap receipt df1ad132; prior bytes preserved in base/"
     },
     {
       "path": ".github/workflows/retained-routes-source.yml",
       "sha256": "6584255f8102512797657f236baa39f2996d92f3b42a6c2cb551addb643bf5f2",
       "bytes": 5650,
       "origin": "approved UTF8 integration e596fa61"
+    },
+    {
+      "path": "cache/shared/http.go",
+      "sha256": "255c24a29e806a435f4e7c293d46051f4e3e94e1a8cd13f4a39e314ee7f108ef",
+      "bytes": 23245,
+      "origin": "Reviewed final-success caller cancellation check and deterministic EOF regressions; original881060 source and standalone67d653 formatter derivative are byte-identical; runtime unexecuted"
+    },
+    {
+      "path": "cache/shared/http_cancellation_test.go",
+      "sha256": "e969e5ad1f6ca191e6364607f702306154c527da00d8b29deedaf51cbf32df96",
+      "bytes": 3771,
+      "origin": "Reviewed final-success caller cancellation check and deterministic EOF regressions; original881060 source and standalone67d653 formatter derivative are byte-identical; runtime unexecuted"
     },
     {
       "path": "cache/shared/file_lock_unix_test.go",
@@ -317,15 +329,15 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "e07f34935b35f374762eb2f41830ce134d9fcf051952c23d8ba6c313201fadcf",
-      "bytes": 48974,
-      "origin": "approved UTF8 producer + reviewed native-only environment delta; bounded format diagnostic preserved"
+      "sha256": "45e11db7b8c54464df9da278b86374cf0153ee14e9196ee7fd8914756a20af29",
+      "bytes": 51020,
+      "origin": "ARM target/host/ELF/build-info auditing plus bounded locked-browser install atop approved UTF8 producer and reviewed native-only environment policy; prior bytes preserved in base/; requested-off/observed-empty GOENV correction fromaf37d88f/83cfbb97 (final v2 provenance), no native target predicate rollback"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
-      "sha256": "27fb7b624ff3dfedbe056ae31fd668d1c3535a79ca9632f213426a55191b44b3",
-      "bytes": 7391,
-      "origin": "exact actual37d source"
+      "sha256": "9f135e649df8ccd958a605240864018ef7679102a88ece865de585dc796eb37c",
+      "bytes": 10520,
+      "origin": "Pure native-target audit positives/negatives appended to exact actual37d auditor base; prior bytes preserved in base/"
     },
     {
       "path": "tests/retained-routes-fixture.mjs",
@@ -344,6 +356,12 @@
       "sha256": "871c64a4a0c42dab6c229df333c3b6a67634f9354e28cd68526fb1724d168a6b",
       "bytes": 7810,
       "origin": "exact actual37d source"
+    },
+    {
+      "path": "tests/retained-routes-target.mjs",
+      "bytes": 2522,
+      "sha256": "fd2cdd4d50ed8cd084fdac4960944b315d74dae646d13feb91d04a3cfbde7a84",
+      "origin": "New pure qualification-only native-target auditor; no production runtime imports"
     },
     {
       "path": "tests/retained-routes.config.mjs",
@@ -433,7 +451,8 @@
       "TestHTMLUTF8WriterErrorsAndShortInputCounts",
       "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
       "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
-      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess"
     ],
     "core": [
       "TestOrdinaryUnmountCleanupIsFencedBeforeDOMHeadAndHistory",
@@ -588,7 +607,7 @@
     "the three-view bound evicts the oldest owner and unsupported author IDs take the cold path"
   ],
   "targetCounts": {
-    "native": 38,
+    "native": 39,
     "core": 58,
     "devcore": 43,
     "portable": 13,
@@ -669,9 +688,27 @@
       "manifest": "manifest.json",
       "manifestSHA256": "3d967053310b0a3ad3ba2d0d331033fc92a9fe2906b6c2f18bafc048f0472dd1",
       "scope": "native test environment"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/retained-native-arm64-composed-v5",
+      "manifest": "manifest.json",
+      "manifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+      "scope": "reviewed ARM v5 plus final requested-off/observed-empty GOENV correction;64pin ancestry only"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/http-success-cancellation-515-v1",
+      "manifest": "source-manifest.json",
+      "manifestSHA256": "881060b38f0da53b06f4a703baecbca4e20952af243618d75c763a47eeaafcb9",
+      "scope": "reviewed final-success ctx.Err guard plus deterministic EOF regressions"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/source-formatting-http-cancel-515-v1/http",
+      "manifest": "manifest.json",
+      "manifestSHA256": "67d653be456c8fb6dc1408ca0fbee49c0fec3f1e7507ef2a05f45ce712e1721d",
+      "scope": "root standalone formatting/parsing derivative;27016bytes byte-identical; no tests"
     }
   ],
-  "newNativeRegressionCount": 29,
+  "newNativeRegressionCount": 30,
   "existingNativeRequiredBehaviorCount": 9,
   "skipRationale": {
     "native": {
@@ -684,7 +721,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "Exact source/producer pins prepared for independent source review and later authorized execution only. Actual37d source PASS and producer first-RED are historical evidence; this new combined source has no runtime qualification or publication authority.",
+  "readinessMeaning": "Exact66 selected sources and52 framework/fixture records are pinned for final root+independent source review before publication. ready permits only a later reviewed workflow; no runtime result is inherited. Both SDKs on both actual architectures require new execution.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -747,10 +784,28 @@
     "previousActualInputContractSHA256": "1267fb49acce0783dc177e3023347d647488dc2d815bdceaf6a88f0abedcd946"
   },
   "nativeTestEnvironmentPolicy": {
+    "GOENV": "off",
     "GOWORK": "auto",
     "GOFLAGS": "-p=1"
   },
-  "combinedSourceInput": {
+  "nativeArchitectures": [
+    "amd64",
+    "arm64"
+  ],
+  "architectureQualification": {
+    "status": "SOURCE_ONLY_UNEXECUTED",
+    "selection": "NEXTGO_RETAINED_NATIVE_ARCH exact amd64/arm64; actual Node/Go target/Go host/ELF required",
+    "amd64Resources": "existing Docker hard limits unchanged",
+    "arm64Resources": "public ubuntu-24.04-arm standard hosted runner; no borrowed container hard-limit proof",
+    "nativeCasesPerSDKAndArchitecture": 72,
+    "nativeClosuresPerSDKAndArchitecture": 73,
+    "unqualified": [
+      "mock Lambda modes",
+      "real Lambda packaging/deployment",
+      "full79/11release gates"
+    ]
+  },
+  "priorCombinedSourceInput": {
     "integrationBaseCommit": "37d520e02497210da2efd445edf24170a8388365",
     "integrationBaseTree": "08ebfb963af1dda614b91754b56d2310997fb751",
     "status": "PRIVATE_SOURCE_ONLY_COMPOSITION_RUNTIME_UNQUALIFIED",
@@ -800,5 +855,138 @@
       "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
       "All79 capabilities/11 release gates and full changed-output V10 remain open."
     ]
+  },
+  "combinedSourceInput": {
+    "integrationBaseCommit": "515c3179a9dc5cab75ffc7a241ba5cb4829b0ed9",
+    "integrationBaseTree": "ee8276b3d79ea6bb12da1041dbdf8eb2ba792fba",
+    "status": "PRIVATE_HTTP_ACKNOWLEDGMENT_AND_NATIVE_ARM_SOURCE_ONLY_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 66,
+    "sourcePinsTreeSHA256": "a8d239a087c0f99596c9a143b5bd6227a560bb4559157b72ebbd63361c681f78",
+    "frameworkAndFixtureFiles": 52,
+    "frameworkAndFixtureGoFiles": 41,
+    "frameworkAndFixtureTreeSHA256": "bf45d5b15a0bcb68026d7ca777dba21e27137d034e1ad46e26ce62a142f04496",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 39,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "parent64PinARMManifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+    "parent64PinTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "httpNativeRequiredRegressionAdded": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "historicalFramework50TreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174"
+  },
+  "nativeGoEnvironmentCorrection": {
+    "source": "retained-native-goenv-515-v2",
+    "manifestSHA256": "af37d88f59faa15c1621967c366fee7a76ea85e2f98a7b64c6087a299fb74e3a",
+    "patchSHA256": "83cfbb97f14a964f224c22db2e1cf08b3229071c82d19db7ab321f49c386fc1e",
+    "requestedGOENV": "off",
+    "actualGoEnvGOENV": "",
+    "meaning": "Disabled user Go environment-file reports an empty path; requested-off and observed-empty are independently checked. ARM host/target checks remain.",
+    "runtimeStatus": "UNEXECUTED_ARM_DERIVATIVE",
+    "upstream63CurrentTreeSHA256": "b6cce3399751c01c33730f2fab3b34dcb72ff8d1475a75d5bc51efb01bcafb03",
+    "bindingMeaning": "Metadata-only final upstream receipt; producer correction bytes unchangedv1. ARM own current64 tree is independently computed; upstream AMD64 tree is ancestry only."
+  },
+  "priorARMQualificationSourceInput": {
+    "integrationBaseCommit": "37d520e02497210da2efd445edf24170a8388365",
+    "integrationBaseTree": "08ebfb963af1dda614b91754b56d2310997fb751",
+    "status": "PRIVATE_ARM_QUALIFICATION_SOURCE_ONLY_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 64,
+    "sourcePinsTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "frameworkAndFixtureFiles": 50,
+    "frameworkAndFixtureGoFiles": 39,
+    "frameworkAndFixtureTreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 38,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03"
+  },
+  "httpCancellationCorrection": {
+    "sourceBaseCommit": "515c3179a9dc5cab75ffc7a241ba5cb4829b0ed9",
+    "sourceManifestSHA256": "881060b38f0da53b06f4a703baecbca4e20952af243618d75c763a47eeaafcb9",
+    "patchSHA256": "5bb550d42db9dec87f17fdb68d9db077509839413beaf938669e501988131273",
+    "formatManifestSHA256": "67d653be456c8fb6dc1408ca0fbee49c0fec3f1e7507ef2a05f45ce712e1721d",
+    "independentReviewSHA256": "6008c2ab3f61249506ce1e50034528e76a60f450e4acad2399a354f4ca9c6439",
+    "requiredNativeRegression": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "prospectiveCases": 9,
+    "protectedLiveHTTPTestSHA256": "c1c9caf57dc30b333eced712608ce475efcce4452136b2b505211e069998c657",
+    "contract": "Known caller ctx.Err prevents final successful acknowledgment after completed body and wire validation. Remote operation may already have completed; no rollback, retry, non-dispatch, early admission release or atomic cancellation claim.",
+    "runtimeStatus": "UNEXECUTED_CURRENT_COMPOSITION"
   }
 }
