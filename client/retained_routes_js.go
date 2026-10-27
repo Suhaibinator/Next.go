@@ -166,7 +166,17 @@ func validateRetainedEnvelope(body []byte, data *envelope) error {
 }
 
 func hiddenRetainedNode(node js.Value) bool {
-	return node.Type() == js.TypeObject && !node.IsNull() && node.Get("closest").Type() == js.TypeFunction && !node.Call("closest", "[data-nextgo-view][hidden]").IsNull()
+	if len(retainedViews) == 0 || node.Type() != js.TypeObject || node.IsNull() {
+		return false
+	}
+	// Only registered owners suppress ordinary document behavior. The bounded
+	// registry also avoids treating arbitrary author markers as retained views.
+	for _, view := range retainedViews {
+		if view.root.Call("hasAttribute", "hidden").Bool() && view.root.Call("contains", node).Bool() {
+			return true
+		}
+	}
+	return false
 }
 
 func retainedViewID() (string, error) {

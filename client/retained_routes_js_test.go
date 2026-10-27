@@ -196,6 +196,26 @@ func TestRetainedDescriptorFreeSuccessEvictsPrivateOwnersAndAliases(t *testing.T
 
 func TestRetainedSoleOwnerCollectorsIncludeIslandErrorAndScroll(t *testing.T) {
 	f := retainedRouterEnvironment(t)
+	view := retainedCurrent
+	unowned := f.makeNode.Invoke("a")
+	unowned.Call("setAttribute", "data-nextgo-view", view.info.ID)
+	unowned.Call("setAttribute", "hidden", "")
+	// Legacy document fixtures may return their anchor for any closest selector.
+	// No registered owner must leave that ordinary/default behavior untouched.
+	unowned.Set("closest", js.Global().Get("Function").New("return this;"))
+	retainedViews = map[string]*retainedView{}
+	routeManifest.RetainRoutes = false
+	if hiddenRetainedNode(unowned) {
+		t.Fatal("default-off document without retained owners suppressed an ordinary node")
+	}
+	routeManifest.RetainRoutes = true
+	if hiddenRetainedNode(unowned) {
+		t.Fatal("opt-in without registered owners suppressed an ordinary node")
+	}
+	retainedViews[view.info.ID] = view
+	if hiddenRetainedNode(unowned) || hiddenRetainedNode(f.draft) || hiddenRetainedNode(f.old) {
+		t.Fatal("unowned marker or visible registered owner was treated as hidden")
+	}
 	f.old.Call("setAttribute", "data-nextgo-island", "root")
 	f.old.Call("setAttribute", "data-nextgo-hydrated", "error")
 	registry["root"] = func(*Scope, json.RawMessage) error { return nil }
@@ -219,6 +239,18 @@ func TestRetainedSoleOwnerCollectorsIncludeIslandErrorAndScroll(t *testing.T) {
 	hideRetained(retainedCurrent)
 	if !f.draft.Get("isConnected").Bool() || !hiddenRetainedNode(f.draft) || !hiddenRetainedNode(f.old) {
 		t.Fatal("connected hidden focus/event target was treated as visible")
+	}
+	if hiddenRetainedNode(unowned) {
+		t.Fatal("hidden registered owner suppressed an unrelated node with a copied marker")
+	}
+	delete(retainedViews, view.info.ID)
+	if hiddenRetainedNode(f.draft) || hiddenRetainedNode(f.old) {
+		t.Fatal("unregistered hidden owner still suppressed document behavior")
+	}
+	retainedViews[view.info.ID] = view
+	showRetained(view)
+	if hiddenRetainedNode(f.draft) || hiddenRetainedNode(f.old) {
+		t.Fatal("shown owner remained classified as hidden")
 	}
 }
 
