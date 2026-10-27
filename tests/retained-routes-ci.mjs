@@ -126,7 +126,7 @@ async function init(){
   const before=await inventory(source,true);await writeJSON(join(root,'source-before.json'),before,8<<20);
   const contract=await json(join(source,'tests','retained-routes-ci-inputs.json'),1<<20);
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
-  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=160,'reviewed input contract required');
+  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=192,'reviewed input contract required');
   validateQualificationRequirements(contract);
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
@@ -423,8 +423,10 @@ async function collect(){
   const {root}=await owned();const copied=[],limit=64<<20;let total=0;
   async function copy(path,name,cap,compress=false){try{const bytes=await readBounded(path,cap),data=compress?gzipSync(bytes,{level:6}):bytes;check(total+data.length<=limit-(256<<10),'collection total bound');await writeFile(join(root,'evidence',name),data,{flag:'wx',mode:0o600});total+=data.length;copied.push({name,bytes:data.length,sha256:sha(data),originalBytes:bytes.length,originalSHA256:sha(bytes),gzip:compress});}catch(error){copied.push({name,omitted:String(error.code||error.message).slice(0,160)});}}
   for(const name of ['owner.json','inputs.json','campaign.json','go-summary.json','test-executable-summary.json','asset-proof.json','merge-asset-proof.json','browser-proof.json','source-before.json','source-generated.json'])await copy(join(root,name),name,16<<20);
+  const lambdaEnabled=(await json(join(root,'inputs.json'),1<<20)).lambdaQualification?.enabled===true;
+  if(lambdaEnabled){const {collectLambdaEvidence}=await import('./retained-routes-lambda-collection.mjs');await collectLambdaEvidence(root,copy);}
   for(const app of Object.values(apps))for(const name of [app.discovery,app.results])await copy(join(root,'report',name),name+'.gz',name===app.results?128<<20:8<<20,true);
-  const logs=await readdir(join(root,'logs'));check(logs.length<=128,'two-app command evidence count bound');for(const name of logs)await copy(join(root,'logs',name),'log-'+name+(name.endsWith('.stdout')?'.gz':''),name.endsWith('.stdout')?32<<20:1<<20,name.endsWith('.stdout'));
+  const logs=await readdir(join(root,'logs'));check(logs.length<=192,'two-app native plus Lambda command evidence count bound');for(const name of logs)await copy(join(root,'logs',name),'log-'+name+(name.endsWith('.stdout')?'.gz':''),name.endsWith('.stdout')?32<<20:1<<20,name.endsWith('.stdout'));
   const executions=await readdir(join(root,'exec'));check(executions.length<=512,'test executable receipt count bound');for(const name of executions)await copy(join(root,'exec',name),'exec-'+name,64<<10);
   // Retain only the first actual failing attempt's bounded, same-root trace.
   // No directory recursion, arbitrary attachment path or cache upload occurs.
@@ -444,6 +446,7 @@ async function collect(){
       await copy(path,'first-failure-trace.zip',8<<20);trace={status:'attempted',path};
     }
   }catch(error){trace={status:'unavailable',reason:String(error.code||error.message).slice(0,160)};}
+  if(lambdaEnabled&&trace.status==='not-required'){const {collectLambdaTrace}=await import('./retained-routes-lambda-collection.mjs');trace=await collectLambdaTrace(root,copy);}
   const complete=copied.every(item=>!item.omitted);
   await writeJSON(join(root,'evidence','collection.json'),{version:1,totalBytes:total,limit,complete,copied,firstFailureTrace:trace},256<<10);
   const report=await json(join(root,'campaign.json'),8<<20);if(report.status==='PASSED')check(complete,'passing execution lacks complete bounded evidence');
@@ -471,9 +474,10 @@ async function cleanup(){
   const moduleAssets=await json(join(root,'merge-asset-proof.json'),2<<20),{retainedOrigin}=await import(pathToFileURL(join(source,'tests','retained-routes-fixture.mjs')).href);
   check(moduleAssets.status==='PASSED'&&moduleAssets.app==='merge','own merge asset probe required for cleanup');validateLazyModuleMatrix(proof.lazyModuleProofs,moduleAssets.ssr.prefix,retainedOrigin);
   for(const name of (await readdir(join(root,'logs'))).filter(name=>name.endsWith('.proof.json'))){const item=await json(join(root,'logs',name),64<<10);check(item.closed&&item.groupEmpty&&!item.cleanupTimedOut&&(!item.pid||!groupPresent(item.pid)),'supervised command group still present');}
+  if((await json(join(root,'inputs.json'),1<<20)).lambdaQualification?.enabled===true){const {verifyLambdaCleanup}=await import('./retained-routes-lambda-ci.mjs');await verifyLambdaCleanup(root,source,report,proof);}
   await rm(root,{recursive:true,force:false,maxRetries:0});try{await lstat(root);throw Error('owned qualification root remains');}catch(error){if(error.code!=='ENOENT')throw error;}
   process.stdout.write('Marker-verified successful qualification root removed; incomplete roots are never silently removed.\n');
 }
 async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='install-browsers')return installBrowsers();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
-export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle};
+export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild};
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});

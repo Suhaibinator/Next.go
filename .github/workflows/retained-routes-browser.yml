@@ -12,7 +12,7 @@ concurrency:
 jobs:
   native-and-browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 300
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -68,6 +68,23 @@ jobs:
       - name: Exactly 144 actual cases preserving retained72 and adding merge72
         timeout-minutes: 60
         run: node tests/retained-routes-ci.mjs browser
+      # One hard360-minute job deadline bounds the aggregate. Individual phase
+      # maxima are not additive reservations; missing later evidence fails closed.
+      - name: Build two actual Lambda ZIPs and attest each extracted bootstrap HTTP baseline
+        timeout-minutes: 50
+        run: node tests/retained-routes-lambda-ci.mjs package
+      - name: LOCAL buffered actual ZIP asset and module byte accounting for both apps
+        timeout-minutes: 2
+        run: node tests/retained-routes-lambda-ci.mjs assets buffered
+      - name: LOCAL buffered retained72 and merge72 unchanged bodies with honest task counterpart
+        timeout-minutes: 60
+        run: node tests/retained-routes-lambda-ci.mjs browser buffered
+      - name: LOCAL streaming actual ZIP asset and module byte accounting for both apps
+        timeout-minutes: 2
+        run: node tests/retained-routes-lambda-ci.mjs assets streaming
+      - name: LOCAL streaming retained72 and merge72 unchanged bodies with honest task counterpart
+        timeout-minutes: 60
+        run: node tests/retained-routes-lambda-ci.mjs browser streaming
       - name: Collect bounded source, command and process evidence
         if: always() && env.NEXTGO_RETAINED_CI != ''
         timeout-minutes: 3
@@ -142,6 +159,23 @@ jobs:
       - name: Exactly 144 actual cases preserving retained72 and adding merge72
         timeout-minutes: 60
         run: node tests/retained-routes-ci.mjs browser
+      # One hard360-minute job deadline bounds the aggregate. Individual phase
+      # maxima are not additive reservations; missing later evidence fails closed.
+      - name: Build two actual Lambda ZIPs and attest each extracted bootstrap HTTP baseline
+        timeout-minutes: 50
+        run: node tests/retained-routes-lambda-ci.mjs package
+      - name: LOCAL buffered actual ZIP asset and module byte accounting for both apps
+        timeout-minutes: 2
+        run: node tests/retained-routes-lambda-ci.mjs assets buffered
+      - name: LOCAL buffered retained72 and merge72 unchanged bodies with honest task counterpart
+        timeout-minutes: 60
+        run: node tests/retained-routes-lambda-ci.mjs browser buffered
+      - name: LOCAL streaming actual ZIP asset and module byte accounting for both apps
+        timeout-minutes: 2
+        run: node tests/retained-routes-lambda-ci.mjs assets streaming
+      - name: LOCAL streaming retained72 and merge72 unchanged bodies with honest task counterpart
+        timeout-minutes: 60
+        run: node tests/retained-routes-lambda-ci.mjs browser streaming
       - name: Collect bounded source, command and process evidence
         if: always() && env.NEXTGO_RETAINED_CI != ''
         timeout-minutes: 3

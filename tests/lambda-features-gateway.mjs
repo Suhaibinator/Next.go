@@ -3,12 +3,17 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
+import { startRetainedStrictGateway } from './retained-strict-gateway.mjs';
 
 const requestLimit = 1 << 20, transportLimit = 8 << 20, preludeLimit = 16 << 10;
 const queueLimit = 32, invocationTimeout = 15_000;
 const excludedHeaders = new Set(['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade']);
 
-export async function startLambdaGateway({binary, mode, port, allowedHosts, workerArgs = [], trustedEnvironment}) {
+export async function startLambdaGateway({binary, mode, port, allowedHosts, workerArgs = [], trustedEnvironment, policy, workerFactory}) {
+  if (policy !== undefined) {
+    assert.equal(policy, 'retained-strict-v1', 'unknown gateway policy');
+    return startRetainedStrictGateway({binary, mode, port, allowedHosts, workerArgs, trustedEnvironment, workerFactory});
+  }
   // Test operators may opt into a small exact authority set. This does not
   // resolve those names or trust forwarded headers; all sockets stay loopback.
   // Capture a copy before any async startup so callers cannot widen it later.
