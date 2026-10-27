@@ -197,6 +197,31 @@ uploads. Real AWS streaming validation remains a release gate: check early
 HTML/chunks with an authorized streaming client, reverse-proxy/CDN buffering,
 WASM hydration, deadline failures, and observable client behavior after errors.
 
+### Invocation and gateway correlation context (scoped functional checks)
+
+`serverless.InvocationID(ctx)` / `serverless.GatewayRequestID(ctx)` expose
+distinct bounded context metadata from Run and HTTP API v2
+event conversion. It reads no caller-supplied HTTP correlation headers, adds no
+automatic headers/logging/tracing and grants no authorization. Values outside
+1–256 visible-ASCII bytes are omitted; existing Runtime API validation and
+response/error routing are unchanged. A missing gateway ID shadows an older
+inherited value. Existing bounded `nextgo.After` contexts retain request values.
+At head `1ac547fa`, Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769337) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769396) core jobs pass unfiltered
+`go test -race ./...`, including the native `serverless` package; these are
+package-level receipts, not individually verbose records for its seven new
+groups. The [first dedicated run](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) remains a test-compilation failure before
+transport execution. [Corrected run 40454405087](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087) now passes all three
+native HTTP/buffered-mock/streaming-mock modes on [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256570) and
+[Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256355), with nine paired response/After observations and three
+child Wait exit-0/no-KILL/mock-join receipts per SDK. This is Linux AMD64
+functional proof. The core workflow has a separate browser failure, so these
+component passes are not a full-workflow result. Later diagnostic Go changes
+remain unqualified by these receipts; no AWS, ARM64, read-only-container,
+resource/soak or browser qualification is implied. The
+fixture requires both `deployment` and `invocation_context` tags; plain
+deployment-tag tests keep their existing interface. See the [full evidence and
+limits](SERVERLESS_CONTEXT.md#proof-boundary).
+
 ### Runtime behavior and limits
 
 - Each invocation gets a request context with the Lambda deadline. Application

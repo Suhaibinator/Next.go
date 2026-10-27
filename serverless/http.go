@@ -120,6 +120,7 @@ func (event Request) HTTPRequest(ctx context.Context) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(withGatewayRequestID(req.Context(), event.RequestContext.RequestID))
 	req.Header = headers
 	req.Host = host
 	if scheme == "https" {
