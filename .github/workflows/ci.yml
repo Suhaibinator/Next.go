@@ -297,8 +297,41 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --shm-size 512m
+    defaults:
+      run:
+        shell: bash
+    env:
+      GOTOOLCHAIN: local
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
+      - name: Own streaming home and compiler paths
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          command -v git
+          streaming_root=$(mktemp -d "$RUNNER_TEMP/nextgo-streaming-ci.XXXXXX")
+          mkdir -m 700 "$streaming_root/home" "$streaming_root/go-cache" "$streaming_root/mod-cache" "$streaming_root/tmp"
+          test "$(stat -c %u "$streaming_root/home")" = "$(id -u)"
+          {
+            echo "NEXTGO_STREAMING_CI=$streaming_root"
+            echo "HOME=$streaming_root/home"
+            echo "GOCACHE=$streaming_root/go-cache"
+            echo "GOMODCACHE=$streaming_root/mod-cache"
+            echo "TMPDIR=$streaming_root/tmp"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
+      - name: Trust only the checked-out streaming workspace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test "$(stat -c %u "$HOME")" = "$(id -u)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -308,16 +341,41 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Install system dependencies with verified task-local APT bounds
+      - name: Validate preinstalled browsers and installer policy parsing
         timeout-minutes: 15
-        shell: bash
         run: |
           set -euo pipefail
           node --test scripts/install-ci-playwright-deps.test.mjs
-          node scripts/install-ci-playwright-deps.mjs
-      - name: Download repository-pinned Playwright browsers
-        timeout-minutes: 15
-        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { constants } from 'node:fs';
+          import { access, readFile, realpath, stat } from 'node:fs/promises';
+          import { isAbsolute, relative } from 'node:path';
+          import { chromium, firefox, webkit } from '@playwright/test';
+          const core = JSON.parse(await readFile('node_modules/playwright-core/package.json', 'utf8'));
+          const declared = JSON.parse(await readFile('package.json', 'utf8')).devDependencies['@playwright/test'];
+          assert.equal(core.version, '1.64.1');
+          assert.equal(declared, core.version);
+          assert.equal(process.platform, 'linux');
+          assert.equal(process.versions.node.split('.')[0], '22');
+          const home = await realpath(process.env.HOME);
+          const owned = await realpath(process.env.NEXTGO_STREAMING_CI);
+          assert.equal(relative(owned, home), 'home');
+          assert.equal((await stat(home)).uid, process.getuid());
+          const browsers = await realpath('/ms-playwright');
+          const executables = {};
+          for (const [name, browser] of Object.entries({ chromium, firefox, webkit })) {
+            const executable = await realpath(browser.executablePath());
+            const rel = relative(browsers, executable);
+            assert.ok(rel && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../'));
+            assert.ok((await stat(executable)).isFile());
+            await access(executable, constants.X_OK);
+            executables[name] = executable;
+          }
+          console.log(JSON.stringify({ phase: 'preinstalled-browser-metadata', playwright: core.version,
+            node: process.version, platform: process.platform, arch: process.arch, uid: process.getuid(),
+            ownedHome: home, executables, browserLaunches: 0 }));
+          NODE
       - name: Deterministic initial-stream parser conformance
         run: npm run test:stream-parser
       - name: Stream admission and recoverable navigation
