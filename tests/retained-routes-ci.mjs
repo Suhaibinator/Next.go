@@ -248,7 +248,7 @@ async function units(){
     check(actual.every(proof=>proof.closed===true&&proof.code===0&&proof.signal===null&&proof.unchanged===true&&Number.isSafeInteger(proof.pid)&&proof.pid>0&&hex(proof.sha256)&&proof.mode===(phase==='native'?'native':'wasm')),'invalid actual test-executable proof');
   }
   await writeJSON(join(root,'test-executable-summary.json'),receipts,4<<20);
-  await step(state,'harness-unit-tests',process.execPath,['--test','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-ci.test.mjs'],env,60000);
+  await step(state,'harness-unit-tests',process.execPath,['--test','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-ci.test.mjs','tests/link-status-gates.test.mjs'],env,60000);
   await unchanged(source,after);report.status='UNITS_PASSED';report.cli={path:cli,sha256:sha(await readBounded(cli,128<<20))};await chmod(cli,0o500);await writeJSON(join(root,'campaign.json'),report,8<<20);
 }
 

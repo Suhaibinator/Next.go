@@ -61,7 +61,7 @@ responses may exceed those bounds. Nothing is silently moved to S3 or a CDN.
 The runtime's optional `NEXTGO_LAMBDA_RESPONSE_MODE=streaming` selects its existing
 streaming protocol; the deployment integration must separately support it.
 
-Authored artifact tests build real generated applications, validate both target
+Artifact tests build real generated applications, validate both target
 ELFs/ZIPs and execute the ZIP's exact extracted bootstrap against a local mock
 Runtime API when Linux and the test-process architecture match. They check real SSR/navigation/API and
 asset gzip/base64 bytes, buffering/stream framing and shutdown. Mock cleanup has
@@ -70,10 +70,30 @@ bounded Close/Serve/connection completion. Passing cleanup requires actual child
 exit zero and listener refusal. A timed-out cleanup fails; it does not claim
 G06 worker-failure ownership or observed outer-host cleanup. Foreign target
 inspection does not prove execution, and Go process architecture alone does not
-prove hardware origin or distinguish native hardware from emulation. These new tests and this implementation
-remain unexecuted until separately qualified; no AWS or production-maturity
-claim follows from source inspection. Retention, props and other in-progress
-framework features retain their existing independent qualification limits.
+prove hardware origin or distinguish native hardware from emulation.
+
+The original [qualification run 40514703903, attempt 1](https://github.com/Suhaibinator/Next.go/actions/runs/40514703903/attempts/1)
+passed all four public Linux AMD64/ARM64 cells with Go 1.24.13 and 1.27.3 and
+Node 24.22.1. It tested immutable source
+`452bca5d60cb3c716865c1d6cddb440ca1ff95d6` at merge
+`1748c45bfa272484b359943ef6b0aa4b703a55c0`. Each cell passed seven selected
+race-test groups, both generated target inspections, two matching-architecture
+Runtime API mode parents and all 14 actual invocation subtests, plus vet. Its 25
+run/PASS records include parents and subtests, not 25 independent root tests;
+there were no skipped or failed cases and no retries within a cell. Original decoded job logs bind
+the actual checkout and SDK identities to these outcomes. The tested bootstrap/ZIP and served WASM/public-asset hashes
+are checked by the executed tests; binaries and workflow artifacts were not
+independently downloaded for this observation.
+
+This checkpoint qualifies the generated fixture package and its local mock
+Runtime API behavior. It does not verify a particular application's deployment,
+browser hydration, arbitrary middleware/response variants, actual AWS/IAM,
+provider streaming or cold starts. Deployment metadata still intentionally says
+**UNVERIFIED** for buffered transport. Full G06 resource/failure-ownership and G07
+deployment qualification remain open, as do the overall 79 capabilities and 11
+release gates. Retention, props and other in-progress framework features retain
+their independent qualification limits; later source or merge changes do not
+inherit this immutable checkpoint's result.
 
 Provider background: [custom runtimes](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-provided.html),
 [Go custom-runtime packaging](https://github.com/aws/aws-lambda-go/blob/main/README.md)
