@@ -1,0 +1,161 @@
+name: Retained routes browser qualification
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: retained-routes-browser-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.13', '1.27.3']
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --init --cpus 2 --memory 4g --memory-swap 4g --pids-limit 768 --shm-size 512m
+    env:
+      NEXTGO_RETAINED_NATIVE_ARCH: amd64
+      GO_VERSION: ${{ matrix.go }}
+      GOTOOLCHAIN: local
+      GOWORK: 'off'
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1 -buildvcs=false'
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - name: Ensure baked checkout metadata and native C race compiler
+        timeout-minutes: 15
+        run: |
+          set -eu
+          command -v git
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install --yes --no-install-recommends gcc libc6-dev
+          command -v gcc
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Trust only this checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Own exact inputs, fresh caches and evidence outside checkout
+        timeout-minutes: 2
+        run: node tests/retained-routes-ci.mjs init
+      - name: Install exact locked test dependencies without install scripts
+        timeout-minutes: 7
+        run: node tests/retained-routes-ci.mjs dependencies
+      - name: Full default native race/vet and four WASM personalities
+        timeout-minutes: 100
+        run: node tests/retained-routes-ci.mjs units
+      - name: Build standalone artifact and attest actual embedded assets
+        timeout-minutes: 25
+        run: node tests/retained-routes-ci.mjs production
+      - name: Exactly 72 actual prebuilt-server browser cases
+        timeout-minutes: 30
+        run: node tests/retained-routes-ci.mjs browser
+      - name: Collect bounded source, command and process evidence
+        if: always() && env.NEXTGO_RETAINED_CI != ''
+        timeout-minutes: 3
+        run: node tests/retained-routes-ci.mjs collect
+      - uses: actions/upload-artifact@v4
+        id: upload_evidence
+        if: always() && env.NEXTGO_RETAINED_CI != ''
+        with:
+          name: retained-native-go${{ matrix.go }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.NEXTGO_RETAINED_CI }}/evidence/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove only marker-verified disposable output after proof collection
+        if: always() && env.NEXTGO_RETAINED_CI != '' && steps.upload_evidence.outcome == 'success'
+        timeout-minutes: 3
+        run: node tests/retained-routes-ci.mjs cleanup
+
+  native-arm64-and-browser:
+    # Standard public ARM runner; no container/cgroup hard-limit claim.
+    if: github.event.repository.visibility == 'public'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.13', '1.27.3']
+    env:
+      NEXTGO_RETAINED_NATIVE_ARCH: arm64
+      GO_VERSION: ${{ matrix.go }}
+      GOTOOLCHAIN: local
+      GOWORK: 'off'
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1 -buildvcs=false'
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - name: Verify actual native ARM host and available race compiler
+        timeout-minutes: 2
+        run: |
+          set -eu
+          test "$(uname -m)" = aarch64
+          command -v git
+          command -v gcc
+          test "$(id -u)" != 0
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Own exact inputs, fresh caches and evidence outside checkout
+        timeout-minutes: 2
+        run: node tests/retained-routes-ci.mjs init
+      - name: Install exact locked test dependencies without install scripts
+        timeout-minutes: 7
+        run: node tests/retained-routes-ci.mjs dependencies
+      - name: Install locked native ARM browser binaries and supported OS dependencies
+        timeout-minutes: 60
+        run: node tests/retained-routes-ci.mjs install-browsers
+      - name: Full default native race/vet and four WASM personalities
+        timeout-minutes: 100
+        run: node tests/retained-routes-ci.mjs units
+      - name: Build standalone artifact and attest actual embedded assets
+        timeout-minutes: 25
+        run: node tests/retained-routes-ci.mjs production
+      - name: Exactly 72 actual prebuilt-server browser cases
+        timeout-minutes: 30
+        run: node tests/retained-routes-ci.mjs browser
+      - name: Collect bounded source, command and process evidence
+        if: always() && env.NEXTGO_RETAINED_CI != ''
+        timeout-minutes: 3
+        run: node tests/retained-routes-ci.mjs collect
+      - uses: actions/upload-artifact@v4
+        id: upload_evidence
+        if: always() && env.NEXTGO_RETAINED_CI != ''
+        with:
+          name: retained-arm64-native-go${{ matrix.go }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.NEXTGO_RETAINED_CI }}/evidence/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove only marker-verified disposable output after proof collection
+        if: always() && env.NEXTGO_RETAINED_CI != '' && steps.upload_evidence.outcome == 'success'
+        timeout-minutes: 3
+        run: node tests/retained-routes-ci.mjs cleanup

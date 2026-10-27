@@ -45,10 +45,17 @@ type Scope struct {
 	Root                   Element
 	cleanup                []func()
 	closed                 bool
+	suspended              bool
+	activityEpoch          uint64
+	retainedReport         *retainedScopeReport
+	listeners              []*scopeListener
+	asyncResources         map[*AsyncResource]struct{}
 	selectionCleanup       bool
 	locationCleanup        bool
 	linkStatusCleanup      bool
 	taskContext            context.Context
+	taskCancel             context.CancelFunc
+	taskCleanup            bool
 	taskWorkers            int
 }
 
@@ -92,12 +99,28 @@ func (s *Scope) On(el Element, event string, fn func(Event)) {
 		}
 		return nil
 	})
-	el.Value.Call("addEventListener", event, callback)
-	s.Cleanup(func() { el.Value.Call("removeEventListener", event, callback); callback.Release() })
+	listener := &scopeListener{target: el.Value, event: event, callback: callback}
+	registered := false
+	defer func() {
+		if !registered && !listener.closed {
+			callback.Release()
+		}
+	}()
+	listener.attach()
+	s.listeners = append(s.listeners, listener)
+	s.Cleanup(func() {
+		defer func() { s.listeners = removeOwned(s.listeners, listener) }()
+		listener.close()
+	})
+	registered = true
 }
 func (s *Scope) dispose() {
 	if s.closed {
 		return
+	}
+	reportOwner := s
+	for reportOwner.parent != nil {
+		reportOwner = reportOwner.parent
 	}
 	s.closed = true
 	if s.parent != nil {
@@ -108,7 +131,7 @@ func (s *Scope) dispose() {
 		func() {
 			defer func() {
 				if v := recover(); v != nil {
-					report(fmt.Sprint(v))
+					reportScopeError(reportOwner, fmt.Sprint(v))
 				}
 			}()
 			s.cleanup[i]()
@@ -192,13 +215,13 @@ func (s *Scope) ownsElement(node js.Value, includeRoot bool) bool {
 	return (outer.IsNull() || outer.Equal(s.owner)) && nearest.Equal(outer)
 }
 
-// active suppresses callbacks once any owning component begins disposal.
+// active suppresses callbacks while an owning component is hidden or closing.
 func (s *Scope) active() bool {
 	if s == nil || moduleRefreshHandlersFrozen() || refreshFrozen() {
 		return false
 	}
 	for owner := s; owner != nil; owner = owner.parent {
-		if owner.closed {
+		if owner.closed || owner.suspended {
 			return false
 		}
 	}

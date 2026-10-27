@@ -1,0 +1,101 @@
+name: Retained route source checks
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.13', '1.27.3']
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.go }}
+      cancel-in-progress: false
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '1'
+      GOFLAGS: -p=1
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      RETAINED_SOURCE_EVIDENCE: /tmp/nextgo-retained-source-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go }}
+      GOCACHE: /tmp/nextgo-retained-source-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go }}/go-cache
+      GOMODCACHE: /tmp/nextgo-retained-source-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.go }}/go-modules
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.3'
+      - name: Record exact source and compiler identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RETAINED_SOURCE_EVIDENCE"
+          {
+            git rev-parse HEAD
+            git rev-parse HEAD^{tree}
+            go version
+            go env GOROOT GOOS GOARCH
+            node --version
+          } | tee "$RETAINED_SOURCE_EVIDENCE/toolchain.txt"
+          git ls-tree -r HEAD > "$RETAINED_SOURCE_EVIDENCE/source-tree.txt"
+          task_goroot=$(go env GOROOT)
+          sha256sum "$task_goroot/lib/wasm/go_js_wasm_exec" "$task_goroot/lib/wasm/wasm_exec.js" > "$RETAINED_SOURCE_EVIDENCE/compiler-runtime.txt"
+      - name: All native packages with race checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test -race -count=1 -timeout=10m -json ./... | tee "$RETAINED_SOURCE_EVIDENCE/native.json"
+          go vet ./...
+      - name: All core and development WASM packages plus module contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          task_goroot=$(go env GOROOT)
+          task_runner="$task_goroot/lib/wasm/go_js_wasm_exec"
+          task_module_filter='^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL|TestRetainedLifetime|TestRetainedResume|TestRetention)'
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -exec="$task_runner" ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./ui | tee "$RETAINED_SOURCE_EVIDENCE/core.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./client -run "$task_module_filter" | tee "$RETAINED_SOURCE_EVIDENCE/module.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./ui | tee "$RETAINED_SOURCE_EVIDENCE/module-ui.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_devrefresh -exec="$task_runner" ./client ./mutation ./ui | tee "$RETAINED_SOURCE_EVIDENCE/dev-core.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags='nextgo_module nextgo_devrefresh' -exec="$task_runner" ./client -run "$task_module_filter" | tee "$RETAINED_SOURCE_EVIDENCE/dev-module.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags='nextgo_module nextgo_devrefresh' -exec="$task_runner" ./ui | tee "$RETAINED_SOURCE_EVIDENCE/dev-module-ui.json"
+          GOOS=js GOARCH=wasm go vet ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./ui
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client ./ui
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation ./ui
+          GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client ./ui
+      - name: Build the real CLI and retained example production bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          go build -trimpath -o "$RETAINED_SOURCE_EVIDENCE/nextgo" ./cmd/nextgo
+          "$RETAINED_SOURCE_EVIDENCE/nextgo" build -out "$RETAINED_SOURCE_EVIDENCE/retained" ./examples/retained
+          sha256sum "$RETAINED_SOURCE_EVIDENCE/nextgo" "$RETAINED_SOURCE_EVIDENCE/retained/server" > "$RETAINED_SOURCE_EVIDENCE/artifact-checksums.txt"
+          go version -m "$RETAINED_SOURCE_EVIDENCE/retained/server" > "$RETAINED_SOURCE_EVIDENCE/binary-version.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retained-route-source-${{ matrix.go }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/toolchain.txt
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/source-tree.txt
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/compiler-runtime.txt
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/native.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/core.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/module.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/module-ui.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-core.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-module.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-module-ui.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/artifact-checksums.txt
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/binary-version.txt

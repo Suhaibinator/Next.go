@@ -3,11 +3,20 @@
 package client
 
 // Admission is recorded before the portable store launches its actual loader.
-// Logical waiter cancellation never retires this worker's development lease.
+// Logical waiter cancellation retires neither the refresh nor retained lease.
+// A retained resource waiter and its physical loader are separate charges.
 func beginResourceRefreshActivity() (func(), error) {
 	lease, err := beginRefreshActivity()
-	if err != nil || lease == nil {
+	if err != nil {
 		return nil, err
 	}
-	return lease.Done, nil
+	physical, err := beginRetainedTask()
+	if err != nil {
+		lease.Done()
+		return nil, err
+	}
+	if lease == nil && physical == nil {
+		return nil, nil
+	}
+	return func() { lease.Done(); physical.Done() }, nil
 }
