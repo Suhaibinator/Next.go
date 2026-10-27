@@ -1,10 +1,23 @@
 # Private retained-route prototype
 
-This source-only prototype adds a bounded, opt-in history optimization for small
-buffered Go pages. Go source formatting and syntax parsing have been performed
-for this derivative. It has not been compiled, executed, browser-tested or
-qualified. It does not close V10, the 79 capability rows, the 11 release gates,
-or the production-maturity objective. The source accompanies `examples/retained`.
+This experimental first slice adds bounded, opt-in history retention for small
+buffered Go pages. Exact source head `44564f16` (tested merge `407382b1`) passed
+its existing native, four WASM-personality, vet and build gates on Go 1.24.13 and
+1.27.3 in [source CI 40488533451](https://github.com/Suhaibinator/Next.go/actions/runs/40488533451).
+That evidence does not qualify this revision's canonical HTML UTF-8 extension,
+which has Go formatting/syntax checks only. The separate `1ed87fb4` hosted
+campaign failed its format-check on both SDKs before tests, builds or browsers;
+its planned 72 browser cases and 73 native-process closures per SDK remain unrun.
+The corrected `37d520e0` source gate also passed both SDKs in
+[source CI 40498233862](https://github.com/Suhaibinator/Next.go/actions/runs/40498233862).
+Its separate hosted producer stopped before browser qualification: Go 1.24.13
+exceeded the five-minute compiler-package setup deadline, and Go 1.27.3 failed
+six existing native workspace/provenance assertions under the producer's forced
+environment. This revision prepares a narrower compiler bootstrap, a native-only
+test environment correction, canonical HTML UTF-8 handling and the selected
+offline donor/diagnostic integration; their combined bytes are unqualified.
+V10, all 79 capabilities, all 11 release gates and production maturity remain
+open. The source accompanies `examples/retained`.
 
 ## Opt in
 
@@ -226,16 +239,38 @@ island/error/scroll behavior, history/focus/scroll, fresh loaders, supersession,
 partition/denial reset, bounded eviction and unsupported native-group fallbacks.
 No synthetic application response substitutes for a real server fixture.
 
-Go source formatting and syntax parsing are complete for this derivative.
-Native compilation/tests, vet, core and module WASM builds/tests, generated
-example build, production standalone execution, all configured browser profiles,
-cross-platform and deployment qualification remain unexecuted. Source review and
-syntax checks do not provide runtime qualification. Parent CI for earlier
-immutable heads is not evidence for this overlay.
+The exact `44564f16` source/compiler checkpoint passed both SDKs' native race
+suites, existing core/module/development WASM personalities, vet and real CLI/
+retained-example builds in the source CI linked above. Declared skips and
+repeated test-group executions across personalities/SDKs remain separately
+recorded; summed groups are not unique-test counts. This is source/compiler
+qualification, not retained-browser or production deployment qualification.
 
-The next required increment is fresh-output reconciliation with explicit stable
-per-visit island identity, compatible props updates and a prepare/publish barrier;
-Refresh/query/history must share that merge path. Full changed-output state
+The exact `37d520e0` source gate also passed its complete source commands on
+both SDKs. Freshly observed retained-group PASS events were 21 native, 38 core,
+13 module, 22 development-core and 13 development-module per SDK. These are
+selected repeated group observations, not unique-test totals; existing skips
+remain explicit. They exclude the new canonical HTML UTF-8 tests and offline
+integration in this revision.
+
+The separate `1ed87fb4` producer stopped at format-check on both SDKs. The
+corrected `37d520e0` producer then stopped at compiler-package setup on Go
+1.24.13 and six native workspace/provenance assertions on Go 1.27.3 in
+[producer CI 40498233638](https://github.com/Suhaibinator/Next.go/actions/runs/40498233638).
+Neither reached its planned 72 browser cases and 73 native-process closures per
+SDK. The narrower compiler setup and native-only environment correction are
+source-reviewed preparations, not successful runtime results. The UTF-8 files
+have Go formatting/syntax evidence only; compilation, tests and all four UI
+personalities remain pending for this combined source. Selected offline donor
+behavior and its failure-only observer also require fresh integration evidence;
+a successful donor run does not exercise that observer or prove browser-race
+repair. Standalone/browser, cross-platform, resource and deployment gates remain
+open; earlier evidence is not promoted to this revision.
+
+The next required increment is fresh-output reconciliation with stable branch/
+component compatibility identity distinct from per-visit history aliases,
+compatible props updates and a prepare/publish barrier. Refresh/query/history
+must share that merge path. Full changed-output state
 preservation, multi-root ownership, lazy/core integration, persistent layouts,
 forms/client-only/keyed/slots/streams and complete interaction testing remain
 open. No Next.js source compatibility or production maturity is claimed.

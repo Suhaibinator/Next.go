@@ -2,6 +2,7 @@ import {test as base, expect, chromium, firefox, webkit} from '@playwright/test'
 import {mkdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {readOfflineArtifacts, startOfflineFixture} from './offline-fixture.mjs';
+import {observeOfflineRegistrationProof} from './offline-registration-proof-diagnostics.mjs';
 
 const browserTypes = {chromium, firefox, webkit};
 const controls = page => page.locator('[data-offline-controls]');
@@ -129,6 +130,10 @@ const test = base.extend({
       },
     };
     try {await use(shelf);} finally {
+      if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
+          info.title === 'explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation') {
+        try {await observeOfflineRegistrationProof(context, info, fixture.origin);} catch {console.warn('Offline registration diagnostic unavailable before attachment');}
+      }
       let closed = false;
       try {
         const errors = [];

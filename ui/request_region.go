@@ -103,6 +103,7 @@ func (n *requestRegionNode) Render(w io.Writer) error {
 type shellCaptureWriter struct {
 	contextWriter
 	buffer     *streamBuffer
+	canonical  *htmlUTF8Writer
 	specs      []RegionSpec
 	known      map[string]bool
 	propsBytes int
@@ -117,6 +118,11 @@ func (w *shellCaptureWriter) region(id, region string, props json.RawMessage, fa
 		return fmt.Errorf("ui: request-region shell exceeds identity or resource limits")
 	}
 	w.known[id] = true
+	// The following region header begins with ASCII. Resolve any preceding
+	// incomplete rune before recording canonical byte offsets for the wrapper.
+	if err := w.canonical.finish(); err != nil {
+		return err
+	}
 	start := w.buffer.data.Len()
 	if _, err := w.WriteString(regionHeader(id)); err != nil {
 		return err
@@ -154,11 +160,15 @@ func CaptureShell(ctx context.Context, node Node) (shell CapturedShell, err erro
 	}()
 	buffer := &streamBuffer{}
 	work := context.WithValue(ctx, shellCaptureKey{}, true)
-	writer := &shellCaptureWriter{contextWriter: contextWriter{work, buffer}, buffer: buffer, known: map[string]bool{}}
+	canonical := &htmlUTF8Writer{ctx: work, dst: buffer}
+	writer := &shellCaptureWriter{contextWriter: contextWriter{work, canonical}, buffer: buffer, canonical: canonical, known: map[string]bool{}}
 	if node != nil {
 		if err := node.Render(writer); err != nil {
 			return CapturedShell{}, err
 		}
+	}
+	if err := canonical.finish(); err != nil {
+		return CapturedShell{}, err
 	}
 	if err := ctx.Err(); err != nil {
 		return CapturedShell{}, err

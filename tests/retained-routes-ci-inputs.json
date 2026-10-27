@@ -11,333 +11,387 @@
     "GoFiles": 30,
     "ownershipFixManifestSHA256": "4513588d1dd9bad0f3f2bf11c43278e1059615911625562edca87837a606a691",
     "previousManifestSHA256": "053858f979726e526b6d599fefb5cae515ae3c1d02d7b7fd4418f8fd97fc2372",
-    "status": "Corrected source pins independently verified against actual445; full browser campaign remains unexecuted.",
+    "status": "Historical exact445 and exact37d source/compiler gates passed on both SDKs. This historical39-file checkpoint is not the current combined source tree; current composition is recorded separately and remains runtime-unqualified.",
     "reportedPartialFeedback": "Historical5bf source run reported21 new native/38 new production-core PASS with whole core old viewport failures. Ownership guard correction is source-reviewed; corrected runtime reruns are separate evidence, not inferred here."
   },
   "files": [
     {
       "path": ".github/workflows/retained-routes-browser.yml",
-      "sha256": "4af868e3ec9f13ad4c201d19891eaff9f01ae3ebc85dfc1ddef6fba8fb727dbd",
-      "bytes": 3109,
-      "origin": "separate unexecuted hosted producer overlay"
+      "sha256": "8caf6765ed61b0596b262f9caa0d56c121307fc5248fec8cf1893799b6f92299",
+      "bytes": 3390,
+      "origin": "reviewed compiler bootstrap only; peerdf1ad132"
     },
     {
       "path": ".github/workflows/retained-routes-source.yml",
-      "sha256": "04455cb417a32c8cc646d04e214d183959b06c1c2202ce14289b859358a61f78",
-      "bytes": 5144,
-      "origin": "actual445 unchanged source-qualification producer provenance; not reused for browser artifacts"
+      "sha256": "6584255f8102512797657f236baa39f2996d92f3b42a6c2cb551addb643bf5f2",
+      "bytes": 5650,
+      "origin": "approved UTF8 integration e596fa61"
     },
     {
       "path": "cache/shared/file_lock_unix_test.go",
       "sha256": "c86c16c67178102969b02b86317c29ed35710d17b134a8620a3652edd46007d2",
       "bytes": 11036,
-      "origin": "exact native helper skip and required subprocess-behavior coverage"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/accessibility_js.go",
       "sha256": "2e27940078d23247fb538638ade300a6879f705d9d3abcd7d34840c0bf45c8dc",
       "bytes": 3010,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/composition_js.go",
       "sha256": "7060a063e19984223b42b6371079aa5a642fad6ab83315ebb08360dc0d509cc6",
       "bytes": 2362,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/lifetime.go",
       "sha256": "e8ed95f3bc759b71814f962760f79cf2ecc5f0b201a92e0c3366961316f7f4f1",
       "bytes": 14597,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/offline_conflict_js_test.go",
       "sha256": "d6f8d5f8653c0f883a31e4b38265907b291c52c9dea4f675ed3e839119b7367a",
       "bytes": 8175,
-      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/offline_js.go",
-      "sha256": "f92ad4597a2533dafe4be2346213b14685adb874848921e571ec4b0fd3e8f75d",
-      "bytes": 23938,
-      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
+      "sha256": "bbcd22b05b4874550f25d3bd29ee043da89e79f4ff5bb8da5b13b95ec171e9e1",
+      "bytes": 28704,
+      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
+    },
+    {
+      "path": "client/offline_registration_reacquire_js_test.go",
+      "sha256": "e98983fcf92e15288bf7ac14f4b4f1a0448b2f3c1bc82e337a0a387267757be0",
+      "bytes": 22379,
+      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
     },
     {
       "path": "client/offline_registration_status_js_test.go",
-      "sha256": "1d23337c1b62ce726ae9eccf92c4370c91220deb65fd80c138bac2e0de1ce4fd",
-      "bytes": 12028,
-      "origin": "immutable baseline768 dependency/protected input"
+      "sha256": "ce61eb8f443e1313ea2b0bbef935bfefe8cbab90f3167c5f77101b8e045a7132",
+      "bytes": 12146,
+      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
     },
     {
       "path": "client/refresh_activity_js_test.go",
       "sha256": "1610d7f7f1801a1d254fb987a21bc571f20bc641a0fae0e0509dc4078b44246e",
       "bytes": 11573,
-      "origin": "exact devmodule host-only skip requires real devcore counterpart"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/resource_js.go",
       "sha256": "85f78b53877cca3ce24165affcdad65a8f6caa15474eb9e3c4ee198788f8dd25",
       "bytes": 14969,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/resource_refresh_js.go",
       "sha256": "c142622010771ea52afabd572c8ca7b33cef5ff7c67819bf23446ed6788ae9c6",
       "bytes": 609,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retained_devrefresh_js_test.go",
       "sha256": "df3fbabe3937c343379730f8e21fbfe543e0b7ba6d8b633dc8f30a992e76289f",
       "bytes": 13660,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retained_dom_budget_js_test.go",
       "sha256": "5e35a7e6664d0986001ca14bba27770d12440c6ef4064c876e5fa1c3e72b669d",
       "bytes": 896,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retained_routes_js.go",
       "sha256": "b79a4d084ce5c0d7582b8f92a7c6006c760aa7b3b231151c20bcc12a75dd9e25",
       "bytes": 30269,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retained_routes_js_test.go",
       "sha256": "a362739aabd14a70a0a406991e347a14a4713edda4e3076d843ba007f8a1b962",
       "bytes": 33540,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retention.go",
       "sha256": "5ae51bef75e9a55d88a7ffd1ae7680c1da7caf8a0a3b92f78a9bfa736f445106",
       "bytes": 3922,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retention_activity_js.go",
       "sha256": "554f884452e15b1bbce40d9b680309350a8b6412ecd2eff1cf08d9e7e3038b8e",
       "bytes": 6040,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retention_activity_js_test.go",
       "sha256": "5d08354a83f3d87b9f54530a10f9dfe6bddb9c0587aed86ccea54c7328723851",
       "bytes": 13126,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retention_lifetime_test.go",
       "sha256": "4f658ddc8d62dea2ce481f028517ed0ff0c9fdc2d4802442c0a39e29ba29e5b3",
       "bytes": 9897,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/retention_test.go",
       "sha256": "e6acd7318590871b2079d7ade531c236d093046e969efab8ac0d7d09ad27802d",
       "bytes": 2978,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/runtime_js.go",
       "sha256": "7e2db243047e916d5bbf7cf4b8291dc8f27e6f29bcfa1083807ffe903943f835",
       "bytes": 49046,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/scope_js.go",
       "sha256": "1f9e7fb30ac8b73900f7a4ee8b1e31d43aeb2e05bbfbaa615accbf9b821be70c",
       "bytes": 6658,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "client/task_js.go",
       "sha256": "07bb6f45d6d9579e8d597a84089a021fc800d6d8946feeb29fe56ce9b75a51aa",
       "bytes": 1353,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "docs/PARITY.md",
       "sha256": "c91895420c8045b64f84f398ab6b2236b2f90bf5ea864502ee494dd0cd9ddf86",
       "bytes": 189859,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "docs/RETAINED_ROUTES.md",
-      "sha256": "c260badafbc17b6c58e76b01dfb6c6fbafc4e6911cd7b6cc9cb023e1ad0e5b7d",
-      "bytes": 14869,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "sha256": "2525b57c5e49b81c287c969964d445fc4d49ab8f22d3fa85ed8999350967ac02",
+      "bytes": 17366,
+      "origin": "truthful historical445/37d source qualification and separate producer first-RED; combined candidate unqualified"
     },
     {
       "path": "examples/retained/README.md",
       "sha256": "ce4c19042ae09864d715f7a4657865405a598289684f43ba064b4835247b4224",
       "bytes": 3395,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/app/config.go",
       "sha256": "b274c5e643bba6d1857112aed21c55a9ef341015488cb2a860a3ec0af7e7d95d",
       "bytes": 3763,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/app/content.go",
       "sha256": "e93c4a0c6cf4c4346432d63796f84a982b5a61b0a7a1f9a1230131f30dca5d04",
       "bytes": 3487,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/app/page.go",
       "sha256": "95d2052a7cb0b9093e7fed0150601fd3e274f6a919e57504ccd96f97e47a1379",
       "bytes": 154,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/app/param_page/page.go",
       "sha256": "86158743f8e3cc51beecaf5ae2d12e8349a10d44ac82b0f80d97b1df6abeb34a",
       "bytes": 240,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/components/retentionpanel/client_js.go",
       "sha256": "676f789e0ff3ff5e4762d1d081139e209620db341acf251fdb4f9dabc250085e",
       "bytes": 3554,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/components/retentionpanel/props.go",
       "sha256": "1d13a3418855564f68f553e12ffd309aa066b5b41393f3545486fe9a1a31a6a9",
       "bytes": 335,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/components/retentionpanel/server.go",
       "sha256": "5bd1194cfd0596d0f8d031523387f0b0325803c80020e774136f32a0da3da4bc",
       "bytes": 1933,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "examples/retained/public/retained.css",
       "sha256": "fad58b5a4fdcf434ba1c4c87e28bdbd8eca8ce58488119dbddf30c4fbcb55a7a",
       "bytes": 286,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "go.mod",
       "sha256": "5baa3db5d68f402f8be2ee6eab92cf9309c5f290b3454fc34fbb999a6bc93e6b",
       "bytes": 48,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
     },
     {
       "path": "internal/navigation/manifest.go",
       "sha256": "91b4b0d440ba49e2020f3b3c91dbfe5b10d90e1bb8fcda1ad47f267f46047474",
       "bytes": 2936,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "internal/navigation/retention.go",
       "sha256": "286184c2c48bc2b4b27dbd2e5848d989732d58faeafe2c67dd082170f40c9734",
       "bytes": 3831,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "internal/navigation/retention_test.go",
       "sha256": "2aaf9e8ba4f848334a90bfe6478e818dd9ddcc30180771a2994ac3adb1571823",
       "bytes": 3498,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "nextgo.go",
       "sha256": "a1cb3a7e7cbe0196f011249650340720715e37a811a3a50663c115585044a171",
       "bytes": 45086,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "package-lock.json",
       "sha256": "d2a649f7843e721c5792d6a6ae9cd82204e0ed39ed96db3ed075e0594aa76a50",
       "bytes": 1656,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
     },
     {
       "path": "package.json",
       "sha256": "0089316df33e56aba74a510282ad2a9744590f5f54e3d3e41c54181eec45eb6e",
       "bytes": 3782,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
     },
     {
       "path": "retention.go",
       "sha256": "31f90dc8956a36a8159419a7bef65ab2c34d097a54a98f5cf69df8ed1d68cbcd",
       "bytes": 1411,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "retention_test.go",
       "sha256": "20a1768189cbb5309e944a36a66e2fe344739d0a6d877abbae89a2481c46c4e7",
       "bytes": 6077,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
+    },
+    {
+      "path": "retention_utf8_test.go",
+      "sha256": "a1b03ced2dac3ba4502d76f7f988e9ddd7c98f4ec0ed3395818da0dcf787089a",
+      "bytes": 5790,
+      "origin": "approved UTF8 integration e596fa61"
     },
     {
       "path": "scripts/test-wasm.sh",
       "sha256": "aed94c1336cbc427593dcd5b0f5e10db6d90d888c3c3b2c99d513cb66adcbce1",
       "bytes": 1468,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/link-status-gates.mjs",
       "sha256": "83bcac99bc75869be69e31b4bba5102243330f16ab6e726f1a453d71e15727bc",
       "bytes": 7734,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
+    },
+    {
+      "path": "tests/offline-registration-proof-diagnostics.mjs",
+      "sha256": "75acbfb27f057c11be7b910b36e90c4640947342d7c1a3f3c32ee2292aab433c",
+      "bytes": 11227,
+      "origin": "exact separate offline observer proposal8e47affd; eligible failure only"
+    },
+    {
+      "path": "tests/offline.spec.mjs",
+      "sha256": "375e71f4f883bd82d92f4fba04f0f24ea590f3e9972a5b77d4be4644e22851bd",
+      "bytes": 27164,
+      "origin": "exact separate offline observer proposal8e47affd; eligible failure only"
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "6e7b3b44ed89d0b75d4975bf06531de9e78aa1e5efa15bffad8583290f813624",
-      "bytes": 47268,
-      "origin": "reviewed next overlay: gofmt-only baseline normalization plus bounded diagnostic filenames against exact1ed"
+      "sha256": "e07f34935b35f374762eb2f41830ce134d9fcf051952c23d8ba6c313201fadcf",
+      "bytes": 48974,
+      "origin": "approved UTF8 producer + reviewed native-only environment delta; bounded format diagnostic preserved"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
       "sha256": "27fb7b624ff3dfedbe056ae31fd668d1c3535a79ca9632f213426a55191b44b3",
       "bytes": 7391,
-      "origin": "separate unexecuted hosted producer overlay"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/retained-routes-fixture.mjs",
       "sha256": "e8369d8e105b75f4e3ed6f858512e9464fce6d9acdb9a7a2e9e8baab41a23391",
       "bytes": 10519,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/retained-routes-native-identity.mjs",
       "sha256": "14958d48f68277155a48faacb042c6345831531259a2af4cec3983397b889379",
       "bytes": 9682,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/retained-routes-native-identity.test.mjs",
       "sha256": "871c64a4a0c42dab6c229df333c3b6a67634f9354e28cd68526fb1724d168a6b",
       "bytes": 7810,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/retained-routes.config.mjs",
       "sha256": "6a2eae236de797ca6483e96587fc7e66d1887109416334bd8a65b74fb05fa422",
       "bytes": 955,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/retained-routes.spec.mjs",
       "sha256": "606ece33e6d4b0e4259944b72fca47b3acdbcf55dc426215d686f0b2d9f59fc5",
       "bytes": 19193,
-      "origin": "corrected39-file packet independently bound to actual445 commit"
+      "origin": "exact actual37d source"
     },
     {
       "path": "tests/static-shell-ci-build.mjs",
       "sha256": "4ebff91aa52f58864c6c5ce5b68a2cb39f0d59f8f820d7e2304233d2c21da6c6",
       "bytes": 20592,
-      "origin": "immutable baseline768 dependency/protected input"
+      "origin": "exact actual37d source"
+    },
+    {
+      "path": "ui/request_region.go",
+      "sha256": "3f9f9ba3c756eacc42af092b1bdce83403560c10d66f88d8d850e15ee4ea23db",
+      "bytes": 8635,
+      "origin": "approved UTF8 integration e596fa61"
+    },
+    {
+      "path": "ui/stream.go",
+      "sha256": "b8ef81a916bccc6c2e6443826b6b234da3e91e12f3e2bde8bc42dc6118f519b4",
+      "bytes": 9155,
+      "origin": "approved UTF8 integration e596fa61"
+    },
+    {
+      "path": "ui/ui.go",
+      "sha256": "6d83d435586977da0f504d4021c717e699eed31eac59e8786da7ba4259e59483",
+      "bytes": 9715,
+      "origin": "approved UTF8 integration e596fa61"
+    },
+    {
+      "path": "ui/utf8.go",
+      "sha256": "da0a8186d97938ac843d491c09e1f1bf107203dce546bfa538eccdc4dd6a6f4e",
+      "bytes": 5162,
+      "origin": "approved UTF8 integration e596fa61"
+    },
+    {
+      "path": "ui/utf8_test.go",
+      "sha256": "4b9e84eec1a8a06df469c7e956f0c61939860bc0e8c4f069ba0900bdfbb7d01f",
+      "bytes": 9066,
+      "origin": "approved UTF8 integration e596fa61"
     }
   ],
   "tests": {
@@ -365,7 +419,21 @@
       "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView",
       "TestRetentionOptInContributesToConfigurationIdentityWithoutDefaultBytes",
       "TestRetentionRequiresBothOptInsAndFreshPerRequestPolicy",
-      "TestRetentionResponseStampBindsNativeHTMLAndNavigationBytes"
+      "TestRetentionResponseStampBindsNativeHTMLAndNavigationBytes",
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic",
+      "TestRetentionUTF8ExactSSRAndNavigationStamp",
+      "TestCanonicalUTF8HTMLAndNavigationStreamSemantics",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
     ],
     "core": [
       "TestOrdinaryUnmountCleanupIsFencedBeforeDOMHeadAndHistory",
@@ -405,7 +473,27 @@
       "TestRetainedTasksCaptureTheAdmissionContextAndDoNotReplay",
       "TestRetentionAdmissionEvictsOldestHiddenViewWithoutMutatingOnFailure",
       "TestRetentionHistoryRequiresMatchingFreshAuthorityAndHasBoundedAliases",
-      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView"
+      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
     ],
     "devcore": [
       "TestRefreshActivityScriptCallerCancelRetainsDownloadCallbacks",
@@ -430,7 +518,27 @@
       "TestRetainedTasksCaptureTheAdmissionContextAndDoNotReplay",
       "TestRetentionAdmissionEvictsOldestHiddenViewWithoutMutatingOnFailure",
       "TestRetentionHistoryRequiresMatchingFreshAuthorityAndHasBoundedAliases",
-      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView"
+      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
     ],
     "portable": [
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
@@ -449,6 +557,14 @@
     ],
     "nativeSkips": [
       "github.com/Suhaibinator/Next.go/cache/shared|TestFileLockProcessHelper"
+    ],
+    "ui": [
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
     ]
   },
   "browserTitles": [
@@ -472,10 +588,11 @@
     "the three-view bound evicts the oldest owner and unsupported author IDs take the cold path"
   ],
   "targetCounts": {
-    "native": 24,
-    "core": 38,
-    "devcore": 23,
-    "portable": 13
+    "native": 38,
+    "core": 58,
+    "devcore": 43,
+    "portable": 13,
+    "ui": 6
   },
   "nativeProcessContract": {
     "browserCasesPerSDK": 72,
@@ -517,10 +634,45 @@
       "path": ".nextgo-test-results/recovery/retained-parity-v10-source-768-v1",
       "manifest": "manifest.json",
       "manifestSHA256": "8d0cfc67d587da5487db3572bf21be60a1d13eb692ec580eb0692bb190d8d2df"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/source-formatting-utf8-445-v1/canonical",
+      "manifest": "manifest.json",
+      "manifestSHA256": "0f979838969ab8e1a519ed7edd8171ae3af1be1285d9376f09335c4bcf61ba86"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/retained-utf8-pr5-next-37d-v1",
+      "manifest": "manifest.json",
+      "manifestSHA256": "e596fa61a5cc96e174d00d5e4cb567bb0b25c267d46d2eeee3d97ce94575b07c",
+      "scope": "UTF8 integration"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/pr1-offline-into-pr5-37d-v1",
+      "manifest": "source-manifest.json",
+      "manifestSHA256": "9958e3c1239c840240e7fd22831494c3dff475d61dd3ea5a2833ffd7e38a2063",
+      "scope": "offline donor"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/pr1-offline-into-pr5-37d-v1/proposals/observer",
+      "manifest": "source-manifest.json",
+      "manifestSHA256": "8e47affd8310280657b0bde5a542d703590d6349c147e79b716863c617b5f4c0",
+      "scope": "failure-only observer"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/retained-compiler-bootstrap-next-37d-v1",
+      "manifest": "source-assessment.json",
+      "manifestSHA256": "22041a364f209fafab586b51df234f210bf4049873889c92abd3b3ffd1036026",
+      "scope": "compiler bootstrap"
+    },
+    {
+      "path": ".nextgo-test-results/recovery/retained-native-env-37d-v1",
+      "manifest": "manifest.json",
+      "manifestSHA256": "3d967053310b0a3ad3ba2d0d331033fc92a9fe2906b6c2f18bafc048f0472dd1",
+      "scope": "native test environment"
     }
   ],
-  "newNativeRegressionCount": 21,
-  "existingNativeRequiredBehaviorCount": 3,
+  "newNativeRegressionCount": 29,
+  "existingNativeRequiredBehaviorCount": 9,
   "skipRationale": {
     "native": {
       "github.com/Suhaibinator/Next.go/cache/shared|TestFileLockProcessHelper": "Parent suite intentionally skips subprocess entry; require all three actual kernel/kill/exec behavioral parent tests to pass."
@@ -529,10 +681,10 @@
       "github.com/Suhaibinator/Next.go/client|TestRefreshActivityScriptCallerCancelRetainsDownloadCallbacks": "Document script download host belongs to core; full devcore must execute counterpart."
     }
   },
-  "newDevcoreRegressionCount": 22,
-  "existingDevcoreRequiredCounterpartCount": 1,
+  "newDevcoreRegressionCount": 41,
+  "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "Exact corrected source and producer hashes are ready for reviewed hosted execution only; no runtime qualification, publication authorization or maturity claim.",
+  "readinessMeaning": "Exact source/producer pins prepared for independent source review and later authorized execution only. Actual37d source PASS and producer first-RED are historical evidence; this new combined source has no runtime qualification or publication authority.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -549,6 +701,104 @@
       "framework semantics",
       "72 browser cases and73 native closures per SDK"
     ],
-    "runtimeQualified": false
+    "runtimeQualified": false,
+    "scope": "Historical exact37d formatting provenance. The current offline_js.go pin is now the separately selected semantic donor; offline_conflict_js_test.go and bounded diagnostic remain exact37d."
+  },
+  "canonicalHTMLInput": {
+    "integrationBaseCommit": "37d520e02497210da2efd445edf24170a8388365",
+    "frameworkParentCommit": "44564f16484d576088d588407470bd6cfb2b83df",
+    "formattedManifestSHA256": "0f979838969ab8e1a519ed7edd8171ae3af1be1285d9376f09335c4bcf61ba86",
+    "formattedPatchSHA256": "28df324abc9b041263721d438012b863174709eed44f8c1f5f3e42187d8062fa",
+    "formatAndParseResultSHA256": "91bac0698702fa5ff914a58c27f1b7708c1a99406852a08d149396d9456e174d",
+    "sourceManifestSHA256": "12a860dfc93b97f4ff343dc20fea8d7fde9a6cee53902228faee043c6bb06c9e",
+    "sourcePeerReviewSHA256": "57ad805effece3ccffcbcb7ae978602284a152ac797884b895e91f7877ad3ead",
+    "GoFiles": 6,
+    "GoBytes": 47523,
+    "requiredNativeRegressions": [
+      "TestRetentionUTF8ExactSSRAndNavigationStamp",
+      "TestCanonicalUTF8HTMLAndNavigationStreamSemantics",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
+    ],
+    "requiredUIPersonalityRegressions": [
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
+    ],
+    "status": "Six exact root-formatted Go files: FORMAT_AND_PARSE_PASS only. Combined compilation/tests/four-personality UI and hosted qualification remain pending.",
+    "historicalSourceGate": {
+      "run": 40488533451,
+      "head": "44564f16484d576088d588407470bd6cfb2b83df",
+      "testedMerge": "407382b1ac2a7b4d5706281eec7d5c525ef37b76",
+      "evidenceSHA256": "66b3e881371bb05206310c584857e7aefde60a086e505654a0372f6d8a1cb915",
+      "scope": "Existing native/fourWASM/vet/build source gate only; excludes this new UTF8 extension and retained browser qualification"
+    },
+    "identityContractSHA256": "32cabeee70fdb4e152a7d09c900b526def2afbdceb1a922483cb5645db26f8a6",
+    "previousPreparedManifestSHA256": "4dc109cb2b7b6fb37cc634e51df05c2ef42f51da65fd76f2927346e452bed4f0",
+    "baselineFormattingCommit": "37d520e02497210da2efd445edf24170a8388365",
+    "baselineFormattingManifestSHA256": "e4a2c939adfc70970d0d4d88479d428633f3dd1fae11c7baee9c9c18087cdbdc",
+    "previousActualInputContractSHA256": "1267fb49acce0783dc177e3023347d647488dc2d815bdceaf6a88f0abedcd946"
+  },
+  "nativeTestEnvironmentPolicy": {
+    "GOWORK": "auto",
+    "GOFLAGS": "-p=1"
+  },
+  "combinedSourceInput": {
+    "integrationBaseCommit": "37d520e02497210da2efd445edf24170a8388365",
+    "integrationBaseTree": "08ebfb963af1dda614b91754b56d2310997fb751",
+    "status": "PRIVATE_SOURCE_ONLY_COMPOSITION_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 63,
+    "sourcePinsTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "frameworkAndFixtureFiles": 50,
+    "frameworkAndFixtureGoFiles": 39,
+    "frameworkAndFixtureTreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 38,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ]
   }
 }

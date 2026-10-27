@@ -98,11 +98,11 @@ async function init(){
   const contract=await json(join(source,'tests','retained-routes-ci-inputs.json'),1<<20);
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
   check(contract.version===1&&contract.scope==='Linux AMD64 native HTTP only'&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=128,'reviewed input contract required');
-  for(const target of ['native','core','devcore','portable'])check(Array.isArray(contract.tests?.[target])&&contract.tests[target].length>0&&contract.tests[target].length<=128&&new Set(contract.tests[target]).size===contract.tests[target].length&&contract.tests[target].every(name=>/^Test[A-Za-z0-9_]+$/.test(name)),'named target PASS contract: '+target);
+  for(const target of ['native','core','devcore','portable','ui'])check(Array.isArray(contract.tests?.[target])&&contract.tests[target].length>0&&contract.tests[target].length<=128&&new Set(contract.tests[target]).size===contract.tests[target].length&&contract.tests[target].every(name=>/^Test[A-Za-z0-9_]+$/.test(name)),'named target PASS contract: '+target);
   check(Array.isArray(contract.browserTitles)&&contract.browserTitles.length===18&&new Set(contract.browserTitles).size===18&&contract.browserTitles.every(title=>typeof title==='string'&&title.length<=1024),'exact18 reviewed browser titles required');
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
-  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','.github/workflows/retained-routes-browser.yml','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
+  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
   await writeJSON(join(root,'inputs.json'),contract,1<<20);
   await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','ARM64','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
 }
@@ -189,7 +189,7 @@ async function units(){
   const ccVersion=await step(state,'cc-version',cc,['--version'],env,60000,64<<10);report.nativeCompiler={path:cc,sha256:compiler.sha256,bytes:compiler.bytes,version:ccVersion.toString('utf8')};
   const version=await step(state,'go-version',report.sdk.go,['version'],env,60000,64<<10);report.goVersion=version.toString('utf8');check(report.goVersion==='go version go'+process.env.GO_VERSION+' linux/amd64\n','actual executing SDK version mismatch');
   const goEnv=await step(state,'go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],env,60000,64<<10);report.goEnvironment=JSON.parse(goEnv.toString('utf8'));
-  check(report.goEnvironment.GOOS==='linux'&&report.goEnvironment.GOARCH==='amd64'&&report.goEnvironment.GOROOT===report.sdk.root&&report.goEnvironment.GOVERSION===report.sdk.version&&report.goEnvironment.GOTOOLCHAIN==='local'&&report.goEnvironment.GOWORK==='off'&&report.goEnvironment.CGO_ENABLED==='1'&&report.goEnvironment.CC===cc&&report.goEnvironment.GOCACHE===join(root,'go-cache')&&report.goEnvironment.GOMODCACHE===join(root,'mod-cache'),'actual native Go environment mismatch');
+  check(report.goEnvironment.GOOS==='linux'&&report.goEnvironment.GOARCH==='amd64'&&report.goEnvironment.GOROOT===report.sdk.root&&report.goEnvironment.GOVERSION===report.sdk.version&&report.goEnvironment.GOTOOLCHAIN==='local'&&report.goEnvironment.GOWORK==='off'&&report.goEnvironment.CGO_ENABLED==='1'&&report.goEnvironment.CC===cc&&report.goEnvironment.GOCACHE===join(root,'go-cache')&&report.goEnvironment.GOMODCACHE===join(root,'mod-cache'),'actual isolated producer Go environment mismatch');
   const wrapper=join(root,'exec-wrapper.sh');await writeFile(wrapper,'#!/bin/sh\nexec '+shellQuote(process.execPath)+' '+shellQuote(self)+' test-exec "$@"\n',{mode:0o500,flag:'wx'});
   const formatted=await step(state,'format-check',join(report.sdk.root,'bin/gofmt'),['-l',...inputs.files.filter(file=>file.path.endsWith('.go')).map(file=>file.path)],env,60000);check(formatted.length===0,'source requires separate formatting derivative: '+formatted.toString('utf8').slice(0,4096));
   const cli=join(root,'dist','nextgo');await step(state,'build-cli',report.sdk.go,['build','-trimpath','-buildvcs=false','-o',cli,'./cmd/nextgo'],env,8*60000);
@@ -201,7 +201,18 @@ async function units(){
   await writeJSON(join(root,'source-generated.json'),after,8<<20);await step(state,'generate-check',cli,['generate','--check','./examples/retained'],env,60000);await unchanged(source,after);
   const summaries={};
   async function tests(name,args,extra,required,allowed=[]){const output=await step(state,name,report.sdk.go,['test','-count=1','-json','-timeout=10m','-exec='+wrapper,...args],{...env,...extra,NEXTGO_RETAINED_TEST_PHASE:name,NEXTGO_RETAINED_TEST_MODE:name==='native'?'native':'wasm'},name==='native'?45*60000:15*60000,32<<20);summaries[name]=goResults(output,required,allowed);await writeJSON(join(root,'go-summary.json'),summaries,16<<20);await unchanged(source,after);}
-  await tests('native',['-race','./...'],{},inputs.tests.native,inputs.tests.nativeSkips||[]);
+  // Native workspace/provenance regressions exercise Go's normal discovery and
+  // VCS stamping. Keep the isolated build policy for every other phase.
+  const nativeTestPolicy=Object.freeze({...inputs.nativeTestEnvironmentPolicy});
+  check(Object.keys(nativeTestPolicy).sort().join(',')==='GOFLAGS,GOWORK'&&nativeTestPolicy.GOWORK==='auto'&&nativeTestPolicy.GOFLAGS==='-p=1','reviewed native test environment policy required');
+  report.nativeTestRequestedPolicy={...nativeTestPolicy};
+  const nativeTestEnv={...env,...nativeTestPolicy};
+  const nativeGoEnv=await step(state,'native-go-environment',report.sdk.go,['env','-json','GOOS','GOARCH','GOROOT','GOVERSION','GOTOOLCHAIN','GOENV','GOWORK','CGO_ENABLED','CC','GOFLAGS','GOCACHE','GOMODCACHE'],nativeTestEnv,60000,64<<10);
+  report.nativeTestGoEnvironment=JSON.parse(nativeGoEnv.toString('utf8'));
+  await writeJSON(join(root,'campaign.json'),report,8<<20);
+  const actualNative=report.nativeTestGoEnvironment;
+  check(actualNative.GOOS==='linux'&&actualNative.GOARCH==='amd64'&&actualNative.GOROOT===report.sdk.root&&actualNative.GOVERSION===report.sdk.version&&actualNative.GOTOOLCHAIN==='local'&&actualNative.GOENV==='off'&&actualNative.GOWORK===''&&actualNative.GOFLAGS==='-p=1'&&actualNative.CGO_ENABLED==='1'&&actualNative.CC===cc&&actualNative.GOCACHE===join(root,'go-cache')&&actualNative.GOMODCACHE===join(root,'mod-cache'),'actual native test Go environment mismatch');
+  await tests('native',['-race','./...'],nativeTestPolicy,inputs.tests.native,inputs.tests.nativeSkips||[]);
   await step(state,'vet-native',report.sdk.go,['vet','./...'],env,15*60000);await unchanged(source,after);
   const wasm={GOOS:'js',GOARCH:'wasm',CGO_ENABLED:'0'};
   const core=['./client','./mutation','./offline','./offline/worker','./internal/offlinejson','./ui'];
@@ -212,8 +223,9 @@ async function units(){
     await tests(name,['-tags='+tags,'./client','-run',moduleFilter],wasm,[],name==='devmodule'?['github.com/Suhaibinator/Next.go/client|TestRefreshActivityScriptCallerCancelRetainsDownloadCallbacks']:[]);
     check(summaries[name].tests.some(test=>test.pass===1),'selected module suite ran no tests');
     await tests(name+'-retained',['-tags='+tags,'./client','-run','^(TestRetention|TestRetained)'],wasm,inputs.tests.portable);
+    await tests(name+'-ui',['-tags='+tags,'./ui'],wasm,inputs.tests.ui);
   }
-  for(const [name,tags,packages]of [['core','',core],['devcore','nextgo_devrefresh',dev],['module','nextgo_module',['./client']],['devmodule','nextgo_module,nextgo_devrefresh',['./client']]])await step(state,'vet-'+name,report.sdk.go,['vet',...(tags?['-tags='+tags]:[]),...packages],{...env,...wasm},10*60000);
+  for(const [name,tags,packages]of [['core','',core],['devcore','nextgo_devrefresh',dev],['module','nextgo_module',['./client','./ui']],['devmodule','nextgo_module,nextgo_devrefresh',['./client','./ui']]])await step(state,'vet-'+name,report.sdk.go,['vet',...(tags?['-tags='+tags]:[]),...packages],{...env,...wasm},10*60000);
   const receipts=[];for(const name of await readdir(join(root,'exec'))){check(receipts.length<512,'test executable receipt bound');receipts.push(await json(join(root,'exec',name),64<<10));}
   for(const [phase,summary]of Object.entries(summaries)){
     const expected=summary.packages.filter(([,status])=>status==='pass').map(([name])=>name).sort(),actual=receipts.filter(proof=>proof.phase===phase);

@@ -62,14 +62,16 @@ jobs:
           task_goroot=$(go env GOROOT)
           task_runner="$task_goroot/lib/wasm/go_js_wasm_exec"
           task_module_filter='^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL|TestRetainedLifetime|TestRetainedResume|TestRetention)'
-          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -exec="$task_runner" ./client ./mutation ./offline ./offline/worker ./internal/offlinejson | tee "$RETAINED_SOURCE_EVIDENCE/core.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -exec="$task_runner" ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./ui | tee "$RETAINED_SOURCE_EVIDENCE/core.json"
           GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./client -run "$task_module_filter" | tee "$RETAINED_SOURCE_EVIDENCE/module.json"
-          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_devrefresh -exec="$task_runner" ./client ./mutation | tee "$RETAINED_SOURCE_EVIDENCE/dev-core.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./ui | tee "$RETAINED_SOURCE_EVIDENCE/module-ui.json"
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_devrefresh -exec="$task_runner" ./client ./mutation ./ui | tee "$RETAINED_SOURCE_EVIDENCE/dev-core.json"
           GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags='nextgo_module nextgo_devrefresh' -exec="$task_runner" ./client -run "$task_module_filter" | tee "$RETAINED_SOURCE_EVIDENCE/dev-module.json"
-          GOOS=js GOARCH=wasm go vet ./client ./mutation ./offline ./offline/worker ./internal/offlinejson
-          GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client
-          GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation
-          GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client
+          GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags='nextgo_module nextgo_devrefresh' -exec="$task_runner" ./ui | tee "$RETAINED_SOURCE_EVIDENCE/dev-module-ui.json"
+          GOOS=js GOARCH=wasm go vet ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./ui
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client ./ui
+          GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation ./ui
+          GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client ./ui
       - name: Build the real CLI and retained example production bundle
         shell: bash
         run: |
@@ -91,7 +93,9 @@ jobs:
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/native.json
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/core.json
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/module.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/module-ui.json
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-core.json
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-module.json
+            ${{ env.RETAINED_SOURCE_EVIDENCE }}/dev-module-ui.json
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/artifact-checksums.txt
             ${{ env.RETAINED_SOURCE_EVIDENCE }}/binary-version.txt
