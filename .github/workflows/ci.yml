@@ -366,7 +366,16 @@ jobs:
           node tests/offline-build-fixture.mjs --source "$GITHUB_WORKSPACE" --out "$NEXTGO_OFFLINE_CI/build"
       - name: Managed offline fixed browser matrix
         timeout-minutes: 30
-        run: npm run test:offline -- --reporter=line,json
+        shell: bash
+        run: |
+          set -eu
+          nextgo_offline_browser_home=$(mktemp -d "$NEXTGO_OFFLINE_CI/browser-home.XXXXXX")
+          test -d "$nextgo_offline_browser_home"
+          test ! -L "$nextgo_offline_browser_home"
+          test "$(realpath -- "$nextgo_offline_browser_home")" = "$nextgo_offline_browser_home"
+          test "$(stat -c '%u' -- "$nextgo_offline_browser_home")" = "$(id -u)"
+          test "$(stat -c '%a' -- "$nextgo_offline_browser_home")" = 700
+          env HOME="$nextgo_offline_browser_home" npm run test:offline -- --reporter=line,json
       - name: Collect bounded offline failure evidence
         if: failure()
         shell: bash
@@ -459,7 +468,13 @@ jobs:
         shell: bash
         run: |
           set -eu
-          node scripts/test-browser.mjs --config=tests/link-status.config.mjs --reporter=line,json
+          nextgo_link_status_browser_home=$(mktemp -d "$NEXTGO_LINK_STATUS_CI/browser-home.XXXXXX")
+          test -d "$nextgo_link_status_browser_home"
+          test ! -L "$nextgo_link_status_browser_home"
+          test "$(realpath -- "$nextgo_link_status_browser_home")" = "$nextgo_link_status_browser_home"
+          test "$(stat -c '%u' -- "$nextgo_link_status_browser_home")" = "$(id -u)"
+          test "$(stat -c '%a' -- "$nextgo_link_status_browser_home")" = 700
+          env HOME="$nextgo_link_status_browser_home" node scripts/test-browser.mjs --config=tests/link-status.config.mjs --reporter=line,json
           node --input-type=module <<'NODE'
           import fs from 'node:fs/promises';
           import {constants} from 'node:fs';
