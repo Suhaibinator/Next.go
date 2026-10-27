@@ -115,8 +115,16 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 60
+      - name: Install system dependencies with verified task-local APT bounds
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node scripts/install-ci-playwright-deps.mjs
+      - name: Download repository-pinned Playwright browsers
+        timeout-minutes: 30
+        run: node node_modules/playwright-core/cli.js install chromium firefox webkit
       - run: npm test
       - run: npm run test:crossbrowser
       - run: npm run test:shared-cache
@@ -164,12 +172,43 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --shm-size 512m
+    defaults:
+      run:
+        shell: bash
     env:
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
       GOTOOLCHAIN: local
       GOMAXPROCS: '1'
       GOFLAGS: -p=1
     steps:
+      - name: Own refresh image home and compiler paths
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          command -v git
+          browser_image_root=$(mktemp -d "$RUNNER_TEMP/nextgo-refresh-image-ci.XXXXXX")
+          mkdir -m 700 "$browser_image_root/home" "$browser_image_root/go-cache" "$browser_image_root/mod-cache" "$browser_image_root/tmp"
+          test "$(stat -c %u "$browser_image_root/home")" = "$(id -u)"
+          {
+            echo "NEXTGO_BROWSER_IMAGE_CI=$browser_image_root"
+            echo "HOME=$browser_image_root/home"
+            echo "GOCACHE=$browser_image_root/go-cache"
+            echo "GOMODCACHE=$browser_image_root/mod-cache"
+            echo "TMPDIR=$browser_image_root/tmp"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
+      - name: Trust only the checked-out refresh workspace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test "$(stat -c %u "$HOME")" = "$(id -u)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -179,8 +218,64 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 30
+      - name: Preserve native cgo compiler with verified task-local APT bounds
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs scripts/install-ci-native-compiler.test.mjs
+          node scripts/install-ci-native-compiler.mjs
+          test "$(command -v gcc)" = /usr/bin/gcc
+          test "$(command -v ld)" = /usr/bin/ld
+          test "$(go env CC)" = gcc
+          test "$(go env CGO_ENABLED)" = 1
+          gcc -dumpfullversion -dumpversion
+          ld --version
+          go env -json GOOS GOARCH CGO_ENABLED CC GOROOT GOCACHE GOMODCACHE
+      - name: Validate preinstalled browser metadata and actual launch versions
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { constants } from 'node:fs';
+          import { access, readFile, realpath, stat } from 'node:fs/promises';
+          import { isAbsolute, relative } from 'node:path';
+          import { chromium, firefox, webkit } from '@playwright/test';
+          const core = JSON.parse(await readFile('node_modules/playwright-core/package.json', 'utf8'));
+          const declared = JSON.parse(await readFile('package.json', 'utf8')).devDependencies['@playwright/test'];
+          const descriptors = JSON.parse(await readFile('node_modules/playwright-core/browsers.json', 'utf8')).browsers;
+          assert.equal(core.version, '1.64.1');
+          assert.equal(declared, core.version);
+          assert.equal(process.platform, 'linux');
+          assert.ok(['x64', 'arm64'].includes(process.arch));
+          assert.equal(process.versions.node.split('.')[0], '22');
+          assert.ok(Array.isArray(descriptors) && descriptors.length <= 32);
+          const home = await realpath(process.env.HOME);
+          const owned = await realpath(process.env.NEXTGO_BROWSER_IMAGE_CI);
+          assert.equal(relative(owned, home), 'home');
+          assert.equal((await stat(home)).uid, process.getuid());
+          assert.equal((await stat(home)).mode & 0o777, 0o700);
+          const browsers = await realpath('/ms-playwright');
+          const executables = {}, versions = {};
+          for (const [name, browser] of Object.entries({ chromium, firefox, webkit })) {
+            const executable = await realpath(browser.executablePath());
+            const rel = relative(browsers, executable);
+            assert.ok(rel && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../'));
+            assert.ok((await stat(executable)).isFile());
+            await access(executable, constants.X_OK);
+            executables[name] = executable;
+            const expected = descriptors.filter(item => item.name === name);
+            assert.equal(expected.length, 1);
+            assert.match(expected[0].browserVersion, /^[0-9]+(?:\.[0-9]+){1,3}$/);
+            const running = await browser.launch({headless: true, timeout: 30_000});
+            try {versions[name] = running.version(); assert.equal(versions[name], expected[0].browserVersion);}
+            finally {await running.close();}
+          }
+          console.log(JSON.stringify({phase: 'preinstalled-browser-runtime', playwright: core.version,
+            node: process.version, platform: process.platform, arch: process.arch, uid: process.getuid(),
+            ownedHome: home, executables, versions, browserCloseAcknowledgements: 3,
+            scope: 'Browser API close acknowledgement, not process-group or resource-gate proof'}));
+          NODE
       - name: Build refresh qualification artifacts
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -222,13 +317,44 @@ jobs:
       fail-fast: false
       matrix:
         go: ['1.24.x', 'stable']
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --shm-size 512m
+    defaults:
+      run:
+        shell: bash
     env:
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
       GOTOOLCHAIN: local
       GOMAXPROCS: '1'
       GOFLAGS: -p=1
       NEXTGO_INDEPENDENT_ZONES_ARTIFACTS: ${{ github.workspace }}/.nextgo-test-results/independent-zones/operator/artifact-index.json
     steps:
+      - name: Own zones image home and compiler paths
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          command -v git
+          browser_image_root=$(mktemp -d "$RUNNER_TEMP/nextgo-zones-image-ci.XXXXXX")
+          mkdir -m 700 "$browser_image_root/home" "$browser_image_root/go-cache" "$browser_image_root/mod-cache" "$browser_image_root/tmp"
+          test "$(stat -c %u "$browser_image_root/home")" = "$(id -u)"
+          {
+            echo "NEXTGO_BROWSER_IMAGE_CI=$browser_image_root"
+            echo "HOME=$browser_image_root/home"
+            echo "GOCACHE=$browser_image_root/go-cache"
+            echo "GOMODCACHE=$browser_image_root/mod-cache"
+            echo "TMPDIR=$browser_image_root/tmp"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
+      - name: Trust only the checked-out zones workspace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test "$(stat -c %u "$HOME")" = "$(id -u)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
@@ -238,8 +364,64 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox webkit
-        timeout-minutes: 30
+      - name: Preserve native cgo compiler with verified task-local APT bounds
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs scripts/install-ci-native-compiler.test.mjs
+          node scripts/install-ci-native-compiler.mjs
+          test "$(command -v gcc)" = /usr/bin/gcc
+          test "$(command -v ld)" = /usr/bin/ld
+          test "$(go env CC)" = gcc
+          test "$(go env CGO_ENABLED)" = 1
+          gcc -dumpfullversion -dumpversion
+          ld --version
+          go env -json GOOS GOARCH CGO_ENABLED CC GOROOT GOCACHE GOMODCACHE
+      - name: Validate preinstalled browser metadata and actual launch versions
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { constants } from 'node:fs';
+          import { access, readFile, realpath, stat } from 'node:fs/promises';
+          import { isAbsolute, relative } from 'node:path';
+          import { chromium, firefox, webkit } from '@playwright/test';
+          const core = JSON.parse(await readFile('node_modules/playwright-core/package.json', 'utf8'));
+          const declared = JSON.parse(await readFile('package.json', 'utf8')).devDependencies['@playwright/test'];
+          const descriptors = JSON.parse(await readFile('node_modules/playwright-core/browsers.json', 'utf8')).browsers;
+          assert.equal(core.version, '1.64.1');
+          assert.equal(declared, core.version);
+          assert.equal(process.platform, 'linux');
+          assert.ok(['x64', 'arm64'].includes(process.arch));
+          assert.equal(process.versions.node.split('.')[0], '22');
+          assert.ok(Array.isArray(descriptors) && descriptors.length <= 32);
+          const home = await realpath(process.env.HOME);
+          const owned = await realpath(process.env.NEXTGO_BROWSER_IMAGE_CI);
+          assert.equal(relative(owned, home), 'home');
+          assert.equal((await stat(home)).uid, process.getuid());
+          assert.equal((await stat(home)).mode & 0o777, 0o700);
+          const browsers = await realpath('/ms-playwright');
+          const executables = {}, versions = {};
+          for (const [name, browser] of Object.entries({ chromium, firefox, webkit })) {
+            const executable = await realpath(browser.executablePath());
+            const rel = relative(browsers, executable);
+            assert.ok(rel && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../'));
+            assert.ok((await stat(executable)).isFile());
+            await access(executable, constants.X_OK);
+            executables[name] = executable;
+            const expected = descriptors.filter(item => item.name === name);
+            assert.equal(expected.length, 1);
+            assert.match(expected[0].browserVersion, /^[0-9]+(?:\.[0-9]+){1,3}$/);
+            const running = await browser.launch({headless: true, timeout: 30_000});
+            try {versions[name] = running.version(); assert.equal(versions[name], expected[0].browserVersion);}
+            finally {await running.close();}
+          }
+          console.log(JSON.stringify({phase: 'preinstalled-browser-runtime', playwright: core.version,
+            node: process.version, platform: process.platform, arch: process.arch, uid: process.getuid(),
+            ownedHome: home, executables, versions, browserCloseAcknowledgements: 3,
+            scope: 'Browser API close acknowledgement, not process-group or resource-gate proof'}));
+          NODE
       - name: Build independent releases and immutable ingress snapshots
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -273,8 +455,41 @@ jobs:
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --shm-size 512m
+    defaults:
+      run:
+        shell: bash
+    env:
+      GOTOOLCHAIN: local
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
+      - name: Own streaming home and compiler paths
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          command -v git
+          streaming_root=$(mktemp -d "$RUNNER_TEMP/nextgo-streaming-ci.XXXXXX")
+          mkdir -m 700 "$streaming_root/home" "$streaming_root/go-cache" "$streaming_root/mod-cache" "$streaming_root/tmp"
+          test "$(stat -c %u "$streaming_root/home")" = "$(id -u)"
+          {
+            echo "NEXTGO_STREAMING_CI=$streaming_root"
+            echo "HOME=$streaming_root/home"
+            echo "GOCACHE=$streaming_root/go-cache"
+            echo "GOMODCACHE=$streaming_root/mod-cache"
+            echo "TMPDIR=$streaming_root/tmp"
+          } >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
+      - name: Trust only the checked-out streaming workspace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test "$(stat -c %u "$HOME")" = "$(id -u)"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -284,9 +499,41 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Install browsers and system dependencies
-        timeout-minutes: 30
-        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Validate preinstalled browsers and installer policy parsing
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          node --test scripts/install-ci-playwright-deps.test.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { constants } from 'node:fs';
+          import { access, readFile, realpath, stat } from 'node:fs/promises';
+          import { isAbsolute, relative } from 'node:path';
+          import { chromium, firefox, webkit } from '@playwright/test';
+          const core = JSON.parse(await readFile('node_modules/playwright-core/package.json', 'utf8'));
+          const declared = JSON.parse(await readFile('package.json', 'utf8')).devDependencies['@playwright/test'];
+          assert.equal(core.version, '1.64.1');
+          assert.equal(declared, core.version);
+          assert.equal(process.platform, 'linux');
+          assert.equal(process.versions.node.split('.')[0], '22');
+          const home = await realpath(process.env.HOME);
+          const owned = await realpath(process.env.NEXTGO_STREAMING_CI);
+          assert.equal(relative(owned, home), 'home');
+          assert.equal((await stat(home)).uid, process.getuid());
+          const browsers = await realpath('/ms-playwright');
+          const executables = {};
+          for (const [name, browser] of Object.entries({ chromium, firefox, webkit })) {
+            const executable = await realpath(browser.executablePath());
+            const rel = relative(browsers, executable);
+            assert.ok(rel && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../'));
+            assert.ok((await stat(executable)).isFile());
+            await access(executable, constants.X_OK);
+            executables[name] = executable;
+          }
+          console.log(JSON.stringify({ phase: 'preinstalled-browser-metadata', playwright: core.version,
+            node: process.version, platform: process.platform, arch: process.arch, uid: process.getuid(),
+            ownedHome: home, executables, browserLaunches: 0 }));
+          NODE
       - name: Deterministic initial-stream parser conformance
         run: npm run test:stream-parser
       - name: Stream admission and recoverable navigation
