@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { installSkewDiagnostics, captureSkewDiagnostics } from './skew-diagnostics.mjs';
 
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
 const notes = page => page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Field notes', exact: true });
 const activate = async (request, variant) => expect((await request.post(`/_e2e/activate/${variant}`)).status()).toBe(204);
 
 test.beforeEach(async ({ request }) => activate(request, 'old'));
+test.afterEach(async ({ page }, testInfo) => captureSkewDiagnostics(page, testInfo));
 
 test('same binary with changed slash and asset policy reloads before committing incompatible HTML', async ({ page, request }) => {
   await page.goto('/'); await ready(page);
@@ -30,6 +32,7 @@ for (const cacheState of ['cold', 'warm']) {
     const key = encodeURIComponent(`${testInfo.project.name}-${testInfo.repeatEachIndex}-${testInfo.retry}-${cacheState}`);
     const target = `/posts?skew-prefetch=${key}`;
     const canonical = `/posts/?skew-prefetch=${key}`;
+    await installSkewDiagnostics(page, testInfo, key);
     await page.evaluate(() => { window.prefetchDeploymentDocument = true; });
     // Each case owns a fresh cache key. Disable incidental hover prefetch and
     // blur first so focus always produces the intended post-activation event.
