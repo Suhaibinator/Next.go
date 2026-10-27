@@ -53,6 +53,7 @@ type AsyncResource struct {
 	revision           uint64
 	delivered          map[int]resourceDelivery
 	resumePending      bool
+	mergeQueued        bool
 	notifying, pending bool
 }
 
@@ -199,7 +200,7 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 		r.setState(ResourceSnapshot{Phase: phase})
 		r.notify()
 		if closed {
-			if r.scope.retentionHidden() {
+			if r.scope.retentionHidden() || r.mergeQueued {
 				r.closePending = true
 			} else {
 				r.Close()
@@ -222,7 +223,7 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 }
 func (r *AsyncResource) active() bool { return r != nil && !r.closed && r.scope.active() }
 func (r *AsyncResource) Snapshot() ResourceSnapshot {
-	if r == nil {
+	if r == nil || r.scope != nil && r.scope.mergeCallbackGuard() != nil && !r.scope.propsLive() {
 		return ResourceSnapshot{Phase: ResourceClosed}
 	}
 	snapshot := r.state
@@ -246,6 +247,13 @@ func (r *AsyncResource) call(id int, fn func(ResourceSnapshot), retained bool) {
 	if !r.active() {
 		return
 	}
+	if mergeQueueNotification(r.scope, fmt.Sprintf("resource:%p:observer:%d", r, id), func() {
+		if live := r.observers[id]; live != nil {
+			r.call(id, live, retained)
+		}
+	}) {
+		return
+	}
 	stamp := resourceDelivery{revision: r.revision, epoch: r.scope.activityEpoch}
 	if retained {
 		if previous, ok := r.delivered[id]; ok && previous == stamp {
@@ -258,14 +266,41 @@ func (r *AsyncResource) call(id int, fn func(ResourceSnapshot), retained bool) {
 	// Record before the callback: it may synchronously load, invalidate,
 	// subscribe or close and must not have a later stamp overwritten here.
 	r.delivered[id] = stamp
-	if err := lifetimeGuard(func() { fn(r.Snapshot()) }); err != nil {
-		report(err.Error())
+	reportOwner := r.scope
+	for reportOwner.parent != nil {
+		reportOwner = reportOwner.parent
+	}
+	guard := r.scope.mergeCallbackGuard()
+	owned := guard != nil
+	if !owned {
+		guard = lifetimeGuard
+	}
+	if err := guard(func() {
+		if owned && !r.active() {
+			return
+		}
+		fn(r.Snapshot())
+	}); err != nil {
+		reportScopeError(reportOwner, err.Error())
 	}
 }
 func (r *AsyncResource) notify() { r.notifyMode(false) }
 func (r *AsyncResource) notifyMode(retained bool) {
+	if r == nil || r.closed {
+		return
+	}
 	r.pending = true
 	r.resumePending = r.resumePending || retained
+	if mergeQueueNotification(r.scope, fmt.Sprintf("resource:%p", r), func() {
+		r.mergeQueued = false
+		r.notifyMode(r.resumePending)
+		if r.closePending && !r.mergeQueued {
+			r.Close()
+		}
+	}) {
+		r.mergeQueued = true
+		return
+	}
 	if r.notifying {
 		return
 	}
@@ -287,6 +322,9 @@ func (r *AsyncResource) notifyMode(retained bool) {
 		for _, id := range ids {
 			if fn, ok := r.observers[id]; ok {
 				r.call(id, fn, retainedTurn)
+				if r.mergeQueued {
+					return
+				}
 			}
 		}
 	}
@@ -370,7 +408,7 @@ func (r *AsyncResource) Close() {
 	r.setState(ResourceSnapshot{Phase: ResourceClosed})
 	r.observers = nil
 	r.delivered = nil
-	r.pending, r.resumePending = false, false
+	r.pending, r.resumePending, r.mergeQueued = false, false, false
 	if r.cleanup != nil {
 		cleanup := r.cleanup
 		r.cleanup = nil

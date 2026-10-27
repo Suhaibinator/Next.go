@@ -13,6 +13,7 @@ const maxLinkStatusObservers = 512
 
 type linkStatusObserver struct {
 	owner      *Scope
+	id         uint64
 	link, root js.Value
 	fn         func(LinkStatus)
 	remote     js.Value
@@ -62,11 +63,12 @@ func (s *Scope) ObserveLinkStatus(link Element, fn func(LinkStatus)) (stop func(
 	}
 	nextLinkStatusObserver++
 	id := nextLinkStatusObserver
+	observer.id = id
 	linkStatusObservers[id] = observer
 	stop = func() { stopLinkStatusObserver(id) }
 	if !s.linkStatusCleanup {
 		s.linkStatusCleanup = true
-		s.Cleanup(func() {
+		s.cleanupFramework(func() {
 			for id, item := range linkStatusObservers {
 				if item.owner == s {
 					stopLinkStatusObserver(id)
@@ -97,6 +99,9 @@ func dispatchLinkStatus(observer *linkStatusObserver, status LinkStatus) {
 	if observer.stopped || observer.owner != nil && !observer.owner.active() || observer.notified && observer.last == status {
 		return
 	}
+	if mergeQueueNotification(observer.owner, fmt.Sprintf("link:%d", observer.id), func() { dispatchLinkStatus(observer, status) }) {
+		return
+	}
 	observer.last, observer.notified = status, true
 	defer func() {
 		if recover() != nil {
@@ -105,6 +110,18 @@ func dispatchLinkStatus(observer *linkStatusObserver, status LinkStatus) {
 	}()
 	if observer.remote.Type() == js.TypeFunction {
 		observer.remote.Invoke(status.Pending)
+	} else if observer.owner != nil && observer.owner.mergeCallbackGuard() != nil {
+		reportOwner := observer.owner
+		for reportOwner.parent != nil {
+			reportOwner = reportOwner.parent
+		}
+		if err := observer.owner.mergeCallbackGuard()(func() {
+			if !observer.stopped && observer.owner.active() {
+				observer.fn(status)
+			}
+		}); err != nil {
+			reportScopeError(reportOwner, err.Error())
+		}
 	} else {
 		observer.fn(status)
 	}
@@ -230,7 +247,7 @@ func observeLinkStatusHost(args []js.Value) any {
 	}
 	nextLinkStatusObserver++
 	id := nextLinkStatusObserver
-	linkStatusObservers[id] = &linkStatusObserver{root: args[0], link: args[1], remote: args[2], last: currentLinkStatus(args[1]), notified: true}
+	linkStatusObservers[id] = &linkStatusObserver{id: id, root: args[0], link: args[1], remote: args[2], last: currentLinkStatus(args[1]), notified: true}
 	return map[string]any{"id": id, "pending": currentLinkStatus(args[1]).Pending, "error": ""}
 }
 func unobserveLinkStatusHost(args []js.Value) any {

@@ -59,18 +59,27 @@ func report(message string) {
 	status.Set("hidden", false)
 	status.Set("textContent", message)
 }
-func hydrate() {
+func hydrate() { hydrateManaged(nil, nil) }
+
+func hydrateManaged(onError func(js.Value, error), authority func() bool) {
+	reportError := func(root js.Value, err error) {
+		if onError != nil {
+			onError(root, err)
+		} else {
+			report(err.Error())
+		}
+	}
 	if refreshFrozen() {
 		return
 	}
 	if err := hydrateScripts(); err != nil {
-		report("Invalid script declaration: " + err.Error())
+		reportError(js.Null(), fmt.Errorf("Invalid script declaration: %w", err))
 		doc.Get("body").Call("setAttribute", "data-nextgo-hydration", "error")
 		return
 	}
 	snapshot, selectionErr := selectionNodes(applicationContentRoot())
 	if selectionErr != nil {
-		report("Invalid selection snapshot: " + selectionErr.Error())
+		reportError(js.Null(), fmt.Errorf("Invalid selection snapshot: %w", selectionErr))
 		doc.Get("body").Call("setAttribute", "data-nextgo-hydration", "error")
 		return
 	}
@@ -86,6 +95,9 @@ func hydrate() {
 	}
 	ok := true
 	for i := 0; i < nodes.Length(); i++ {
+		if authority != nil && !authority() {
+			return
+		}
 		root := nodes.Index(i)
 		// A static query snapshot can retain fallback descendants even after a
 		// preceding boundary mounted. Never initialize behavior inside fallback.
@@ -101,15 +113,20 @@ func hydrate() {
 		}
 		if _, err := validateClientBoundary(root); err != nil {
 			root.Call("setAttribute", "data-nextgo-hydrated", "error")
-			report(err.Error())
+			reportError(root, err)
 			ok = false
 			continue
 		}
 		scope := &Scope{Root: Element{root}}
 		name := root.Call("getAttribute", "data-nextgo-island").String()
 		if lazyModules[name] != nil {
-			mounted = append(mounted, scope)
-			lazyHydrate(scope, name)
+			if _, err := lazyHydrate(scope, name); err != nil {
+				if scope.mergeRevoked || mergeApplicationRevoked() {
+					return
+				}
+				root.Call("setAttribute", "data-nextgo-hydrated", "error")
+				reportError(root, err)
+			}
 			ok = false
 			continue
 		}
@@ -124,12 +141,31 @@ func hydrate() {
 			if mount == nil {
 				return fmt.Errorf("unregistered island %q", name)
 			}
-			return mountScoped(scope, mount, json.RawMessage(root.Call("getAttribute", "data-nextgo-props").String()))
+			return withMergeApplicationMount(scope, func() error {
+				if onError != nil {
+					work := func() error {
+						return mountScoped(scope, mount, json.RawMessage(root.Call("getAttribute", "data-nextgo-props").String()))
+					}
+					if mergeCurrent != nil {
+						return withMergeMountReport(scope, work)
+					}
+					return withMergeMountDiagnostics(scope, work)
+				}
+				return mountScoped(scope, mount, json.RawMessage(root.Call("getAttribute", "data-nextgo-props").String()))
+			})
 		}()
+		if authority != nil && !authority() {
+			scope.revokeMergeAuthority()
+			_ = withMergeCleanupReport(scope, func() error { scope.dispose(); return nil })
+			return
+		}
 		if err != nil {
 			scope.dispose()
+			if scope.mergeRevoked || mergeApplicationRevoked() {
+				return
+			}
 			root.Call("setAttribute", "data-nextgo-hydrated", "error")
-			report(err.Error())
+			reportError(root, err)
 			ok = false
 			continue
 		}
@@ -145,6 +181,9 @@ func hydrate() {
 		if applicationHydrationError() {
 			state = "error"
 		}
+	}
+	if authority != nil && !authority() {
+		return
 	}
 	doc.Get("body").Call("setAttribute", "data-nextgo-hydration", state)
 }
@@ -254,12 +293,42 @@ func runDocument() {
 	installMotionPreference()
 	currentURL = win.Get("location").Get("href").String()
 	setLocation(currentURL)
-	initializeRetainedDocument()
+	initializeMergeDocument()
+	installMergeApplicationAuthority(doc.Call("getElementById", "nextgo-app"), mergeCurrent, initialMergeRetention())
+	if mergeCurrent == nil {
+		initializeRetainedDocument()
+	}
+	mergeBooting = true
+	releaseBoot, bootErr := acquireMergeCommit(context.Background(), navigationID, mergeCurrent != nil)
+	if bootErr != nil {
+		mergeBooting = false
+		report(mergePublicFailure)
+		return
+	}
+	bootIntent, bootPrivacy, initial := navigationID, mergePrivacy, mergeCurrent
+	bootApplication := mergeApplicationToken()
+	defer func() { mergeBooting = false; releaseBoot() }()
+	if mergeActiveLease != nil {
+		mergeActiveLease.published = initial
+	}
 	win.Get("history").Set("scrollRestoration", "manual")
 	saveScroll()
 	currentState = win.Get("history").Get("state")
 	startStreaming()
-	hydrate()
+	hydrateManaged(func(root js.Value, err error) {
+		if initial != nil {
+			mergeHydrationDiagnostic(root, err)
+			return
+		}
+		if bootIntent == navigationID {
+			report(err.Error())
+		} else {
+			win.Get("console").Call("error", "Next.go initial mount: "+err.Error())
+		}
+	}, func() bool {
+		return mergeApplicationCurrent(bootApplication) && mergeCurrent == initial && bootPrivacy == mergePrivacy && (initial == nil || !initial.revoked)
+	})
+	captureMergeBindings()
 	installDraftLifecycle()
 	installViewportPrefetch()
 	listen(doc, "click", func(e js.Value) {
@@ -302,8 +371,17 @@ func runDocument() {
 	listen(win, "popstate", func(e js.Value) {
 		target := win.Get("location").Get("href").String()
 		old, u := win.Get("URL").New(currentURL), win.Get("URL").New(target)
-		if old.Get("pathname").String() == u.Get("pathname").String() && old.Get("search").String() == u.Get("search").String() && retainedPopSameView(e.Get("state"), target) {
+		if old.Get("pathname").String() == u.Get("pathname").String() && old.Get("search").String() == u.Get("search").String() && ((mergeCurrent != nil && !mergeCurrent.revoked) || len(propsBindings) > 0 || retainedPopSameView(e.Get("state"), target)) {
+			saved := e.Get("state")
 			cancelPendingNavigation()
+			intent := navigationID
+			if mergeDeferNativeCommit(mergeNativePop, target, func() { commitMergeNativePop(target, saved, intent) }) {
+				return
+			}
+			if mergeCurrent != nil || len(propsBindings) > 0 {
+				commitMergeNativePop(target, saved, intent)
+				return
+			}
 			currentURL = target
 			setLocation(target)
 			currentState = e.Get("state")
@@ -324,11 +402,15 @@ func runDocument() {
 		if target == currentURL || old.Get("pathname").String() != next.Get("pathname").String() || old.Get("search").String() != next.Get("search").String() {
 			return
 		}
+		if mergeDuplicateNativeHash(target) {
+			return
+		}
 		cancelPendingNavigation()
-		currentURL = target
-		setLocation(target)
-		saveScroll()
-		notifyLocationObservers()
+		intent := navigationID
+		if mergeDeferNativeCommit(mergeNativeHash, target, func() { commitMergeNativeHash(target, intent) }) {
+			return
+		}
+		commitMergeNativeHash(target, intent)
 	})
 	listen(win, "scroll", func(_ js.Value) {
 		if !draftFrozen && doc.Get("visibilityState").String() != "hidden" && cancelNavigation == nil {
@@ -426,6 +508,17 @@ func NavigateWithOptions(target string, options NavigationOptions) (err error) {
 	}
 	old := win.Get("URL").New(currentURL)
 	if u.Get("pathname").String() == old.Get("pathname").String() && u.Get("search").String() == old.Get("search").String() {
+		if u.Get("href").String() != win.Get("location").Get("href").String() {
+			queuedTarget := u.Get("href").String()
+			if mergeDeferNativeCommit(mergeNativeRequested, queuedTarget, func() { _ = NavigateWithOptions(queuedTarget, options) }) {
+				return nil
+			}
+			release, err := beginMergeNativePublication(navigationID)
+			if err != nil {
+				return err
+			}
+			defer release()
+		}
 		cancelPendingNavigation()
 		href := u.Get("href").String()
 		if href != win.Get("location").Get("href").String() {
@@ -596,6 +689,11 @@ func listen(target js.Value, event string, fn func(js.Value)) {
 	target.Call("addEventListener", event, f)
 }
 func saveScroll() {
+	// Native history may already have moved while its metadata waits for an
+	// owned callback. Never relabel that incoming entry with the old URL/state.
+	if mergeNativeActualPending() && currentURL != mergeNativeTarget {
+		return
+	}
 	history := win.Get("history")
 	state := history.Get("state")
 	if state.IsNull() || state.IsUndefined() || state.Type() != js.TypeObject {
@@ -615,6 +713,7 @@ func saveScroll() {
 	history.Call("replaceState", state, "", win.Get("location").Get("href"))
 	currentState = state
 	bindRetainedHistory()
+	saveMergeHistory(state, currentURL)
 }
 
 // Same-document history changes also supersede an outstanding page request.
@@ -731,12 +830,14 @@ type envelope struct {
 	Build         string                `json:"build"`
 	HTML          string                `json:"html"`
 	Retention     *navigation.Retention `json:"retention,omitempty"`
-	Title         string                `json:"title"`
-	Description   string                `json:"description"`
-	Meta          map[string]string     `json:"meta"`
-	Status        int                   `json:"status"`
-	Shell         string                `json:"shell,omitempty"`
-	ShellRef      bool                  `json:"shellRef,omitempty"`
+	Merge         json.RawMessage       `json:"merge,omitempty"`
+	merge         *navigation.MergeDescriptor
+	Title         string            `json:"title"`
+	Description   string            `json:"description"`
+	Meta          map[string]string `json:"meta"`
+	Status        int               `json:"status"`
+	Shell         string            `json:"shell,omitempty"`
+	ShellRef      bool              `json:"shellRef,omitempty"`
 	shellEpoch    uint64
 	cacheUntil    time.Time
 }
@@ -766,7 +867,7 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 	}()
 	key := requestURL(target)
 	data, cached := pageCache.get(key)
-	retaining := retainedRoutingEnabled()
+	retaining := retainedRoutingEnabled() || mergeRuntimeEnabled()
 	if retaining {
 		cached = false
 		retainedFreshID, retainedFreshEpoch = id, cacheEpoch
@@ -868,7 +969,7 @@ func commitNavigation(ctx context.Context, target string, pop bool, state js.Val
 		if data.ShellRef && data.shellEpoch != cacheEpoch {
 			return fmt.Errorf("cached shell was invalidated before navigation commit")
 		}
-		if err := commit(parsed, root, data, target, pop, state, replace); err != nil {
+		if err := commitWithContext(ctx, parsed, root, data, target, pop, state, replace); err != nil {
 			return err
 		}
 		finishLinkNavigation(id)
@@ -998,10 +1099,16 @@ func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, 
 		return data, 0, false, fmt.Errorf("navigation redirected outside the application origin")
 	}
 	if !staticExport() && resp.Header.Get(navigation.DraftHeader) != documentDraft() {
+		if !shellOptions.prefetch {
+			revokeMergeDocument()
+		}
 		invalidateCache()
 		return data, 0, true, nil
 	}
 	if !staticExport() && resp.Header.Get(navigation.ProtocolHeader) != fmt.Sprint(navigation.ProtocolVersion) {
+		if !shellOptions.prefetch {
+			revokeMergeDocument()
+		}
 		return data, 0, true, nil
 	}
 	if !stream && !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
@@ -1010,21 +1117,24 @@ func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, 
 	if err = json.Unmarshal(body, &data); err != nil {
 		return data, 0, false, err
 	}
-	if err = validateRetainedEnvelope(body, &data); err != nil {
-		return data, 0, false, err
-	}
-	if err = validateShellFields(body, data); err != nil {
-		return data, 0, false, err
-	}
 	if data.Version != navigation.ProtocolVersion {
+		if !shellOptions.prefetch {
+			revokeMergeDocument()
+		}
 		invalidateCache()
 		return data, 0, true, nil
 	}
 	if data.Configuration != documentConfiguration() || !navigation.ValidConfigurationID(data.Configuration) || (!staticExport() && resp.Header.Get(navigation.ConfigurationHeader) != data.Configuration) {
+		if !shellOptions.prefetch {
+			revokeMergeDocument()
+		}
 		invalidateCache()
 		return data, 0, true, nil
 	}
 	if data.Build != doc.Get("body").Call("getAttribute", "data-nextgo-build").String() {
+		if !shellOptions.prefetch {
+			revokeMergeDocument()
+		}
 		invalidateCache()
 		return data, 0, true, nil
 	}
@@ -1043,6 +1153,32 @@ func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, 
 	canonical := win.Get("URL").New(data.URL, target)
 	if !eligibleURL(canonical) {
 		return data, 0, true, nil
+	}
+	if !shellOptions.prefetch && (resp.StatusCode == 401 || resp.StatusCode == 403) && data.Status == resp.StatusCode && data.Version == navigation.ProtocolVersion && data.Configuration == documentConfiguration() && resp.Header.Get(navigation.ConfigurationHeader) == data.Configuration && data.Build == doc.Get("body").Call("getAttribute", "data-nextgo-build").String() && data.URL != "" {
+		deniedURL := win.Get("URL").New(data.URL, target)
+		if eligibleURL(deniedURL) {
+			revokeMergeDocument()
+		}
+	}
+	if err = validateMergeEnvelope(body, &data); err != nil {
+		return data, 0, false, err
+	}
+	// A validated authority partition change fences old private UI immediately;
+	// malformed optional metadata/retention cannot postpone that revocation.
+	if !shellOptions.prefetch {
+		mergeIncomingAuthority(data.merge, nil, data.Status)
+	}
+	if err = validateRetainedEnvelope(body, &data); err != nil {
+		return data, 0, false, err
+	}
+	if data.merge != nil && data.Retention != nil && data.merge.Partition != data.Retention.Partition {
+		return data, 0, false, fmt.Errorf("conflicting route authority partitions")
+	}
+	if !shellOptions.prefetch {
+		mergeIncomingAuthority(data.merge, data.Retention, data.Status)
+	}
+	if err = validateShellFields(body, data); err != nil {
+		return data, 0, false, err
 	}
 	// Validate fresh server metadata before borrowing any cached shell bytes.
 	// This fragment remains detached; commit creates its own managed head.
@@ -1098,9 +1234,42 @@ func reloadPage(target string, replace bool) {
 }
 
 func commit(parsed, root js.Value, data envelope, target string, pop bool, state js.Value, replace bool) error {
+	return commitWithContext(context.Background(), parsed, root, data, target, pop, state, replace)
+}
+func commitWithContext(ctx context.Context, parsed, root js.Value, data envelope, target string, pop bool, state js.Value, replace bool) error {
+	intent, epoch, privacy := navigationID, cacheEpoch, mergePrivacy
+	release, err := acquireMergeCommit(ctx, intent, data.merge != nil)
+	if err != nil {
+		return err
+	}
+	defer release()
+	if handled, err := commitStationaryMerge(ctx, parsed, root, data, target, pop, state, replace); handled || err != nil {
+		return err
+	}
+	// Aborting a prepared cohort can run pending useful old-frame effects. A
+	// navigation they start must not relabel this old response as that new intent.
+	if ctx.Err() != nil || intent != navigationID || epoch != cacheEpoch || privacy != mergePrivacy {
+		return context.Canceled
+	}
+	return commitLegacy(ctx, parsed, root, data, target, pop, state, replace)
+}
+func commitLegacy(ctx context.Context, parsed, root js.Value, data envelope, target string, pop bool, state js.Value, replace bool) error {
 	commitID := navigationID
 	commitEpoch := cacheEpoch
-	current := func() bool { return commitID == navigationID && commitEpoch == cacheEpoch }
+	mergeManaged := data.merge != nil || mergeCurrent != nil || propsReservations > 0
+	mergeStarted := false
+	mergeEpoch := mergePrivacy
+	defer func() {
+		if mergeManaged {
+			mergeInstallActive = false
+		}
+	}()
+	current := func() bool {
+		if mergeManaged && mergeStarted {
+			return mergeEpoch == mergePrivacy
+		}
+		return commitID == navigationID && commitEpoch == cacheEpoch
+	}
 	snapshot, selectionErr := selectionNodes(parsed)
 	if selectionErr != nil {
 		return selectionErr
@@ -1124,7 +1293,16 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 	if !current() {
 		return context.Canceled
 	}
-	handled, activate, retentionErr := commitRetainedDOM(root, parsed.Get("body"), data, target, pop, state)
+	if err := mergeAwaitCallbackReads(ctx, commitID); err != nil {
+		return err
+	}
+	// The two managers never co-own one DOM root. Explicit merge documents and
+	// transitions out of them use ordinary fresh replacement on the cold path.
+	retentionData := data
+	if mergeCurrent != nil || data.merge != nil || len(propsBindings) > 0 {
+		retentionData.Retention = nil
+	}
+	handled, activate, retentionErr := commitRetainedDOM(root, parsed.Get("body"), retentionData, target, pop, state)
 	if retentionErr != nil {
 		return retentionErr
 	}
@@ -1140,6 +1318,9 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 		// retained-route structures have already discarded every hidden owner.
 		_, currentSelectionErr := selectionNodes(root)
 		retain := data.Status != 401 && data.Status != 403 && currentSelectionErr == nil
+		if len(propsBindings) > 0 {
+			retain = false
+		}
 		if retain {
 			old, incoming = navigationRegion(root, parsed.Get("body"))
 		}
@@ -1158,6 +1339,16 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 		fragment := doc.Call("createDocumentFragment")
 		for incoming.Get("firstChild").Truthy() {
 			fragment.Call("appendChild", incoming.Get("firstChild"))
+		}
+		if err := mergeAwaitCallbackReads(ctx, commitID); err != nil {
+			return err
+		}
+		if !current() {
+			return context.Canceled
+		}
+		if mergeManaged {
+			mergeStarted = true
+			mergeInstallActive = true
 		}
 		old.Call("replaceChildren", fragment)
 	}
@@ -1199,20 +1390,31 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 	}
 	currentURL = target
 	setLocation(target)
+	if err := installColdMergeFrame(data, root, target, mergeEpoch); err != nil {
+		return err
+	}
 	installSelections(snapshot)
 	if activate != nil {
 		activate.Activate()
 	}
-	if commitID != navigationID {
+	if (commitID != navigationID && !mergeManaged) || (mergeManaged && mergeEpoch != mergePrivacy) {
 		return nil
 	}
 	syncNavigationLinks(target)
 	status := doc.Call("getElementById", "nextgo-status")
-	if !applicationHydrationError() && (retainedCurrent == nil || retainedCurrent.activityErr == nil) {
+	if (!mergeManaged || commitID == navigationID) && !applicationHydrationError() && (retainedCurrent == nil || retainedCurrent.activityErr == nil) {
 		status.Set("hidden", true)
 	}
 	if !handled {
-		hydrate()
+		if mergeManaged {
+			application := mergeApplicationToken()
+			hydrateManaged(mergeHydrationDiagnostic, func() bool { return mergeApplicationCurrent(application) && mergeEpoch == mergePrivacy })
+		} else {
+			hydrate()
+		}
+	}
+	if mergeManaged {
+		captureMergeBindings()
 	}
 	completeAccessibleNavigation(previous, target, active, data.Title)
 	restoreScroll(target, pop, state)

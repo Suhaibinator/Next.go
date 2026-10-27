@@ -35,6 +35,14 @@ type Scope struct {
 	mountClient            bool
 	clientViewUsed         bool
 	clientView             *clientViewTransaction
+	mergeView              *mergeClientView
+	propsSource            propsBinding
+	propsPending           bool
+	propsPreparingCancel   context.CancelFunc
+	mergeID                uint64
+	mergeRevoked           bool
+	mergeCallbacks         bool
+	frameworkCleanup       map[int]bool
 	lifetime               *Lifetime
 	parent                 *Scope
 	children               map[*Scope]struct{}
@@ -70,9 +78,26 @@ func (s *Scope) Require(selector string) (Element, error) {
 	}
 	return Element{}, fmt.Errorf("missing island element %q", selector)
 }
-func (s *Scope) Cleanup(fn func()) {
+func (s *Scope) cleanupFramework(fn func()) {
 	if !s.active() {
 		fn()
+		return
+	}
+	if s.frameworkCleanup == nil {
+		s.frameworkCleanup = map[int]bool{}
+	}
+	s.frameworkCleanup[len(s.cleanup)] = true
+	s.cleanup = append(s.cleanup, fn)
+}
+func (s *Scope) Cleanup(fn func()) {
+	if !s.active() {
+		if guard := s.mergeCallbackGuard(); guard != nil {
+			if err := guard(fn); err != nil {
+				win.Get("console").Call("error", "Next.go cleanup: "+err.Error())
+			}
+		} else {
+			fn()
+		}
 		return
 	}
 	s.cleanup = append(s.cleanup, fn)
@@ -90,11 +115,33 @@ func (s *Scope) On(el Element, event string, fn func(Event)) {
 			}
 		}()
 		if s.active() {
+			if mergeEventDuringInstall(s, args[0]) {
+				return nil
+			}
+			owned := s.mergeCallbackGuard() != nil
+			if owned {
+				reportOwner := s
+				for reportOwner.parent != nil {
+					reportOwner = reportOwner.parent
+				}
+				release, err := mergeEnterCallbackRead()
+				if err != nil {
+					if args[0].Get("cancelable").Truthy() {
+						args[0].Call("preventDefault")
+					}
+					reportScopeError(reportOwner, "Next.go component callback unavailable")
+					return nil
+				}
+				defer release()
+			}
 			lease, err := beginRefreshActivity()
 			if err != nil {
 				return nil
 			}
 			defer lease.Done()
+			if owned && !s.active() {
+				return nil
+			}
 			fn(Event{args[0]})
 		}
 		return nil
@@ -108,7 +155,7 @@ func (s *Scope) On(el Element, event string, fn func(Event)) {
 	}()
 	listener.attach()
 	s.listeners = append(s.listeners, listener)
-	s.Cleanup(func() {
+	s.cleanupFramework(func() {
 		defer func() { s.listeners = removeOwned(s.listeners, listener) }()
 		listener.close()
 	})
@@ -122,7 +169,17 @@ func (s *Scope) dispose() {
 	for reportOwner.parent != nil {
 		reportOwner = reportOwner.parent
 	}
+	guard := s.mergeCallbackGuard()
+	s.mergeCallbacks = guard != nil
 	s.closed = true
+	if s.propsPreparingCancel != nil {
+		s.propsPreparingCancel()
+	}
+	if s.propsSource != nil {
+		s.propsSource.propsClose()
+		s.propsSource = nil
+	}
+	s.mergeView = nil
 	if s.parent != nil {
 		delete(s.parent.children, s)
 		s.parent = nil
@@ -134,10 +191,17 @@ func (s *Scope) dispose() {
 					reportScopeError(reportOwner, fmt.Sprint(v))
 				}
 			}()
-			s.cleanup[i]()
+			if guard != nil && !s.frameworkCleanup[i] {
+				if err := guard(s.cleanup[i]); err != nil {
+					reportScopeError(reportOwner, err.Error())
+				}
+			} else {
+				s.cleanup[i]()
+			}
 		}()
 	}
 	s.cleanup = nil
+	s.frameworkCleanup = nil
 }
 func DecodeProps[T any](raw json.RawMessage) (T, error) {
 	var p T
@@ -167,6 +231,9 @@ func mountScoped(scope *Scope, mount Mount, raw json.RawMessage) (err error) {
 		if !returned && err == nil {
 			err = fmt.Errorf("nextgo: component Mount did not return")
 		}
+		if err == nil && scope.mergeRevoked {
+			err = errPropsClosed
+		}
 		if err == nil && boundary {
 			if scope.clientView == nil {
 				err = fmt.Errorf("nextgo: client island Mount must call ClientView")
@@ -174,9 +241,18 @@ func mountScoped(scope *Scope, mount Mount, raw json.RawMessage) (err error) {
 				err = scope.clientView.validateCommit(scope)
 			}
 		}
+		if err == nil && boundary {
+			tx := scope.clientView
+			instance := scope.mergeInstance()
+			if instance == 0 || tx.child == nil {
+				err = errPropsCapacity
+			} else {
+				scope.mergeView = &mergeClientView{root: tx.root, view: tx.view, parent: tx.parent, child: tx.child, instance: instance}
+			}
+		}
 		if err != nil {
 			scope.dispose()
-			if scope.clientView != nil {
+			if scope.clientView != nil && !scope.mergeRevoked {
 				scope.clientView.rollback()
 			}
 		}
@@ -221,7 +297,7 @@ func (s *Scope) active() bool {
 		return false
 	}
 	for owner := s; owner != nil; owner = owner.parent {
-		if owner.closed || owner.suspended {
+		if owner.closed || owner.suspended || owner.mergeRevoked {
 			return false
 		}
 	}
@@ -232,6 +308,6 @@ func (s *Scope) active() bool {
 // Effects, providers, child scopes and keyed ownership need separate transfer
 // contracts before a runtime containing them can be retired in place.
 func refreshScopeSupported(s *Scope) bool {
-	return s != nil && !s.closed && !s.clientViewUsed && s.lifetime == nil && len(s.children) == 0 &&
+	return s != nil && !s.closed && !s.clientViewUsed && s.propsSource == nil && !s.propsPending && !s.mergeCallbacks && s.lifetime == nil && len(s.children) == 0 &&
 		len(s.keyedLists) == 0 && !s.selectionCleanup && !s.locationCleanup && !s.linkStatusCleanup
 }

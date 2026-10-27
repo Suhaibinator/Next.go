@@ -29,6 +29,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/postresponse"
 	"github.com/Suhaibinator/Next.go/internal/publicconfig"
 	"github.com/Suhaibinator/Next.go/internal/publicorigin"
+	"github.com/Suhaibinator/Next.go/internal/renderowner"
 	"github.com/Suhaibinator/Next.go/internal/routing"
 	"github.com/Suhaibinator/Next.go/metadatafiles"
 	"github.com/Suhaibinator/Next.go/offline"
@@ -46,6 +47,7 @@ import (
 // generic 500. Response controls are sealed before rendering; deferred work can
 // read the request but cannot change headers, cookies, statuses, or redirects.
 type Context struct {
+	mergeOrigin *routeMergeOrigin
 	context.Context
 	Request        *http.Request
 	Params         map[string]string
@@ -64,6 +66,10 @@ type Context struct {
 	interceptFrom  string
 }
 type Page struct {
+	// mergePartition is a validated request-local capability captured before
+	// legacy retention is cleared for layouts. It is never serialized or set by
+	// application code, and never enters a public cached/capture rendering.
+	mergePartition string
 	// Retention opts this response into document-local UI retention. The public
 	// partition is an application identity boundary, never an access credential.
 	Retention   *RouteRetention
@@ -269,20 +275,21 @@ type Document = seo.DocumentAttributes
 type Envelope struct {
 	// Shell identifies a negotiated public partial shell. ShellRef is only sent
 	// in a stream when the caller proposes that exact cached shell generation.
-	Shell         string                `json:"shell,omitempty"`
-	ShellRef      bool                  `json:"shellRef,omitempty"`
-	Document      Document              `json:"document"`
-	Version       int                   `json:"version"`
-	Configuration string                `json:"configuration"`
-	Build         string                `json:"build"`
-	URL           string                `json:"url"`
-	HTML          string                `json:"html"`
-	Title         string                `json:"title"`
-	Description   string                `json:"description"`
-	Meta          map[string]string     `json:"meta"`
-	Status        int                   `json:"status"`
-	Head          []seo.Element         `json:"head,omitempty"`
-	Retention     *navigation.Retention `json:"retention,omitempty"`
+	Shell         string                      `json:"shell,omitempty"`
+	ShellRef      bool                        `json:"shellRef,omitempty"`
+	Document      Document                    `json:"document"`
+	Version       int                         `json:"version"`
+	Configuration string                      `json:"configuration"`
+	Build         string                      `json:"build"`
+	URL           string                      `json:"url"`
+	HTML          string                      `json:"html"`
+	Title         string                      `json:"title"`
+	Description   string                      `json:"description"`
+	Meta          map[string]string           `json:"meta"`
+	Status        int                         `json:"status"`
+	Head          []seo.Element               `json:"head,omitempty"`
+	Merge         *navigation.MergeDescriptor `json:"merge,omitempty"`
+	Retention     *navigation.Retention       `json:"retention,omitempty"`
 }
 
 func validateRouteLayers(r Route) error {
@@ -473,6 +480,9 @@ func newApp(c Config) (*App, error) {
 		return nil, err
 	}
 	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, RetainRoutes: c.RetainRoutes, Documents: documentPathPatterns(c.DocumentPaths)}
+	if c.RetainRoutes {
+		manifest.MergeVersion = navigation.MergeVersion
+	}
 	manifest.Draft = c.Draft != nil
 	manifest.Scripts = earlyScriptsIdentity(c.EarlyScripts)
 	manifest.Prerender = a.prerenderIdentity()
@@ -733,11 +743,19 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) render(c *Context, r Route) (page Page, status int) {
 	status = 200
-	retentionBlocked := r.Cache != nil || r.Prerender != nil || len(r.Regions) > 0 || len(r.Slots) > 0 || hasPrimaries(r) || len(r.LayoutBases) > 0
+	mergeBlocked := r.Cache != nil || r.Prerender != nil || len(r.Regions) > 0 || len(r.Slots) > 0 || hasPrimaries(r)
+	retentionBlocked := mergeBlocked || len(r.Layouts) > 0 || len(r.LayoutBases) > 0
 	defer func() {
 		// Never capture a per-request privacy partition in a cached or composed
 		// page. Keeping this nil also makes unsupported responses cold-render.
-		if retentionBlocked || a.config.Phase != PhaseProduction || c.response.public || c.interceptSlot != "" || c.parallel != nil && len(c.parallel.infos) > 0 || page.Stream || page.DeferredMetadata != nil || page.deferredPlan != nil || page.partial != nil {
+		commonBlocked := a.config.Phase != PhaseProduction || c.response.public || c.interceptSlot != "" || c.parallel != nil && len(c.parallel.infos) > 0 || page.Stream || page.DeferredMetadata != nil || page.deferredPlan != nil || page.partial != nil
+		page.mergePartition = ""
+		if !mergeBlocked && !commonBlocked && page.Retention != nil && completeMergeOrigin(c.mergeOrigin) && a.mergeResponseEligible(c.Request, page, status) {
+			if value, err := navigation.NewRetention(page.Retention.Partition, ""); err == nil && value != nil {
+				page.mergePartition = strings.Clone(value.Partition)
+			}
+		}
+		if retentionBlocked || commonBlocked {
 			page.Retention = nil
 		}
 	}()
@@ -752,6 +770,7 @@ func (a *App) render(c *Context, r Route) (page Page, status int) {
 		return errorPage(), 400
 	}
 	c, r = a.selectPrimary(c, r)
+	c.mergeOrigin = snapshotRouteMerge(c, r)
 	page, err := r.Page(c)
 	if err == nil && a.config.Phase == PhaseStaticExport && a.config.StaticShell != nil && r.Pattern == a.config.StaticShell.Pattern && (page.Stream || page.DeferredMetadata != nil || page.deferredPlan != nil || page.partial != nil) {
 		// Refuse before a public snapshot could flatten deferred metadata. A
@@ -773,6 +792,7 @@ func (a *App) render(c *Context, r Route) (page Page, status int) {
 		return a.renderRouteNotFound(c, r)
 	}
 	if err == nil {
+		page.Body = routeOwnerNode{frame: c.mergeOrigin.page, child: page.Body}
 		page.Body, err = a.wrapLayouts(c, r, page.Body)
 	}
 	if err == nil {
@@ -849,6 +869,11 @@ func (a *App) wrapLayoutPrefix(c *Context, r Route, body ui.Node, prefix int) (u
 		if err != nil {
 			return nil, &layoutError{index: i, cause: err}
 		}
+		frame := renderowner.Frame{}
+		if c.mergeOrigin != nil && i < len(c.mergeOrigin.layouts) {
+			frame = c.mergeOrigin.layouts[i]
+		}
+		body = routeOwnerNode{frame: frame, child: body}
 		if id != "" {
 			attrs := ui.Attrs{"data-nextgo-layout": id}
 			if !c.parallel.primaryAt(i) && len(r.LayoutBases) == len(r.Layouts) {
@@ -1099,7 +1124,13 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		a.respondStream(w, r, p, headHTML, documentAttrs)
 		return
 	}
-	body, err := ui.HTMLContext(r.Context(), p.Body)
+	bodyContext := r.Context()
+	var mergeRecorder *renderowner.Recorder
+	if a.mergeResponseEligible(r, p, status) {
+		mergeRecorder = renderowner.New()
+		bodyContext = mergeRecorder.Context(bodyContext)
+	}
+	body, err := ui.HTMLContext(bodyContext, p.Body)
 	if err != nil {
 		a.config.Logger.Printf("HTML: %v", err)
 		p = a.localeMetadata(errorPage())
@@ -1115,7 +1146,18 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		a.respondPage(w, r, errorPage(), http.StatusInternalServerError)
 		return
 	}
-	if retention != nil {
+	var merge *navigation.MergeDescriptor
+	if mergeRecorder != nil && status == http.StatusOK && mergePagePartition(p) != "" {
+		merge, retentionErr = mergeRecorder.Finish(mergePagePartition(p), body)
+		if retentionErr != nil {
+			a.config.Logger.Printf("merge render: %v", retentionErr)
+			a.respondPage(w, r, errorPage(), http.StatusInternalServerError)
+			return
+		}
+	} else if mergeRecorder != nil {
+		mergeRecorder.Disable()
+	}
+	if retention != nil || merge != nil {
 		w.Header().Set("Cache-Control", "private, no-store")
 		clearNavigationReuse(w.Header())
 	}
@@ -1147,7 +1189,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 			Shell: shell, ShellRef: shellRef,
 			Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: documentAttrs,
 			Build: a.config.BuildID, URL: requestURI(r), HTML: body,
-			Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head, Retention: retention,
+			Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head, Retention: retention, Merge: merge,
 		}
 		if shell != "" {
 			encoded, err := json.Marshal(envelope)
@@ -1197,6 +1239,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Offline        string
 		OfflineSaved   bool
 		Retention      string
+		Merge          string
 	}{
 		Page: p, Document: documentAttrs, Body: template.HTML(body),
 		Build: a.config.BuildID, Dev: a.config.Dev, DevGeneration: a.config.DevGeneration,
@@ -1209,6 +1252,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		RuntimeScripts: template.HTML(runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), scripts.Nonce(r.Context()))),
 		Offline:        a.offlineDescriptorJSON(), OfflineSaved: a.offlineSavedDocument(r),
 		Retention: retentionJSON(retention),
+		Merge:     mergeJSON(merge),
 	})
 	if err != nil {
 		http.Error(w, "Unable to render document", 500)
@@ -1229,7 +1273,7 @@ var document = template.Must(template.New("document").Parse(`<!doctype html>
 <style{{if .Nonce}} nonce="{{.Nonce}}"{{end}}>` + frameworkCSS + `</style>
 <link rel="stylesheet" href="{{.Style}}">
 {{.Early}}
-</head><body{{if .Retention}} data-nextgo-retention="{{.Retention}}"{{end}}{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
+</head><body{{if .Merge}} data-nextgo-merge="{{.Merge}}"{{end}}{{if .Retention}} data-nextgo-retention="{{.Retention}}"{{end}}{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
 <div id="nextgo-status" role="status" aria-live="polite" hidden></div>
 ` + routeAnnouncer + `
 <div id="nextgo-app" tabindex="-1">{{.Body}}</div>

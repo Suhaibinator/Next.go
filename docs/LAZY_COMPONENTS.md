@@ -25,17 +25,34 @@ The core bundle imports eager components and registers generated descriptors for
 Successful `RegisterLazy` registrations select the complete host installer;
 `Run` invokes it after deployment and early-script validation, at its existing
 startup point. Invalid registrations do not enable it, and registration after
-`Run` does not gain automatic installation behavior. Public APIs and ABI 5 are
-unchanged. This boundary helps applications with no lazy registrations; merely
-viewing a page without lazy islands does not remove a host registered elsewhere
+`Run` does not gain automatic installation behavior. That registration-boundary
+change kept public APIs and the then-current ABI 5 unchanged. This boundary
+helps applications with no lazy registrations; merely viewing a page without
+lazy islands does not remove a host registered elsewhere
 in the application. The [controlled size observation](PERFORMANCE.md#lazy-host-registration-observation-october-26-2026-utc)
 retains the full four-module demo and leaves G05 failed.
 
-The Go core fetches a module, checks its final URL, status, exact size and digest, instantiates it through browser WebAssembly APIs and starts another instance of the supplied Go runtime. The current module ABI is **5**: its versioned handshake checks the ABI, expected component and source epoch before accepting exports. ABI 5 adds [per-anchor pending-link subscriptions](LINK_STATUS.md) to the core/module contract and retains mandatory resource invalidation epochs. The small JavaScript bootstrap remains responsible for starting the core; component loading and lifecycle policy are implemented in Go.
+The Go core fetches a module, checks its final URL, status, exact size and digest, instantiates it through browser WebAssembly APIs and starts another instance of the supplied Go runtime. The current module ABI is **6**: its versioned handshake checks the ABI, expected component and source epoch before accepting exports. ABI 6 adds the document-authority revocation snapshot; it retains mandatory resource invalidation epochs and the [per-anchor pending-link subscriptions](LINK_STATUS.md) introduced by ABI 5. The small JavaScript bootstrap remains responsible for starting the core; component loading and lifecycle policy are implemented in Go.
 
-Rebuild the eager core, every lazy module and development entries together from the same framework revision and selected Go SDK, with that SDK's paired runtime support. Mixed ABI assets fail registration; an older module or development entry cannot be upgraded independently. The FIFO and resource checkpoints used ABI 3 and 4 respectively; their recorded results retain that historical scope and do not qualify ABI 5. Link-status subscriptions do not add a state-transfer contract for development refresh; a component using them requires ordinary full-document recovery when changed.
+Rebuild the eager core, every lazy module and development entries together from the same framework revision and selected Go SDK, with that SDK's paired runtime support. Mixed ABI assets fail registration; an older module or development entry cannot be upgraded independently. The FIFO and resource checkpoints used ABI 3 and 4 respectively; their recorded results retain that historical scope. Later ABI-5 link-status checks also remain historical; none qualify ABI 6. Link-status subscriptions do not add a state-transfer contract for development refresh; a component using them requires ordinary full-document recovery when changed.
 
 The bridge exchanges DOM references, JSON snapshots and numeric scope handles. Go pointers never cross instances. The core owns document navigation, history, streaming and cache policy. Module router calls delegate to it; public settings, committed location and route selections synchronize from its snapshot. Islands retain their own local state and scoped listeners/subscriptions. Unmount disposes those scopes before DOM removal. A downloaded runtime can mount later islands without another fetch, including after back/forward navigation. Retained layout rules apply to island roots as before.
+
+Recognized document-authority loss propagates a `Revoked` snapshot from the
+core to loaded paired modules. A module fences its pending and mounted scopes
+before configuration checks or resource, selection and location observer
+dispatch; terminal application cleanup is deferred. The core registers a pending lazy
+proxy before asynchronous loading and checks application identity and exact DOM
+ownership again before publishing a completed Mount. A later authorized snapshot
+can admit fresh mounts; it never revives an already revoked scope. This governs
+framework-owned callbacks, not arbitrary raw `syscall/js` application code.
+
+The query/Refresh merge and ABI-6 privacy increment are **source-only and
+unqualified**. Their prepared regressions have not established matching-SDK
+builds, core/module/dev runtime behavior, browser coverage, deployment behavior
+or resource stabilization. The scoped ABI-5 results below do not supply that
+missing evidence. Full changed-output reconciliation and production release
+gates remain open.
 
 ## Bounds and failure behavior
 

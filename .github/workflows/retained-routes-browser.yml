@@ -12,7 +12,7 @@ concurrency:
 jobs:
   native-and-browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 240
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       matrix:
@@ -62,11 +62,11 @@ jobs:
       - name: Full default native race/vet and four WASM personalities
         timeout-minutes: 100
         run: node tests/retained-routes-ci.mjs units
-      - name: Build standalone artifact and attest actual embedded assets
-        timeout-minutes: 25
+      - name: Build both standalone artifacts and attest each actual embedded asset set
+        timeout-minutes: 50
         run: node tests/retained-routes-ci.mjs production
-      - name: Exactly 72 actual prebuilt-server browser cases
-        timeout-minutes: 30
+      - name: Exactly 144 actual cases preserving retained72 and adding merge72
+        timeout-minutes: 60
         run: node tests/retained-routes-ci.mjs browser
       - name: Collect bounded source, command and process evidence
         if: always() && env.NEXTGO_RETAINED_CI != ''
@@ -90,7 +90,7 @@ jobs:
     # Standard public ARM runner; no container/cgroup hard-limit claim.
     if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 300
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -136,11 +136,11 @@ jobs:
       - name: Full default native race/vet and four WASM personalities
         timeout-minutes: 100
         run: node tests/retained-routes-ci.mjs units
-      - name: Build standalone artifact and attest actual embedded assets
-        timeout-minutes: 25
+      - name: Build both standalone artifacts and attest each actual embedded asset set
+        timeout-minutes: 50
         run: node tests/retained-routes-ci.mjs production
-      - name: Exactly 72 actual prebuilt-server browser cases
-        timeout-minutes: 30
+      - name: Exactly 144 actual cases preserving retained72 and adding merge72
+        timeout-minutes: 60
         run: node tests/retained-routes-ci.mjs browser
       - name: Collect bounded source, command and process evidence
         if: always() && env.NEXTGO_RETAINED_CI != ''

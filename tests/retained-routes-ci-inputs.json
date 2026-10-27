@@ -17,418 +17,947 @@
   "files": [
     {
       "path": ".github/workflows/retained-routes-browser.yml",
-      "sha256": "fbcd7fb42dfe128ceb4ceadea10699dfedf707c307205d0c76c293831627f5a6",
-      "bytes": 6370,
-      "origin": "ARM native public-hosted job and explicit AMD64 selection atop prior compiler-bootstrap receipt df1ad132; prior bytes preserved in base/"
+      "sha256": "b50cf61b8b81a378acb2bae0c977196e6f661eea60cee9cae8743460d648405b",
+      "bytes": 6434,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": ".github/workflows/retained-routes-source.yml",
-      "sha256": "6584255f8102512797657f236baa39f2996d92f3b42a6c2cb551addb643bf5f2",
-      "bytes": 5650,
-      "origin": "approved UTF8 integration e596fa61"
+      "sha256": "fb74d7aae9e4136238f18a72bce0e83f1a9d40b568a8061f364e46b0f3cf71ef",
+      "bytes": 5916,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": "cache/shared/file_lock_unix_test.go",
       "sha256": "c86c16c67178102969b02b86317c29ed35710d17b134a8620a3652edd46007d2",
       "bytes": 11036,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "cache/shared/http.go",
       "sha256": "255c24a29e806a435f4e7c293d46051f4e3e94e1a8cd13f4a39e314ee7f108ef",
       "bytes": 23245,
-      "origin": "Reviewed final-success caller cancellation check and deterministic EOF regressions; original881060 source and standalone67d653 formatter derivative are byte-identical; runtime unexecuted"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "cache/shared/http_cancellation_test.go",
       "sha256": "e969e5ad1f6ca191e6364607f702306154c527da00d8b29deedaf51cbf32df96",
       "bytes": 3771,
-      "origin": "Reviewed final-success caller cancellation check and deterministic EOF regressions; original881060 source and standalone67d653 formatter derivative are byte-identical; runtime unexecuted"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/accessibility_js.go",
       "sha256": "2e27940078d23247fb538638ade300a6879f705d9d3abcd7d34840c0bf45c8dc",
       "bytes": 3010,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "client/client_only_js.go",
+      "sha256": "541281c186ceae4c943a205f794f363fa392a5f42f77947e5dcf03af42f0df20",
+      "bytes": 7418,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/composition_js.go",
-      "sha256": "7060a063e19984223b42b6371079aa5a642fad6ab83315ebb08360dc0d509cc6",
-      "bytes": 2362,
-      "origin": "exact actual37d source"
+      "sha256": "5702f9247c868089e62939fae5f00e2e0a87235448a6d2a07aa5dc073798d5d1",
+      "bytes": 2473,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/lazy_authority_js.go",
+      "sha256": "4d2f31bb02f8e181340847742e15f3ced2a31e4b4a6729d8216e9e88819f81e6",
+      "bytes": 2060,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/lazy_js.go",
+      "sha256": "3d39e2551bf0c055cc9dc475fec9a22a2d6208f19804cd54f2b44aa0016efcec",
+      "bytes": 17658,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/lazy_privacy_js_test.go",
+      "sha256": "b007c62422f833160e41deceb26f6f3e608cd628e7279b182797d6200e90b3b4",
+      "bytes": 13339,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/lifetime.go",
-      "sha256": "e8ed95f3bc759b71814f962760f79cf2ecc5f0b201a92e0c3366961316f7f4f1",
-      "bytes": 14597,
-      "origin": "exact actual37d source"
+      "sha256": "6ad8eda531214ee82ba506b251856f9c75178a1de6dd818dde4228efef03bf5b",
+      "bytes": 15979,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/link_status_js.go",
+      "sha256": "0aa2c55d9fd7e15f3859a665bd3d540e935dd87acbc740b0846733180f7fa0f8",
+      "bytes": 9452,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/link_status_js_test.go",
+      "sha256": "2dbf0ea141b25742d4575b16ae05a3b30a9db9219c3158e8ed56cbf6699518af",
+      "bytes": 10236,
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "client/location_js.go",
+      "sha256": "44b1d41436d598b3b6931935c453d73b9bd7048a32c0ded7ffc099cc14082014",
+      "bytes": 3928,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_application_js.go",
+      "sha256": "f14c74ec9ac65303e438412322d1f1a50e12b9a5b4ee38ec59c205cac2c62f8b",
+      "bytes": 4467,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_application_js_test.go",
+      "sha256": "191e018c3b85ebf5ddcbbeac95863d14026bc4dc9546f28fa94c0aad27a706a9",
+      "bytes": 13684,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_commit_js.go",
+      "sha256": "4eb47860f83a2e6a9df6e7a3ac046ff114844e6297fd8043c8616d9cdb8f859b",
+      "bytes": 14735,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_coordinator_js.go",
+      "sha256": "62748f6e843c05caa79c9ea2d774991afdf355f96345db6582ac9cb0b462011a",
+      "bytes": 18341,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_dom_js.go",
+      "sha256": "1bb3491475fb84fe3f6858aa76c13a51169437c4ecd301d5ffbcf18745350e53",
+      "bytes": 32143,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_dom_js_test.go",
+      "sha256": "d0f2bd481ed158e74bc60edb1c77a54de550eea52109035f6309957b3d01043f",
+      "bytes": 8995,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_history_js.go",
+      "sha256": "5ee696c049c028f593e244677f172249849ca01adcd2b43fef784c3123725a56",
+      "bytes": 5497,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_plan.go",
+      "sha256": "0d39f931c9829c922d6e91d52a35d1e8d6795182fd893bbea635ef3260e62462",
+      "bytes": 1189,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_plan_test.go",
+      "sha256": "f7431d7a5bc952c740d089495830cb7ef8fb124fde744a83aef831b2eb8ccdce",
+      "bytes": 1822,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/merge_queue_js_test.go",
+      "sha256": "fcdc4c129520bb9c3cdced71b59d18c43ae27cff51cbdedd20ad31d62ad1f801",
+      "bytes": 29219,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/module_authority_js_test.go",
+      "sha256": "31250f1604130d5eaa569d66b5c135b43ca672b5b8843265c0fbbc015d3f9575",
+      "bytes": 8180,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/module_host_registration_js_test.go",
+      "sha256": "89764660fa52dc11b8be113b1cbe02ae20fbeed89236a2564815e0832b3e9c8d",
+      "bytes": 8979,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/module_js.go",
+      "sha256": "353000f2d702a68979b32f18da8c64c15d642df559c77eaa58fca7e3356906bc",
+      "bytes": 6076,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/offline_conflict_js_test.go",
       "sha256": "d6f8d5f8653c0f883a31e4b38265907b291c52c9dea4f675ed3e839119b7367a",
       "bytes": 8175,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/offline_js.go",
       "sha256": "bbcd22b05b4874550f25d3bd29ee043da89e79f4ff5bb8da5b13b95ec171e9e1",
       "bytes": 28704,
-      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/offline_registration_reacquire_js_test.go",
       "sha256": "e98983fcf92e15288bf7ac14f4b4f1a0448b2f3c1bc82e337a0a387267757be0",
       "bytes": 22379,
-      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/offline_registration_status_js_test.go",
       "sha256": "ce61eb8f443e1313ea2b0bbef935bfefe8cbab90f3167c5f77101b8e045a7132",
       "bytes": 12146,
-      "origin": "exact offline donor eeb4fc24 / manifest9958e3c1"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "client/props.go",
+      "sha256": "00568651396925820d57a6f7f874a5783107109453485a5f13dc0f98220fd1ca",
+      "bytes": 7595,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_callback_read_js_test.go",
+      "sha256": "98f83d2a602db39ca5420c63825f75cc4c73a5a66517fbdd487a95a901acc55f",
+      "bytes": 4690,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_capacity_js.go",
+      "sha256": "01068f0ac6f9d06817ccfa42657fcfac2f1094834cf35ba4cd0430e37433f9d3",
+      "bytes": 1758,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_capacity_js_test.go",
+      "sha256": "137d43c24d6bbcb9abeaa144df67e362095ee144a21d0fb970418ea11d1f3db2",
+      "bytes": 5524,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_cohort_js.go",
+      "sha256": "b2c0828040f5cf1e86f68e0c6a5382c3d2b3a0b1b17b193d2e6c8789055dfbcf",
+      "bytes": 11057,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_cohort_js_test.go",
+      "sha256": "3f1b5e17542ce8e64bda73efc508acc7a588e3b12b99e6ae3d786e01d5faec94",
+      "bytes": 19345,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_effects.go",
+      "sha256": "79e90d12efb1cb7cdfa56b55493a5a3f39c42e318eeb04ff406ca101b25401a8",
+      "bytes": 3950,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_js.go",
+      "sha256": "8bebf39855acb9171c6b246ab4e6b6b28db65b1a4a027c088e669cf92706e25a",
+      "bytes": 5944,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_js_test.go",
+      "sha256": "4d5ff0b555ab6a2eb6530af77bc3db31c81ae69aa54d818cf6c168b0c04cce31",
+      "bytes": 10516,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_mount_privacy_js_test.go",
+      "sha256": "5742ab0f28ce7ec6101987bc3da6c2ef594d5ec806ccdc1138bfb521f51be1e6",
+      "bytes": 5558,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_refresh_js_test.go",
+      "sha256": "91155bbea2ac5c3abc500479ee9271fcaacc89177e9541ba88a6b0a02e608a97",
+      "bytes": 3673,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_worker.go",
+      "sha256": "b8de4806ba1574f36a792377e065a8bf31909126045b4d1fc9cacd27c8d4c73b",
+      "bytes": 2645,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/props_worker_test.go",
+      "sha256": "4c6bbb403573dc128b68cbdaa95fd6c348acc1e64822a304bfb5f61e9e5bc8a7",
+      "bytes": 20502,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/refresh_activity_js_test.go",
       "sha256": "1610d7f7f1801a1d254fb987a21bc571f20bc641a0fae0e0509dc4078b44246e",
       "bytes": 11573,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/resource_js.go",
-      "sha256": "85f78b53877cca3ce24165affcdad65a8f6caa15474eb9e3c4ee198788f8dd25",
-      "bytes": 14969,
-      "origin": "exact actual37d source"
+      "sha256": "aaf73ccf73c6712f6c9a37d61193eabe64ba092e2f0da567a67d791e7aa7982e",
+      "bytes": 15869,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/resource_refresh_js.go",
       "sha256": "c142622010771ea52afabd572c8ca7b33cef5ff7c67819bf23446ed6788ae9c6",
       "bytes": 609,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "client/resource_rpc_core_js_test.go",
+      "sha256": "cd3aaecb07bf4e79d0e79685c68578891c71923e5b2da731748aff7233c49a03",
+      "bytes": 5320,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/retained_devrefresh_js_test.go",
       "sha256": "df3fbabe3937c343379730f8e21fbfe543e0b7ba6d8b633dc8f30a992e76289f",
       "bytes": 13660,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retained_dom_budget_js_test.go",
       "sha256": "5e35a7e6664d0986001ca14bba27770d12440c6ef4064c876e5fa1c3e72b669d",
       "bytes": 896,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retained_routes_js.go",
       "sha256": "640c5d7ee6d9eed7f23a6f35294ab5da41ad617506a87c73b5f8872d662a4ee8",
       "bytes": 31119,
-      "origin": "Reviewed single synchronous retained-focus layout preparation and strengthened existing no-replay/selection fixture; runtime unqualified"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retained_routes_js_test.go",
       "sha256": "f6f1b3521fce0247ea8c54cb2c71685589bfc2ca740d43104b3f65916298c4ce",
       "bytes": 36452,
-      "origin": "Reviewed single synchronous retained-focus layout preparation and strengthened existing no-replay/selection fixture; runtime unqualified"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retention.go",
       "sha256": "5ae51bef75e9a55d88a7ffd1ae7680c1da7caf8a0a3b92f78a9bfa736f445106",
       "bytes": 3922,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retention_activity_js.go",
-      "sha256": "554f884452e15b1bbce40d9b680309350a8b6412ecd2eff1cf08d9e7e3038b8e",
-      "bytes": 6040,
-      "origin": "exact actual37d source"
+      "sha256": "9c79a5b18d90dcf9deea798a05a77a29979ab7828273163b7560c347171a5115",
+      "bytes": 6259,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/retention_activity_js_test.go",
       "sha256": "5d08354a83f3d87b9f54530a10f9dfe6bddb9c0587aed86ccea54c7328723851",
       "bytes": 13126,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retention_lifetime_test.go",
       "sha256": "4f658ddc8d62dea2ce481f028517ed0ff0c9fdc2d4802442c0a39e29ba29e5b3",
       "bytes": 9897,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/retention_test.go",
       "sha256": "e6acd7318590871b2079d7ade531c236d093046e969efab8ac0d7d09ad27802d",
       "bytes": 2978,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "client/runtime_js.go",
-      "sha256": "7e2db243047e916d5bbf7cf4b8291dc8f27e6f29bcfa1083807ffe903943f835",
-      "bytes": 49046,
-      "origin": "exact actual37d source"
+      "sha256": "b6c5312830119d11e8df943f73423c0ab95c92db2154dda6c225d4b94f35f2b2",
+      "bytes": 56468,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/scope_js.go",
-      "sha256": "1f9e7fb30ac8b73900f7a4ee8b1e31d43aeb2e05bbfbaa615accbf9b821be70c",
-      "bytes": 6658,
-      "origin": "exact actual37d source"
+      "sha256": "b163855806c295951264777293ca92dfa7179c1a22710cd58b9fecc53082e5cb",
+      "bytes": 8817,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "client/selection_js.go",
+      "sha256": "a9137dd64f050582ab79f0e920eed36f2ca951aa974159669112854b2e3247a0",
+      "bytes": 4366,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "client/task_js.go",
       "sha256": "07bb6f45d6d9579e8d597a84089a021fc800d6d8946feeb29fe56ce9b75a51aa",
       "bytes": 1353,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "df1baee6b7e8b5f40dbea665831193e311e28c51cb1fb701ecc2dcf8a7bff655",
-      "bytes": 190643,
-      "origin": "Immutable452 Lambda four-cell component qualification documentation; no current retained runtime result inherited"
+      "sha256": "03fcb2da81b7c4b4ae851da61376e19466172a62cd9ec8bf78192ce924303a05",
+      "bytes": 192308,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "docs/RETAINED_ROUTES.md",
       "sha256": "2525b57c5e49b81c287c969964d445fc4d49ab8f22d3fa85ed8999350967ac02",
       "bytes": 17366,
-      "origin": "truthful historical445/37d source qualification and separate producer first-RED; combined candidate unqualified"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "document.go",
       "sha256": "55766ddad4cf5d2a07dac8268a3bcfa5d3487af489993387556c323e946191d3",
       "bytes": 1071,
-      "origin": "Reviewed default status overlay, conditional native selection setter and unchanged browser assertions with bounded owner diagnostics; current runtime unqualified"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "examples/merge/README.md",
+      "sha256": "d5ebfc3715081b6609520aeb704b76b72fff094c60dc5bff8729eb7711f11319",
+      "bytes": 6457,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/boot/page.go",
+      "sha256": "ed4f52149997765cd4d65ba8cdf1939d1a8c4d8eefedf2afb4a1e447b31bcafd",
+      "bytes": 707,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/boot/page_test.go",
+      "sha256": "e491d0db646c9c8c1e41199e1c1060d8522aaac33c7a07d53d8e028c39259935",
+      "bytes": 1451,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/config.go",
+      "sha256": "30d681ee66ee3b229587233fa3408a2ddfae0a06e4b66031229635bcfaf611b0",
+      "bytes": 3552,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/content.go",
+      "sha256": "a50a9a654d4083f043df9e965a6f76781a0ecc9d4fb11273ec1a196f06e413c4",
+      "bytes": 2959,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/layouts/layout.go",
+      "sha256": "b4a9dd41c49310b371d204d929d519eb04b2f24bc442560bda55b7c998cfb9dc",
+      "bytes": 409,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/layouts/products/layout.go",
+      "sha256": "d8c8ceb02f9412652602b0fa8b2b8801a636bc62081fb8c2f86b54dcd6a37c46",
+      "bytes": 410,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/layouts/products/param_id/page.go",
+      "sha256": "276db1cc7591dd53530aa8e3b1443ce11e1acbea1ed1c11465178d39975909ad",
+      "bytes": 238,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/lazy-props/page.go",
+      "sha256": "353b74b62660b87451aac4afcb8a47e3c9c73794589329732566003b297de16b",
+      "bytes": 504,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/lazy-props/page_test.go",
+      "sha256": "45ecc85a24e0c655db3c734e25ade9fa6e243befeba911c6b1c1390f246ffc69",
+      "bytes": 1473,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/page.go",
+      "sha256": "32ef5b2f858a5903b32177a9a93081bc1a6f89093bd91b9b99df5d26c8e792aa",
+      "bytes": 164,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/page_test.go",
+      "sha256": "9b6fb2050acfc779aa24c4396591785787fc464df99317f6f03247b6fa284964",
+      "bytes": 4809,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/plain-props/page.go",
+      "sha256": "3ee9853b728ad109a57754902c97760052330b842966812b60b680756943ae09",
+      "bytes": 692,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/plain-props/page_test.go",
+      "sha256": "68218c776204e032a795cd7e2b430f10b5d773158cd586d6705f7f0e2a1b0717",
+      "bytes": 1223,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/app/products/param_id/page.go",
+      "sha256": "b5911851cccdf23285aab3ab2403dfa5e6ccdb119e49670a447e29cbd5d4377f",
+      "bytes": 237,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/lazyordinary/client_js.go",
+      "sha256": "bfc0b82a2ffab2f963e4ea1baf72b7a46d40c3ac07e1fd76fc8e4075169e2217",
+      "bytes": 1893,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/lazyordinary/component.json",
+      "sha256": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04",
+      "bytes": 19,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/lazyordinary/props.go",
+      "sha256": "c1c07da3a58903af84b39fa233e193785055fbfd36c7d67ca4a50fdf1ef460be",
+      "bytes": 141,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/lazyordinary/server.go",
+      "sha256": "377eca86f4bedb9ccff1097cb2b4e8938fc89fae664813cd55acd7627b1512be",
+      "bytes": 1358,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/ordinary/client_js.go",
+      "sha256": "76313ab09eedf38551544b866e27c93b7ced6c49d4a95a392799565a0fa68590",
+      "bytes": 2223,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/ordinary/props.go",
+      "sha256": "0aba5904f7e9a8094cc74827b8523595185f3455bc1c91f2520c5c8379022941",
+      "bytes": 180,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/ordinary/server.go",
+      "sha256": "5785ec9c662830e318132ef38c9912cb32d4807ce660b1b994a85838ed26e17b",
+      "bytes": 1297,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/panel/client_js.go",
+      "sha256": "82204deabe938594cd38c490126493b591be5713785b502dedcebb893e058221",
+      "bytes": 3369,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/panel/props.go",
+      "sha256": "b96fe611b1487d43bd86ab80f1b0e317b0e8b939e085485cd4d9e73d23226aba",
+      "bytes": 492,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/panel/server.go",
+      "sha256": "91dba2f4126c1f0c355ac43505d9dcb0a749c1d1930f1412b9f646d6d3d0155d",
+      "bytes": 234,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/components/panel/view.go",
+      "sha256": "2011b6a48ab93c9b0b2ff270c12005be52c4e47248f4816bb545762a82027bb7",
+      "bytes": 2340,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "examples/merge/public/merge.css",
+      "sha256": "9d5f7566c8f5f2676fc372ab5420ef3efdb9a1c39418daf6fada7cb15612444f",
+      "bytes": 298,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "examples/retained/README.md",
       "sha256": "ce4c19042ae09864d715f7a4657865405a598289684f43ba064b4835247b4224",
       "bytes": 3395,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/app/config.go",
       "sha256": "b274c5e643bba6d1857112aed21c55a9ef341015488cb2a860a3ec0af7e7d95d",
       "bytes": 3763,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/app/content.go",
       "sha256": "e93c4a0c6cf4c4346432d63796f84a982b5a61b0a7a1f9a1230131f30dca5d04",
       "bytes": 3487,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/app/page.go",
       "sha256": "95d2052a7cb0b9093e7fed0150601fd3e274f6a919e57504ccd96f97e47a1379",
       "bytes": 154,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/app/param_page/page.go",
       "sha256": "86158743f8e3cc51beecaf5ae2d12e8349a10d44ac82b0f80d97b1df6abeb34a",
       "bytes": 240,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/components/retentionpanel/client_js.go",
       "sha256": "676f789e0ff3ff5e4762d1d081139e209620db341acf251fdb4f9dabc250085e",
       "bytes": 3554,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/components/retentionpanel/props.go",
       "sha256": "1d13a3418855564f68f553e12ffd309aa066b5b41393f3545486fe9a1a31a6a9",
       "bytes": 335,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/components/retentionpanel/server.go",
       "sha256": "5bd1194cfd0596d0f8d031523387f0b0325803c80020e774136f32a0da3da4bc",
       "bytes": 1933,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "examples/retained/public/retained.css",
       "sha256": "fad58b5a4fdcf434ba1c4c87e28bdbd8eca8ce58488119dbddf30c4fbcb55a7a",
       "bytes": 286,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "go.mod",
       "sha256": "5baa3db5d68f402f8be2ee6eab92cf9309c5f290b3454fc34fbb999a6bc93e6b",
       "bytes": 48,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "internal/devrefresh/protocol.go",
+      "sha256": "e0a067099210b892e638a5eaf49a6696205d968df758a3b8af3782a0327a5e2c",
+      "bytes": 8155,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "internal/navigation/manifest.go",
-      "sha256": "91b4b0d440ba49e2020f3b3c91dbfe5b10d90e1bb8fcda1ad47f267f46047474",
-      "bytes": 2936,
-      "origin": "exact actual37d source"
+      "sha256": "55536216a73cf2f510bf72df11f7c393426c2534d9dac65ef7c87817f97ad170",
+      "bytes": 3064,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "internal/navigation/merge.go",
+      "sha256": "002842d3dc7d233eaa815b16efe03ff31f9196cc657dbabdd6bd5a2eba58b1fc",
+      "bytes": 9234,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "internal/navigation/merge_test.go",
+      "sha256": "de75edfdd8c572b700a58434e069106a6d23ab96c446bc38dac329a13a04b34f",
+      "bytes": 4836,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "internal/navigation/retention.go",
       "sha256": "286184c2c48bc2b4b27dbd2e5848d989732d58faeafe2c67dd082170f40c9734",
       "bytes": 3831,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "internal/navigation/retention_test.go",
       "sha256": "2aaf9e8ba4f848334a90bfe6478e818dd9ddcc30180771a2994ac3adb1571823",
       "bytes": 3498,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "internal/renderowner/owner.go",
+      "sha256": "d4fc6118b9d4f3e48f9ee265c44455ed23c306aeb7cf59b2937b5101719fc242",
+      "bytes": 1773,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "internal/renderowner/owner_test.go",
+      "sha256": "459efb155612d168017d20f266291958295cd8125f8b78b1321f446cef6241b9",
+      "bytes": 1582,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "internal/renderowner/recorder.go",
+      "sha256": "9eb79886d7e1e0b143ee7daa3851c52db3bdd5bad904959ca1a6169cb3cf7082",
+      "bytes": 3688,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "merge_test.go",
+      "sha256": "82f4981244e9c9e56b2bacd78dc9ad42e20b75f03533475746497f9fd0681bb1",
+      "bytes": 11386,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "nextgo.go",
-      "sha256": "a1cb3a7e7cbe0196f011249650340720715e37a811a3a50663c115585044a171",
-      "bytes": 45086,
-      "origin": "exact actual37d source"
+      "sha256": "6a0f82b13bfc0f442301d6426229346b630408dcb5b65a78dcdb8f70be8d3bbf",
+      "bytes": 47154,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "package-lock.json",
       "sha256": "d2a649f7843e721c5792d6a6ae9cd82204e0ed39ed96db3ed075e0594aa76a50",
       "bytes": 1656,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "package.json",
       "sha256": "0089316df33e56aba74a510282ad2a9744590f5f54e3d3e41c54181eec45eb6e",
       "bytes": 3782,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "retention.go",
-      "sha256": "31f90dc8956a36a8159419a7bef65ab2c34d097a54a98f5cf69df8ed1d68cbcd",
-      "bytes": 1411,
-      "origin": "exact actual37d source"
+      "sha256": "3a4f5b96b512247c488a0772fa80c75a986adad9980746d3668a31b4f8a218ae",
+      "bytes": 5386,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "retention_test.go",
       "sha256": "20a1768189cbb5309e944a36a66e2fe344739d0a6d877abbae89a2481c46c4e7",
       "bytes": 6077,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "retention_utf8_test.go",
       "sha256": "a1b03ced2dac3ba4502d76f7f988e9ddd7c98f4ec0ed3395818da0dcf787089a",
       "bytes": 5790,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "scripts/test-wasm.sh",
-      "sha256": "aed94c1336cbc427593dcd5b0f5e10db6d90d888c3c3b2c99d513cb66adcbce1",
-      "bytes": 1468,
-      "origin": "exact actual37d source"
+      "sha256": "845ec2936a078eaf8d598be08b5ad6781b38ab8168673debdcbe7b12ee124265",
+      "bytes": 1628,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": "tests/link-status-gates.mjs",
       "sha256": "1f8bee7929d575b145f1d97ce384dba0dfb234a808f81b1f73a9de56d2ae0d34",
       "bytes": 8019,
-      "origin": "Exact cf91 test-only route-drain ordering correction; no framework/runtime change; source-only, unexecuted"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/link-status-gates.test.mjs",
       "sha256": "1268f0c61f3b2cda24d4f7a3027377b3971cae4973af0243b5a6d2ad9a841b93",
       "bytes": 3646,
-      "origin": "Deterministic source-only native-disposition-before-unroute scheduling regressions; no browser/HTTP/Go execution"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "tests/merge-config.mjs",
+      "sha256": "a497a19fa30bd919ff091d6a0a9e5ba7159f60b75f462f22fb0eae6a15197cbb",
+      "bytes": 1018,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "tests/merge-fixture.mjs",
+      "sha256": "c9ba5b58ea42697e24243f87a62bcd8dc754986c751e85ef78e9d117492e447f",
+      "bytes": 2587,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "tests/merge-spec.mjs",
+      "sha256": "a5d990c8c3eb4abb282d51dc7522a3d310e2a31386eb0e9c620601f98c684295",
+      "bytes": 47138,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "tests/offline-registration-proof-diagnostics.mjs",
       "sha256": "75acbfb27f057c11be7b910b36e90c4640947342d7c1a3f3c32ee2292aab433c",
       "bytes": 11227,
-      "origin": "exact separate offline observer proposal8e47affd; eligible failure only"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/offline.spec.mjs",
       "sha256": "375e71f4f883bd82d92f4fba04f0f24ea590f3e9972a5b77d4be4644e22851bd",
       "bytes": 27164,
-      "origin": "exact separate offline observer proposal8e47affd; eligible failure only"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "tests/retained-process-group-census.mjs",
+      "sha256": "61acfa845f1e8049817051c08debc8e9c3dafe3f8788203020044bdd5dade910",
+      "bytes": 8558,
+      "origin": "actual10pathM2producer"
+    },
+    {
+      "path": "tests/retained-process-group-census.test.mjs",
+      "sha256": "e400fbbe4a1898082ee5f56acc361a05865c4c2c3b722def5eb8dab390662a1c",
+      "bytes": 8457,
+      "origin": "actual10pathM2producer"
+    },
+    {
+      "path": "tests/retained-routes-assets.mjs",
+      "sha256": "305dc50fed4ebbb5e06687386c0d1640bf5ed1d8ac7300bfb7f194087f30240f",
+      "bytes": 12445,
+      "origin": "actual10pathM2producer"
+    },
+    {
+      "path": "tests/retained-routes-assets.test.mjs",
+      "sha256": "27db163c596bee187ca30a2c77f5c79312f761b1904cbd2169857cbebe8c31bf",
+      "bytes": 8293,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "a8369c51cd5f1c8cd2839d7d6589f8d435fd762c0ad9eb1f14673233b0ac33c0",
-      "bytes": 51055,
-      "origin": "Exact cf91 test-only route-drain ordering correction; no framework/runtime change; source-only, unexecuted"
+      "sha256": "77fd9b8580ca267fd7e4d5cef1e6e0331c09cc47e98b763874966317fe5f86e7",
+      "bytes": 60174,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
-      "sha256": "9f135e649df8ccd958a605240864018ef7679102a88ece865de585dc796eb37c",
-      "bytes": 10520,
-      "origin": "Pure native-target audit positives/negatives appended to exact actual37d auditor base; prior bytes preserved in base/"
+      "sha256": "1275c5960305e967010a60d085a262e4da0f25037357c87a4831aeecafb36687",
+      "bytes": 18987,
+      "origin": "actual10pathM2producer"
     },
     {
       "path": "tests/retained-routes-fixture.mjs",
       "sha256": "e8369d8e105b75f4e3ed6f858512e9464fce6d9acdb9a7a2e9e8baab41a23391",
       "bytes": 10519,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/retained-routes-native-identity.mjs",
       "sha256": "14958d48f68277155a48faacb042c6345831531259a2af4cec3983397b889379",
       "bytes": 9682,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/retained-routes-native-identity.test.mjs",
       "sha256": "871c64a4a0c42dab6c229df333c3b6a67634f9354e28cd68526fb1724d168a6b",
       "bytes": 7810,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/retained-routes-target.mjs",
       "bytes": 2522,
       "sha256": "fd2cdd4d50ed8cd084fdac4960944b315d74dae646d13feb91d04a3cfbde7a84",
-      "origin": "New pure qualification-only native-target auditor; no production runtime imports"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/retained-routes.config.mjs",
       "sha256": "6a2eae236de797ca6483e96587fc7e66d1887109416334bd8a65b74fb05fa422",
       "bytes": 955,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/retained-routes.spec.mjs",
       "sha256": "f2e0505413e42f89e0a68f0852910601395fd5ad8859cac1d07c8a0bf8f7afa3",
       "bytes": 27940,
-      "origin": "Reviewed default status overlay, conditional native selection setter and unchanged browser assertions with bounded owner diagnostics; current runtime unqualified"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "tests/static-shell-ci-build.mjs",
       "sha256": "4ebff91aa52f58864c6c5ce5b68a2cb39f0d59f8f820d7e2304233d2c21da6c6",
       "bytes": 20592,
-      "origin": "exact actual37d source"
+      "origin": "exactImmutableRootb7e"
+    },
+    {
+      "path": "ui/island_options.go",
+      "sha256": "f879da5ba9206eb5cfcc4bcb40521a0f6c4e9163eac6232f878b740d5ed3e0cc",
+      "bytes": 3025,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "ui/island_options_test.go",
+      "sha256": "1abb8988bc50844d78d51b98480fe6a1af94c9c24f3a22497f7db8041ee6df4f",
+      "bytes": 6506,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+    },
+    {
+      "path": "ui/keyed.go",
+      "sha256": "f920c52398188c8f435d4995a7586ba00f9eb0de69c28591443dc77f3d40eaa9",
+      "bytes": 1063,
+      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
       "path": "ui/request_region.go",
       "sha256": "3f9f9ba3c756eacc42af092b1bdce83403560c10d66f88d8d850e15ee4ea23db",
       "bytes": 8635,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "ui/stream.go",
       "sha256": "b8ef81a916bccc6c2e6443826b6b234da3e91e12f3e2bde8bc42dc6118f519b4",
       "bytes": 9155,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "ui/ui.go",
       "sha256": "6d83d435586977da0f504d4021c717e699eed31eac59e8786da7ba4259e59483",
       "bytes": 9715,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "ui/utf8.go",
       "sha256": "da0a8186d97938ac843d491c09e1f1bf107203dce546bfa538eccdc4dd6a6f4e",
       "bytes": 5162,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     },
     {
       "path": "ui/utf8_test.go",
       "sha256": "4b9e84eec1a8a06df469c7e956f0c61939860bc0e8c4f069ba0900bdfbb7d01f",
       "bytes": 9066,
-      "origin": "approved UTF8 integration e596fa61"
+      "origin": "exactImmutableRootb7e"
     }
   ],
   "tests": {
     "native": [
+      "TestBootHasOnlyAnOrdinarySSRIslandAndNoRetentionDescriptor",
+      "TestCanonicalUTF8HTMLAndNavigationStreamSemantics",
+      "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
+      "TestClientIslandCaptureUsesCanonicalRenderUnitBytes",
+      "TestClientIslandDeclaredAncestryDuplicatesAndInvalidOptions",
+      "TestClientIslandFallbackHidesRecorderButPreservesExistingMarkerPolicy",
+      "TestClientIslandOptionsSingleRenderAndLegacyBytes",
+      "TestClientIslandOversizedValidPropsKeepOrdinaryFreshRendering",
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
       "TestFileLockDoesNotLeakAcrossExec",
       "TestFileLockKernelExcludesOtherProcess",
       "TestFileLockKernelReleasesKilledOwner",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+      "TestLazyPropsPageProvidesUsefulOrdinarySSRAndPublicCurrentQuery",
+      "TestMergeActualNestedLayoutAuthorityIsIndependentFromLegacyRetention",
+      "TestMergeActualServerFreshQueryAndBootstrapBinding",
+      "TestMergeActualServerSiblingFallbackContextIsolationAndSingleCounts",
+      "TestMergeDeclaredParentKeysAndFraming",
+      "TestMergeDefaultResponsesRemainWithoutWireExtension",
+      "TestMergeDescriptorRejectsMalformedWireAndSlices",
+      "TestMergeEligibilityNeverInstallsRecorderForCaptureOrUnsupportedResponses",
+      "TestMergeInertOriginForwardsExactWriter",
+      "TestMergeInertWrappersPreserveRealDeferAndShellCapture",
+      "TestMergeRawRangesEscapeAndIndependentIdentity",
+      "TestMergeSampleOptionalOrdinaryFileAndRealEffectControls",
+      "TestMergeSamplePublicControlsAreBoundedAndDenialIsFresh",
+      "TestMergeSampleUsesRealFreshLoadersAndCompleteServerEnvelope",
+      "TestMergeSnapshotCannotFollowMutableRequestAndParentPrefixStopsAtLayout",
+      "TestMergeStationaryAnchorAdmissionIsBoundedAndUnambiguous",
+      "TestMergeStationaryAnchorsKeepUnmovedIndependentSiblings",
+      "TestMergeStationaryReorderNeverPretendsBothRootsStayedPut",
+      "TestPlainPropsHasIdenticalOrdinarySSRAndNoClientBoundary",
+      "TestPropsBatchCoalescesExistingIndependentRootsAndKeepsUnrelatedEffects",
+      "TestPropsBatchNewEffectsKeepInitialSetupAndRevocationSkipsOtherCallbacks",
+      "TestPropsCallbackRechecksAuthorityAtWorkerDispatch",
+      "TestPropsCallbacksPanicGoexitAndErrorsSettlePhysicalCharges",
+      "TestPropsCanceledTinyCloneDoesNotRetainWholeSiblingFrame",
+      "TestPropsCancellationCannotRetirePhysicalCallbackCapacity",
+      "TestPropsNilInterfaceDTOIsAnOwnedTypedValueRatherThanMissingFrameEntry",
+      "TestPropsOwnValidatorStoredRawAndReturnedValues",
+      "TestPropsOwnedEffectCleanupGoexitClosesOnlyFailedEffectAndContinuesSiblings",
+      "TestPropsOwnedEffectRechecksVisibilityBeforeAuthoredSetupDispatch",
+      "TestPropsOwnedLifetimeSupervisesEachCleanupAcrossGoexit",
+      "TestPropsPreparedCallbacksSeeIncomingLocationWhileCommittedFrameStaysOld",
+      "TestPropsPublicationBoundsNewChildrenAndPermanentRegistrations",
+      "TestPropsPublicationCycleIsBoundedAndDoesNotSkipHealthySibling",
+      "TestPropsPublicationGoexitReturnsOwnedFailureAndContinuesSibling",
+      "TestPropsReadRejectsFrameReplacementDuringOwnedClone",
+      "TestPropsRevocationRejectsReadsWhileOldCloneRemainsCharged",
+      "TestPropsSilentLocationPreservesRevisionWithoutDependencyPublication",
+      "TestPropsWorkerSerializedBytesRemainChargedUntilPhysicalSettlement",
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
       "TestRetainedLifetimeCleansSetupThatHidesItsOwnOwner",
       "TestRetainedLifetimeCleanupFailureDoesNotSkipOthersOrPermanentRelease",
@@ -450,24 +979,134 @@
       "TestRetentionOptInContributesToConfigurationIdentityWithoutDefaultBytes",
       "TestRetentionRequiresBothOptInsAndFreshPerRequestPolicy",
       "TestRetentionResponseStampBindsNativeHTMLAndNavigationBytes",
-      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
-      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestRetentionUTF8ExactSSRAndNavigationStamp",
       "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWithoutRecorderShadowsOnlyTheChildAndPreservesContext",
       "TestWorkspaceFingerprintAndOffPolicy",
       "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
-      "TestWorkspaceUnselectedAppDiagnostic",
-      "TestRetentionUTF8ExactSSRAndNavigationStamp",
-      "TestCanonicalUTF8HTMLAndNavigationStreamSemantics",
-      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
-      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
-      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
-      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
-      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
-      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
-      "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess"
+      "TestWorkspaceUnselectedAppDiagnostic"
     ],
     "core": [
+      "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
+      "TestClientIslandCaptureUsesCanonicalRenderUnitBytes",
+      "TestClientIslandDeclaredAncestryDuplicatesAndInvalidOptions",
+      "TestClientIslandFallbackHidesRecorderButPreservesExistingMarkerPolicy",
+      "TestClientIslandOptionsSingleRenderAndLegacyBytes",
+      "TestClientIslandOversizedValidPropsKeepOrdinaryFreshRendering",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestLinkStatusLazyHostSharesBudgetAndRequiresOwner",
+      "TestMergeApplicationRegistryKeepsLegacyNativeTimingAndRejectsChangedTopOwner",
+      "TestMergeApplicationReplacementIncludesAlreadyHydratedLegacyRootsAndKeepsOutsideIndependent",
+      "TestMergeBindingCapturePreservesPublishedOwnersUntilPrivacyRevocation",
+      "TestMergeCallbackReaderKeepsBothPropsSourcesAndLocationUntilWriterCanInstall",
+      "TestMergeClientHelperRefusesQueuedExcessBeforeAllocatingSelectorResult",
+      "TestMergeClientOwnershipRejectsNativeCrossBoundaryAssociations",
+      "TestMergeColdAndServerSkeletonRefuseCustomizedBuiltinsAndLiveShadow",
+      "TestMergeColdCommitWaitsForBootWithoutReservingLegacyWorkers",
+      "TestMergeDeferredPopKeepsEntryFocusScrollAndNewerFailureThroughDuplicateHash",
+      "TestMergeFinalPlanRejectsReplacedApplicationEvenWithoutRetainedCandidates",
+      "TestMergeLazyInflightMountLostAuthorityDisposesReturnedHandleExactlyOnce",
+      "TestMergeLazyQueuedProxyRegistersBeforeWaitAndDenialPreventsMount",
+      "TestMergeLazyRetryGenerationClosesExactLoaderAndJoinsBothOldWaiters",
+      "TestMergeLazyRetryIsApplicationOwnedAndCannotRetryAfterDenial",
+      "TestMergeLazyRetryResetsQueuedLoadingOwnersAndFreshHydrationCompletes",
+      "TestMergeLazyRuntimePromiseSettlesAfterDenialWithoutReplacingStatus",
+      "TestMergeLinkObserverSameKeyReentryQueuesAfterOneConsumedWrapperToken",
+      "TestMergeManagedResourceReentryDeliversLatestInBoundedFollowup",
+      "TestMergeNativeLocationSynchronizationWaitsForOwnedCallbackReads",
+      "TestMergeNodePreflightBoundsQueuedWidthAndDepthBeforeSelectors",
+      "TestMergeNotificationFeedbackFailsAtOneDocumentDeliveryBound",
+      "TestMergeOrdinaryInflightMountIsRegisteredBeforePropsAndLateSuccessCannotPublish",
+      "TestMergeOrdinaryKnownRetentionPartitionChangeRevokesHeldReaderAndColdInstallsFreshPartition",
+      "TestMergeOrdinaryOnlyPropsDenialRevokesBeforeHeldCloneAndReadSettleAndColdRecovers",
+      "TestMergePreparedCarrierRejectsReaderChangedAnchorIdentity",
+      "TestMergePrivacyRevokesOrdinaryAndInflightMountBeforePhysicalSettlement",
+      "TestMergePublishedNotificationsFinishWhenOrdinaryNewRequestStarts",
+      "TestMergeStationaryAnchorAdmissionIsBoundedAndUnambiguous",
+      "TestMergeStationaryAnchorsKeepUnmovedIndependentSiblings",
+      "TestMergeStationaryReorderNeverPretendsBothRootsStayedPut",
+      "TestMergeUnexpectedScopedEventIsNotReplayedAsMutation",
+      "TestMergeUnusedLazyRegistrationKeepsIndependentRootsAndLateLazyOwnershipForcesCold",
+      "TestMergeWaitingWriterCancellationAndInstallRefusalDoNotRetireReaderEarly",
+      "TestMergeWorkerAuthorityKeepsTransportPublicationAndPhysicalCancellation",
+      "TestModuleHostRegistrationFailureDoesNotEnableInstaller",
+      "TestModuleHostRegistrationPreservesDocumentModuleOwnership",
+      "TestModuleHostRegistrationPreservesEarlyFailureAndLateRegistration",
+      "TestModuleHostRegistrationRunInstallsExistingABIOnce",
+      "TestModuleHostRegistrationRunLeavesNoDescriptorBridgeAbsent",
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands",
       "TestOrdinaryUnmountCleanupIsFencedBeforeDOMHeadAndHistory",
+      "TestPropsAbortCloseDrainsCurrentDirtyStateDespiteNewRequestIntent",
+      "TestPropsAcceptedWeightChangesAndPriorFrameChargeReleaseExactly",
+      "TestPropsBatchCoalescesExistingIndependentRootsAndKeepsUnrelatedEffects",
+      "TestPropsBatchNewEffectsKeepInitialSetupAndRevocationSkipsOtherCallbacks",
+      "TestPropsCallbackRechecksAuthorityAtWorkerDispatch",
+      "TestPropsCallbackReservationCountsIdleSeparatelyAndNeverAdmitsWorker129",
+      "TestPropsCallbackReservationPreservesDefaultAndModuleAdmission",
+      "TestPropsCallbacksPanicGoexitAndErrorsSettlePhysicalCharges",
+      "TestPropsCanceledBorrowedCallbackRetainsPhysicalChargeAfterDocumentRelease",
+      "TestPropsCanceledTinyCloneDoesNotRetainWholeSiblingFrame",
+      "TestPropsCancellationCannotRetirePhysicalCallbackCapacity",
+      "TestPropsCloseReportsLateDirtyFailureOnceWithoutRepeatingPublishFailure",
+      "TestPropsCohortNewRequestIntentCannotAbortPublishedSibling",
+      "TestPropsCohortPrivilegedRevocationStopsLaterEffectsAndReads",
+      "TestPropsCohortPublishesIndependentRootsBeforeAnyDependencyAndKeepsTasks",
+      "TestPropsCohortStalePrecommitAndReboundInstanceCannotInstall",
+      "TestPropsDefaultResourceSnapshotKeepsCleanupOrderingBeforeLifetimeRelease",
+      "TestPropsDefaultScopeDisposalKeepsLegacyLifetimeCleanupOrder",
+      "TestPropsEmptyColdFrameRetiresOldSourcesAndSilentLocationKeepsToken",
+      "TestPropsFrozenModulePrivilegedRevokeFencesHeldCloneWithoutSyncOrUnfreeze",
+      "TestPropsInitialHookCancellationDoesNotPublishOrFreeRunningWorker",
+      "TestPropsInitialSourceNeverGrantsOrdinaryIslandMergeAuthority",
+      "TestPropsModulePendingMountRevocationPrecedesLateReturnWithoutClientViewRollback",
+      "TestPropsModuleRevocationFencesPublishedSourcesBeforeObserversAndDoesNotReviveOldScopes",
+      "TestPropsMountRevocationFailsLateOrdinarySuccessButPreservesDefaultRollback",
+      "TestPropsNewChildUnlinkDoesNotLosePublicationFailureRoot",
+      "TestPropsNilInterfaceDTOIsAnOwnedTypedValueRatherThanMissingFrameEntry",
+      "TestPropsOwnValidatorStoredRawAndReturnedValues",
+      "TestPropsOwnedCallbackAndNativeEventReleaseReadsOnPanicAndGoexit",
+      "TestPropsOwnedEffectCleanupGoexitClosesOnlyFailedEffectAndContinuesSiblings",
+      "TestPropsOwnedEffectRechecksVisibilityBeforeAuthoredSetupDispatch",
+      "TestPropsOwnedEventKeepsNativeSynchronousCancellationAndPropagation",
+      "TestPropsOwnedEventReadRefusalCancelsDefaultWithoutReplayAndDefaultScopesStillRun",
+      "TestPropsOwnedLifetimeSupervisesEachCleanupAcrossGoexit",
+      "TestPropsOwnedLinkObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedResourceObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedScopeSupervisesEveryAuthoredCleanupAfterParentUnlink",
+      "TestPropsPreparedCallbacksSeeIncomingLocationWhileCommittedFrameStaysOld",
+      "TestPropsPreparedDiscardReleasesOnlyItsOwnedRawAndCannotDiscardAdoptedTicket",
+      "TestPropsPublicationBoundsNewChildrenAndPermanentRegistrations",
+      "TestPropsPublicationCycleIsBoundedAndDoesNotSkipHealthySibling",
+      "TestPropsPublicationGoexitReturnsOwnedFailureAndContinuesSibling",
+      "TestPropsReadRejectsFrameReplacementDuringOwnedClone",
+      "TestPropsRetiringSourcesCloseOnlyAtInstallAndFreeColdRegistrationBudget",
+      "TestPropsRevocationRejectsReadsWhileOldCloneRemainsCharged",
+      "TestPropsRevokeImmediatelyFencesReadsEventsAndLifetimeWithoutRunningCleanup",
+      "TestPropsRevokedInflightClientMountCannotRestoreFallbackFocusOrLateEvents",
+      "TestPropsRootRegistrationIsAtomicAndRejectsDuplicateAndChildSources",
+      "TestPropsSilentLocationPreservesRevisionWithoutDependencyPublication",
+      "TestPropsSuccessfulClientViewKeepsDurableChildWithoutInitialFallback",
+      "TestPropsWorkerSerializedBytesRemainChargedUntilPhysicalSettlement",
+      "TestResourceModuleABIRejectsOldRegistrationBeforeMount",
+      "TestResourceMutationCoreAndModuleRPCFenceDispatchAndSettlement",
       "TestRetainedChangedOutputPlansColdOwnerAndEvictsOldHistorySnapshot",
       "TestRetainedCleanupNavigationRestoresOutgoingVisibilityAndActivity",
       "TestRetainedColdCleanupPanicCannotVetoAuthorizedFreshRendering",
@@ -475,6 +1114,7 @@
       "TestRetainedCoreTaskCapacitySurvivesHiddenAndDisposedOwners",
       "TestRetainedDescriptorFreeSuccessEvictsPrivateOwnersAndAliases",
       "TestRetainedDocumentContextElementsBypassAtOwnerAndDescendant",
+      "TestRetainedFocusPreservesUnchangedNativeSelection",
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
       "TestRetainedLifetimeCleansSetupThatHidesItsOwnOwner",
       "TestRetainedLifetimeCleanupFailureDoesNotSkipOthersOrPermanentRelease",
@@ -504,13 +1144,61 @@
       "TestRetainedTasksCaptureTheAdmissionContextAndDoNotReplay",
       "TestRetentionAdmissionEvictsOldestHiddenViewWithoutMutatingOnFailure",
       "TestRetentionHistoryRequiresMatchingFreshAuthorityAndHasBoundedAliases",
-      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView",
-      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
-      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
-      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
-      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
-      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView"
+    ],
+    "devcore": [
+      "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
+      "TestClientIslandCaptureUsesCanonicalRenderUnitBytes",
+      "TestClientIslandDeclaredAncestryDuplicatesAndInvalidOptions",
+      "TestClientIslandFallbackHidesRecorderButPreservesExistingMarkerPolicy",
+      "TestClientIslandOptionsSingleRenderAndLegacyBytes",
+      "TestClientIslandOversizedValidPropsKeepOrdinaryFreshRendering",
       "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
+      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
+      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
+      "TestLinkStatusLazyHostSharesBudgetAndRequiresOwner",
+      "TestMergeApplicationRegistryKeepsLegacyNativeTimingAndRejectsChangedTopOwner",
+      "TestMergeApplicationReplacementIncludesAlreadyHydratedLegacyRootsAndKeepsOutsideIndependent",
+      "TestMergeBindingCapturePreservesPublishedOwnersUntilPrivacyRevocation",
+      "TestMergeCallbackReaderKeepsBothPropsSourcesAndLocationUntilWriterCanInstall",
+      "TestMergeClientHelperRefusesQueuedExcessBeforeAllocatingSelectorResult",
+      "TestMergeClientOwnershipRejectsNativeCrossBoundaryAssociations",
+      "TestMergeColdAndServerSkeletonRefuseCustomizedBuiltinsAndLiveShadow",
+      "TestMergeColdCommitWaitsForBootWithoutReservingLegacyWorkers",
+      "TestMergeDeferredPopKeepsEntryFocusScrollAndNewerFailureThroughDuplicateHash",
+      "TestMergeFinalPlanRejectsReplacedApplicationEvenWithoutRetainedCandidates",
+      "TestMergeLazyInflightMountLostAuthorityDisposesReturnedHandleExactlyOnce",
+      "TestMergeLazyQueuedProxyRegistersBeforeWaitAndDenialPreventsMount",
+      "TestMergeLazyRetryGenerationClosesExactLoaderAndJoinsBothOldWaiters",
+      "TestMergeLazyRetryIsApplicationOwnedAndCannotRetryAfterDenial",
+      "TestMergeLazyRetryResetsQueuedLoadingOwnersAndFreshHydrationCompletes",
+      "TestMergeLazyRuntimePromiseSettlesAfterDenialWithoutReplacingStatus",
+      "TestMergeLinkObserverSameKeyReentryQueuesAfterOneConsumedWrapperToken",
+      "TestMergeManagedResourceReentryDeliversLatestInBoundedFollowup",
+      "TestMergeNativeLocationSynchronizationWaitsForOwnedCallbackReads",
+      "TestMergeNodePreflightBoundsQueuedWidthAndDepthBeforeSelectors",
+      "TestMergeNotificationFeedbackFailsAtOneDocumentDeliveryBound",
+      "TestMergeOrdinaryInflightMountIsRegisteredBeforePropsAndLateSuccessCannotPublish",
+      "TestMergeOrdinaryKnownRetentionPartitionChangeRevokesHeldReaderAndColdInstallsFreshPartition",
+      "TestMergeOrdinaryOnlyPropsDenialRevokesBeforeHeldCloneAndReadSettleAndColdRecovers",
+      "TestMergePreparedCarrierRejectsReaderChangedAnchorIdentity",
+      "TestMergePrivacyRevokesOrdinaryAndInflightMountBeforePhysicalSettlement",
+      "TestMergePublishedNotificationsFinishWhenOrdinaryNewRequestStarts",
+      "TestMergeStationaryAnchorAdmissionIsBoundedAndUnambiguous",
+      "TestMergeStationaryAnchorsKeepUnmovedIndependentSiblings",
+      "TestMergeStationaryReorderNeverPretendsBothRootsStayedPut",
+      "TestMergeUnexpectedScopedEventIsNotReplayedAsMutation",
+      "TestMergeUnusedLazyRegistrationKeepsIndependentRootsAndLateLazyOwnershipForcesCold",
+      "TestMergeWaitingWriterCancellationAndInstallRefusalDoNotRetireReaderEarly",
+      "TestMergeWorkerAuthorityKeepsTransportPublicationAndPhysicalCancellation",
+      "TestModuleHostRegistrationFailureDoesNotEnableInstaller",
+      "TestModuleHostRegistrationPreservesDocumentModuleOwnership",
+      "TestModuleHostRegistrationPreservesEarlyFailureAndLateRegistration",
+      "TestModuleHostRegistrationRunInstallsExistingABIOnce",
+      "TestModuleHostRegistrationRunLeavesNoDescriptorBridgeAbsent",
       "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
       "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
       "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
@@ -525,10 +1213,62 @@
       "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
       "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
       "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands",
-      "TestRetainedFocusPreservesUnchangedNativeSelection"
-    ],
-    "devcore": [
+      "TestPropsAbortCloseDrainsCurrentDirtyStateDespiteNewRequestIntent",
+      "TestPropsAcceptedWeightChangesAndPriorFrameChargeReleaseExactly",
+      "TestPropsBatchCoalescesExistingIndependentRootsAndKeepsUnrelatedEffects",
+      "TestPropsBatchNewEffectsKeepInitialSetupAndRevocationSkipsOtherCallbacks",
+      "TestPropsCallbackRechecksAuthorityAtWorkerDispatch",
+      "TestPropsCallbackReservationCountsIdleSeparatelyAndNeverAdmitsWorker129",
+      "TestPropsCallbackReservationPreservesDefaultAndModuleAdmission",
+      "TestPropsCallbacksPanicGoexitAndErrorsSettlePhysicalCharges",
+      "TestPropsCanceledBorrowedCallbackRetainsPhysicalChargeAfterDocumentRelease",
+      "TestPropsCanceledTinyCloneDoesNotRetainWholeSiblingFrame",
+      "TestPropsCancellationCannotRetirePhysicalCallbackCapacity",
+      "TestPropsCloseReportsLateDirtyFailureOnceWithoutRepeatingPublishFailure",
+      "TestPropsCohortNewRequestIntentCannotAbortPublishedSibling",
+      "TestPropsCohortPrivilegedRevocationStopsLaterEffectsAndReads",
+      "TestPropsCohortPublishesIndependentRootsBeforeAnyDependencyAndKeepsTasks",
+      "TestPropsCohortStalePrecommitAndReboundInstanceCannotInstall",
+      "TestPropsDefaultResourceSnapshotKeepsCleanupOrderingBeforeLifetimeRelease",
+      "TestPropsDefaultScopeDisposalKeepsLegacyLifetimeCleanupOrder",
+      "TestPropsDevCanceledFailedMountCannotRetireUntilPhysicalCloneReturns",
+      "TestPropsDevOrdinaryInitialSourceRequiresReloadWithoutLifetimeOrClientView",
+      "TestPropsEmptyColdFrameRetiresOldSourcesAndSilentLocationKeepsToken",
+      "TestPropsFrozenModulePrivilegedRevokeFencesHeldCloneWithoutSyncOrUnfreeze",
+      "TestPropsInitialHookCancellationDoesNotPublishOrFreeRunningWorker",
+      "TestPropsInitialSourceNeverGrantsOrdinaryIslandMergeAuthority",
+      "TestPropsModulePendingMountRevocationPrecedesLateReturnWithoutClientViewRollback",
+      "TestPropsModuleRevocationFencesPublishedSourcesBeforeObserversAndDoesNotReviveOldScopes",
+      "TestPropsMountRevocationFailsLateOrdinarySuccessButPreservesDefaultRollback",
+      "TestPropsNewChildUnlinkDoesNotLosePublicationFailureRoot",
+      "TestPropsNilInterfaceDTOIsAnOwnedTypedValueRatherThanMissingFrameEntry",
+      "TestPropsOwnValidatorStoredRawAndReturnedValues",
+      "TestPropsOwnedCallbackAndNativeEventReleaseReadsOnPanicAndGoexit",
+      "TestPropsOwnedEffectCleanupGoexitClosesOnlyFailedEffectAndContinuesSiblings",
+      "TestPropsOwnedEffectRechecksVisibilityBeforeAuthoredSetupDispatch",
+      "TestPropsOwnedEventKeepsNativeSynchronousCancellationAndPropagation",
+      "TestPropsOwnedEventReadRefusalCancelsDefaultWithoutReplayAndDefaultScopesStillRun",
+      "TestPropsOwnedLifetimeSupervisesEachCleanupAcrossGoexit",
+      "TestPropsOwnedLinkObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedResourceObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedScopeSupervisesEveryAuthoredCleanupAfterParentUnlink",
+      "TestPropsPreparedCallbacksSeeIncomingLocationWhileCommittedFrameStaysOld",
+      "TestPropsPreparedDiscardReleasesOnlyItsOwnedRawAndCannotDiscardAdoptedTicket",
+      "TestPropsPublicationBoundsNewChildrenAndPermanentRegistrations",
+      "TestPropsPublicationCycleIsBoundedAndDoesNotSkipHealthySibling",
+      "TestPropsPublicationGoexitReturnsOwnedFailureAndContinuesSibling",
+      "TestPropsReadRejectsFrameReplacementDuringOwnedClone",
+      "TestPropsRetiringSourcesCloseOnlyAtInstallAndFreeColdRegistrationBudget",
+      "TestPropsRevocationRejectsReadsWhileOldCloneRemainsCharged",
+      "TestPropsRevokeImmediatelyFencesReadsEventsAndLifetimeWithoutRunningCleanup",
+      "TestPropsRevokedInflightClientMountCannotRestoreFallbackFocusOrLateEvents",
+      "TestPropsRootRegistrationIsAtomicAndRejectsDuplicateAndChildSources",
+      "TestPropsSilentLocationPreservesRevisionWithoutDependencyPublication",
+      "TestPropsSuccessfulClientViewKeepsDurableChildWithoutInitialFallback",
+      "TestPropsWorkerSerializedBytesRemainChargedUntilPhysicalSettlement",
       "TestRefreshActivityScriptCallerCancelRetainsDownloadCallbacks",
+      "TestResourceModuleABIRejectsOldRegistrationBeforeMount",
+      "TestResourceMutationCoreAndModuleRPCFenceDispatchAndSettlement",
       "TestRetainedCoreTaskCapacitySurvivesHiddenAndDisposedOwners",
       "TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews",
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
@@ -550,27 +1290,7 @@
       "TestRetainedTasksCaptureTheAdmissionContextAndDoNotReplay",
       "TestRetentionAdmissionEvictsOldestHiddenViewWithoutMutatingOnFailure",
       "TestRetentionHistoryRequiresMatchingFreshAuthorityAndHasBoundedAliases",
-      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView",
-      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
-      "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
-      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
-      "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
-      "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
-      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
-      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
-      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
-      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
-      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
-      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
-      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
-      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
-      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
-      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
-      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
-      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
-      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
-      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
-      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+      "TestRetentionNodeAndMetadataBudgetsProtectTheActiveView"
     ],
     "portable": [
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
@@ -591,12 +1311,110 @@
       "github.com/Suhaibinator/Next.go/cache/shared|TestFileLockProcessHelper"
     ],
     "ui": [
-      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
+      "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
+      "TestClientIslandCaptureUsesCanonicalRenderUnitBytes",
+      "TestClientIslandDeclaredAncestryDuplicatesAndInvalidOptions",
+      "TestClientIslandFallbackHidesRecorderButPreservesExistingMarkerPolicy",
+      "TestClientIslandOptionsSingleRenderAndLegacyBytes",
+      "TestClientIslandOversizedValidPropsKeepOrdinaryFreshRendering",
+      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames",
       "TestHTMLUTF8CarriesOwnedPrefixWithoutWholeRenderBuffer",
-      "TestHTMLUTF8WriterErrorsAndShortInputCounts",
       "TestHTMLUTF8ContextAndFailedUnitDoNotFlushPending",
+      "TestHTMLUTF8MatchesJSONAcrossEveryWriteSplit",
       "TestHTMLUTF8StreamAndFallbackQuotasChargeCanonicalBytes",
-      "TestHTMLUTF8CapturedRegionOffsetsAndStreamFrames"
+      "TestHTMLUTF8WriterErrorsAndShortInputCounts"
+    ],
+    "module": [
+      "TestMergeStationaryAnchorAdmissionIsBoundedAndUnambiguous",
+      "TestMergeStationaryAnchorsKeepUnmovedIndependentSiblings",
+      "TestMergeStationaryReorderNeverPretendsBothRootsStayedPut",
+      "TestModuleHostRegistrationPreservesDocumentModuleOwnership",
+      "TestPropsBatchCoalescesExistingIndependentRootsAndKeepsUnrelatedEffects",
+      "TestPropsBatchNewEffectsKeepInitialSetupAndRevocationSkipsOtherCallbacks",
+      "TestPropsCallbackRechecksAuthorityAtWorkerDispatch",
+      "TestPropsCallbackReservationCountsIdleSeparatelyAndNeverAdmitsWorker129",
+      "TestPropsCallbackReservationPreservesDefaultAndModuleAdmission",
+      "TestPropsCallbacksPanicGoexitAndErrorsSettlePhysicalCharges",
+      "TestPropsCanceledBorrowedCallbackRetainsPhysicalChargeAfterDocumentRelease",
+      "TestPropsCanceledTinyCloneDoesNotRetainWholeSiblingFrame",
+      "TestPropsCancellationCannotRetirePhysicalCallbackCapacity",
+      "TestPropsDefaultResourceSnapshotKeepsCleanupOrderingBeforeLifetimeRelease",
+      "TestPropsDefaultScopeDisposalKeepsLegacyLifetimeCleanupOrder",
+      "TestPropsFrozenModulePrivilegedRevokeFencesHeldCloneWithoutSyncOrUnfreeze",
+      "TestPropsInitialHookCancellationDoesNotPublishOrFreeRunningWorker",
+      "TestPropsInitialSourceNeverGrantsOrdinaryIslandMergeAuthority",
+      "TestPropsModulePendingMountRevocationPrecedesLateReturnWithoutClientViewRollback",
+      "TestPropsModuleRevocationFencesPublishedSourcesBeforeObserversAndDoesNotReviveOldScopes",
+      "TestPropsMountRevocationFailsLateOrdinarySuccessButPreservesDefaultRollback",
+      "TestPropsNilInterfaceDTOIsAnOwnedTypedValueRatherThanMissingFrameEntry",
+      "TestPropsOwnValidatorStoredRawAndReturnedValues",
+      "TestPropsOwnedCallbackAndNativeEventReleaseReadsOnPanicAndGoexit",
+      "TestPropsOwnedEffectCleanupGoexitClosesOnlyFailedEffectAndContinuesSiblings",
+      "TestPropsOwnedEffectRechecksVisibilityBeforeAuthoredSetupDispatch",
+      "TestPropsOwnedEventKeepsNativeSynchronousCancellationAndPropagation",
+      "TestPropsOwnedEventReadRefusalCancelsDefaultWithoutReplayAndDefaultScopesStillRun",
+      "TestPropsOwnedLifetimeSupervisesEachCleanupAcrossGoexit",
+      "TestPropsOwnedResourceObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedScopeSupervisesEveryAuthoredCleanupAfterParentUnlink",
+      "TestPropsPreparedCallbacksSeeIncomingLocationWhileCommittedFrameStaysOld",
+      "TestPropsPublicationBoundsNewChildrenAndPermanentRegistrations",
+      "TestPropsPublicationCycleIsBoundedAndDoesNotSkipHealthySibling",
+      "TestPropsPublicationGoexitReturnsOwnedFailureAndContinuesSibling",
+      "TestPropsReadRejectsFrameReplacementDuringOwnedClone",
+      "TestPropsRevocationRejectsReadsWhileOldCloneRemainsCharged",
+      "TestPropsRevokeImmediatelyFencesReadsEventsAndLifetimeWithoutRunningCleanup",
+      "TestPropsRevokedInflightClientMountCannotRestoreFallbackFocusOrLateEvents",
+      "TestPropsRootRegistrationIsAtomicAndRejectsDuplicateAndChildSources",
+      "TestPropsSilentLocationPreservesRevisionWithoutDependencyPublication",
+      "TestPropsSuccessfulClientViewKeepsDurableChildWithoutInitialFallback",
+      "TestPropsWorkerSerializedBytesRemainChargedUntilPhysicalSettlement"
+    ],
+    "devmodule": [
+      "TestMergeStationaryAnchorAdmissionIsBoundedAndUnambiguous",
+      "TestMergeStationaryAnchorsKeepUnmovedIndependentSiblings",
+      "TestMergeStationaryReorderNeverPretendsBothRootsStayedPut",
+      "TestModuleHostRegistrationPreservesDocumentModuleOwnership",
+      "TestPropsBatchCoalescesExistingIndependentRootsAndKeepsUnrelatedEffects",
+      "TestPropsBatchNewEffectsKeepInitialSetupAndRevocationSkipsOtherCallbacks",
+      "TestPropsCallbackRechecksAuthorityAtWorkerDispatch",
+      "TestPropsCallbackReservationCountsIdleSeparatelyAndNeverAdmitsWorker129",
+      "TestPropsCallbackReservationPreservesDefaultAndModuleAdmission",
+      "TestPropsCallbacksPanicGoexitAndErrorsSettlePhysicalCharges",
+      "TestPropsCanceledBorrowedCallbackRetainsPhysicalChargeAfterDocumentRelease",
+      "TestPropsCanceledTinyCloneDoesNotRetainWholeSiblingFrame",
+      "TestPropsCancellationCannotRetirePhysicalCallbackCapacity",
+      "TestPropsDefaultResourceSnapshotKeepsCleanupOrderingBeforeLifetimeRelease",
+      "TestPropsDefaultScopeDisposalKeepsLegacyLifetimeCleanupOrder",
+      "TestPropsDevCanceledFailedMountCannotRetireUntilPhysicalCloneReturns",
+      "TestPropsDevOrdinaryInitialSourceRequiresReloadWithoutLifetimeOrClientView",
+      "TestPropsFrozenModulePrivilegedRevokeFencesHeldCloneWithoutSyncOrUnfreeze",
+      "TestPropsInitialHookCancellationDoesNotPublishOrFreeRunningWorker",
+      "TestPropsInitialSourceNeverGrantsOrdinaryIslandMergeAuthority",
+      "TestPropsModulePendingMountRevocationPrecedesLateReturnWithoutClientViewRollback",
+      "TestPropsModuleRevocationFencesPublishedSourcesBeforeObserversAndDoesNotReviveOldScopes",
+      "TestPropsMountRevocationFailsLateOrdinarySuccessButPreservesDefaultRollback",
+      "TestPropsNilInterfaceDTOIsAnOwnedTypedValueRatherThanMissingFrameEntry",
+      "TestPropsOwnValidatorStoredRawAndReturnedValues",
+      "TestPropsOwnedCallbackAndNativeEventReleaseReadsOnPanicAndGoexit",
+      "TestPropsOwnedEffectCleanupGoexitClosesOnlyFailedEffectAndContinuesSiblings",
+      "TestPropsOwnedEffectRechecksVisibilityBeforeAuthoredSetupDispatch",
+      "TestPropsOwnedEventKeepsNativeSynchronousCancellationAndPropagation",
+      "TestPropsOwnedEventReadRefusalCancelsDefaultWithoutReplayAndDefaultScopesStillRun",
+      "TestPropsOwnedLifetimeSupervisesEachCleanupAcrossGoexit",
+      "TestPropsOwnedResourceObserversSuperviseGoexitIndividually",
+      "TestPropsOwnedScopeSupervisesEveryAuthoredCleanupAfterParentUnlink",
+      "TestPropsPreparedCallbacksSeeIncomingLocationWhileCommittedFrameStaysOld",
+      "TestPropsPublicationBoundsNewChildrenAndPermanentRegistrations",
+      "TestPropsPublicationCycleIsBoundedAndDoesNotSkipHealthySibling",
+      "TestPropsPublicationGoexitReturnsOwnedFailureAndContinuesSibling",
+      "TestPropsReadRejectsFrameReplacementDuringOwnedClone",
+      "TestPropsRevocationRejectsReadsWhileOldCloneRemainsCharged",
+      "TestPropsRevokeImmediatelyFencesReadsEventsAndLifetimeWithoutRunningCleanup",
+      "TestPropsRevokedInflightClientMountCannotRestoreFallbackFocusOrLateEvents",
+      "TestPropsRootRegistrationIsAtomicAndRejectsDuplicateAndChildSources",
+      "TestPropsSilentLocationPreservesRevisionWithoutDependencyPublication",
+      "TestPropsSuccessfulClientViewKeepsDurableChildWithoutInitialFallback",
+      "TestPropsWorkerSerializedBytesRemainChargedUntilPhysicalSettlement"
     ]
   },
   "browserTitles": [
@@ -620,16 +1438,18 @@
     "the three-view bound evicts the oldest owner and unsupported author IDs take the cold path"
   ],
   "targetCounts": {
-    "native": 39,
-    "core": 59,
-    "devcore": 43,
+    "native": 85,
+    "core": 158,
+    "devcore": 144,
     "portable": 13,
-    "ui": 6
+    "ui": 12,
+    "module": 43,
+    "devmodule": 45
   },
   "nativeProcessContract": {
-    "browserCasesPerSDK": 72,
-    "auxiliaryAssetProbePerSDK": 1,
-    "totalNativeClosuresPerSDK": 73,
+    "browserCasesPerSDK": 144,
+    "auxiliaryAssetProbePerSDK": 2,
+    "totalNativeClosuresPerSDK": 146,
     "bothSDKsRequired": true,
     "identity": "Linux PID/four UID/PGID/session/startTicks/executable dev-inode; checked before child handle signals",
     "notClaimed": [
@@ -639,7 +1459,19 @@
       "full serverless retained-route behavior",
       "ARM64 qualification",
       "production maturity/V10 completion"
-    ]
+    ],
+    "subsets": {
+      "retained": {
+        "browser": 72,
+        "assetProbe": 1,
+        "closures": 73
+      },
+      "merge": {
+        "browser": 72,
+        "assetProbe": 1,
+        "closures": 73
+      }
+    }
   },
   "inputAncestry": [
     {
@@ -739,7 +1571,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "Exact68 selected sources/53 framework-fixture sources admit current source qualification after final independent composition review. All39native/59core/43devcore/13portable/6UI requiredgroups and original72browsercases/73appclosures remain mandatory. No current runtime, causal fix or parity result is inherited.",
+  "readinessMeaning": "SOURCE PREFLIGHT ONLY: exact publishedb7e parent/layoutfocus/history metadata, reviewed83formattedframework+93framework/docsassembly+10pathproducer, all147future sourcepins and actualrequiredtestnames passed independentnarrowreview764b2ef0de7b68eecfe02666ad3be3c22448454003720912438b9195048a83a5. ready=true ONLY permits actualCIqualification tobegin. Native/race/vet/WASM/Node/browser/production/deployment results for this assembledsource are unexecuted and notclaimed; all79capabilities/11releasegates remainopen.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -1591,5 +2423,373 @@
     },
     "unchanged": "One existing required core group/four subtests strengthened; all target counts,72 browsercases/73appclosures, originalspec/RPCs/assertions and group-empty/no-deferral gates preserved.",
     "runtimeQualified": false
+  },
+  "priorSingleAppNativeProcessContract": {
+    "browserCasesPerSDK": 72,
+    "auxiliaryAssetProbePerSDK": 1,
+    "totalNativeClosuresPerSDK": 73,
+    "bothSDKsRequired": true,
+    "identity": "Linux PID/four UID/PGID/session/startTicks/executable dev-inode; checked before child handle signals",
+    "notClaimed": [
+      "atomic pidfd",
+      "adversarial same-UID file race resistance",
+      "arbitrary escaped descendants",
+      "full serverless retained-route behavior",
+      "ARM64 qualification",
+      "production maturity/V10 completion"
+    ]
+  },
+  "mergeBrowserTitles": [
+    "bare ordinary initial Mount navigation commits arriving SSR only after useful boot binding and keeps newer status authority",
+    "bare ordinary initial Mount navigation network failure preserves initialized old counter and the newer failure status",
+    "useful SSR precedes WASM; ClientView then query preserves exact roots child controls File and direct ancestry",
+    "query Back and Forward retain latest draft while restoring each entry focus selection window and inner scroll",
+    "changed Refresh commits server skeleton head and live props; same JSON Refresh still publishes a shared newer revision",
+    "equal editor keys under distinct declared parents stay independent; changing only A key resets only A",
+    "schema mismatch replaces exactly B while A remains live and stateful",
+    "props validation failure shows the exact fresh fallback while a healthy independent sibling retains state and recovery works",
+    "postcommit effect failure disposes the failed child and installs fresh fallback without losing a healthy sibling",
+    "a genuine held B response superseded by C never commits B or a ghost history entry",
+    "real navigation transport failure preserves useful accepted state and a genuine retry recovers",
+    "real Go props effect starts failing newer C only after accepted B sibling effects and new ordinary Mount complete",
+    "fresh partition and denial retire old DOM and data authority with ordinary same-document recovery",
+    "fresh ordinary SSR component remounts and hydrates while adjacent compatible ClientView roots keep controls and state",
+    "repeated and empty raw query values remain server-authoritative through navigation Refresh and direct dynamic access",
+    "generated nested layouts emit independent merge authority and query Refresh keep stationary roots with fresh layout text and head",
+    "sole ordinary initial-only Props source cold Mounts exact same SSR on query and Refresh instead of reusing a stale V1 handle",
+    "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
+  ],
+  "queryRefreshQualification": {
+    "status": "SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_ACTUAL_CI_NOT_RUNTIME_QUALIFIED",
+    "baseCommit": "b7e3d8d2aaad09b9aacc57a572f4f171d9abec89",
+    "combinedManifestSHA256": "99cd0e289db8352314cf651bcd66f0a11bde18fa0c7f8a323bf635c1f530973c",
+    "combinedSourcePaths": 83,
+    "combinedGoFiles": 77,
+    "uniqueNewTestGroups": 111,
+    "newTestFiles": 21,
+    "rootRequiredCounts": {
+      "native": 39,
+      "core": 59,
+      "devcore": 43,
+      "portable": 13,
+      "nativeSkips": 1,
+      "ui": 6
+    },
+    "requiredCounts": {
+      "native": 85,
+      "core": 158,
+      "devcore": 144,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "rootScrollRegressionPreserved": "TestRetainedFocusPreservesUnchangedNativeSelection",
+    "oldSubset": {
+      "browserCases": 72,
+      "nativeClosures": 73
+    },
+    "newApplication": {
+      "browserCases": 72,
+      "nativeClosures": 73
+    },
+    "requiredTotals": {
+      "browserCases": 144,
+      "nativeClosures": 146
+    },
+    "finiteBounds": {
+      "sourcePins": 160,
+      "actualSourcePins": 147,
+      "sourcePinExpansionReason": "Exact finalraw M2/actualmoduleexample plusintegration/census and mandatory rootABIparityfile yields147pins underfinite160. Allsourcepaths/regressions retained.",
+      "requiredNamesPerTarget": 256,
+      "commandEvidenceFiles": 128,
+      "successCommandCounts": {
+        "amd64": 40,
+        "arm64": 41
+      },
+      "maximumSuccessCommandEvidenceFiles": 123,
+      "workflowJobMinutesAdded": 60,
+      "productionOuterMinutes": 50,
+      "browserOuterMinutes": 60,
+      "assetProbeCommandMilliseconds": 120000
+    },
+    "executed": false,
+    "limitation": "No historical result is inherited; all79capabilities/11releasegates and equal serverless behavior remain open.",
+    "pendingComposition": [],
+    "selectedSourcePackets": [
+      {
+        "path": ".nextgo-test-results/recovery/source-formatting-query-refresh-combined-v3/query-refresh",
+        "manifestSHA256": "43d1b9fd76f06cf424786ba8457ab4cfc20d2e8ddfd814f3d8403b625ab578f1",
+        "rawParentManifestSHA256": "99cd0e289db8352314cf651bcd66f0a11bde18fa0c7f8a323bf635c1f530973c"
+      }
+    ],
+    "selectedTestFiles": 24,
+    "combinedGoRawBytes": 533372,
+    "existingTestGroupsSelectedForChangedABI": 8,
+    "pendingFinalActions": [
+      "Actualcompiler/native/race/vet/WASM/Node/browser/production/deploymentqualification"
+    ],
+    "combinedGoFormattedBytes": 564697,
+    "formattedManifestSHA256": "43d1b9fd76f06cf424786ba8457ab4cfc20d2e8ddfd814f3d8403b625ab578f1",
+    "formatterPatchSHA256": "748d32d743aed9b2132585747d81736810cf86d055fb1c8a03e2e61af39a752b",
+    "finalFrameworkSourceReview": {
+      "status": "NARROW_SOURCE_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
+      "receiptSHA256": "3550f0e53c79c8b25f8a2e1601bda0cdc1f611d3677799902e1e4d5d081378f2",
+      "combinedRawManifestSHA256": "99cd0e289db8352314cf651bcd66f0a11bde18fa0c7f8a323bf635c1f530973c"
+    },
+    "newTestGroupsByTarget": {
+      "native": 46,
+      "core": 91,
+      "devcore": 93,
+      "module": 42,
+      "devmodule": 44,
+      "ui": 6
+    },
+    "existingABIWitnessGroupsByTarget": {
+      "native": 0,
+      "core": 8,
+      "devcore": 8,
+      "module": 1,
+      "devmodule": 1,
+      "ui": 0
+    },
+    "requiredNamesAddedBeyondRootByTarget": {
+      "native": 46,
+      "core": 99,
+      "devcore": 101,
+      "module": 43,
+      "devmodule": 45,
+      "ui": 6
+    },
+    "existingGroupsInChangedSourceFilesRequired": 7,
+    "unchangedRootABIWitnessGroupsExplicitlyRequired": 1,
+    "existingTestFilesExplicitlySelected": 3,
+    "existingSourceFilesChanged": 2,
+    "countMeaning": "Newgroupsaredeclarednamesabsentfromroot6afsamefile; existingABIwitnessgroupsarealreadydeclaredrootnamesexplicitlyrequired; requirednamesaddedbeyondrootaredifferencesfromrootnamedPASScontract. Sevenexistinggroupsfrom2changedsourcefiles plus1unchangedrootLinkStatusABIwitness make8existinggroups across3existingfiles.",
+    "publicRootParentCommit": "6af255cd329ad928df2a389a8de40bdf8f24b3a4",
+    "formattedReviewedWrapperManifestSHA256": "4895066b27f889e2c5a5ab176f651db2dd3a5fa8015a7dfb22652d3909ad6bfd",
+    "finalFrameworkDocsAssemblyManifestSHA256": "179b779b34af52001a3e81e289a83d9c6a755afb8a783d2d8d111631ebf52e9f"
+  },
+  "commandGroupCensus": {
+    "status": "SOURCE_ONLY_UNEXECUTED_FAILURE_DIAGNOSTIC",
+    "sourceManifestSHA256": "483c21de551bffa65ac39689bbff600d1dbb4606b87a0ad79f18681544a49f48",
+    "sourcePeerReviewSHA256": "d7098c94785db8fb984c69c232ba92ae36dbb125edbc9bc57d4962745c7f2ed9",
+    "newNodeUnitDefinitions": 8,
+    "nativeOrBrowserCasesAdded": 0,
+    "mandatorySourcePins": [
+      "tests/retained-process-group-census.mjs",
+      "tests/retained-process-group-census.test.mjs"
+    ],
+    "invocation": "Same existing harness-unit-tests command; no new command group or log files",
+    "unchanged": [
+      "Actual M2 two-application ownership logic and diagnostics; required matrix independently expanded to144browser/146nativeclosures for the new real lazy case",
+      "Success predicate and failure flags",
+      "Checked child-handle signal predicate",
+      "Watchdog and existing wait timeouts",
+      "No retry or cleanup mutation"
+    ],
+    "limits": {
+      "entries": 4096,
+      "pids": 1024,
+      "statBytesPerRead": 8192,
+      "reservedReadBytes": 8388608,
+      "members": 12,
+      "reasons": 8,
+      "admissionElapsedMS": 500,
+      "observationBytes": 4096,
+      "commandProofBytes": 65536,
+      "proofReserveBytes": 4096
+    },
+    "notClaimed": [
+      "Atomic processidentity",
+      "Groupabsence proof",
+      "New signal authority",
+      "Cleanupfix or completephysicalclosure",
+      "Preemption of inflight kernelIO",
+      "Runtime qualification"
+    ],
+    "executed": false
+  },
+  "actualLazyModuleProof": {
+    "status": "SOURCE_ONLY_PROSPECTIVE_RESPONSE_BODY_AND_REAL_GO_MOUNT_PROOF",
+    "abi": 6,
+    "title": "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes",
+    "attachment": "merge-lazy-module-proof",
+    "schema": {
+      "version": 1,
+      "abi": 6,
+      "recordCount": 2,
+      "phases": [
+        "initial",
+        "held-recovery"
+      ],
+      "recordKeys": [
+        "phase",
+        "url",
+        "status",
+        "mime",
+        "bytes",
+        "sha256",
+        "complete",
+        "wasmMagic",
+        "hostABI",
+        "buildPrefix"
+      ]
+    },
+    "decodedBytesMaximum": 8388608,
+    "attachmentDecodedBytesMaximum": 4096,
+    "matrix": {
+      "profiles": 4,
+      "downloads": 8,
+      "sameDecodedSHAAndSizeRequired": true
+    },
+    "bindings": [
+      "Exact URL content digest equals actual decoded response.body SHA256",
+      "Exact own merge assetprobe SSRbuildprefix, not retained app prefix",
+      "WASMmagic/version200MIMEcomplete and actualcorehostABI6",
+      "Actual useful moduleGoMount/Props/counter/event assertions inbrowsercase"
+    ],
+    "notClaimed": [
+      "Generated compiler-size metadata survivesproductionbuild",
+      "Binarystringscan",
+      "Hardpreallocationbound onPlaywright response.body",
+      "Browser/module success before actual execution",
+      "FullmodulesHMRABItransaction or releasegate completion"
+    ],
+    "executed": false
+  },
+  "abiRegressionRequirements": {
+    "status": "SOURCE_ONLY_ACTUAL_DECLARATIONS_AND_BUILD_TAGS",
+    "coreAndDev": [
+      "TestResourceModuleABIRejectsOldRegistrationBeforeMount",
+      "TestModuleHostRegistrationRunInstallsExistingABIOnce",
+      "TestLinkStatusLazyHostSharesBudgetAndRequiresOwner"
+    ],
+    "moduleAndDevmodule": [
+      "TestPropsModuleRevocationFencesPublishedSourcesBeforeObserversAndDoesNotReviveOldScopes",
+      "TestPropsModulePendingMountRevocationPrecedesLateReturnWithoutClientViewRollback",
+      "TestPropsFrozenModulePrivilegedRevokeFencesHeldCloneWithoutSyncOrUnfreeze",
+      "TestModuleHostRegistrationPreservesDocumentModuleOwnership"
+    ],
+    "sourceFacts": [
+      "ResourceABIregressionrejectsolder5,4,3 afterABI6",
+      "Corehostregistrationassertsactualversion6",
+      "ExactrootLinkStatusLazyHostSharesBudgetAndRequiresOwner comparesmoduleABIanddevrefresh.ModuleABI",
+      "LinkStatussourceisjswasm!nextgo_module, so onlycore/dev; nonexistentTestLinkStatusABIParitynotused",
+      "First4documentRunhostregressions explicitlyskipmodule and remainoutside mainmodulefilter; fifthwrongtargetownershipguard isselectedexactlywithnoskipwaiver"
+    ],
+    "executed": false
+  },
+  "sourceFormattingQualification": {
+    "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
+    "controllerResultSHA256": "6898dd8dd3694487a19ce80708d181b3bc593999a232ae9892f4542f8aeff8b9",
+    "formattedManifestSHA256": "43d1b9fd76f06cf424786ba8457ab4cfc20d2e8ddfd814f3d8403b625ab578f1",
+    "rawParentManifestSHA256": "99cd0e289db8352314cf651bcd66f0a11bde18fa0c7f8a323bf635c1f530973c",
+    "patchSHA256": "748d32d743aed9b2132585747d81736810cf86d055fb1c8a03e2e61af39a752b",
+    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
+    "GoFiles": 77,
+    "rawGoBytes": 533372,
+    "formattedGoBytes": 564697,
+    "stderrBytes": 0,
+    "buildsOrTestsExecuted": false,
+    "hardMemoryLimitEstablished": false,
+    "limit": "Onlystandaloneformatter/parsersucceeded; module/native typechecking, actualGo/WASM/browser/productionbehavior and allrelease gates remainunproven."
+  },
+  "metadataCounterCorrection": {
+    "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
+    "parentManifestSHA256": "90ef3e041b5263f9f4078683b8f78dd557c9cb96c7e9bd695838c67b9bb7e21f",
+    "reason": "Independentfinalproducerreviewfoundstaleearlierproposalnew-target counters; exactdeclaredtests/buildtags/currentrequiredsets were alreadycorrect. Recountednew/existing/required-additions separately andclarifiedchanged-versusunchangedexistingfile scope.",
+    "removedAmbiguousCurrentCounters": {
+      "newRequirementsByTarget": {
+        "native": 45,
+        "core": 80,
+        "devcore": 82,
+        "module": 39,
+        "devmodule": 41,
+        "ui": 6
+      },
+      "changedExistingTestGroupsRequired": 7,
+      "existingTestFilesWithRequiredGroups": 3
+    },
+    "newGroupCounts": {
+      "native": 46,
+      "core": 91,
+      "devcore": 93,
+      "module": 42,
+      "devmodule": 44,
+      "ui": 6
+    },
+    "existingWitnessCounts": {
+      "native": 0,
+      "core": 8,
+      "devcore": 8,
+      "module": 1,
+      "devmodule": 1,
+      "ui": 0
+    },
+    "requiredContractAdditions": {
+      "native": 46,
+      "core": 99,
+      "devcore": 101,
+      "module": 43,
+      "devmodule": 45,
+      "ui": 6
+    },
+    "testsArraysChanged": false,
+    "sourcePinsChanged": false,
+    "driverOrRuntimeBehaviorChanged": false
+  },
+  "rootFoundationRebind": {
+    "status": "SOURCE_ONLY_ACTUAL_IMMUTABLE_ROOT_AND_ASSEMBLY_PREFLIGHT_VERIFIED",
+    "parentCommit": "b7e3d8d2aaad09b9aacc57a572f4f171d9abec89",
+    "parentTree": "1f124d1be5cc911ce6e5a59873fb57d72194ee9d",
+    "parentParentCommit": "6af255cd329ad928df2a389a8de40bdf8f24b3a4",
+    "rootInputSHA256": "0259b57fa7ad9e572f2ca8bac43481c8df4ae061de2c17d9b10ccd95f0f1bce2",
+    "rootOnlyChangedPaths": [
+      "client/retained_routes_js.go",
+      "client/retained_routes_js_test.go",
+      "tests/retained-routes-ci-inputs.json"
+    ],
+    "rootRequiredCounts": {
+      "native": 39,
+      "core": 59,
+      "devcore": 43,
+      "portable": 13,
+      "nativeSkips": 1,
+      "ui": 6
+    },
+    "newRootFocusMetadataPreservedVerbatim": [
+      "combinedSourceInput",
+      "priorFocusLayoutCombinedSourceInput",
+      "focusLayoutPreparation"
+    ],
+    "existingPinnedDocsRebound": [
+      "docs/PARITY.md"
+    ],
+    "frameworkDocsSourcePaths": 93,
+    "frameworkSourcePaths": 83,
+    "publicModifiedBaseHashesVerified": 29,
+    "newPublicPathsAbsenceVerified": 64,
+    "actual147PinOrigins": {
+      "actual10pathM2producer": 9,
+      "actual93pathformattedframeworkPlusReviewedDocs": 84,
+      "exactImmutableRootb7e": 54
+    },
+    "all147SourcePinRowsRecomputed": true,
+    "nonmetadataProducerSourceChanged": false,
+    "runtimeExecuted": false
+  },
+  "sourceInputScope": "frameworkInput/combinedSourceInput/priorFocusLayoutCombinedSourceInput/focusLayoutPreparation preserve exact historicalrootfoundation checkpoints. CurrentM2source is147pins coupledtofinal83formattedframework+reviewed93pathdocsassembly+10pathproducer onb7e; seequeryRefreshQualification androotFoundationRebind. No sourcecheckpoint is a runtime result.",
+  "finalSourceReadinessReview": {
+    "status": "INDEPENDENT_SOURCE_PREFLIGHT_PASS_ONLY",
+    "receiptSHA256": "764b2ef0de7b68eecfe02666ad3be3c22448454003720912438b9195048a83a5",
+    "reviewedInputManifestSHA256": "c9f2f826abe0dfeabd4eddbc1bec37a99503d3ace96977fc77569bc6d60be7db",
+    "rootCommit": "b7e3d8d2aaad09b9aacc57a572f4f171d9abec89",
+    "rootTree": "1f124d1be5cc911ce6e5a59873fb57d72194ee9d",
+    "sourcePins": 147,
+    "sourcePinCap": 160,
+    "meaning": "Allactualfuture source/origin/hash, testselection, rootfocus/layout/history and reviewedformattedframework/docs/producer coupling verified. Onlyreadiness metadata changes afterreview; no source/test/pin/code change.",
+    "runtimeQualified": false,
+    "executedAfterReview": false
   }
 }

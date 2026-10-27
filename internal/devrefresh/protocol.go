@@ -20,7 +20,7 @@ import (
 const (
 	Version          = 1
 	ExtensionVersion = 1
-	ModuleABI        = 5
+	ModuleABI        = 6
 	// ShimDigest is the exact paired shim qualified by the standalone Go 1.24.13
 	// and 1.27.3 retirement probes. Unknown shims require ordinary document reload.
 	ShimDigest = "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"

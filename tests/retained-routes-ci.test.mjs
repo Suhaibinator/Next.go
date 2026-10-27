@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment} from './retained-routes-ci.mjs';
+import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle} from './retained-routes-ci.mjs';
 
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
 
@@ -87,4 +87,72 @@ test('actual build metadata requires the selected SDK and native target in each 
   assert.doesNotThrow(()=>assertNativeBuildInfo(record,'/owned/server','1.27.3',target));
   for(const invalid of [record.replace('GOARCH=arm64','GOARCH=amd64'),record.replace('go1.27.3','go1.24.13'),record.replace('CGO_ENABLED=1','CGO_ENABLED=0'),record+record,record.replace('\tbuild\tGOOS=linux\n',''),'/foreign'+record,record+'\tbuild\tGOARCH=amd64\n',record+'\tbuild\tGOARCH=arm64\n'])assert.throws(()=>assertNativeBuildInfo(invalid,'/owned/server','1.27.3',target));
   assert.throws(()=>assertNativeBuildInfo('/other: go1.27.3\n\tbuild\tGOARCH=arm64\n'+record.replace('GOARCH=arm64','GOARCH=amd64'),'/owned/server','1.27.3',target));
+});
+
+// These synthetic report objects audit evidence rejection only; they never
+// replace a real application response, process receipt or browser execution.
+test('new merge application requires its own exact72 source and profiles despite equal legacy cardinality',()=>{
+  const value=matrix();
+  for(const spec of value.suites[0].specs){spec.file='tests/merge-spec.mjs';for(const item of spec.tests)item.projectName=item.projectName.replace('retained-','merge-');}
+  assert.equal(browserCases(value,true,apps.merge).length,72);
+  assert.throws(()=>browserCases(matrix(),true,apps.merge));assert.throws(()=>browserCases(value,true,apps.retained));assert.throws(()=>browserCases(value,true,{...apps.merge}));
+  const skipped=clone(value);skipped.stats.skipped=1;assert.throws(()=>browserCases(skipped,true,apps.merge));
+});
+function twoAppClosures(){
+  const value={version:2,status:'PASSED',cases:144,auxiliaryNativeProcesses:2,totalNativeProcesses:146,apps:{},nativeProcesses:[],auxiliaryNativeProofs:[]};
+  for(const id of ['retained','merge']){
+    const app=apps[id],records=Array.from({length:app.cases},(_,index)=>({app:id,id:id+'-profile|'+index,cwd:'/owned/tmp/'+id+'-'+index,closed:true,groupEmpty:true,listenerRefused:true}));
+    value.nativeProcesses.push(...records);value.auxiliaryNativeProofs.push({app:id,cwd:'/owned/tmp/'+id+'-probe',closed:true,groupEmpty:true,listenerRefused:true});
+    value.apps[id]={cases:app.cases,nativeProcesses:records,auxiliaryNativeProcesses:1,totalNativeProcesses:app.cases+1,assetProof:app.assetProof};
+  }
+  return value;
+}
+test('all146 closures preserve old73 subset and independently require new73',()=>{
+  assert.deepEqual(browserClosureTotals(twoAppClosures()),{browser:144,native:146,retained:73,merge:73});
+  const mutations=[value=>{value.totalNativeProcesses=145;},value=>{value.apps.retained.totalNativeProcesses=72;},value=>{value.apps.merge.totalNativeProcesses=72;},value=>{value.auxiliaryNativeProofs.pop();},value=>{value.nativeProcesses.pop();},value=>{value.apps.merge.nativeProcesses[0].cwd=value.apps.retained.nativeProcesses[0].cwd;},value=>{value.apps.merge.nativeProcesses[0].closed=false;},value=>{value.apps.merge.assetProof=value.apps.retained.assetProof;}];
+  for(const mutate of mutations){const value=twoAppClosures();mutate(value);assert.throws(()=>browserClosureTotals(value));}
+});
+
+// These pure schemas test mandatory selection plumbing, not actual execution.
+test('all new personality requirements are mandatory bounded unique names including more than128 core groups',()=>{
+  const contract={tests:{},browserTitles:Array.from({length:18},(_,i)=>'old '+i),mergeBrowserTitles:[...Array.from({length:17},(_,i)=>'new '+i),lazyModuleTitle]};
+  for(const target of ['native','core','devcore','module','devmodule','portable','ui'])contract.tests[target]=Array.from({length:target==='core'?133:1},(_,i)=>'TestRequired'+i);
+  assert.doesNotThrow(()=>validateQualificationRequirements(contract));
+  const changes=[value=>{delete value.tests.module;},value=>{delete value.tests.devmodule;},value=>{value.tests.module=[];},value=>{value.tests.core.push(value.tests.core[0]);},value=>{value.tests.core=Array.from({length:257},(_,i)=>'TestRequired'+i);},value=>{value.tests.ui=['arbitrary'];},value=>{value.mergeBrowserTitles.pop();},value=>{value.mergeBrowserTitles[value.mergeBrowserTitles.length-1]='different lazy case';},value=>{value.mergeBrowserTitles[1]=value.mergeBrowserTitles[0];}];
+  for(const change of changes){const value=clone(contract);change(value);assert.throws(()=>validateQualificationRequirements(value));}
+});
+test('a missing new named Props or Merge PASS never becomes optional in a module personality',()=>{
+  const required=['TestPropsNewSource','TestMergeNewPlan'];
+  for(const missing of required){const actual=required.filter(name=>name!==missing).flatMap(name=>[{Action:'run',Package:pkg,Test:name},{Action:'pass',Package:pkg,Test:name}]);actual.push({Action:'pass',Package:pkg});assert.throws(()=>goResults(events(actual),required));}
+});
+
+// Synthetic module observations below exercise schema rejection only. They do
+// not supply application bytes, production metadata, browser PASS or served proof.
+const modulePrefix='/_nextgo/'+'a'.repeat(20)+'/',moduleOrigin='http://127.0.0.1:4188';
+function moduleProof(digest='b'.repeat(64),bytes=12345){return {version:1,abi:6,records:['initial','held-recovery'].map(phase=>({phase,url:moduleOrigin+modulePrefix+'module-'+digest+'.wasm',status:200,mime:'application/wasm',bytes,sha256:digest,complete:true,wasmMagic:'0061736d01000000',hostABI:6,buildPrefix:modulePrefix}))};}
+function moduleMatrix(){return ['chromium','firefox','webkit','webkit-touch'].map(profile=>({id:'merge-'+profile+'|'+lazyModuleTitle,proof:moduleProof()}));}
+test('actual module proof schema requires exactly two complete ABI6 response records and no compiled size substitute',()=>{
+  assert.deepEqual(validateLazyModuleProof(moduleProof(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:6,buildPrefix:modulePrefix,downloads:2});
+  const changes=[v=>{v.abi=5;},v=>{v.version='1';},v=>{v.compiledSize=12345;},v=>{v.records.pop();},v=>{v.records.push(v.records[0]);},v=>{v.records[0].compiledSize=12345;},v=>{v.records[0].status='200';},v=>{v.records[0].mime='text/javascript';},v=>{v.records[0].complete=1;},v=>{v.records[0].wasmMagic='0061736d02000000';},v=>{v.records[1].hostABI=5;},v=>{v.records.reverse();}];
+  for(const change of changes){const value=moduleProof();change(value);assert.throws(()=>validateLazyModuleProof(value,modulePrefix,moduleOrigin));}
+});
+test('module proof URL hash build prefix native origin and decoded size cannot borrow main or foreign assets',()=>{
+  const changes=[v=>{v.records[0].url='https://example.com'+modulePrefix+'module-'+v.records[0].sha256+'.wasm';},v=>{v.records[0].url=moduleOrigin+modulePrefix+'app.wasm';},v=>{v.records[0].url+='?version=1';},v=>{v.records[0].buildPrefix='/_nextgo/'+'c'.repeat(20)+'/';},v=>{v.records[0].sha256='c'.repeat(64);},v=>{v.records[0].bytes=0;},v=>{v.records[0].bytes=(8<<20)+1;},v=>{v.records[0].bytes='12345';},v=>{v.records[0].bytes=12345.5;}];
+  for(const change of changes){const value=moduleProof();change(value);assert.throws(()=>validateLazyModuleProof(value,modulePrefix,moduleOrigin));}
+  assert.throws(()=>validateLazyModuleProof(moduleProof(),modulePrefix.replaceAll('a','c'),moduleOrigin));
+  assert.throws(()=>validateLazyModuleProof(moduleProof(),modulePrefix,'http://example.com:4188'));
+});
+test('both actual module downloads must agree in decoded hash and bytes rather than merely each having valid URLs',()=>{
+  const differentHash=moduleProof();differentHash.records[1]=moduleProof('c'.repeat(64)).records[1];assert.throws(()=>validateLazyModuleProof(differentHash,modulePrefix,moduleOrigin));
+  const differentBytes=moduleProof();differentBytes.records[1].bytes++;assert.throws(()=>validateLazyModuleProof(differentBytes,modulePrefix,moduleOrigin));
+});
+test('each of four exact lazy profiles requires its own proof and all eight downloads must agree',()=>{
+  assert.deepEqual(validateLazyModuleMatrix(moduleMatrix(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:6,buildPrefix:modulePrefix,profiles:4,downloads:8});
+  const changes=[v=>{v.pop();},v=>{v.push(v[0]);},v=>{v[1].id=v[0].id;},v=>{v[0].id='retained-chromium|'+lazyModuleTitle;},v=>{v[0].id='merge-chromium|different case';},v=>{v[0].proof=moduleProof('c'.repeat(64));},v=>{v[0].proof=moduleProof('b'.repeat(64),12346);},v=>{v[0].borrowed=true;}];
+  for(const change of changes){const value=moduleMatrix();change(value);assert.throws(()=>validateLazyModuleMatrix(value,modulePrefix,moduleOrigin));}
+});
+test('module attachment has its own finite4KiB decoded cap while native proof default remains unchanged',async()=>{
+  const body=Buffer.from(JSON.stringify(moduleProof())).toString('base64');assert.deepEqual(await proofAttachment({contentType:'application/json',body},'/tmp/qualification',4096),moduleProof());
+  const oversized=Buffer.from(JSON.stringify({padding:'x'.repeat(4096)})).toString('base64');await assert.rejects(proofAttachment({contentType:'application/json',body:oversized},'/tmp/qualification',4096));
+  await assert.rejects(proofAttachment({contentType:'application/json',body},'/tmp/qualification',8192));
 });
