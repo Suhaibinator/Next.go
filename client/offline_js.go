@@ -233,10 +233,11 @@ func offlineOperation(parent context.Context, command string) (err error) {
 	}
 	ctx, cancel := context.WithTimeout(parent, limit)
 	defer cancel()
-	registration, err := c.registration(ctx)
+	selection, err := c.registrationForOperation(ctx, command == "status")
 	if err != nil {
 		return err
 	}
+	registration := selection.registration
 	controllerOwned := c.controlling()
 	if (command == "enable" || command == "disable" && !controllerOwned) && !registration.Truthy() {
 		sw := win.Get("navigator").Get("serviceWorker")
@@ -259,7 +260,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 			return err
 		}
 	}
-	worker := js.Undefined()
+	worker := selection.statusWorker
 	if registration.Truthy() {
 		worker = registration.Get("active")
 		if !worker.Truthy() && (command == "enable" || command == "disable") {
@@ -375,9 +376,19 @@ func (c *offlineController) controlling() (owned bool) {
 	}()
 	return c.ownedWorker(win.Get("navigator").Get("serviceWorker").Get("controller"))
 }
-func (c *offlineController) validateRegistration(registration js.Value) error {
+// A record with the exact scope but no worker slots does not prove ownership.
+// Status may instead query an independently validated controller; mutations must
+// still establish ownership from the registration itself.
+type offlineRegistrationOwnership uint8
+
+const (
+	offlineRegistrationUnproven offlineRegistrationOwnership = iota
+	offlineRegistrationOwned
+)
+
+func (c *offlineController) registrationOwnership(registration js.Value) (offlineRegistrationOwnership, error) {
 	if registration.Type() != js.TypeObject || registration.IsNull() || registration.Get("scope").Type() != js.TypeString || registration.Get("scope").String() != c.descriptor.Scope {
-		return c.ownershipConflict("registration-scope")
+		return offlineRegistrationUnproven, c.ownershipConflict("registration-scope")
 	}
 	provedWorker := false
 	for _, key := range []string{"active", "waiting", "installing"} {
@@ -386,47 +397,94 @@ func (c *offlineController) validateRegistration(registration js.Value) error {
 			provedWorker = true
 		}
 		if worker.Truthy() && !c.ownedWorker(worker) {
-			return c.ownershipConflict("registration-" + key + "-worker")
+			return offlineRegistrationUnproven, c.ownershipConflict("registration-" + key + "-worker")
 		}
 	}
 	if !provedWorker {
+		return offlineRegistrationUnproven, nil
+	}
+	return offlineRegistrationOwned, nil
+}
+
+func (c *offlineController) validateRegistration(registration js.Value) error {
+	ownership, err := c.registrationOwnership(registration)
+	if err != nil {
+		return err
+	}
+	if ownership == offlineRegistrationUnproven {
 		return c.ownershipConflict("registration-empty")
 	}
 	return nil
 }
+
+// statusWorker pins the independently validated controller for a read-only
+// status query. An unproven record never becomes registration mutation authority.
+type offlineRegistrationSelection struct {
+	registration js.Value
+	statusWorker js.Value
+}
+
 func (c *offlineController) registration(ctx context.Context) (js.Value, error) {
-	sw := win.Get("navigator").Get("serviceWorker")
-	registrations, err := c.promise(ctx, sw.Call("getRegistrations"))
+	selection, err := c.registrationForOperation(ctx, false)
 	if err != nil {
 		return js.Undefined(), err
 	}
+	return selection.registration, nil
+}
+
+func (c *offlineController) registrationForOperation(ctx context.Context, statusOnly bool) (offlineRegistrationSelection, error) {
+	sw := win.Get("navigator").Get("serviceWorker")
+	registrations, err := c.promise(ctx, sw.Call("getRegistrations"))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
 	if registrations.Type() != js.TypeObject || registrations.IsNull() || registrations.Length() > 64 {
-		return js.Undefined(), c.ownershipConflict("registration-list")
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-list")
 	}
 	selected := js.Undefined()
+	sawOverlap, unproven := false, false
 	for i := 0; i < registrations.Length(); i++ {
 		registration := registrations.Index(i)
 		scope := registration.Get("scope")
 		if scope.Type() != js.TypeString {
-			return js.Undefined(), c.ownershipConflict("registration-scope-type")
+			return offlineRegistrationSelection{}, c.ownershipConflict("registration-scope-type")
 		}
 		// Browser service-worker scope matching is literal URL prefix matching,
 		// including /reader vs /reader2. Refuse every overlapping foreign owner.
 		if strings.HasPrefix(scope.String(), c.descriptor.Scope) || strings.HasPrefix(c.descriptor.Scope, scope.String()) {
-			if err = c.validateRegistration(registration); err != nil {
-				return js.Undefined(), err
+			ownership, e := c.registrationOwnership(registration)
+			if e != nil {
+				return offlineRegistrationSelection{}, e
 			}
-			if selected.Truthy() {
-				return js.Undefined(), c.ownershipConflict("registration-duplicate")
+			if ownership == offlineRegistrationUnproven && !statusOnly {
+				return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty")
 			}
-			selected = registration
+			if sawOverlap {
+				return offlineRegistrationSelection{}, c.ownershipConflict("registration-duplicate")
+			}
+			sawOverlap = true
+			if ownership == offlineRegistrationUnproven {
+				unproven = true
+			} else {
+				selected = registration
+			}
 		}
 	}
 	controller := sw.Get("controller")
-	if controller.Truthy() && !c.ownedWorker(controller) {
-		return js.Undefined(), c.ownershipConflict("controller-worker")
+	controllerOwned := controller.Truthy() && c.ownedWorker(controller)
+	if controller.Truthy() && !controllerOwned {
+		return offlineRegistrationSelection{}, c.ownershipConflict("controller-worker")
 	}
-	return selected, nil
+	if unproven && !controllerOwned {
+		return offlineRegistrationSelection{}, ErrOfflineUnavailable
+	}
+	// Pin this independently validated controller so a later missing controller
+	// cannot turn the required status reply into a fabricated disabled result.
+	worker := js.Undefined()
+	if unproven {
+		worker = controller
+	}
+	return offlineRegistrationSelection{registration: selected, statusWorker: worker}, nil
 }
 
 func (c *offlineController) waitInstallation(ctx context.Context, registration js.Value) error {
