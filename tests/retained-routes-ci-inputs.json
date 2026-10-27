@@ -365,9 +365,9 @@
     },
     {
       "path": "client/retained_routes_js_test.go",
-      "sha256": "7d04a145819af3b71afabd12d5b809dc63447e53b87ba676ee9926e6572e04e3",
-      "bytes": 43085,
-      "origin": "Rootformattedrevoked-retained-outgoingretirement correction onactual73df; currentuncompiled/unexecuted"
+      "sha256": "913bc691308593b4b77320c2c02bcfcf7c166c35dd0a80ce40c52c1bf3034d8c",
+      "bytes": 51469,
+      "origin": "Rootformattedfinalwindow-scroll-order correction onactuald4; uncompiled/unexecuted"
     },
     {
       "path": "client/retention.go",
@@ -401,9 +401,9 @@
     },
     {
       "path": "client/runtime_js.go",
-      "sha256": "b6c5312830119d11e8df943f73423c0ab95c92db2154dda6c225d4b94f35f2b2",
-      "bytes": 56468,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "86d333c619d51f19133dfc226857ed81cb61a17973b47548b8525bc898e17de7",
+      "bytes": 56573,
+      "origin": "Rootformattedfinalwindow-scroll-order correction onactuald4; uncompiled/unexecuted"
     },
     {
       "path": "client/scope_js.go",
@@ -868,10 +868,16 @@
       "origin": "exactImmutableRootb7e"
     },
     {
+      "path": "tests/offline-update-failure-observation.mjs",
+      "sha256": "cf7dfa8c927c2c1f9bee82660d610ee9883f226e03fb5f053f37607c5c181aa3",
+      "bytes": 3730,
+      "origin": "rootReviewedOfflineFailureOnlyDiagnostic60963"
+    },
+    {
       "path": "tests/offline.spec.mjs",
-      "sha256": "375e71f4f883bd82d92f4fba04f0f24ea590f3e9972a5b77d4be4644e22851bd",
-      "bytes": 27164,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "caf48c88903da61510d46a7d587e72134355627ab4eb159fef23ae0a1259b129",
+      "bytes": 27615,
+      "origin": "rootReviewedOfflineFailureOnlyDiagnostic60963"
     },
     {
       "path": "tests/retained-process-group-census.mjs",
@@ -1317,6 +1323,7 @@
       "TestRetainedDescriptorFreeSuccessEvictsPrivateOwnersAndAliases",
       "TestRetainedDocumentContextElementsBypassAtOwnerAndDescendant",
       "TestRetainedFocusPreservesUnchangedNativeSelection",
+      "TestRetainedFullCommitRestoresWindowAfterFocusBeforeQueuedNativeReveal",
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
       "TestRetainedLifetimeCleansSetupThatHidesItsOwnOwner",
       "TestRetainedLifetimeCleanupFailureDoesNotSkipOthersOrPermanentRelease",
@@ -1646,7 +1653,7 @@
   ],
   "targetCounts": {
     "native": 85,
-    "core": 163,
+    "core": 164,
     "devcore": 148,
     "portable": 13,
     "ui": 12,
@@ -1778,7 +1785,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "SOURCE PREFLIGHT ONLY: independentformattedsource/pin/selectorreview9110257808e5f98780060ef563248394a7d78105f90f3cc100a0c0037e935174 andindependentcurrentconsumerreview8e04e4ced4be1d8efa016510e337924eb8f411a4588902c8a539db22423338f4 passed exact73df+2formattedexistingretirementGo/180pin overlay. ready=true ONLYenablesactualCIqualification; core163/dev148andotherarrays/skips,180pins,2Go,header/Lambda/historyandprospective432/440contracts remainexactreviewedv1. FullGo1282cumulative=1278unchanged+3modifiedexisting+1newheadertest; no currentcompiler/native/WASM/Node/browser/build/deploymentPASS,oldscrollfixorprior15P1F runtimeinheritanceclaimed. All79capabilities/11releasegates remainopen.",
+  "readinessMeaning": "CI enablement only, contingent on the exact full five-path peer gate. Current181pins include three rebound existing rows and one added test-helper dependency; core164/dev148 and all432browsercases/440closures mandatory. Formatting and static source review do not establish compilation, browser correction, native cause, deployment or maturity.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -1914,13 +1921,13 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "CURRENT_REVOKED_RETIREMENT_180PIN_SOURCE_PREFLIGHT_REVIEW_PASS_RUNTIME_UNQUALIFIED",
-    "integrationBaseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
-    "integrationBaseTree": "d5bf8b6a00e88830c3aaa438bf0cb92f2753bc01",
-    "priorSnapshot": "priorRevokedRetirementCombinedSourceInput",
-    "sourcePinCount": 180,
-    "sourcePinsTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
-    "treeEncoding": "sortedpathUTF8+NUL+exact overlay sourcebytes+NUL; excludesinput-contractself",
+    "status": "CURRENT_FIVE_PATH_SOURCE_COMPOSITION_PREPARED_REQUIRES_BOUND_PEER_CI_ONLY",
+    "integrationBaseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "integrationBaseTree": "b48afd51dd819913dce76edcde931d6c277fa0bd",
+    "priorSnapshot": "priorWindowScrollCombinedSourceInput",
+    "sourcePinCount": 181,
+    "sourcePinsTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "treeEncoding": "sortedpathUTF8+NUL+exact overlaybytes+NUL; excludesinputself",
     "immediateBaseGoFiles": 1282,
     "currentGoFiles": 1282,
     "immediateModifiedProductionGoFiles": 1,
@@ -1929,19 +1936,20 @@
     "otherImmediateBaseGoFilesUnchanged": 1280,
     "cumulativeCommonBaseCommit": "533b54be676a54c87e77e9a6079804dccec3b652",
     "cumulativeCommonBaseGoFiles": 1281,
-    "cumulativeUnchangedExistingGoFiles": 1278,
-    "cumulativeModifiedExistingGoFiles": 3,
-    "cumulativeModifiedProductionGoFiles": 2,
+    "cumulativeUnchangedExistingGoFiles": 1277,
+    "cumulativeModifiedExistingGoFiles": 4,
+    "cumulativeModifiedProductionGoFiles": 3,
     "cumulativeModifiedExistingGoTestFiles": 1,
     "cumulativeAddedHeaderGoTestFiles": 1,
+    "previous180RowsUnchanged": 177,
+    "previous180ExistingRowsRebound": 3,
     "originalLambda173SourcePinPathsPreserved": 173,
-    "originalLambda173RowsUnchanged": 171,
-    "originalLambda173ExistingRowsRebound": 2,
+    "originalLambda173RowsUnchanged": 169,
+    "originalLambda173ExistingRowsRebound": 4,
     "headerAdded7RowsUnchanged": 7,
-    "previous180RowsUnchanged": 178,
-    "previous180ExistingRowsRebound": 2,
     "LambdaImplementationWorkflowBytesChanged": 0,
-    "currentWholeSourceQualification": "PENDING; prioractualbrowserfirstREDandformatter/sourcepeer donotprovecompiled/native/WASM/browser/deployed correction."
+    "currentWholeSourceQualification": "PENDING actualCI. Five paths: two existing Go, one existing offline spec, one new failure-only JS helper, and this input. No prior runtime result promoted to this source.",
+    "currentNewSourcePins": 1
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2639,14 +2647,14 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "CURRENT_REVOKED_RETIREMENT_SOURCE_PREFLIGHT_REVIEW_PASS_CI_READY_RUNTIME_UNQUALIFIED",
-    "historicalSnapshot": "priorRevokedRetirementQueryRefreshQualification",
-    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
-    "sourcePins": 180,
+    "status": "CURRENT_WINDOW_SCROLL_180PIN_CUMULATIVE_SOURCE_ONLY_PENDING_REVIEW_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorWindowScrollQueryRefreshQualification",
+    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "sourcePins": 181,
     "sourcePinCap": 192,
     "currentRequiredCounts": {
       "native": 85,
-      "core": 163,
+      "core": 164,
       "devcore": 148,
       "portable": 13,
       "ui": 12,
@@ -2659,9 +2667,9 @@
     "perMockModeWorkerClosures": 146,
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
-    "currentQualification": "revokedRetirementQualification",
+    "currentQualification": "windowScrollQualification",
     "runtimeExecuted": false,
-    "meaning": "Historicalheader-onlyscope ispreservedunderpriorRevokedRetirement*. Currentcombinedscope relative533b includesheaderplusretirement:3modifiedexistingGofiles(2production+1test)and1newheadertest,1282wholeGo; no oldscroll/result orruntimequalification inherited."
+    "meaning": "CurrentGo1282=1277unchangedexisting+4modifiedexisting+1addedheader test since533b. Full181pin composition additionally changes offline spec and adds one test-only helper. All runtime qualification pending."
   },
   "commandGroupCensus": {
     "status": "SOURCE_ONLY_UNEXECUTED_FAILURE_DIAGNOSTIC",
@@ -2775,19 +2783,19 @@
   },
   "sourceFormattingQualification": {
     "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
-    "scope": "ONLY2existingretirementproduction/testGo; notall1282Go orheaderbatchreexecution",
-    "formatterManifestSHA256": "f8a2ae94b2dd281325ba7dd92459c042a999f1ed78c79c52df226c4728f204d0",
-    "controllerResultSHA256": "4d120e42c95f926277bfeca7d2e1a0531286a0dd2a799d77f0bc5cdba5cecfc8",
-    "rawSourceManifestSHA256": "150c0cd74c017adf431c665a2b9f343fccdb04ac4b13776266893d3a6679679b",
-    "patchSHA256": "6dfcb1b88665ae0bf82b2d5ae917874c714457fb66b9a47b9214b579d217514e",
+    "scope": "ONLY2existingwindow-orderproduction/testGo; notall1282Go ornewbrowserexecution",
+    "formatterManifestSHA256": "0a830f3208a184231845bc3e2393059d4f7c2b7fa99ed2131c736758d4b72341",
+    "controllerResultSHA256": "951c175c31d42e15b5dbbb3517167a3fd7d1007cf1541acc96ec80ac56466119",
+    "rawSourceManifestSHA256": "b2e7ed3c72b209372d8632382bb2f07a7aa8d25871ec8d4bfa888b17637ff4d1",
+    "patchSHA256": "1baf116c778a3d83e4a02fea4fc29cfbda2b4c4654cf9fcb1a1c6ad05998a08f",
     "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
-    "rawGoBytes": 75909,
-    "formattedGoBytes": 76208,
+    "rawGoBytes": 107474,
+    "formattedGoBytes": 108042,
     "GoFiles": 2,
     "stderrBytes": 0,
     "buildsOrTestsExecuted": false,
     "hardMemoryLimitEstablished": false,
-    "priorSnapshot": "priorRevokedRetirementSourceFormattingQualification"
+    "priorSnapshot": "priorWindowScrollSourceFormattingQualification"
   },
   "metadataCounterCorrection": {
     "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
@@ -2873,19 +2881,18 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282\u21921282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
+  "sourceInputScope": "CURRENT full5path overlay of exactd4:2 existing Go modified;1 existing offline spec modified;1 new test-only JS helper;thisinput. 181selectedpins=177unchangedexisting+3reboundexisting+1newhelper. Go1282 unchanged except1production+1existingtest; noaddedGo. Originaltestarrays preserved withoneproductioncoregroup164/dev148. Prior historical snapshots remain unchanged. CI enablement only; all432cases440closures/79capabilities11gates unqualified.",
   "finalSourceReadinessReview": {
-    "status": "REVOKED_RETIREMENT_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
-    "priorSnapshot": "priorRevokedRetirementFinalSourceReadinessReview",
-    "sourcePins": 180,
-    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "status": "FULL_FIVE_PATH_PREPARED_REQUIRES_EXACT_BOUND_SOURCE_PEER_FOR_PUBLICATION",
+    "priorSnapshot": "priorWindowScrollFinalSourceReadinessReview",
+    "sourcePins": 181,
+    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
     "ready": true,
     "runtimeQualified": false,
-    "reviewedInputManifestSHA256": "0f49bdddaaabf6dfdb401b7a4dc0f39cb5b7c6a961f6c83d071509bcda73a99e",
-    "formattedSourcePinSelectorReviewSHA256": "9110257808e5f98780060ef563248394a7d78105f90f3cc100a0c0037e935174",
-    "currentConsumerCodeCouplingReviewSHA256": "8e04e4ced4be1d8efa016510e337924eb8f411a4588902c8a539db22423338f4",
-    "productionSourcePinsTestsContractsHistoricalSnapshotsChangedAfterReview": false,
-    "meaning": "Onlyreadiness/currentstatus/receiptmetadatachangesafterbothindependentreviews. Source-readyallowsactualCI,nocompilation/runtime/deploymentresultorpublicationclaim."
+    "promotionOwner": "Rootfull5pathassembly/finalpeer; no separate3pathreadytruepromotion",
+    "threePathManifestSHA256": "6ed92f34ceb40d7accc3c05daf2be7a9d07539e5d789cf1ec4a8de35d616984a",
+    "offlineDiagnosticManifestSHA256": "60963db086a0028b80c86f87e564cde94ef7918303f793760eaf4db014b26708",
+    "meaning": "Ready permits CI only after external publisher verifies the exact manifest and independent full-patch peer; no runtime result is claimed."
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -3049,22 +3056,21 @@
     "publishedNativeFixturePath": "client/retained_devrefresh_js_test.go"
   },
   "lambdaSourceReadinessReview": {
-    "status": "HISTORICAL_LAMBDA_HEADER_SOURCE_PREFLIGHT_NOT_CURRENT_RETIREMENT_PASS",
-    "priorSnapshot": "priorRevokedRetirementLambdaSourceReadinessReview",
-    "historicalOriginalLambdaSourcePins": 173,
-    "currentSourcePins": 180,
+    "status": "HISTORICAL_LAMBDA_HEADER_RETIREMENT_PREFLIGHT_NOT_CURRENT_WINDOW_PASS",
+    "priorSnapshot": "priorWindowScrollLambdaSourceReadinessReview",
+    "currentSourcePins": 181,
+    "originalLambdaSourcePinPathsPreserved": 173,
+    "originalLambda173RowsUnchanged": 169,
+    "originalLambda173RowsRebound": 4,
     "sourceChangedAfterPriorReview": true,
     "cumulativeChangesSinceLambdaBase533b": {
-      "modifiedProductionGo": 2,
+      "modifiedProductionGo": 3,
       "modifiedExistingGoTest": 1,
       "newHeaderGoTest": 1,
       "wholeGo": 1282
     },
-    "original173RowsUnchanged": 171,
-    "original173RowsRebound": 2,
     "LambdaImplementationWorkflowCodeBytesChanged": 0,
-    "runtimeQualified": false,
-    "meaning": "Priorreviewobjectsand21Lambdaimplementation/workflowbytespreserved; old173rowhash/allGo-unchanged orheader-only2Go scope doesnotcovercurrentretirement."
+    "runtimeQualified": false
   },
   "priorHeaderAuthorityQueryRefreshQualification": {
     "status": "SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_ACTUAL_CI_NOT_RUNTIME_QUALIFIED",
@@ -3240,14 +3246,12 @@
     "limit": "Onlystandaloneformatter/parsersucceeded; module/native typechecking, actualGo/WASM/browser/productionbehavior and allrelease gates remainunproven."
   },
   "streamHeaderAuthorityQualification": {
-    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_CUMULATIVE_SOURCE_SCOPE",
-    "historicalSnapshot": "priorRevokedRetirementStreamHeaderAuthorityQualification",
-    "headerProductionAndTestBytesUnchangedByRetirement": true,
-    "currentQualification": "revokedRetirementQualification",
-    "currentSourcePinCount": 180,
-    "currentSourcePinTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
-    "currentRuntimeQualified": false,
-    "meaning": "Priorheader-only1production+1newtest/173unchangedrows/dc95tree evidence is historical. Retirement additionallyrebinds2existingoriginalLambda173Gorows; currentcumulativecountersarecombinedSourceInput."
+    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
+    "historicalSnapshot": "priorWindowScrollStreamHeaderAuthorityQualification",
+    "headerProductionAndTestBytesUnchangedByWindowOrder": true,
+    "currentQualification": "windowScrollQualification",
+    "currentSourcePinCount": 181,
+    "currentRuntimeQualified": false
   },
   "priorRevokedRetirementQueryRefreshQualification": {
     "status": "CURRENT_HEADER_AUTHORITY_SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_CI_RUNTIME_UNQUALIFIED",
@@ -3458,6 +3462,71 @@
     "meaning": "Original173pin/allGo-unchanged Lambda-onlyreview remainsverbatim underpriorHeaderAuthorityLambdaSourceReadinessReview. Its21Lambdaimplementation/workflowbytes remainexact3f4, butitdoesnotverifynewGoheaders/fourgroups/current180source."
   },
   "revokedRetirementQualification": {
+    "status": "HISTORICAL_RETIREMENT_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_WINDOW_SCOPE_PROOF",
+    "historicalSnapshot": "priorWindowScrollRevokedRetirementQualification",
+    "retirementProductionSourceUnchangedByWindowOrder": true,
+    "currentQualification": "windowScrollQualification",
+    "currentSourcePinCount": 181,
+    "currentSourcePinTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "currentRuntimeQualified": false,
+    "meaning": "Priorretirement-onlyGo/currenttree andsourcepreflight remainhistorical. Existingretainedtestfile isextendedagain; currentcumulativecountsincludeadditionalruntimeproductionchange."
+  },
+  "priorWindowScrollQueryRefreshQualification": {
+    "status": "CURRENT_REVOKED_RETIREMENT_SOURCE_PREFLIGHT_REVIEW_PASS_CI_READY_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorRevokedRetirementQueryRefreshQualification",
+    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "sourcePins": 180,
+    "sourcePinCap": 192,
+    "currentRequiredCounts": {
+      "native": 85,
+      "core": 163,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "nativeBrowserCases": 144,
+    "nativeWorkerClosures": 146,
+    "perMockModeBrowserCases": 144,
+    "perMockModeWorkerClosures": 146,
+    "allModesBrowserCases": 432,
+    "allModesWorkerClosures": 440,
+    "currentQualification": "revokedRetirementQualification",
+    "runtimeExecuted": false,
+    "meaning": "Historicalheader-onlyscope ispreservedunderpriorRevokedRetirement*. Currentcombinedscope relative533b includesheaderplusretirement:3modifiedexistingGofiles(2production+1test)and1newheadertest,1282wholeGo; no oldscroll/result orruntimequalification inherited."
+  },
+  "priorWindowScrollCombinedSourceInput": {
+    "status": "CURRENT_REVOKED_RETIREMENT_180PIN_SOURCE_PREFLIGHT_REVIEW_PASS_RUNTIME_UNQUALIFIED",
+    "integrationBaseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "integrationBaseTree": "d5bf8b6a00e88830c3aaa438bf0cb92f2753bc01",
+    "priorSnapshot": "priorRevokedRetirementCombinedSourceInput",
+    "sourcePinCount": 180,
+    "sourcePinsTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
+    "treeEncoding": "sortedpathUTF8+NUL+exact overlay sourcebytes+NUL; excludesinput-contractself",
+    "immediateBaseGoFiles": 1282,
+    "currentGoFiles": 1282,
+    "immediateModifiedProductionGoFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateAddedGoFiles": 0,
+    "otherImmediateBaseGoFilesUnchanged": 1280,
+    "cumulativeCommonBaseCommit": "533b54be676a54c87e77e9a6079804dccec3b652",
+    "cumulativeCommonBaseGoFiles": 1281,
+    "cumulativeUnchangedExistingGoFiles": 1278,
+    "cumulativeModifiedExistingGoFiles": 3,
+    "cumulativeModifiedProductionGoFiles": 2,
+    "cumulativeModifiedExistingGoTestFiles": 1,
+    "cumulativeAddedHeaderGoTestFiles": 1,
+    "originalLambda173SourcePinPathsPreserved": 173,
+    "originalLambda173RowsUnchanged": 171,
+    "originalLambda173ExistingRowsRebound": 2,
+    "headerAdded7RowsUnchanged": 7,
+    "previous180RowsUnchanged": 178,
+    "previous180ExistingRowsRebound": 2,
+    "LambdaImplementationWorkflowBytesChanged": 0,
+    "currentWholeSourceQualification": "PENDING; prioractualbrowserfirstREDandformatter/sourcepeer donotprovecompiled/native/WASM/browser/deployed correction."
+  },
+  "priorWindowScrollRevokedRetirementQualification": {
     "status": "FORMATTED_RETIREMENT_SOURCE_PIN_AND_CURRENT_CONSUMER_PREFLIGHT_REVIEW_PASS_ONLY_CI_RUNNABLE",
     "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
     "baseTree": "d5bf8b6a00e88830c3aaa438bf0cb92f2753bc01",
@@ -3548,5 +3617,244 @@
       "No existingbrowserassertion orsourcecase isrelaxed; failed533bcase mustberunagain.",
       "All79capabilities/11releasegates remainopen; LOCALmockonly/noAWS."
     ]
+  },
+  "priorWindowScrollStreamHeaderAuthorityQualification": {
+    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_CUMULATIVE_SOURCE_SCOPE",
+    "historicalSnapshot": "priorRevokedRetirementStreamHeaderAuthorityQualification",
+    "headerProductionAndTestBytesUnchangedByRetirement": true,
+    "currentQualification": "revokedRetirementQualification",
+    "currentSourcePinCount": 180,
+    "currentSourcePinTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
+    "currentRuntimeQualified": false,
+    "meaning": "Priorheader-only1production+1newtest/173unchangedrows/dc95tree evidence is historical. Retirement additionallyrebinds2existingoriginalLambda173Gorows; currentcumulativecountersarecombinedSourceInput."
+  },
+  "priorWindowScrollSourceFormattingQualification": {
+    "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
+    "scope": "ONLY2existingretirementproduction/testGo; notall1282Go orheaderbatchreexecution",
+    "formatterManifestSHA256": "f8a2ae94b2dd281325ba7dd92459c042a999f1ed78c79c52df226c4728f204d0",
+    "controllerResultSHA256": "4d120e42c95f926277bfeca7d2e1a0531286a0dd2a799d77f0bc5cdba5cecfc8",
+    "rawSourceManifestSHA256": "150c0cd74c017adf431c665a2b9f343fccdb04ac4b13776266893d3a6679679b",
+    "patchSHA256": "6dfcb1b88665ae0bf82b2d5ae917874c714457fb66b9a47b9214b579d217514e",
+    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
+    "rawGoBytes": 75909,
+    "formattedGoBytes": 76208,
+    "GoFiles": 2,
+    "stderrBytes": 0,
+    "buildsOrTestsExecuted": false,
+    "hardMemoryLimitEstablished": false,
+    "priorSnapshot": "priorRevokedRetirementSourceFormattingQualification"
+  },
+  "priorWindowScrollSourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282\u21921282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
+  "priorWindowScrollFinalSourceReadinessReview": {
+    "status": "REVOKED_RETIREMENT_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
+    "priorSnapshot": "priorRevokedRetirementFinalSourceReadinessReview",
+    "sourcePins": 180,
+    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "ready": true,
+    "runtimeQualified": false,
+    "reviewedInputManifestSHA256": "0f49bdddaaabf6dfdb401b7a4dc0f39cb5b7c6a961f6c83d071509bcda73a99e",
+    "formattedSourcePinSelectorReviewSHA256": "9110257808e5f98780060ef563248394a7d78105f90f3cc100a0c0037e935174",
+    "currentConsumerCodeCouplingReviewSHA256": "8e04e4ced4be1d8efa016510e337924eb8f411a4588902c8a539db22423338f4",
+    "productionSourcePinsTestsContractsHistoricalSnapshotsChangedAfterReview": false,
+    "meaning": "Onlyreadiness/currentstatus/receiptmetadatachangesafterbothindependentreviews. Source-readyallowsactualCI,nocompilation/runtime/deploymentresultorpublicationclaim."
+  },
+  "priorWindowScrollLambdaSourceReadinessReview": {
+    "status": "HISTORICAL_LAMBDA_HEADER_SOURCE_PREFLIGHT_NOT_CURRENT_RETIREMENT_PASS",
+    "priorSnapshot": "priorRevokedRetirementLambdaSourceReadinessReview",
+    "historicalOriginalLambdaSourcePins": 173,
+    "currentSourcePins": 180,
+    "sourceChangedAfterPriorReview": true,
+    "cumulativeChangesSinceLambdaBase533b": {
+      "modifiedProductionGo": 2,
+      "modifiedExistingGoTest": 1,
+      "newHeaderGoTest": 1,
+      "wholeGo": 1282
+    },
+    "original173RowsUnchanged": 171,
+    "original173RowsRebound": 2,
+    "LambdaImplementationWorkflowCodeBytesChanged": 0,
+    "runtimeQualified": false,
+    "meaning": "Priorreviewobjectsand21Lambdaimplementation/workflowbytespreserved; old173rowhash/allGo-unchanged orheader-only2Go scope doesnotcovercurrentretirement."
+  },
+  "windowScrollQualification": {
+    "status": "FIVE_PATH_CI_CANDIDATE_REQUIRES_BOUND_PEER_RUNTIME_UNQUALIFIED",
+    "baseCommit": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+    "baseTree": "b48afd51dd819913dce76edcde931d6c277fa0bd",
+    "rootInputSHA256": "569fa6e0afad4c503496e56f7a16b16be5e7d3e178b8840ce2d050690f73f3b6",
+    "rootInputBytes": 187498,
+    "sourcePinCount": 181,
+    "sourcePinCap": 192,
+    "sourcePinTreeSHA256": "d936eed2fb55ed10c37b05e898da842efed5ccd78f272fc69cfcdeef721ada39",
+    "pinRowsUnchanged": 177,
+    "pinRowsRebound": 3,
+    "newSourcePins": 1,
+    "reboundExistingPinPaths": [
+      "client/retained_routes_js_test.go",
+      "client/runtime_js.go",
+      "tests/offline.spec.mjs"
+    ],
+    "requiredCountsBefore": {
+      "native": 85,
+      "core": 163,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "requiredCounts": {
+      "native": 85,
+      "core": 164,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "newCoreOnlyGroup": "TestRetainedFullCommitRestoresWindowAfterFocusBeforeQueuedNativeReveal",
+    "prospectiveSubcases": [
+      "unchanged",
+      "different"
+    ],
+    "buildConstraint": "js && wasm && !nextgo_module && !nextgo_devrefresh",
+    "noOtherRequiredArrayOrSkipChange": true,
+    "productionChange": "MoveoneexistingrestoreScroll afterrestoreRetainedFocus andbeforesaveScroll inactualcommontail; no timer/replay/secondrestoration orbrowserassertionchange",
+    "formattedSourceManifestSHA256": "0a830f3208a184231845bc3e2393059d4f7c2b7fa99ed2131c736758d4b72341",
+    "rawSourceManifestSHA256": "b2e7ed3c72b209372d8632382bb2f07a7aa8d25871ec8d4bfa888b17637ff4d1",
+    "rawSourceReviewSHA256": "0fb67100ab5351529fbe62defca8be0cd57d90a365f29cf543c9e763f3bd270f",
+    "evidenceAnalysisSHA256": "5ca14cc5731c3d969c385e4542d02b22516320a393b568ceba42822b2df2ad93",
+    "priorActualTouchEvidence": {
+      "auditSHA256": "4ed8cbc7fd9073f65d35b81814a6ecd50e88bdb8b110a0ad113a929663d1adec",
+      "head": "d4a0a1f41efb18cd8760ad4ff903cfd8dc7a7c36",
+      "run": "40584356902",
+      "attempt": "1",
+      "sdk": "1.24.13",
+      "target": "arm64",
+      "browserActual": {
+        "passed": 56,
+        "failed": 1,
+        "retainedUnrun": 15,
+        "mergeUnrun": 72,
+        "passPerProfile": {
+          "retained-chromium": 18,
+          "retained-firefox": 18,
+          "retained-webkit": 18,
+          "retained-webkit-touch": 2
+        }
+      },
+      "failureProject": "retained-webkit-touch",
+      "failureTitle": "history restores focus and real window and nested scroll without reloading the document",
+      "failureCallsite": "retained-routes.spec.mjs:92",
+      "failureActual": "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 1\n\n  Object {\n    \"nested\": 160,\n    \"same\": true,\n-   \"window\": 500,\n+   \"window\": 289,\n  }",
+      "laterAssertions": "NOT_REACHED",
+      "recordedResultsSHA256": "82eaac04c40216b678e73e0e4f2e3ba5c82a91eed87657bad4ef07dbeb13a6dd",
+      "filteredTraceSHA256": "80481665ab6332565436e8c61417bd12bf14bd800b3b6116c3920e0fa01f56f6",
+      "filteredTraceEvents": 164,
+      "filteredTraceDropped": 0,
+      "scrollAttachmentSummaries": [
+        {
+          "project": "retained-chromium",
+          "status": "passed",
+          "sha256": "17cb41acd72feb6e9f67807ce3c86925faf08ec35b4301f443789773df34539e",
+          "bytes": 2242
+        },
+        {
+          "project": "retained-firefox",
+          "status": "passed",
+          "sha256": "17cb41acd72feb6e9f67807ce3c86925faf08ec35b4301f443789773df34539e",
+          "bytes": 2242
+        },
+        {
+          "project": "retained-webkit",
+          "status": "passed",
+          "sha256": "17cb41acd72feb6e9f67807ce3c86925faf08ec35b4301f443789773df34539e",
+          "bytes": 2242
+        },
+        {
+          "project": "retained-webkit-touch",
+          "status": "failed",
+          "sha256": "fee7d6c182c9adc761d3c77391bac66ea2b35930b20ec3e262906cbcbbc6cabb",
+          "bytes": 2239
+        }
+      ],
+      "boundedObservation": "RecordedAready/notbusy HTML/window500thenlate289 withnested160/sameDoc/focus; notanabsentinitialrestore",
+      "nativeCauseUnproven": true,
+      "shippedBinarySourceEquivalenceUnproven": true,
+      "distinctFromHistoricalFailures": [
+        "oldsole-owner1188window/nestedcase",
+        "old533b15PASS1BvisibilityFAIL6683637audit"
+      ]
+    },
+    "primarySourceRecipeCorrespondence": {
+      "Playwright": "1.64.1",
+      "WebKitRevision": "2370",
+      "WebKitVersion": "27.2",
+      "WebKitUpstreamBase": "56453fdfe0b0ca6258c23e6453b34f70b885d13f",
+      "references": [
+        {
+          "url": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/packages/playwright-core/browsers.json",
+          "finding": "Official tag declares WebKit revision2370/version27.2; actual campaign records the same version and declared executable prefix."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/browser_patches/webkit/UPSTREAM_CONFIG.sh",
+          "finding": "Declares upstream base56453fdfe0b0ca6258c23e6453b34f70b885d13f."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/WebKit/WebKit/56453fdfe0b0ca6258c23e6453b34f70b885d13f/Source/WebCore/page/LocalFrameView.cpp",
+          "finding": "Inspected setScrollOffsetWithOptions cancels scheduled scrolls before position changes; scheduled focused-element scroll uses a timer and cancellation clears its flag/stops the timer."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/browser_patches/webkit/patches/bootstrap.diff",
+          "finding": "Tool text search found no LocalFrameView.cpp or cancelScheduledScrolls patch match; not a universal patch-closure or binary equivalence claim."
+        }
+      ],
+      "meaning": "OfficialrecipecorrespondencesupportsNONZERO500programmatic-window-scrollafterfocuscancellingqueuedfocused-elementreveal. Thisdoesnotprovenativecauseoractualbinariesandexcludesalready-zero0/0cancellationclaims."
+    },
+    "deterministicModelScope": "ActualfullGo commoncommit+manualqueuedreveal drainedaftercommit; nonzero500only,unchanged/differentselection; no timer/sleep/poll/replay. Notnativeengineproof.",
+    "currentRuntimeExecuted": false,
+    "currentRuntimeQualified": false,
+    "allModesCasesAndClosures": {
+      "native": [
+        144,
+        146
+      ],
+      "buffered": [
+        144,
+        146
+      ],
+      "streaming": [
+        144,
+        146
+      ],
+      "total": [
+        432,
+        440
+      ]
+    },
+    "rootAssemblyBoundary": "Rootfull5pathcomposition includes reviewed offline diagnostic60963/dee6; exact external manifest/peer gate required before publication. Full181pins independently rebound; runtime remains unqualified.",
+    "limits": [
+      "No correctedGo/WASM/browserrun oruniversalcaret/anchoring/old1188fixclaim.",
+      "Actualtouch56P1F/15retained+72mergeUNRUN andlaterassertionsNOT_REACHED arepriorreportonly.",
+      "Alloriginalbrowserassertions/casecounts remainmandatoryunchanged.",
+      "All79capabilities/11releasegates remainopen."
+    ],
+    "newSourcePinPaths": [
+      "tests/offline-update-failure-observation.mjs"
+    ]
+  },
+  "offlineDiagnosticQualification": {
+    "status": "FAILURE_ONLY_TEST_OBSERVATION_SOURCE_REVIEWED_NOT_EXECUTED",
+    "manifestSHA256": "60963db086a0028b80c86f87e564cde94ef7918303f793760eaf4db014b26708",
+    "peerSHA256": "dee6c2e11c74cc54891d35af197697800653d0185c644d6c7c42e7734615b82c",
+    "changedPaths": [
+      "tests/offline.spec.mjs",
+      "tests/offline-update-failure-observation.mjs"
+    ],
+    "scalarFields": 7,
+    "evaluationRPCs": 1,
+    "attachmentByteLimit": 4096,
+    "originalAssertionsAndCleanupUnchanged": true,
+    "productionOwnershipUnchanged": true,
+    "limits": "AfteroriginalFirefoxupdatecasefailure only. Fixed DOM scalars, no worker/storage API or repairs. Existingfixturedeadline only, no independent hardRPCjoin claim."
   }
 }

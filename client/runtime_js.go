@@ -1417,8 +1417,10 @@ func commitLegacy(ctx context.Context, parsed, root js.Value, data envelope, tar
 		captureMergeBindings()
 	}
 	completeAccessibleNavigation(previous, target, active, data.Title)
-	restoreScroll(target, pop, state)
 	restoreRetainedFocus(pop)
+	// Finish retained focus, selection and nested positions before the single
+	// explicit window restore.
+	restoreScroll(target, pop, state)
 	saveScroll()
 	notifyLocationObservers()
 	return nil
