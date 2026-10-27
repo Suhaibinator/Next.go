@@ -435,14 +435,16 @@ client missing-screen still has the generic document's HTTP 200 status. Export
 does not install a provider rule, authenticate users or analyze trusted Go
 loaders for captured secrets. Read the [declaration, exclusions, immutable-
 envelope validation and complete host contract](STATIC_SHELL.md) before attempting
-publication. Earlier candidate proof includes both-SDK focused unit checks and
-four actual Go 1.27.3 eager/lazy root/mounted exports. Go 1.24 sample exports
-never launched; no local static-shell browser cases have run. The new
-[public CI workflow](../.github/workflows/static-shell.yml) is pending, as is
-static-host browser acceptance; earlier candidate evidence does not qualify its
-exact checkout or new packaging. [CI proof scope](../tests/STATIC_SHELL_CI.md)
-is Linux AMD64 functional validation, not the separately held ARM64 resource
-profile or provider/cloud qualification.
+publication. [Dedicated public CI run 40454404997](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997)
+passes for the recorded `7926f225` PR checkout: each of Go 1.24.13 and 1.27.3
+completes seven producer commands, four actual eager/lazy root/mounted exports
+and 48 browser cases without skips or retries. All 96 observations across SDKs
+include joined physical fixture closure. [Exact source, job links and earlier
+failed-attempt history](STATIC_SHELL.md#sample-and-qualification-boundary)
+keep this Linux AMD64 reference-host result separate from other browser/core
+campaigns. The [CI proof scope](../tests/STATIC_SHELL_CI.md) does not qualify the
+held ARM64 resource profile, cgroup/resource behavior, providers/cloud or
+production readiness.
 
 ### Static host browser matrix
 

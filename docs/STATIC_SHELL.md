@@ -1,11 +1,10 @@
 # One explicit public static client shell
 
-**Experimental — end-to-end qualification pending.** The API and publication
-path have focused source/unit evidence and one SDK's completed sample export
-proof, described below. Local static-shell browser execution and the new public
-CI campaign have not run. Earlier static navigation, scalar metadata and
-ClientIsland evidence retain their own checkpoint scope; no capability or
-release gate closes.
+**Experimental.** Dedicated Linux AMD64 functional CI passes on both SDKs for
+the checkpoint recorded below, including actual exports, browser navigation and
+fixture closure. Earlier static navigation, scalar metadata and ClientIsland
+evidence retain their own checkpoint scope. This bounded result does not
+establish full SPA parity or close a capability or release gate.
 
 ## Declare a generic public subtree
 
@@ -194,22 +193,42 @@ producer then completes seven commands: a fresh CLI, real generate/check, and
 four actual eager/lazy root/mounted exports. Their HTML, navigation envelopes,
 descriptor and runtime inventories are recorded. The emitted route helper and
 three action-reference helpers come from that real generator, not handwritten
-substitutes. Go 1.24 sample exports never launched because resource admission
-failed. No local static-shell browser cases have run. Earlier admission and
-generator-allowlist failures remain separate failed attempts, not retroactive
-passes.
+substitutes. In that earlier local campaign, Go 1.24 sample exports never
+launched because resource admission failed, and no static-shell browser cases
+ran. Earlier admission and generator-allowlist failures remain separate failed
+attempts, not retroactive passes.
 
-The [public functional workflow](../.github/workflows/static-shell.yml) and its
-[proof contract](../tests/STATIC_SHELL_CI.md) define a new Linux AMD64 run for
-both SDKs: seven producer commands, four exports and exactly 48 required browser
-cases per SDK. Those are future assertions, not observed passing counts. The
-public checkout/workflow/scripts have their own source identity; earlier private
-unit/export proof does not qualify this new packaging or CI execution. Its
-functional scope also does not replace the separately held ARM64 full-resource
-qualification.
+On October 27, 2026, the [dedicated public run 40454404997](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997)
+succeeded for head `7926f225653f45cb44267c2e3beff9043fdddd68`, actual PR checkout
+merge `a5e768c1eb0df182d50c1bdcf668c30f2be35d92`, source SHA-256
+`641f13abfbdb510607577aeefdb732b29d0caa2790e1fbc46cdfc277b167fb33`.
+The [Go 1.24.13 job](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997/job/122024256317)
+and [Go 1.27.3 job](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997/job/122024256653)
+each completed seven producer commands: a fresh CLI, real generate/check and
+four eager/lazy root/mounted exports. Check-mode generation wrote nothing, and
+the inventory retained exactly four actual generated helpers. Each SDK
+actually discovered and passed all 48 browser cases, with zero skips or
+retries, across Chromium, Firefox, WebKit and touch WebKit profiles. These are
+96 observations across the two SDKs over 48 case identities per SDK.
 
-The feature remains experimental and not yet end-to-end qualified. General
-client-page loaders, auth/private data, multiple/root-wide/locale shells,
+All 96 case records verify joined fixture server/socket/handler and other
+tracked cleanup work, zero remaining tracked counts and a post-close
+`ECONNREFUSED` listener probe. Both browser child processes closed with exit 0
+and empty process groups, without TERM or KILL. These are the bounded physical
+closure checks in the [CI proof contract](../tests/STATIC_SHELL_CI.md), not
+cgroup, memory/load/soak or arbitrary application-cleanup guarantees.
+
+The [preceding public static-shell run](https://github.com/Suhaibinator/Next.go/actions/runs/40449613378)
+at `cb8cabbc` remains failed: each SDK stopped at its first fixture-closure
+proof failure, with zero passing cases, one failure and 47 not run. The later
+success does not relabel that attempt. Only run 40454404997 is counted here;
+other pending/duplicate runs, core jobs and earlier broader browser totals are
+separate evidence. This Linux AMD64 functional result uses the reference static
+host and does not qualify the held ARM64 resource profile or a provider/cloud
+deployment.
+
+The feature remains experimental. General client-page loaders, auth/private
+data, multiple/root-wide/locale shells,
 retained route ownership, per-record status/SEO, real provider/cloud/device/soak
 qualification and production maturity remain open. All 79 capability IDs and
 11 open gates remain.

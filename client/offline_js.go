@@ -27,6 +27,7 @@ type offlineController struct {
 	request           uint64
 	confirmedDisabled bool
 	nativeMode        bool
+	conflictReason    string
 }
 
 var documentOffline *offlineController
@@ -203,6 +204,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		return ErrOfflineBusy
 	}
 	c.busy = true
+	c.conflictReason = ""
 	phase := map[string]string{"status": "checking", "enable": "enabling", "update": "updating", "disable": "disabling"}[command]
 	if phase == "" {
 		c.busy = false
@@ -219,6 +221,9 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		if err != nil {
 			c.state.Phase = "error"
 			c.state.LastError = err.Error()
+			if err == ErrOfflineConflict && c.conflictReason != "" {
+				c.state.LastError += " [" + c.conflictReason + "]"
+			}
 		}
 		c.notify()
 	}()
@@ -281,7 +286,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		}
 		if command == "enable" || command == "disable" {
 			if registration.Truthy() && registration.Get("active").Truthy() && !registration.Get("active").Equal(worker) {
-				return ErrOfflineConflict
+				return c.ownershipConflict("active-worker-changed")
 			}
 			if command == "enable" {
 				c.confirmedDisabled = false
@@ -352,6 +357,13 @@ func (c *offlineController) promise(ctx context.Context, promise js.Value) (js.V
 	return value, err
 }
 
+// ownershipConflict records only a fixed diagnostic category. Keep returning
+// the exact sentinel: ownership decisions and callers' error identity stay intact.
+func (c *offlineController) ownershipConflict(reason string) error {
+	c.conflictReason = reason
+	return ErrOfflineConflict
+}
+
 func (c *offlineController) ownedWorker(worker js.Value) bool {
 	return worker.Type() == js.TypeObject && !worker.IsNull() && worker.Get("scriptURL").Type() == js.TypeString && worker.Get("scriptURL").String() == c.descriptor.WorkerURL
 }
@@ -365,7 +377,7 @@ func (c *offlineController) controlling() (owned bool) {
 }
 func (c *offlineController) validateRegistration(registration js.Value) error {
 	if registration.Type() != js.TypeObject || registration.IsNull() || registration.Get("scope").Type() != js.TypeString || registration.Get("scope").String() != c.descriptor.Scope {
-		return ErrOfflineConflict
+		return c.ownershipConflict("registration-scope")
 	}
 	provedWorker := false
 	for _, key := range []string{"active", "waiting", "installing"} {
@@ -374,11 +386,11 @@ func (c *offlineController) validateRegistration(registration js.Value) error {
 			provedWorker = true
 		}
 		if worker.Truthy() && !c.ownedWorker(worker) {
-			return ErrOfflineConflict
+			return c.ownershipConflict("registration-" + key + "-worker")
 		}
 	}
 	if !provedWorker {
-		return ErrOfflineConflict
+		return c.ownershipConflict("registration-empty")
 	}
 	return nil
 }
@@ -389,14 +401,14 @@ func (c *offlineController) registration(ctx context.Context) (js.Value, error) 
 		return js.Undefined(), err
 	}
 	if registrations.Type() != js.TypeObject || registrations.IsNull() || registrations.Length() > 64 {
-		return js.Undefined(), ErrOfflineConflict
+		return js.Undefined(), c.ownershipConflict("registration-list")
 	}
 	selected := js.Undefined()
 	for i := 0; i < registrations.Length(); i++ {
 		registration := registrations.Index(i)
 		scope := registration.Get("scope")
 		if scope.Type() != js.TypeString {
-			return js.Undefined(), ErrOfflineConflict
+			return js.Undefined(), c.ownershipConflict("registration-scope-type")
 		}
 		// Browser service-worker scope matching is literal URL prefix matching,
 		// including /reader vs /reader2. Refuse every overlapping foreign owner.
@@ -405,14 +417,14 @@ func (c *offlineController) registration(ctx context.Context) (js.Value, error) 
 				return js.Undefined(), err
 			}
 			if selected.Truthy() {
-				return js.Undefined(), ErrOfflineConflict
+				return js.Undefined(), c.ownershipConflict("registration-duplicate")
 			}
 			selected = registration
 		}
 	}
 	controller := sw.Get("controller")
 	if controller.Truthy() && !c.ownedWorker(controller) {
-		return js.Undefined(), ErrOfflineConflict
+		return js.Undefined(), c.ownershipConflict("controller-worker")
 	}
 	return selected, nil
 }
@@ -444,7 +456,7 @@ func (c *offlineController) waitActivation(ctx context.Context, registration js.
 
 func (c *offlineController) waitWorker(ctx context.Context, worker js.Value, complete func(string) bool) error {
 	if !c.ownedWorker(worker) {
-		return ErrOfflineConflict
+		return c.ownershipConflict("worker-state-target")
 	}
 	done := make(chan struct{}, 1)
 	callback := js.FuncOf(func(js.Value, []js.Value) any {
@@ -508,7 +520,7 @@ func (c *offlineController) message(ctx context.Context, worker js.Value, comman
 		return reply, context.Cause(ctx)
 	}
 	if !c.ownedWorker(worker) {
-		return reply, ErrOfflineConflict
+		return reply, c.ownershipConflict("message-worker")
 	}
 	c.request++
 	request := offlineRequest{Version: offlineMessageVersion, Command: command, OwnerPolicyID: c.descriptor.OwnerPolicyID, RuntimeID: runtime, ConfigurationID: configuration, RequestID: "offline-" + strconv.FormatUint(c.request, 36)}
