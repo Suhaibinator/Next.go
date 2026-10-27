@@ -558,7 +558,7 @@ func TestInvocationIdentityGeneratedExecutable(t *testing.T) {
 					if callback.index != index || callback.value != value {
 						t.Fatal("native After snapshot differs", callback, value)
 					}
-					data, _ := json.Marshal(map[string]any{"mode": mode, "responseAndAfter": callback.value})
+					data, _ = json.Marshal(map[string]any{"mode": mode, "responseAndAfter": callback.value})
 					t.Log("INVOCATION_EXECUTABLE_OBSERVATION " + string(data))
 					close(controller.finishAfter[index])
 					select {
