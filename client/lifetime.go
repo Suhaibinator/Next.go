@@ -10,6 +10,8 @@ import (
 var ErrLifetimeClosed = errors.New("nextgo: component lifetime is closed")
 var ErrEffectClosed = errors.New("nextgo: effect is closed")
 
+var errLifetimeActivityChanged = errors.New("nextgo: retained component activity changed")
+
 // Lifetime owns explicit effects, contexts and composed component resources.
 // Use it on one event loop. It is not a concurrent store or a request context.
 type Lifetime struct {
@@ -20,6 +22,8 @@ type Lifetime struct {
 	values    map[any]any
 	depth     int
 	closed    bool
+	paused    bool
+	activity  uint64
 	onError   func(error)
 }
 type LifetimeOptions struct{ OnError func(error) }
@@ -197,7 +201,10 @@ type Effect struct {
 	stops                 []func()
 	busy, pending, closed bool
 	err                   error
+	resumeBarrier         *lifetimeResumeBarrier
 }
+
+type lifetimeResumeBarrier struct{ marker byte }
 
 func (l *Lifetime) Effect(run func() (func(), error), dependencies ...Dependency) (*Effect, error) {
 	if !l.active() {
@@ -250,7 +257,7 @@ func (e *Effect) Err() error {
 
 // Invalidate runs immediately, with cleanup before the next setup. Reentrant
 // invalidations coalesce and drain at most 64 runs before the effect is closed.
-func (e *Effect) Invalidate() (err error) {
+func (e *Effect) Invalidate() error {
 	if e == nil || e.closed {
 		return ErrEffectClosed
 	}
@@ -259,6 +266,26 @@ func (e *Effect) Invalidate() (err error) {
 		return ErrEffectClosed
 	}
 	e.pending = true
+	if !e.owner.visible() || e.resumeBarrier != nil {
+		return nil
+	}
+	return e.drainPending(false)
+}
+
+// drainPending does not create another invalidation. During resume the owner
+// drains one queued setup per pass; normal visible invalidations keep the
+// existing synchronous, reentrant 64-run contract.
+func (e *Effect) drainPending(one bool) (err error) {
+	if e == nil || e.closed {
+		return ErrEffectClosed
+	}
+	if !e.owner.active() {
+		e.Close()
+		return ErrEffectClosed
+	}
+	if !e.pending || !e.owner.visible() {
+		return nil
+	}
 	if e.busy {
 		return nil
 	}
@@ -270,7 +297,7 @@ func (e *Effect) Invalidate() (err error) {
 			e.Close()
 		}
 	}()
-	for turns := 0; e.pending && !e.closed; turns++ {
+	for turns := 0; e.pending && !e.closed && e.owner.visible(); turns++ {
 		if turns >= 64 {
 			return fmt.Errorf("nextgo: effect exceeded 64 reentrant runs")
 		}
@@ -290,17 +317,23 @@ func (e *Effect) Invalidate() (err error) {
 		if err := lifetimeGuard(func() { next, failure = e.run() }); err != nil {
 			return err
 		}
-		if e.closed {
+		if e.closed || !e.owner.visible() {
 			if next != nil {
 				if err := lifetimeGuard(next); err != nil {
 					return err
 				}
+			}
+			if !e.closed {
+				e.pending = true
 			}
 			break
 		}
 		e.cleanup = next
 		if failure != nil {
 			return failure
+		}
+		if one {
+			break
 		}
 	}
 	return nil
@@ -327,4 +360,211 @@ func (e *Effect) Close() {
 			owner.report(err)
 		}
 	}
+}
+
+// visible is deliberately separate from active: hidden owners remain alive and
+// retain providers, resource ownership and dirty effect definitions.
+func (l *Lifetime) visible() bool {
+	if !l.active() {
+		return false
+	}
+	for owner := l; owner != nil; owner = owner.parent {
+		if owner.paused {
+			return false
+		}
+	}
+	return true
+}
+
+type lifetimeActivity struct {
+	owner   *Lifetime
+	effects []*Effect
+	epoch   uint64
+}
+
+// Snapshot before invoking callbacks, so setup-created effects cannot run twice
+// and reentrant closure cannot invalidate traversal. Retention has tighter
+// aggregate bounds than the general-purpose permanent lifetime API.
+func (l *Lifetime) activityTree() ([]lifetimeActivity, error) {
+	if !l.active() {
+		return nil, ErrLifetimeClosed
+	}
+	pending := []*Lifetime{l}
+	var result []lifetimeActivity
+	effects, resources := 0, 0
+	for len(pending) > 0 {
+		owner := pending[0]
+		pending = pending[1:]
+		if !owner.active() {
+			continue
+		}
+		if len(result)+len(pending)+len(owner.children) >= 256 {
+			return nil, fmt.Errorf("nextgo: retained lifetime owner limit exceeded")
+		}
+		effects += len(owner.effects)
+		resources += len(owner.resources)
+		if effects > 512 || resources > 512 {
+			return nil, fmt.Errorf("nextgo: retained lifetime registration limit exceeded")
+		}
+		result = append(result, lifetimeActivity{owner: owner, effects: append([]*Effect(nil), owner.effects...)})
+		pending = append(pending, owner.children...)
+	}
+	return result, nil
+}
+
+func (l *Lifetime) suspend() error {
+	if !l.active() {
+		return ErrLifetimeClosed
+	}
+	if l.paused {
+		return nil
+	}
+	tree, err := l.activityTree()
+	if err != nil {
+		return err
+	}
+	for i := range tree {
+		owner := tree[i].owner
+		owner.paused = true
+		owner.activity++
+		tree[i].epoch = owner.activity
+	}
+	var failures []error
+	for i := len(tree) - 1; i >= 0; i-- {
+		entry := tree[i]
+		for j := len(entry.effects) - 1; j >= 0; j-- {
+			effect := entry.effects[j]
+			if effect.closed {
+				continue
+			}
+			if !entry.owner.active() {
+				break
+			}
+			if !entry.owner.paused || entry.owner.activity != entry.epoch {
+				return errors.Join(append(failures, errLifetimeActivityChanged)...)
+			}
+			effect.pending = true
+			cleanup := effect.cleanup
+			effect.cleanup = nil
+			if cleanup != nil {
+				if failure := lifetimeGuard(cleanup); failure != nil {
+					effect.err = failure
+					effect.Close()
+					entry.owner.report(failure)
+					failures = append(failures, failure)
+				}
+			}
+		}
+	}
+	if !l.active() {
+		failures = append(failures, ErrLifetimeClosed)
+	} else {
+		for _, entry := range tree {
+			if entry.owner.active() && (!entry.owner.paused || entry.owner.activity != entry.epoch) {
+				failures = append(failures, errLifetimeActivityChanged)
+				break
+			}
+		}
+	}
+	return errors.Join(failures...)
+}
+
+func (l *Lifetime) resume() error {
+	if !l.active() {
+		return ErrLifetimeClosed
+	}
+	if !l.paused {
+		return nil
+	}
+	tree, err := l.activityTree()
+	if err != nil {
+		return err
+	}
+	// Do not re-enter setup already on the stack. The caller can cold-render
+	// after this activity mismatch without exposing a partly resumed owner.
+	for _, entry := range tree {
+		for _, effect := range entry.effects {
+			if !effect.closed && effect.busy {
+				return errLifetimeActivityChanged
+			}
+		}
+	}
+	barrier := &lifetimeResumeBarrier{}
+	for i := range tree {
+		owner := tree[i].owner
+		owner.paused = false
+		owner.activity++
+		tree[i].epoch = owner.activity
+		for _, effect := range tree[i].effects {
+			if !effect.closed {
+				effect.resumeBarrier = barrier
+			}
+		}
+	}
+	defer func() {
+		for _, entry := range tree {
+			for _, effect := range entry.effects {
+				if effect.resumeBarrier == barrier {
+					effect.resumeBarrier = nil
+				}
+			}
+		}
+	}()
+	rootEpoch := tree[0].epoch
+	invalid := map[*Lifetime]bool{}
+	var failures []error
+	for pass := 0; pass < 64; pass++ {
+		drained := false
+		for _, entry := range tree {
+			if !l.visible() || l.activity != rootEpoch {
+				return errors.Join(append(failures, errLifetimeActivityChanged)...)
+			}
+			if invalid[entry.owner] {
+				continue
+			}
+			if !entry.owner.visible() || entry.owner.activity != entry.epoch {
+				invalid[entry.owner] = true
+				failures = append(failures, errLifetimeActivityChanged)
+				continue
+			}
+			for _, effect := range entry.effects {
+				if effect.closed || !effect.pending {
+					continue
+				}
+				if !l.visible() || l.activity != rootEpoch {
+					return errors.Join(append(failures, errLifetimeActivityChanged)...)
+				}
+				if !entry.owner.visible() || entry.owner.activity != entry.epoch || effect.resumeBarrier != barrier || effect.busy {
+					invalid[entry.owner] = true
+					failures = append(failures, errLifetimeActivityChanged)
+					break
+				}
+				drained = true
+				if failure := effect.drainPending(true); failure != nil {
+					entry.owner.report(failure)
+					failures = append(failures, failure)
+				}
+			}
+		}
+		if !drained {
+			return errors.Join(failures...)
+		}
+	}
+	// A dependency cycle can dirty an earlier effect after its scheduled turn.
+	// Bound the follow-up work and close only the still-dirty definitions.
+	for _, entry := range tree {
+		for _, effect := range entry.effects {
+			if !effect.closed && effect.pending && effect.resumeBarrier == barrier && !invalid[entry.owner] {
+				failure := fmt.Errorf("nextgo: effect exceeded 64 retained resume passes")
+				effect.err = failure
+				effect.Close()
+				entry.owner.report(failure)
+				failures = append(failures, failure)
+			}
+		}
+	}
+	if !l.visible() || l.activity != rootEpoch {
+		failures = append(failures, errLifetimeActivityChanged)
+	}
+	return errors.Join(failures...)
 }

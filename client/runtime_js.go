@@ -68,7 +68,7 @@ func hydrate() {
 		doc.Get("body").Call("setAttribute", "data-nextgo-hydration", "error")
 		return
 	}
-	snapshot, selectionErr := selectionNodes(doc.Call("getElementById", "nextgo-app"))
+	snapshot, selectionErr := selectionNodes(applicationContentRoot())
 	if selectionErr != nil {
 		report("Invalid selection snapshot: " + selectionErr.Error())
 		doc.Get("body").Call("setAttribute", "data-nextgo-hydration", "error")
@@ -77,7 +77,7 @@ func hydrate() {
 	selections = snapshot
 	syncLazyModules()
 
-	nodes := doc.Call("getElementById", "nextgo-app").Call("querySelectorAll", "[data-nextgo-island]")
+	nodes := applicationIslandNodes()
 	// Record fallback ancestry before any mount detaches fallback nodes. The
 	// static NodeList retains those nodes after replacement.
 	fallbacks := make([]bool, nodes.Length())
@@ -137,9 +137,12 @@ func hydrate() {
 		mounted = append(mounted, scope)
 	}
 	state := "ready"
+	if retainedCurrent != nil && retainedCurrent.activityErr != nil {
+		ok = false
+	}
 	if !ok {
 		state = "loading"
-		if doc.Call("querySelector", `[data-nextgo-hydrated="error"]`).Truthy() {
+		if applicationHydrationError() {
 			state = "error"
 		}
 	}
@@ -251,6 +254,7 @@ func runDocument() {
 	installMotionPreference()
 	currentURL = win.Get("location").Get("href").String()
 	setLocation(currentURL)
+	initializeRetainedDocument()
 	win.Get("history").Set("scrollRestoration", "manual")
 	saveScroll()
 	currentState = win.Get("history").Get("state")
@@ -298,12 +302,15 @@ func runDocument() {
 	listen(win, "popstate", func(e js.Value) {
 		target := win.Get("location").Get("href").String()
 		old, u := win.Get("URL").New(currentURL), win.Get("URL").New(target)
-		if old.Get("pathname").String() == u.Get("pathname").String() && old.Get("search").String() == u.Get("search").String() {
+		if old.Get("pathname").String() == u.Get("pathname").String() && old.Get("search").String() == u.Get("search").String() && retainedPopSameView(e.Get("state"), target) {
 			cancelPendingNavigation()
 			currentURL = target
 			setLocation(target)
 			currentState = e.Get("state")
 			restoreScroll(target, true, currentState)
+			if retainedCurrent != nil {
+				saveScroll()
+			}
 			notifyLocationObservers()
 			return
 		}
@@ -496,6 +503,9 @@ func eligibleLink(target js.Value) (js.Value, js.Value, bool) {
 	if target.IsNull() {
 		return js.Undefined(), js.Undefined(), false
 	}
+	if hiddenRetainedNode(target) {
+		return js.Null(), js.Null(), false
+	}
 	a := target.Call("closest", "a[href]")
 	if a.IsNull() || a.Call("hasAttribute", "download").Bool() || a.Call("hasAttribute", "data-nextgo-reload").Bool() {
 		return a, js.Undefined(), false
@@ -519,6 +529,7 @@ func invalidateCache() {
 	}
 	invalidateResourceStores()
 	cacheEpoch++
+	clearRetainedViews(true)
 	pageCache.clear()
 	for _, pending := range prefetches {
 		pending.cancel()
@@ -603,6 +614,7 @@ func saveScroll() {
 	}
 	history.Call("replaceState", state, "", win.Get("location").Get("href"))
 	currentState = state
+	bindRetainedHistory()
 }
 
 // Same-document history changes also supersede an outstanding page request.
@@ -692,7 +704,9 @@ func startLinkNavigation(target string, pop bool, state js.Value, options Naviga
 			if pop {
 				win.Get("history").Call("replaceState", currentState, "", currentURL)
 			}
-			if _, ok := err.(*committedStreamError); ok {
+			if retainedCurrent != nil && retainedCurrent.activityErr != nil {
+				report(retainedRecoveryMessage)
+			} else if _, ok := err.(*committedStreamError); ok {
 				showStreamRetry()
 			} else {
 				report("Navigation failed. Try again or reload. " + err.Error())
@@ -709,19 +723,20 @@ type headElement struct {
 
 type envelope struct {
 	metadata      *metadataHead
-	Document      navigation.Document `json:"document"`
-	Version       int                 `json:"version"`
-	Configuration string              `json:"configuration"`
-	Head          []headElement       `json:"head"`
-	URL           string              `json:"url"`
-	Build         string              `json:"build"`
-	HTML          string              `json:"html"`
-	Title         string              `json:"title"`
-	Description   string              `json:"description"`
-	Meta          map[string]string   `json:"meta"`
-	Status        int                 `json:"status"`
-	Shell         string              `json:"shell,omitempty"`
-	ShellRef      bool                `json:"shellRef,omitempty"`
+	Document      navigation.Document   `json:"document"`
+	Version       int                   `json:"version"`
+	Configuration string                `json:"configuration"`
+	Head          []headElement         `json:"head"`
+	URL           string                `json:"url"`
+	Build         string                `json:"build"`
+	HTML          string                `json:"html"`
+	Retention     *navigation.Retention `json:"retention,omitempty"`
+	Title         string                `json:"title"`
+	Description   string                `json:"description"`
+	Meta          map[string]string     `json:"meta"`
+	Status        int                   `json:"status"`
+	Shell         string                `json:"shell,omitempty"`
+	ShellRef      bool                  `json:"shellRef,omitempty"`
 	shellEpoch    uint64
 	cacheUntil    time.Time
 }
@@ -751,6 +766,11 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 	}()
 	key := requestURL(target)
 	data, cached := pageCache.get(key)
+	retaining := retainedRoutingEnabled()
+	if retaining {
+		cached = false
+		retainedFreshID, retainedFreshEpoch = id, cacheEpoch
+	}
 	if !cached || data.Shell != "" {
 		waitLinkNavigation(id)
 		if id != navigationID || ctx.Err() != nil {
@@ -758,7 +778,7 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 		}
 	}
 	var hint *shellResumeHint
-	if !cached {
+	if !cached && !retaining {
 		if pending := prefetches[key]; pending != nil && pending.viewport {
 			pending.cancel()
 			delete(prefetches, key)
@@ -794,7 +814,7 @@ func navigate(ctx context.Context, target string, pop bool, state js.Value, id u
 			reloadPage(target, replace)
 			return nil
 		}
-		if epoch == cacheEpoch && data.Shell == "" {
+		if epoch == cacheEpoch && data.Shell == "" && !retaining {
 			pageCache.putUntil(key, data, data.cacheUntil)
 		}
 	}
@@ -990,6 +1010,9 @@ func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, 
 	if err = json.Unmarshal(body, &data); err != nil {
 		return data, 0, false, err
 	}
+	if err = validateRetainedEnvelope(body, &data); err != nil {
+		return data, 0, false, err
+	}
 	if err = validateShellFields(body, data); err != nil {
 		return data, 0, false, err
 	}
@@ -1075,6 +1098,9 @@ func reloadPage(target string, replace bool) {
 }
 
 func commit(parsed, root js.Value, data envelope, target string, pop bool, state js.Value, replace bool) error {
+	commitID := navigationID
+	commitEpoch := cacheEpoch
+	current := func() bool { return commitID == navigationID && commitEpoch == cacheEpoch }
 	snapshot, selectionErr := selectionNodes(parsed)
 	if selectionErr != nil {
 		return selectionErr
@@ -1095,27 +1121,49 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 	modalReturnFocus = js.Undefined()
 	defer func() { navigationOpener = js.Undefined(); modalReturnFocus = js.Undefined() }()
 	stopStreaming()
-	old, incoming := root, parsed.Get("body")
-	// A denial can follow an identity/role change. Drop retained layout DOM and
-	// effects too, even if the public layout IDs happen to match.
-	// Invalid initial selection metadata also requires a complete valid view;
-	// retaining an invalid outer layout would make hydration unrecoverable.
-	_, currentSelectionErr := selectionNodes(root)
-	retain := data.Status != 401 && data.Status != 403 && currentSelectionErr == nil
-	if retain {
-		old, incoming = navigationRegion(root, parsed.Get("body"))
+	if !current() {
+		return context.Canceled
 	}
-	if retain {
-		if err := reconcileSlots(root, parsed, old, incoming); err != nil {
-			return err
+	handled, activate, retentionErr := commitRetainedDOM(root, parsed.Get("body"), data, target, pop, state)
+	if retentionErr != nil {
+		return retentionErr
+	}
+	if activate != nil {
+		defer activate.Retire()
+	}
+	if !current() {
+		return context.Canceled
+	}
+	if !handled {
+		old, incoming := root, parsed.Get("body")
+		// Denials discard retained layout DOM and effects too. Unsupported
+		// retained-route structures have already discarded every hidden owner.
+		_, currentSelectionErr := selectionNodes(root)
+		retain := data.Status != 401 && data.Status != 403 && currentSelectionErr == nil
+		if retain {
+			old, incoming = navigationRegion(root, parsed.Get("body"))
 		}
+		if retain {
+			if err := reconcileSlots(root, parsed, old, incoming); err != nil {
+				return err
+			}
+		}
+		if !current() {
+			return context.Canceled
+		}
+		disposeWithin(old)
+		if !current() {
+			return context.Canceled
+		}
+		fragment := doc.Call("createDocumentFragment")
+		for incoming.Get("firstChild").Truthy() {
+			fragment.Call("appendChild", incoming.Get("firstChild"))
+		}
+		old.Call("replaceChildren", fragment)
 	}
-	disposeWithin(old)
-	fragment := doc.Call("createDocumentFragment")
-	for incoming.Get("firstChild").Truthy() {
-		fragment.Call("appendChild", incoming.Get("firstChild"))
+	if !current() {
+		return context.Canceled
 	}
-	old.Call("replaceChildren", fragment)
 	doc.Get("documentElement").Call("setAttribute", "lang", data.Document.Language)
 	doc.Get("documentElement").Call("setAttribute", "dir", data.Document.Direction)
 	doc.Call("querySelector", `meta[name="viewport"]`).Call("setAttribute", "content", data.Document.Viewport)
@@ -1152,12 +1200,23 @@ func commit(parsed, root js.Value, data envelope, target string, pop bool, state
 	currentURL = target
 	setLocation(target)
 	installSelections(snapshot)
+	if activate != nil {
+		activate.Activate()
+	}
+	if commitID != navigationID {
+		return nil
+	}
 	syncNavigationLinks(target)
 	status := doc.Call("getElementById", "nextgo-status")
-	status.Set("hidden", true)
-	hydrate()
+	if !applicationHydrationError() && (retainedCurrent == nil || retainedCurrent.activityErr == nil) {
+		status.Set("hidden", true)
+	}
+	if !handled {
+		hydrate()
+	}
 	completeAccessibleNavigation(previous, target, active, data.Title)
 	restoreScroll(target, pop, state)
+	restoreRetainedFocus(pop)
 	saveScroll()
 	notifyLocationObservers()
 	return nil
@@ -1168,6 +1227,9 @@ func syncNavigationLinks(target string) {
 	links := doc.Call("querySelectorAll", "nav a[href]")
 	for i := 0; i < links.Length(); i++ {
 		link := links.Index(i)
+		if hiddenRetainedNode(link) {
+			continue
+		}
 		href := link.Call("getAttribute", "href").String()
 		if strings.HasPrefix(href, "#") {
 			continue

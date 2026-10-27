@@ -14,6 +14,8 @@ type Route struct {
 }
 
 type Manifest struct {
+	// RetainRoutes opts into bounded document-local UI ownership, not HTTP reuse.
+	RetainRoutes bool `json:"retainRoutes,omitempty"`
 	// Development suppresses automatic viewport speculation, not navigation.
 	Development bool   `json:"development,omitempty"`
 	Prerender   string `json:"prerender,omitempty"`

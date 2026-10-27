@@ -1,0 +1,4 @@
+#nextgo-app > main { --retained-direct-child-proof: yes; max-width: 60rem; margin: 1rem auto; padding: 1rem; }
+[data-retained-panel] { display: grid; gap: .5rem; }
+
+#nextgo-app > [data-nextgo-island] { height: 60vh; overflow: auto; max-width: 60rem; margin: 1rem auto; padding: 1rem; }
