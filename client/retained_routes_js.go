@@ -252,6 +252,56 @@ func retainedScopes(region js.Value) ([]*Scope, bool) {
 	return scopes, true
 }
 
+// Revoked owners cannot be suspended or resumed through their lifetime API.
+// They may only retire after a fresh admitted view is published. Require exact
+// current app ownership and the existing bounded scope tree; this exception
+// never makes a revoked scope eligible for reuse or clears any authority flag.
+func retainedRevokedScopes(region js.Value) ([]*Scope, bool) {
+	application := mergeApplication
+	app := doc.Call("getElementById", "nextgo-app")
+	if application == nil || !application.revoked || !app.Equal(application.root) || !app.Get("isConnected").Bool() || !region.Get("parentNode").Equal(app) {
+		return nil, false
+	}
+	var scopes []*Scope
+	for _, scope := range mounted {
+		if !region.Call("contains", scope.Root.Value).Bool() {
+			continue
+		}
+		if scope.parent != nil || !scope.mergeRevoked || len(scopes) >= retainedViewIslands {
+			return nil, false
+		}
+		if _, owned := application.scopes[scope]; !owned {
+			return nil, false
+		}
+		if _, err := scope.retainedScopeTree(); err != nil {
+			return nil, false
+		}
+		scopes = append(scopes, scope)
+	}
+	return scopes, true
+}
+
+// Stop framework visibility work without invoking authored effect or terminal
+// cleanup. Physical task charges remain owned until their goroutines return.
+func pauseRevokedRetirement(scope *Scope) error {
+	tree, err := scope.retainedScopeTree()
+	if err != nil {
+		return err
+	}
+	for _, owner := range tree {
+		owner.suspended = true
+		owner.activityEpoch++
+		owner.stopVisibilityTasks()
+		for resource := range owner.asyncResources {
+			resource.suspendForRetention()
+		}
+		for _, listener := range owner.listeners {
+			listener.detach()
+		}
+	}
+	return nil
+}
+
 // A supported owner is already an ordinary direct child in SSR. Keeping it
 // avoids adding wrappers that would change child-combinator CSS and ancestry.
 func retainedOwner(region js.Value) (js.Value, bool) {
@@ -589,6 +639,7 @@ type retainedDOMPlan struct {
 	selected, outgoing     *retainedView
 	outgoingScopes         []*Scope
 	keepOutgoing, restored bool
+	retireRevoked          bool
 	outgoingInfo           retainedInfo
 	selectedInfo           retainedInfo
 	evictions              []string
@@ -663,12 +714,16 @@ func prepareRetainedDOM(root, incoming js.Value, data envelope, target string, p
 	}
 	if plan.outgoing != nil {
 		nodes, islands, safe := retainedDOMInfo(plan.outgoing.root, true)
+		plan.keepOutgoing = plan.outgoing.valid && !remove[plan.outgoing.info.ID]
 		scopes, scoped := retainedScopes(plan.outgoing.root)
+		if !plan.keepOutgoing && mergeApplicationRevoked() {
+			scopes, scoped = retainedRevokedScopes(plan.outgoing.root)
+			plan.retireRevoked = scoped
+		}
 		if !safe || !scoped {
 			return nil, nil
 		}
 		plan.outgoingScopes = scopes
-		plan.keepOutgoing = plan.outgoing.valid && !remove[plan.outgoing.info.ID]
 		if plan.keepOutgoing {
 			info := index.entries[plan.outgoing.info.ID]
 			info.Nodes, info.Islands = nodes, islands
@@ -767,6 +822,9 @@ func commitRetainedDOM(root, incoming js.Value, data envelope, target string, po
 	// Framework DOM is not hidden before rollback. Failed activity is disposed,
 	// marked persistently erroneous and never silently readmitted for reuse.
 	resumeOutgoing := func() error {
+		if plan.retireRevoked {
+			return nil
+		}
 		var failures []error
 		if plan.outgoing != nil {
 			for _, scope := range plan.outgoingScopes {
@@ -784,7 +842,11 @@ func commitRetainedDOM(root, incoming js.Value, data envelope, target string, po
 	if plan.outgoing != nil && plan.outgoing != plan.selected {
 		captureRetained(plan.outgoing)
 		for _, scope := range plan.outgoingScopes {
-			if err := withRetainedScopeReport(scope, plan.id, scope.suspendForRetention); err != nil {
+			suspend := scope.suspendForRetention
+			if plan.retireRevoked {
+				suspend = func() error { return pauseRevokedRetirement(scope) }
+			}
+			if err := withRetainedScopeReport(scope, plan.id, suspend); err != nil {
 				failRetainedActivity(plan.outgoing, scope, err, plan.id)
 				return abort(err)
 			}

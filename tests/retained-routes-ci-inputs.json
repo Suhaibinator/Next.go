@@ -359,15 +359,15 @@
     },
     {
       "path": "client/retained_routes_js.go",
-      "sha256": "640c5d7ee6d9eed7f23a6f35294ab5da41ad617506a87c73b5f8872d662a4ee8",
-      "bytes": 31119,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "283b461234ef558d5f25bd363ed2fc790a133a19bd3fb4fbd156f2f327b3dd02",
+      "bytes": 33123,
+      "origin": "Rootformattedrevoked-retained-outgoingretirement correction onactual73df; currentuncompiled/unexecuted"
     },
     {
       "path": "client/retained_routes_js_test.go",
-      "sha256": "f6f1b3521fce0247ea8c54cb2c71685589bfc2ca740d43104b3f65916298c4ce",
-      "bytes": 36452,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "7d04a145819af3b71afabd12d5b809dc63447e53b87ba676ee9926e6572e04e3",
+      "bytes": 43085,
+      "origin": "Rootformattedrevoked-retained-outgoingretirement correction onactual73df; currentuncompiled/unexecuted"
     },
     {
       "path": "client/retention.go",
@@ -1336,6 +1336,7 @@
       "TestRetainedResumeIncludesEffectsCreatedWhileAncestorHidden",
       "TestRetainedResumeSetupFailureStillDrainsHealthyDefinitions",
       "TestRetainedRetirementPublishesVisibleReadyUIWithinRealLedgersBeforeCleanup",
+      "TestRetainedRevokedPartitionPublishesFreshHydratedPageBeforeTerminalNavigation",
       "TestRetainedRollbackFailureCannotReplaceNewerLoadingStatus",
       "TestRetainedSameURLPopShortcutRequiresExactCurrentVisitAlias",
       "TestRetainedScopeCapabilityRejectsUnsupportedOwnershipBeforeHiding",
@@ -1645,7 +1646,7 @@
   ],
   "targetCounts": {
     "native": 85,
-    "core": 162,
+    "core": 163,
     "devcore": 148,
     "portable": 13,
     "ui": 12,
@@ -1777,7 +1778,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "SOURCE PREFLIGHT ONLY: independentformattedsource/pin/selectorreviewc5313c21ac9e23c3ddbfe70d6164057929ee1c36367702f123f3e7a56d53e56c andcurrentconsumer/code-couplingreviewfbcc2163bcbb698d8d3a94e29d3ea89c0ac77f2d523316a50f54a96bafc3a2a0 passed theexact3f4+2formattedGo/180pin overlay. ready=true ONLY permits actualCIqualification. Core162/dev148,allotherrequiredarrays/skips,180sourcepins,21Lambdaimplementation/workflowbytes andprospective432cases/440closures remainexactreviewedv1. New1production+1Gotest/whole1282Go areNOTcompiled/native/WASM/Node/browser/build/production/deploymentqualified; all79capabilities/11releasegates remainopen.",
+  "readinessMeaning": "SOURCE PREFLIGHT ONLY: independentformattedsource/pin/selectorreview9110257808e5f98780060ef563248394a7d78105f90f3cc100a0c0037e935174 andindependentcurrentconsumerreview8e04e4ced4be1d8efa016510e337924eb8f411a4588902c8a539db22423338f4 passed exact73df+2formattedexistingretirementGo/180pin overlay. ready=true ONLYenablesactualCIqualification; core163/dev148andotherarrays/skips,180pins,2Go,header/Lambda/historyandprospective432/440contracts remainexactreviewedv1. FullGo1282cumulative=1278unchanged+3modifiedexisting+1newheadertest; no currentcompiler/native/WASM/Node/browser/build/deploymentPASS,oldscrollfixorprior15P1F runtimeinheritanceclaimed. All79capabilities/11releasegates remainopen.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -1913,20 +1914,34 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "CURRENT_HEADER_AUTHORITY_180PIN_OVERLAY_SOURCE_PREFLIGHT_REVIEW_PASS_RUNTIME_UNQUALIFIED",
-    "integrationBaseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
-    "integrationBaseTree": "03d4fddcb05cde83c563a693dc5960c09b995646",
-    "priorSnapshot": "priorHeaderAuthorityCombinedSourceInput",
+    "status": "CURRENT_REVOKED_RETIREMENT_180PIN_SOURCE_PREFLIGHT_REVIEW_PASS_RUNTIME_UNQUALIFIED",
+    "integrationBaseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "integrationBaseTree": "d5bf8b6a00e88830c3aaa438bf0cb92f2753bc01",
+    "priorSnapshot": "priorRevokedRetirementCombinedSourceInput",
     "sourcePinCount": 180,
-    "sourcePinsTreeSHA256": "dc95c15759994746d6a962fc80a4a04b1ed557bdbf705b69235a9738509e4e7e",
-    "treeEncoding": "sorted(path UTF8+NUL+exact overlay source bytes+NUL); input-contract self excluded",
-    "productionGoChanges": 1,
-    "newGoTestFiles": 1,
-    "GoFilesBefore": 1281,
-    "GoFilesAfter": 1282,
-    "otherGoFilesByteExactBaseByExactOverlayScope": 1280,
+    "sourcePinsTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
+    "treeEncoding": "sortedpathUTF8+NUL+exact overlay sourcebytes+NUL; excludesinput-contractself",
+    "immediateBaseGoFiles": 1282,
+    "currentGoFiles": 1282,
+    "immediateModifiedProductionGoFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateAddedGoFiles": 0,
+    "otherImmediateBaseGoFilesUnchanged": 1280,
+    "cumulativeCommonBaseCommit": "533b54be676a54c87e77e9a6079804dccec3b652",
+    "cumulativeCommonBaseGoFiles": 1281,
+    "cumulativeUnchangedExistingGoFiles": 1278,
+    "cumulativeModifiedExistingGoFiles": 3,
+    "cumulativeModifiedProductionGoFiles": 2,
+    "cumulativeModifiedExistingGoTestFiles": 1,
+    "cumulativeAddedHeaderGoTestFiles": 1,
+    "originalLambda173SourcePinPathsPreserved": 173,
+    "originalLambda173RowsUnchanged": 171,
+    "originalLambda173ExistingRowsRebound": 2,
+    "headerAdded7RowsUnchanged": 7,
+    "previous180RowsUnchanged": 178,
+    "previous180ExistingRowsRebound": 2,
     "LambdaImplementationWorkflowBytesChanged": 0,
-    "currentWholeSourceQualification": "PENDING; rootformatter/source-review are notcompiler/runtime/productionqualification"
+    "currentWholeSourceQualification": "PENDING; prioractualbrowserfirstREDandformatter/sourcepeer donotprovecompiled/native/WASM/browser/deployed correction."
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2624,14 +2639,14 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "CURRENT_HEADER_AUTHORITY_SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_CI_RUNTIME_UNQUALIFIED",
-    "historicalSnapshot": "priorHeaderAuthorityQueryRefreshQualification",
-    "baseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
+    "status": "CURRENT_REVOKED_RETIREMENT_SOURCE_PREFLIGHT_REVIEW_PASS_CI_READY_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorRevokedRetirementQueryRefreshQualification",
+    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
     "sourcePins": 180,
     "sourcePinCap": 192,
     "currentRequiredCounts": {
       "native": 85,
-      "core": 162,
+      "core": 163,
       "devcore": 148,
       "portable": 13,
       "ui": 12,
@@ -2644,9 +2659,9 @@
     "perMockModeWorkerClosures": 146,
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
-    "currentQualification": "streamHeaderAuthorityQualification",
+    "currentQualification": "revokedRetirementQualification",
     "runtimeExecuted": false,
-    "meaning": "Prior147pinquery/Refresh sourcecheck is historical. Current180pinheader overlay changes1productionGo andadds1Gotestfile; no previoussource/runtime result covers it."
+    "meaning": "Historicalheader-onlyscope ispreservedunderpriorRevokedRetirement*. Currentcombinedscope relative533b includesheaderplusretirement:3modifiedexistingGofiles(2production+1test)and1newheadertest,1282wholeGo; no oldscroll/result orruntimequalification inherited."
   },
   "commandGroupCensus": {
     "status": "SOURCE_ONLY_UNEXECUTED_FAILURE_DIAGNOSTIC",
@@ -2760,19 +2775,19 @@
   },
   "sourceFormattingQualification": {
     "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
-    "scope": "ONLY2selectedheaderproduction/testGo,notall1282Go",
-    "formatterManifestSHA256": "4ff873c9b32acee5ef24f1a2810a2df3b89dacc3f7cfc4274d598aaa4726ed8b",
-    "controllerResultSHA256": "195b0081602dcad7f3cd4f29490a72016bf7a995a66a23a0037e68ecb1df2ad2",
-    "rawSourceManifestSHA256": "323e1efe24620755cd8c08b8e5693b3d7ecd656d6daf95c5d1f0e2f2ff43b427",
-    "patchSHA256": "5cdd8ec6272e29964c5cdf9e01e5062e15fdea2647a9e4bc045bc6ab865f4088",
+    "scope": "ONLY2existingretirementproduction/testGo; notall1282Go orheaderbatchreexecution",
+    "formatterManifestSHA256": "f8a2ae94b2dd281325ba7dd92459c042a999f1ed78c79c52df226c4728f204d0",
+    "controllerResultSHA256": "4d120e42c95f926277bfeca7d2e1a0531286a0dd2a799d77f0bc5cdba5cecfc8",
+    "rawSourceManifestSHA256": "150c0cd74c017adf431c665a2b9f343fccdb04ac4b13776266893d3a6679679b",
+    "patchSHA256": "6dfcb1b88665ae0bf82b2d5ae917874c714457fb66b9a47b9214b579d217514e",
     "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
-    "rawGoBytes": 34333,
-    "formattedGoBytes": 36953,
+    "rawGoBytes": 75909,
+    "formattedGoBytes": 76208,
     "GoFiles": 2,
     "stderrBytes": 0,
     "buildsOrTestsExecuted": false,
     "hardMemoryLimitEstablished": false,
-    "priorSnapshot": "priorHeaderAuthoritySourceFormattingQualification"
+    "priorSnapshot": "priorRevokedRetirementSourceFormattingQualification"
   },
   "metadataCounterCorrection": {
     "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
@@ -2858,19 +2873,19 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "CURRENT source is exact3f4 base plusonly2formattedheader Go files andthisCIinput metadata:180selectedpins,wholeGo1282(previous1281),1productionmodified+1newGotest. Prior147query/Refresh,173Lambda/all1281Go-unchanged and earlierreadiness/formatter records remainhistorical underpriorHeaderAuthority* snapshots. All21Lambdaimplementation/workflowbytes remainexact3f4; no oldREADME/sourceclaimthatall1281Go areunchangedapplies tothisnewheaderoverlay. Allruntime/deploymentqualificationremainsunexecuted.",
+  "sourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282\u21921282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
   "finalSourceReadinessReview": {
-    "status": "HEADER_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
-    "priorSnapshot": "priorHeaderAuthorityFinalSourceReadinessReview",
+    "status": "REVOKED_RETIREMENT_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
+    "priorSnapshot": "priorRevokedRetirementFinalSourceReadinessReview",
     "sourcePins": 180,
-    "baseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
+    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
     "ready": true,
     "runtimeQualified": false,
-    "reviewedInputManifestSHA256": "09ab251044d8640d77aa7f42769a15ae69607fc6e2b3e2974331b0b9cec19d3d",
-    "formattedSourcePinSelectorReviewSHA256": "c5313c21ac9e23c3ddbfe70d6164057929ee1c36367702f123f3e7a56d53e56c",
-    "currentConsumerCodeCouplingReviewSHA256": "fbcc2163bcbb698d8d3a94e29d3ea89c0ac77f2d523316a50f54a96bafc3a2a0",
-    "productionSourcePinsTestsOrLambdaCodeChangedAfterReview": false,
-    "meaning": "Onlyreadiness/status/receiptmetadatachangesafterbothindependentreviews. SourcepreflightreadypermitsactualCI; compiler/runtime/deploymentqualificationisnotclaimed."
+    "reviewedInputManifestSHA256": "0f49bdddaaabf6dfdb401b7a4dc0f39cb5b7c6a961f6c83d071509bcda73a99e",
+    "formattedSourcePinSelectorReviewSHA256": "9110257808e5f98780060ef563248394a7d78105f90f3cc100a0c0037e935174",
+    "currentConsumerCodeCouplingReviewSHA256": "8e04e4ced4be1d8efa016510e337924eb8f411a4588902c8a539db22423338f4",
+    "productionSourcePinsTestsContractsHistoricalSnapshotsChangedAfterReview": false,
+    "meaning": "Onlyreadiness/currentstatus/receiptmetadatachangesafterbothindependentreviews. Source-readyallowsactualCI,nocompilation/runtime/deploymentresultorpublicationclaim."
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -3034,18 +3049,22 @@
     "publishedNativeFixturePath": "client/retained_devrefresh_js_test.go"
   },
   "lambdaSourceReadinessReview": {
-    "status": "PRIOR_173PIN_LAMBDA_SOURCE_REVIEW_HISTORICAL_NOT_CURRENT_HEADER_PASS",
-    "priorSnapshot": "priorHeaderAuthorityLambdaSourceReadinessReview",
-    "historicalSourcePins": 173,
+    "status": "HISTORICAL_LAMBDA_HEADER_SOURCE_PREFLIGHT_NOT_CURRENT_RETIREMENT_PASS",
+    "priorSnapshot": "priorRevokedRetirementLambdaSourceReadinessReview",
+    "historicalOriginalLambdaSourcePins": 173,
     "currentSourcePins": 180,
     "sourceChangedAfterPriorReview": true,
-    "GoChangesAfterPriorReview": {
-      "production": 1,
-      "newTest": 1
+    "cumulativeChangesSinceLambdaBase533b": {
+      "modifiedProductionGo": 2,
+      "modifiedExistingGoTest": 1,
+      "newHeaderGoTest": 1,
+      "wholeGo": 1282
     },
-    "historicalReviewSHA256": "3d168a5090d5f4b40fb2f4304e0998a7cfd0d563a31d2f6c718001a8fcfcc199",
+    "original173RowsUnchanged": 171,
+    "original173RowsRebound": 2,
+    "LambdaImplementationWorkflowCodeBytesChanged": 0,
     "runtimeQualified": false,
-    "meaning": "Original173pin/allGo-unchanged Lambda-onlyreview remainsverbatim underpriorHeaderAuthorityLambdaSourceReadinessReview. Its21Lambdaimplementation/workflowbytes remainexact3f4, butitdoesnotverifynewGoheaders/fourgroups/current180source."
+    "meaning": "Priorreviewobjectsand21Lambdaimplementation/workflowbytespreserved; old173rowhash/allGo-unchanged orheader-only2Go scope doesnotcovercurrentretirement."
   },
   "priorHeaderAuthorityQueryRefreshQualification": {
     "status": "SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_ACTUAL_CI_NOT_RUNTIME_QUALIFIED",
@@ -3221,6 +3240,57 @@
     "limit": "Onlystandaloneformatter/parsersucceeded; module/native typechecking, actualGo/WASM/browser/productionbehavior and allrelease gates remainunproven."
   },
   "streamHeaderAuthorityQualification": {
+    "status": "HISTORICAL_HEADER_ONLY_PREFLIGHT_PRESERVED_NOT_CURRENT_CUMULATIVE_SOURCE_SCOPE",
+    "historicalSnapshot": "priorRevokedRetirementStreamHeaderAuthorityQualification",
+    "headerProductionAndTestBytesUnchangedByRetirement": true,
+    "currentQualification": "revokedRetirementQualification",
+    "currentSourcePinCount": 180,
+    "currentSourcePinTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
+    "currentRuntimeQualified": false,
+    "meaning": "Priorheader-only1production+1newtest/173unchangedrows/dc95tree evidence is historical. Retirement additionallyrebinds2existingoriginalLambda173Gorows; currentcumulativecountersarecombinedSourceInput."
+  },
+  "priorRevokedRetirementQueryRefreshQualification": {
+    "status": "CURRENT_HEADER_AUTHORITY_SOURCE_PREFLIGHT_REVIEW_PASS_READY_FOR_CI_RUNTIME_UNQUALIFIED",
+    "historicalSnapshot": "priorHeaderAuthorityQueryRefreshQualification",
+    "baseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
+    "sourcePins": 180,
+    "sourcePinCap": 192,
+    "currentRequiredCounts": {
+      "native": 85,
+      "core": 162,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "nativeBrowserCases": 144,
+    "nativeWorkerClosures": 146,
+    "perMockModeBrowserCases": 144,
+    "perMockModeWorkerClosures": 146,
+    "allModesBrowserCases": 432,
+    "allModesWorkerClosures": 440,
+    "currentQualification": "streamHeaderAuthorityQualification",
+    "runtimeExecuted": false,
+    "meaning": "Prior147pinquery/Refresh sourcecheck is historical. Current180pinheader overlay changes1productionGo andadds1Gotestfile; no previoussource/runtime result covers it."
+  },
+  "priorRevokedRetirementCombinedSourceInput": {
+    "status": "CURRENT_HEADER_AUTHORITY_180PIN_OVERLAY_SOURCE_PREFLIGHT_REVIEW_PASS_RUNTIME_UNQUALIFIED",
+    "integrationBaseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
+    "integrationBaseTree": "03d4fddcb05cde83c563a693dc5960c09b995646",
+    "priorSnapshot": "priorHeaderAuthorityCombinedSourceInput",
+    "sourcePinCount": 180,
+    "sourcePinsTreeSHA256": "dc95c15759994746d6a962fc80a4a04b1ed557bdbf705b69235a9738509e4e7e",
+    "treeEncoding": "sorted(path UTF8+NUL+exact overlay source bytes+NUL); input-contract self excluded",
+    "productionGoChanges": 1,
+    "newGoTestFiles": 1,
+    "GoFilesBefore": 1281,
+    "GoFilesAfter": 1282,
+    "otherGoFilesByteExactBaseByExactOverlayScope": 1280,
+    "LambdaImplementationWorkflowBytesChanged": 0,
+    "currentWholeSourceQualification": "PENDING; rootformatter/source-review are notcompiler/runtime/productionqualification"
+  },
+  "priorRevokedRetirementStreamHeaderAuthorityQualification": {
     "status": "FORMATTED_SOURCE_PIN_AND_CURRENT_CONSUMER_PREFLIGHT_REVIEW_PASS_ONLY_CI_RUNNABLE",
     "baseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
     "baseTree": "03d4fddcb05cde83c563a693dc5960c09b995646",
@@ -3341,6 +3411,142 @@
       "27subcasesareauthoredtestinventorynotexecutedcounts.",
       "LOCALmockRuntimeAPIonly,noAWSorproviderqualification.",
       "All79capabilities/11releasegates remainopen."
+    ]
+  },
+  "priorRevokedRetirementSourceFormattingQualification": {
+    "status": "FORMAT_AND_PARSE_PASS_NOT_COMPILED_OR_TESTED",
+    "scope": "ONLY2selectedheaderproduction/testGo,notall1282Go",
+    "formatterManifestSHA256": "4ff873c9b32acee5ef24f1a2810a2df3b89dacc3f7cfc4274d598aaa4726ed8b",
+    "controllerResultSHA256": "195b0081602dcad7f3cd4f29490a72016bf7a995a66a23a0037e68ecb1df2ad2",
+    "rawSourceManifestSHA256": "323e1efe24620755cd8c08b8e5693b3d7ecd656d6daf95c5d1f0e2f2ff43b427",
+    "patchSHA256": "5cdd8ec6272e29964c5cdf9e01e5062e15fdea2647a9e4bc045bc6ab865f4088",
+    "formatterSHA256": "49f6b08b2a6f0ea1746a6ab647f73af598e14371250f8ec61ce232b17e83b7aa",
+    "rawGoBytes": 34333,
+    "formattedGoBytes": 36953,
+    "GoFiles": 2,
+    "stderrBytes": 0,
+    "buildsOrTestsExecuted": false,
+    "hardMemoryLimitEstablished": false,
+    "priorSnapshot": "priorHeaderAuthoritySourceFormattingQualification"
+  },
+  "priorRevokedRetirementSourceInputScope": "CURRENT source is exact3f4 base plusonly2formattedheader Go files andthisCIinput metadata:180selectedpins,wholeGo1282(previous1281),1productionmodified+1newGotest. Prior147query/Refresh,173Lambda/all1281Go-unchanged and earlierreadiness/formatter records remainhistorical underpriorHeaderAuthority* snapshots. All21Lambdaimplementation/workflowbytes remainexact3f4; no oldREADME/sourceclaimthatall1281Go areunchangedapplies tothisnewheaderoverlay. Allruntime/deploymentqualificationremainsunexecuted.",
+  "priorRevokedRetirementFinalSourceReadinessReview": {
+    "status": "HEADER_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
+    "priorSnapshot": "priorHeaderAuthorityFinalSourceReadinessReview",
+    "sourcePins": 180,
+    "baseCommit": "3f4d7e54c6723c7e459017e71f71c95fdd4c76e1",
+    "ready": true,
+    "runtimeQualified": false,
+    "reviewedInputManifestSHA256": "09ab251044d8640d77aa7f42769a15ae69607fc6e2b3e2974331b0b9cec19d3d",
+    "formattedSourcePinSelectorReviewSHA256": "c5313c21ac9e23c3ddbfe70d6164057929ee1c36367702f123f3e7a56d53e56c",
+    "currentConsumerCodeCouplingReviewSHA256": "fbcc2163bcbb698d8d3a94e29d3ea89c0ac77f2d523316a50f54a96bafc3a2a0",
+    "productionSourcePinsTestsOrLambdaCodeChangedAfterReview": false,
+    "meaning": "Onlyreadiness/status/receiptmetadatachangesafterbothindependentreviews. SourcepreflightreadypermitsactualCI; compiler/runtime/deploymentqualificationisnotclaimed."
+  },
+  "priorRevokedRetirementLambdaSourceReadinessReview": {
+    "status": "PRIOR_173PIN_LAMBDA_SOURCE_REVIEW_HISTORICAL_NOT_CURRENT_HEADER_PASS",
+    "priorSnapshot": "priorHeaderAuthorityLambdaSourceReadinessReview",
+    "historicalSourcePins": 173,
+    "currentSourcePins": 180,
+    "sourceChangedAfterPriorReview": true,
+    "GoChangesAfterPriorReview": {
+      "production": 1,
+      "newTest": 1
+    },
+    "historicalReviewSHA256": "3d168a5090d5f4b40fb2f4304e0998a7cfd0d563a31d2f6c718001a8fcfcc199",
+    "runtimeQualified": false,
+    "meaning": "Original173pin/allGo-unchanged Lambda-onlyreview remainsverbatim underpriorHeaderAuthorityLambdaSourceReadinessReview. Its21Lambdaimplementation/workflowbytes remainexact3f4, butitdoesnotverifynewGoheaders/fourgroups/current180source."
+  },
+  "revokedRetirementQualification": {
+    "status": "FORMATTED_RETIREMENT_SOURCE_PIN_AND_CURRENT_CONSUMER_PREFLIGHT_REVIEW_PASS_ONLY_CI_RUNNABLE",
+    "baseCommit": "73dfc27ade6442746ff4a5443513a7ff4eeaf26a",
+    "baseTree": "d5bf8b6a00e88830c3aaa438bf0cb92f2753bc01",
+    "rootInputSHA256": "acc32cf8eda9136fb64f2bdcd08b4ad4bc82637686cb90a5ee81ddfa66e5840e",
+    "rootInputBytes": 176616,
+    "sourcePinCount": 180,
+    "sourcePinCap": 192,
+    "sourcePinTreeSHA256": "cfdb5cfde39a07fe2dbd7f63147619b3fc1940cfccffd2f03a12872e67092144",
+    "reboundExistingPinPaths": [
+      "client/retained_routes_js.go",
+      "client/retained_routes_js_test.go"
+    ],
+    "pinRowsUnchanged": 178,
+    "pinRowsRebound": 2,
+    "newSourcePins": 0,
+    "requiredCountsBefore": {
+      "native": 85,
+      "core": 162,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "requiredCounts": {
+      "native": 85,
+      "core": 163,
+      "devcore": 148,
+      "portable": 13,
+      "ui": 12,
+      "module": 43,
+      "devmodule": 45
+    },
+    "newCoreOnlyRequiredGroup": "TestRetainedRevokedPartitionPublishesFreshHydratedPageBeforeTerminalNavigation",
+    "buildConstraint": "js && wasm && !nextgo_module && !nextgo_devrefresh",
+    "noOtherRequiredArrayOrSkipChange": true,
+    "formattedSourceManifestSHA256": "f8a2ae94b2dd281325ba7dd92459c042a999f1ed78c79c52df226c4728f204d0",
+    "rawSourceManifestSHA256": "150c0cd74c017adf431c665a2b9f343fccdb04ac4b13776266893d3a6679679b",
+    "rawSourceReviewSHA256": "229e2d3a884c34e3d484129342d4e27575bcd29b73ce610954b77cafeeadac5e",
+    "runtimeEvidenceInherited": false,
+    "runtimeQualified": false,
+    "runtimeExecuted": false,
+    "priorBrowserFailure": {
+      "auditSHA256": "6683637bc794427a40458470a96863d5d92f0a3cd836903c433decf4b5ea6519",
+      "head": "533b54be676a54c87e77e9a6079804dccec3b652",
+      "run": "40576158444",
+      "attempt": "1",
+      "sdk": "1.24.13",
+      "target": "arm64",
+      "artifact": {
+        "artifactID": 12767684609,
+        "artifactBytes": 2754523,
+        "artifactSHA256": "771d187815894c400beb2293dafd0c24e6b423b2c12d85e7818de4b9819a0a95"
+      },
+      "browserActual": {
+        "passed": 15,
+        "failed": 1,
+        "retainedUnrun": 56,
+        "mergeUnrun": 72
+      },
+      "failureProject": "retained-chromium",
+      "failureTitle": "newer network failure from retired cleanup preserves the already hydrated committed page",
+      "failureCallsite": "retained-routes.spec.mjs:220",
+      "failureActual": "Error: expect(locator).toHaveAttribute(expected) failed\n\nLocator: locator('[data-retained-panel]').visible()\nExpected: \"B\"\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveAttribute\" locator('[data-retained-panel]').visible() with timeout 15000ms\n  - waiting for locator('[data-retained-panel]').visible()\n",
+      "laterAssertions": "NOT_REACHED",
+      "causalLimit": "PriorfirstREDauditinfersnocause; sourcecorrectionmechanismisreviewedbutunexecuted. ItdoesnotproveoldscrollfailuresfixedorcurrentBvisibilityrecovered."
+    },
+    "allModesCasesAndClosures": {
+      "native": [
+        144,
+        146
+      ],
+      "buffered": [
+        144,
+        146
+      ],
+      "streaming": [
+        144,
+        146
+      ],
+      "total": [
+        432,
+        440
+      ]
+    },
+    "limits": [
+      "Source/formatbindingonly; actualregression/native/WASM/browser/deploymentqualificationpending.",
+      "No existingbrowserassertion orsourcecase isrelaxed; failed533bcase mustberunagain.",
+      "All79capabilities/11releasegates remainopen; LOCALmockonly/noAWS."
     ]
   }
 }
