@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { installModalRefreshDiagnostics, armModalRefreshDiagnostics, captureModalRefreshDiagnostics } from './modal-refresh-diagnostics.mjs';
+test.afterEach(async ({page}, info) => captureModalRefreshDiagnostics(page, info));
 
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
 const galleryCount = page => page.getByRole('region', { name: 'Gallery counter', exact: true }).locator('[data-count]');
@@ -59,7 +61,9 @@ test('refreshing an unchanged open modal preserves both Go states, native modali
   const modal=page.getByRole('dialog',{name:'Coastal light',exact:true}); await expect(modal).toBeVisible();
   await page.getByRole('button',{name:'Increase Modal photo counter',exact:true}).click();
   await page.evaluate(()=>{window.refreshedModal=document.querySelector('dialog');window.refreshedGallery=document.querySelector('[aria-label="Gallery counter"]');window.refreshHistoryLength=history.length;});
+  await installModalRefreshDiagnostics(page);
   for(let i=0;i<2;i++){
+    await armModalRefreshDiagnostics(page, i + 1);
     const response=page.waitForResponse(r=>r.url().endsWith('/photos/one')&&r.request().headers()['x-nextgo-navigate']==='1');
     await page.getByRole('button',{name:'Refresh photo',exact:true}).click(); await (await response).finished(); await expect(page.locator('#nextgo-status')).toBeHidden();
     expect(await page.evaluate(()=>window.refreshedModal===document.querySelector('dialog')&&window.refreshedGallery===document.querySelector('[aria-label="Gallery counter"]')&&history.length===window.refreshHistoryLength)).toBe(true);
