@@ -114,6 +114,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
+        timeout-minutes: 60
       - run: npm test
       - run: npm run test:crossbrowser
       - run: npm run test:shared-cache
@@ -174,6 +175,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
+        timeout-minutes: 30
       - name: Build refresh qualification artifacts
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
@@ -229,6 +231,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium firefox webkit
+        timeout-minutes: 30
       - name: Build independent releases and immutable ingress snapshots
         run: |
           go build -trimpath -o ./dist/nextgo ./cmd/nextgo
