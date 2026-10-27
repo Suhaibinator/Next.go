@@ -151,10 +151,33 @@ for setup and collection. No timeout is hidden or retried. Collection keeps its
 existing payload/file/entry limits across all three browser directories, so
 large failure evidence can be omitted with a recorded reason.
 
-This source extension remains unexecuted until separately qualified at its own
-commit. Earlier client-only passes at the actual 35a3 merge and the historical
-metadata Go1.27 44-case outer-controller failure remain distinct evidence; this
-proposal does not convert the latter to success. G06 and the controller-death
-ownership boundary above remain open. These additions close selector gaps only
-when their real hosted runs and bounded evidence pass; they do not establish
-full platform maturity.
+## Recorded expanded result: fd11977
+
+[Run 40463625330](https://github.com/Suhaibinator/Next.go/actions/runs/40463625330)
+records the expanded jobs for head `fd11977e23fc54446b1433aeed038312b48d710f`,
+actual PR checkout `991824d6d31de974408eddc0e28fd24f8d92783b`. Independently
+verified job artifacts contain:
+
+| SDK / job | Client-only browser | Metadata-stream browser | Metadata-clear browser | Node adapters | Evidence artifact |
+| --- | ---: | ---: | ---: | ---: | --- |
+| [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40463625330/job/122053748825) | 20 | 44 | 8 | 15 | [Artifact 12715887904](https://github.com/Suhaibinator/Next.go/actions/runs/40463625330/artifacts/12715887904) |
+| [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40463625330/job/122053748843) | 20 | 44 | 8 | 15 | [Artifact 12715880890](https://github.com/Suhaibinator/Next.go/actions/runs/40463625330/artifacts/12715880890) |
+
+That is **144 browser executions** (40 client-only, 88 metadata-stream,
+16 metadata-clear) plus **30 separate Node cases**. Browser reports have zero
+skips, retries or flaky results; the Node TAP results satisfy their exact
+15-case-per-SDK gate. Verification covers all 144 browser-case native UID,
+PID/start, close, cwd-removal and listener proofs, 24 browser exit-0 receipts
+and 26 supervised command-close/stdio-join/empty-group receipts. Node cleanup
+remains fixture-asserted with final selected-port observations, not 30 durable
+external per-case native UID/process receipts.
+
+These component results do not make the overall workflow green: a separate
+offline check failed and the default browser suite was canceled. They apply to
+`fd11977`, not the later `ab79fa5` status-only runtime correction, which remains
+unqualified by this evidence. Earlier client-only passes at the actual `35a3`
+merge and the historical metadata Go1.27 44-case outer-controller failure stay
+distinct; this result does not relabel that controller failure. G06, unknown
+children after controller death and whole-runner cleanup remain open boundaries.
+This is Linux AMD64 hosted functional evidence, not ARM64, RSS/cgroup/soak,
+actual cloud, full-matrix or production-maturity qualification.
