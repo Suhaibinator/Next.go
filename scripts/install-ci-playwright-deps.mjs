@@ -11,26 +11,38 @@ export const policy = Object.freeze({
   'Acquire::http::Timeout': '30',
   'Acquire::https::Timeout': '30',
 });
-export const configBytes = Buffer.from(Object.entries(policy).map(([key, value]) => `${key} "${value}";\n`).join(''));
+// APT_CONFIG loads before runner parts/main; each binary's subtree applies last.
+export const configBytes = Buffer.from(['', 'Binary::apt-config::', 'Binary::apt-get::']
+  .flatMap((prefix) => Object.entries(policy).map(([key, value]) => `${prefix}${key} "${value}";\n`)).join(''));
 const systemPath = '/usr/sbin:/usr/bin:/sbin:/bin';
 const engines = ['chromium', 'firefox', 'webkit'];
 const rootOnlyUnsets = ['NODE_OPTIONS', 'NODE_PATH', 'NODE_COMPILE_CACHE', 'NODE_V8_COVERAGE', 'NODE_REDIRECT_WARNINGS', 'PW_PROFILE_DIR', 'PW_INSTRUMENT_MODULES', 'BASH_ENV', 'ENV'];
 
-export function effectivePolicy(dump) {
-  assert.equal(typeof dump, 'string');
-  assert.ok(Buffer.byteLength(dump) <= 1 << 20, 'APT dump exceeds bound');
+function scopedPolicy(lines, prefix) {
   const result = {};
-  for (const line of dump.split(/\r?\n/)) {
+  const scope = prefix || 'apt-config root';
+  for (const line of lines) {
     for (const key of Object.keys(policy)) {
-      if (!line.startsWith(`${key} `)) continue;
-      assert.equal(result[key], undefined, 'Duplicate effective APT policy key');
-      const expected = `${key} "${policy[key]}";`;
-      assert.equal(line.trimEnd(), expected, 'Effective APT policy mismatch');
+      const name = `${prefix}${key}`;
+      if (!line.startsWith(`${name} `)) continue;
+      assert.equal(result[key], undefined, `Duplicate effective APT policy key: ${scope}`);
+      assert.equal(line.trimEnd(), `${name} "${policy[key]}";`, `Effective APT policy mismatch: ${scope}`);
       result[key] = policy[key];
     }
   }
-  assert.deepEqual(result, policy, 'Required effective APT policy absent');
+  assert.deepEqual(result, policy, `Required effective APT policy absent: ${scope}`);
   return result;
+}
+
+export function effectivePolicy(dump) {
+  assert.equal(typeof dump, 'string');
+  assert.ok(Buffer.byteLength(dump) <= 1 << 20, 'APT dump exceeds bound');
+  const lines = dump.split(/\r?\n/);
+  return {
+    aptConfig: scopedPolicy(lines, ''),
+    // apt-config consumes its own binary branch; apt-get's sibling is still unmoved.
+    aptGetSubtree: scopedPolicy(lines, 'Binary::apt-get::'),
+  };
 }
 
 export function rootInvocation({ config, node, cli, unusedBrowserCache }, phase) {
@@ -93,7 +105,7 @@ export function main() {
     assert.equal(fs.existsSync(unusedBrowserCache), false, 'install-deps unexpectedly wrote a browser cache');
   }
   const options = { config, node, cli, unusedBrowserCache };
-  const proof = { version: 1, status: 'running', stage: 'configuration', config, configSHA256,
+  const proof = { version: 2, status: 'running', stage: 'configuration', config, configSHA256,
     configBytes: configBytes.length, configMode: '0600', node, nodeVersion: process.version,
     playwrightCLI: cli, playwrightVersion: core.version, privilegedCalls: {}, noEtcConfigurationWrites: true };
   let primaryError;
@@ -104,7 +116,7 @@ export function main() {
     proof.rootUID = 0;
     proof.stage = 'effective-before';
     proof.effectiveBefore = effectivePolicy(captured(rootInvocation(options, 'dump'), 'APT policy'));
-    // Print only the three approved effective values, never the full APT dump/environment.
+    // Print only the two validated three-value scopes, never the full APT dump/environment.
     console.log(JSON.stringify({ phase: proof.stage, config, configSHA256, rootUID: 0, policy: proof.effectiveBefore }));
     unchangedConfig();
     proof.stage = 'system-dependencies';
