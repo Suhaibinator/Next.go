@@ -119,15 +119,15 @@
     },
     {
       "path": "client/retained_routes_js.go",
-      "sha256": "b79a4d084ce5c0d7582b8f92a7c6006c760aa7b3b231151c20bcc12a75dd9e25",
-      "bytes": 30269,
-      "origin": "exact actual37d source"
+      "sha256": "640c5d7ee6d9eed7f23a6f35294ab5da41ad617506a87c73b5f8872d662a4ee8",
+      "bytes": 31119,
+      "origin": "Reviewed single synchronous retained-focus layout preparation and strengthened existing no-replay/selection fixture; runtime unqualified"
     },
     {
       "path": "client/retained_routes_js_test.go",
-      "sha256": "a362739aabd14a70a0a406991e347a14a4713edda4e3076d843ba007f8a1b962",
-      "bytes": 33540,
-      "origin": "exact actual37d source"
+      "sha256": "f6f1b3521fce0247ea8c54cb2c71685589bfc2ca740d43104b3f65916298c4ce",
+      "bytes": 36452,
+      "origin": "Reviewed single synchronous retained-focus layout preparation and strengthened existing no-replay/selection fixture; runtime unqualified"
     },
     {
       "path": "client/retention.go",
@@ -188,6 +188,12 @@
       "sha256": "2525b57c5e49b81c287c969964d445fc4d49ab8f22d3fa85ed8999350967ac02",
       "bytes": 17366,
       "origin": "truthful historical445/37d source qualification and separate producer first-RED; combined candidate unqualified"
+    },
+    {
+      "path": "document.go",
+      "sha256": "55766ddad4cf5d2a07dac8268a3bcfa5d3487af489993387556c323e946191d3",
+      "bytes": 1071,
+      "origin": "Reviewed default status overlay, conditional native selection setter and unchanged browser assertions with bounded owner diagnostics; current runtime unqualified"
     },
     {
       "path": "examples/retained/README.md",
@@ -377,9 +383,9 @@
     },
     {
       "path": "tests/retained-routes.spec.mjs",
-      "sha256": "6024072e61e9658d07c6a7206b8e0b7c8286d7f0dd4ae6850424601807865419",
-      "bytes": 22455,
-      "origin": "Reviewed read-only scroll diagnostic6024072e; existing assertion/actions/counts/timeouts unchanged; no cause/fix result inherited"
+      "sha256": "f2e0505413e42f89e0a68f0852910601395fd5ad8859cac1d07c8a0bf8f7afa3",
+      "bytes": 27940,
+      "origin": "Reviewed default status overlay, conditional native selection setter and unchanged browser assertions with bounded owner diagnostics; current runtime unqualified"
     },
     {
       "path": "tests/static-shell-ci-build.mjs",
@@ -518,7 +524,8 @@
       "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
       "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
       "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
-      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands",
+      "TestRetainedFocusPreservesUnchangedNativeSelection"
     ],
     "devcore": [
       "TestRefreshActivityScriptCallerCancelRetainsDownloadCallbacks",
@@ -614,7 +621,7 @@
   ],
   "targetCounts": {
     "native": 39,
-    "core": 58,
+    "core": 59,
     "devcore": 43,
     "portable": 13,
     "ui": 6
@@ -732,7 +739,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "Exact67 selected sources/52 framework-fixture sources have root+independent source review. ready permits this reviewed workflow only; the same72 browser cases/73 native closures/all Go requirements remain mandatory. No causal fix/runtime/parity result is inherited.",
+  "readinessMeaning": "Exact68 selected sources/53 framework-fixture sources admit current source qualification after final independent composition review. All39native/59core/43devcore/13portable/6UI requiredgroups and original72browsercases/73appclosures remain mandatory. No current runtime, causal fix or parity result is inherited.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -868,18 +875,18 @@
     ]
   },
   "combinedSourceInput": {
-    "integrationBaseCommit": "3cc8859302aa951383c8a023bb940cf440d4d473",
-    "integrationBaseTree": "086cff3b7d49281102915edf74872b43bfec4c81",
-    "status": "READ_ONLY_SCROLL_DIAGNOSTIC_SOURCE_CURRENT_RUNTIME_UNQUALIFIED",
-    "sourcePinCount": 67,
-    "sourcePinsTreeSHA256": "bf6e6fdf79627a8ea3d6601dadbedc16a75d837db032abeb2975be55cc2158a5",
-    "frameworkAndFixtureFiles": 52,
-    "frameworkAndFixtureGoFiles": 41,
-    "frameworkAndFixtureTreeSHA256": "eca19f3abb3ec73682ad2ad4eb7664cd6177214d59890a1e53ffcbaba92f5ac5",
+    "integrationBaseCommit": "6af255cd329ad928df2a389a8de40bdf8f24b3a4",
+    "integrationBaseTree": "e383d52d5b4f88018591fe1558f43e5fa862df05",
+    "status": "RETAINED_FOCUS_LAYOUT_PREPARATION_SOURCE_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 68,
+    "sourcePinsTreeSHA256": "904f9db770597210a077b0bb5c5438bbc4d2d01cb67453a78103aa16c1f44f0e",
+    "frameworkAndFixtureFiles": 53,
+    "frameworkAndFixtureGoFiles": 42,
+    "frameworkAndFixtureTreeSHA256": "9b17177ef6658a431b1d4421534be9d069f1b01c0205025511b61ec61ccb2c21",
     "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
     "requiredCounts": {
       "native": 39,
-      "core": 58,
+      "core": 59,
       "devcore": 43,
       "portable": 13,
       "ui": 6
@@ -1363,5 +1370,226 @@
     ],
     "compositionBaseCommit": "3cc8859302aa951383c8a023bb940cf440d4d473",
     "limit": "Read-only observations can perturb layout/timing; a passing diagnostic run is not a production fix or causal explanation."
+  },
+  "priorStatusOverlayCombinedSourceInput": {
+    "integrationBaseCommit": "3cc8859302aa951383c8a023bb940cf440d4d473",
+    "integrationBaseTree": "086cff3b7d49281102915edf74872b43bfec4c81",
+    "status": "READ_ONLY_SCROLL_DIAGNOSTIC_SOURCE_CURRENT_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 67,
+    "sourcePinsTreeSHA256": "bf6e6fdf79627a8ea3d6601dadbedc16a75d837db032abeb2975be55cc2158a5",
+    "frameworkAndFixtureFiles": 52,
+    "frameworkAndFixtureGoFiles": 41,
+    "frameworkAndFixtureTreeSHA256": "eca19f3abb3ec73682ad2ad4eb7664cd6177214d59890a1e53ffcbaba92f5ac5",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 39,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "parent64PinARMManifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+    "parent64PinTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "httpNativeRequiredRegressionAdded": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "historicalFramework50TreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "prior66PinTreeSHA256": "a8d239a087c0f99596c9a143b5bd6227a560bb4559157b72ebbd63361c681f78"
+  },
+  "statusOverlayCorrection": {
+    "baseCommit": "b5ffad258d621000f28b754932ac6ded641bbefa",
+    "scope": "Default loading/error status placement only; no cause/fix claim for late touch window or Firefox retained-owner scroll",
+    "runtimeQualified": false,
+    "observedBefore": "b5 AMDmin Chromium/Firefox outgoing window500 to526/529, historyY500, status visible; retained.css no status rule",
+    "prospectiveRegression": "Existing history test additionally compares captured outgoing before/after window/document scroll; original restored equality unchanged",
+    "testCountsUnchanged": true,
+    "cssOverridePolicy": ":where selector zero specificity; author status selectors override defaults"
+  },
+  "priorStatusSelectionCombinedSourceInput": {
+    "integrationBaseCommit": "b5ffad258d621000f28b754932ac6ded641bbefa",
+    "integrationBaseTree": "d8abbe2bdf22de9481ea6445fb671afbb80bdbcf",
+    "status": "STATUS_OVERLAY_SOURCE_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 68,
+    "sourcePinsTreeSHA256": "b0676531c3527c44ea442ff46ab22d5e56fd9942b70f55b2164e2b2ba17cd4d7",
+    "frameworkAndFixtureFiles": 53,
+    "frameworkAndFixtureGoFiles": 42,
+    "frameworkAndFixtureTreeSHA256": "afe62139fbf654dcac1d69b294325a1c8530bfff314217ff6ebc56698cb24537",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 39,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "parent64PinARMManifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+    "parent64PinTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "httpNativeRequiredRegressionAdded": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "historicalFramework50TreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "prior66PinTreeSHA256": "a8d239a087c0f99596c9a143b5bd6227a560bb4559157b72ebbd63361c681f78"
+  },
+  "scrollSelectionGuardCorrection": {
+    "productionChange": "Skip setSelectionRange only when start/end/direction already match retained snapshot; restore differing selections; no timer or repeated scroll writes",
+    "requiredCoreGroup": "TestRetainedFocusPreservesUnchangedNativeSelection",
+    "scope": "One new parent group/four subtests, core-only fixture proves setter admission and synchronous focus/scroll restoration, not native asynchronous browser behavior",
+    "sourceManifestSHA256": "8db6b6ace927edbb08a3f8b8643b3a3f8970957e97a6719afe46df047ca537e5",
+    "causality": "Mozilla setter schedules caret scroll with default first-scroll-container scope. Recorded outer-owner1270/window309 causes remain unproven.",
+    "runtimeQualified": false
+  },
+  "retainedOwnerScrollDiagnostic": {
+    "sourceManifestSHA256": "5f40f948235cdf3cb7495359f1d9a09980adc0ff32428b1d9552c488b386ca41",
+    "scope": "Fixed scalar observations in existing owner setup/click/final evaluations; same original four RPCs/nativeclick/back/identity/exact200 equality, one <=4096byte after-attempt attachment",
+    "limitations": [
+      "Getters/serialization can perturb timing.",
+      "Commit-time captured scroll remains unobserved.",
+      "Missing numbers are explicit unavailable values; no public props/input text is recorded.",
+      "Neither passing diagnostics nor the conditional selection setter establish a causal fix."
+    ],
+    "runtimeQualified": false
+  },
+  "priorFocusLayoutCombinedSourceInput": {
+    "integrationBaseCommit": "b5ffad258d621000f28b754932ac6ded641bbefa",
+    "integrationBaseTree": "d8abbe2bdf22de9481ea6445fb671afbb80bdbcf",
+    "status": "RETAINED_STATUS_SELECTION_AND_OBSERVATION_SOURCE_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 68,
+    "sourcePinsTreeSHA256": "b29ea0676a853c7c3aac71ed934c9249b287bdd2115cc6b3996d3d11a4d02ce7",
+    "frameworkAndFixtureFiles": 53,
+    "frameworkAndFixtureGoFiles": 42,
+    "frameworkAndFixtureTreeSHA256": "25f58f353576ed97a8f7d701b66b4aadd7bae253e8c2403d0e7070dd7f1705d1",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 39,
+      "core": 59,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "parent64PinARMManifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+    "parent64PinTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "httpNativeRequiredRegressionAdded": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "historicalFramework50TreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "prior66PinTreeSHA256": "a8d239a087c0f99596c9a143b5bd6227a560bb4559157b72ebbd63361c681f78"
+  },
+  "focusLayoutPreparation": {
+    "sourceManifestSHA256": "48f361e9753a62db6ac7a347974d24565223c986c645d554883f623050bb5340",
+    "peerSHA256": "53815acdb803de62a831973c262b55c29502ba5c19a41cd8509e0f04cc49dc36",
+    "mechanism": "WebKit can attach an input renderer while already focused and queue a later caret reveal. One synchronous target offsetWidth read before focus materializes its renderer first. No timers, delayed focus or scroll replays.",
+    "evidenceLimit": "Exact recorded renderer hook and current runtime result unobserved; source mechanism is consistent with, not a proof of, recorded WebKit owner displacement.",
+    "priorRuntime": {
+      "commit": "6af255cd329ad928df2a389a8de40bdf8f24b3a4",
+      "run": 40559835475,
+      "cell": "Go1.24.13 LinuxARM64",
+      "passed": 48,
+      "failed": 1,
+      "unrun": 23,
+      "failure": "WebKit sole owner200expected1188observed",
+      "traceSummarySHA256": "7c627fb3e41a29f56933a7a3ab18ecfb8822764af8c7b31880176c3c880498d3",
+      "actual": "Owner200 at3 postreturn snapshot points, later1188; no exact renderer/focus-call event observed."
+    },
+    "unchanged": "One existing required core group/four subtests strengthened; all target counts,72 browsercases/73appclosures, originalspec/RPCs/assertions and group-empty/no-deferral gates preserved.",
+    "runtimeQualified": false
   }
 }
