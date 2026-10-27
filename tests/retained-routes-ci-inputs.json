@@ -311,9 +311,9 @@
     },
     {
       "path": "client/retained_devrefresh_js_test.go",
-      "sha256": "df3fbabe3937c343379730f8e21fbfe543e0b7ba6d8b633dc8f30a992e76289f",
-      "bytes": 13660,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "c7ff4ab97056bb46ebd430bad170416663abcf24d80eb73c8ef432233a275fc1",
+      "bytes": 16157,
+      "origin": "reviewedDevRefreshFixtureIsolation6ed"
     },
     {
       "path": "client/retained_dom_budget_js_test.go",
@@ -2791,5 +2791,28 @@
     "meaning": "Allactualfuture source/origin/hash, testselection, rootfocus/layout/history and reviewedformattedframework/docs/producer coupling verified. Onlyreadiness metadata changes afterreview; no source/test/pin/code change.",
     "runtimeQualified": false,
     "executedAfterReview": false
+  },
+  "devRefreshFixtureIsolationCorrection": {
+    "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
+    "sourceBaseCommit": "6ed42562576cd33de9e37b35e48c1ff29d1c7c0d",
+    "sourceManifestSHA256": "b8ecad9d1baf93ec105ef702de9d11b07a453c68f983eeb9928a7567ab65c084",
+    "formatManifestSHA256": "63cf5fea950ba7b2d8a67f29268b269a319db14a551572caa93c0b33ebfd02cb",
+    "sourceSHA256": "c7ff4ab97056bb46ebd430bad170416663abcf24d80eb73c8ef432233a275fc1",
+    "sourceBytes": 16157,
+    "sourceEvidenceSHA256": "a01e9c162d8511e1fea97def7351c95606ed91d30766f466800ff119bdcd93cf",
+    "sourceCauseTraceSHA256": "12c293454efc63d6a2e1213a10afbd71bfc68de8735e09d2169688004464c000",
+    "actualPriorCI": "Both source SDK development WASM jobs and all four producer devcore gates failed the existing retention_opt-in_bypass initial eager hydration subcase on 6ed; default passed, native/core passed, module gates after devcore were not reached. No new compiler diagnostic established.",
+    "cause": "The old prepared-DOM fixture omitted new application/document state isolation. Its first ordinary commit installed application authority for the first fake app; the next subcase changed doc/app and correctly tripped exact-root ownership before Mount. Production runDocument installs current app authority before hydration.",
+    "correction": "Save/reset/restore fixture application, merge document, props frame and merge history/install state. Install ordinary bootstrap authority in runDocument order. Preserve RetainRoutes=true development bypass and all prior commit/cleanup/history expectations. Assert initial SSR main/island identity, current scope registration, ready/no-error status, per-click synchronous NoProps completion, and restored document state after each subcase.",
+    "requiredExistingGroup": "TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews",
+    "requiredGroupAlreadyInDevcore": true,
+    "sourcePins": 147,
+    "sourcePinRowsChanged": 1,
+    "requiredCountsUnchanged": true,
+    "browserSpecUnchanged": true,
+    "productionSourceUnchanged": true,
+    "readyMeaning": "Existing ready=true permits reviewed source preflight and a new CI run only; this fixture correction is not runtime-qualified. Earlier source-formatting/readiness checkpoints remain historical and do not claim this later fixture passed tests.",
+    "runtimeQualified": false,
+    "testsOrBuildsExecutedLocally": false
   }
 }
