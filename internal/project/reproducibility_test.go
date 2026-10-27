@@ -143,7 +143,11 @@ func assertReproducibleServerAssets(t *testing.T, ctx context.Context, b *Build)
 			<-done
 		}
 	}()
-	client := &http.Client{Timeout: time.Second}
+	// Compare the embedded identity representation; gzip has separate conformance tests.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DisableCompression = true
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Timeout: time.Second, Transport: transport}
 	base := "http://" + address
 	var document []byte
 	deadline := time.Now().Add(5 * time.Second)

@@ -4,12 +4,11 @@ on:
   pull_request:
 permissions:
   contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  # Finish the running checkpoint so later pushes do not erase its evidence.
-  cancel-in-progress: false
 jobs:
   go:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-go-${{ matrix.go }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -101,6 +100,9 @@ jobs:
           kill -TERM "$server_pid"
           wait "$server_pid"
   browser:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-browser
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -157,6 +159,9 @@ jobs:
           include-hidden-files: true
           retention-days: 7
   refresh:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-refresh
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -208,6 +213,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   independent-zones:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-independent-zones-${{ matrix.go }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -260,6 +268,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   streaming:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-streaming
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -300,6 +311,9 @@ jobs:
           include-hidden-files: true
           retention-days: 7
   offline:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-offline
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
@@ -394,6 +408,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   link-status:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-link-status
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
@@ -619,6 +636,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   container:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-container
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

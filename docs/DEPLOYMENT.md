@@ -197,7 +197,7 @@ uploads. Real AWS streaming validation remains a release gate: check early
 HTML/chunks with an authorized streaming client, reverse-proxy/CDN buffering,
 WASM hydration, deadline failures, and observable client behavior after errors.
 
-### Invocation and gateway correlation context (qualification pending)
+### Invocation and gateway correlation context (scoped functional checks)
 
 `serverless.InvocationID(ctx)` / `serverless.GatewayRequestID(ctx)` expose
 distinct bounded context metadata from Run and HTTP API v2
@@ -206,16 +206,21 @@ automatic headers/logging/tracing and grants no authorization. Values outside
 1–256 visible-ASCII bytes are omitted; existing Runtime API validation and
 response/error routing are unchanged. A missing gateway ID shadows an older
 inherited value. Existing bounded `nextgo.After` contexts retain request values.
-Actual Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051756) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051677) core jobs
-pass unfiltered `go test -race ./...`, including the native `serverless` package;
-this is package-level evidence, not individual verbose records for the seven
-new source-declared groups. The [first dedicated executable run](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) builds
-both SDK CLIs/native fixtures and audits generated helpers, then fails tagged
-test compilation before all three executable transport modes. A subsequent
-assignment-only fixture correction awaits fresh CI. The fixture still requires
-both `deployment` and `invocation_context` tags; plain deployment-tag tests keep
-their existing interface. No actual AWS proof is claimed. See the [exact run/job
-links and qualification limits](SERVERLESS_CONTEXT.md#proof-boundary).
+At head `1ac547fa`, Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769337) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769396) core jobs pass unfiltered
+`go test -race ./...`, including the native `serverless` package; these are
+package-level receipts, not individually verbose records for its seven new
+groups. The [first dedicated run](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) remains a test-compilation failure before
+transport execution. [Corrected run 40454405087](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087) now passes all three
+native HTTP/buffered-mock/streaming-mock modes on [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256570) and
+[Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256355), with nine paired response/After observations and three
+child Wait exit-0/no-KILL/mock-join receipts per SDK. This is Linux AMD64
+functional proof. The core workflow has a separate browser failure, so these
+component passes are not a full-workflow result. Later diagnostic Go changes
+remain unqualified by these receipts; no AWS, ARM64, read-only-container,
+resource/soak or browser qualification is implied. The
+fixture requires both `deployment` and `invocation_context` tags; plain
+deployment-tag tests keep their existing interface. See the [full evidence and
+limits](SERVERLESS_CONTEXT.md#proof-boundary).
 
 ### Runtime behavior and limits
 
@@ -455,14 +460,16 @@ client missing-screen still has the generic document's HTTP 200 status. Export
 does not install a provider rule, authenticate users or analyze trusted Go
 loaders for captured secrets. Read the [declaration, exclusions, immutable-
 envelope validation and complete host contract](STATIC_SHELL.md) before attempting
-publication. Earlier candidate proof includes both-SDK focused unit checks and
-four actual Go 1.27.3 eager/lazy root/mounted exports. Go 1.24 sample exports
-never launched; no local static-shell browser cases have run. The new
-[public CI workflow](../.github/workflows/static-shell.yml) is pending, as is
-static-host browser acceptance; earlier candidate evidence does not qualify its
-exact checkout or new packaging. [CI proof scope](../tests/STATIC_SHELL_CI.md)
-is Linux AMD64 functional validation, not the separately held ARM64 resource
-profile or provider/cloud qualification.
+publication. [Dedicated public CI run 40454404997](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997)
+passes for the recorded `7926f225` PR checkout: each of Go 1.24.13 and 1.27.3
+completes seven producer commands, four actual eager/lazy root/mounted exports
+and 48 browser cases without skips or retries. All 96 observations across SDKs
+include joined physical fixture closure. [Exact source, job links and earlier
+failed-attempt history](STATIC_SHELL.md#sample-and-qualification-boundary)
+keep this Linux AMD64 reference-host result separate from other browser/core
+campaigns. The [CI proof scope](../tests/STATIC_SHELL_CI.md) does not qualify the
+held ARM64 resource profile, cgroup/resource behavior, providers/cloud or
+production readiness.
 
 ### Static host browser matrix
 

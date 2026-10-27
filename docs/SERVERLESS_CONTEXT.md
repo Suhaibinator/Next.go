@@ -1,10 +1,10 @@
 # Serverless request correlation context
 
-**Experimental — generated-executable qualification pending.** Both supported
-SDKs have actual native race-suite/package coverage for the getters. The
-dedicated executable workflow built the real CLI and fixture, then failed test
-compilation before any transport mode ran. The scoped evidence and pending
-fixture correction are recorded below; no AWS or production qualification follows.
+**Experimental — scoped functional checks pass.** Both SDKs have current-head
+native race-package coverage and dedicated HTTP/local buffered/streaming mock
+Runtime API checks. The overall core workflow also records a separate browser
+failure; component successes are not a full-workflow or release pass. Exact
+checkpoints, retained failures and limits are recorded below.
 
 ## Read two distinct identifiers
 
@@ -114,18 +114,19 @@ this is context inheritance, not automatic native request identity.
 
 ## Proof boundary
 
-The [core run 40449940848](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848) for public head `9cdb1f0` records successful
-Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051756) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051677) jobs running
-unfiltered `go test -race ./...`, including an `ok` result for the `serverless`
-package. Its source declares seven new default-native test groups without build
-constraints or Skip calls. The non-verbose CI logs provide package-level pass
-evidence, not individual named PASS records for those seven groups or 35
-separately observed test passes.
+For head `1ac547fa`, PR merge `4b6566f6`, [core run 40454405555](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555) records
+successful Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769337) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405555/job/122025769396)
+native jobs running unfiltered `go test -race ./...`, including an `ok` result
+for the `serverless` package. Its source declares seven new default-native test
+groups without build constraints or Skip calls. These non-verbose logs provide
+package-level pass evidence, not individual named PASS records for those seven
+groups or 35 separately observed test passes.
 
-This is scoped native API evidence at that source checkpoint. The five API/test
-files are byte-identical in the local `0b91dbf` documentation base, but source
-equivalence is not fresh whole-head qualification of later fixture corrections.
-Earlier deployment checks also retain their own checkpoint scope.
+These are current-checkpoint native API results. The core workflow also has a
+separate Firefox offline ownership-conflict failure; the native jobs and the
+dedicated results below do not establish an all-green workflow or diagnose that
+browser failure. Later diagnostic Go changes are not qualified by these
+component receipts. Earlier native/deployment evidence retains its own scope.
 
 The [dedicated run 40449938031](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) preserves the first executable-fixture
 failure on both [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031/job/122010042753) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031/job/122010042946). Both jobs built
@@ -133,15 +134,26 @@ the real CLI and native file-routed fixture and verified its four actual
 generated helper additions. Compilation of the separately tagged test then
 failed at line 561 because a short declaration introduced no new variables.
 No HTTP, buffered mock Runtime API or streaming mock Runtime API executable
-mode ran. The failed attempt remains failed. The later assignment-only test
-correction is source-reviewed but awaits fresh CI; it is not executable proof.
+mode ran in that attempt. The failed run remains preserved; the corrected-head
+result below supersedes its pending fixture status without reclassifying it.
 
-The [dedicated workflow](../.github/workflows/serverless-context.yml) defines
-four phases per SDK: real CLI build, fixture build, tagged test compilation
-and executable checks. Three fresh native children with three requests each
-remain required future transport assertions, not passing observations. This
-workflow targets Linux AMD64 nonroot functional behavior, not read-only Docker
-isolation, ARM64, whole-process resource/soak limits or final namespace sampling.
+[Corrected run 40454405087](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087) at head `1ac547fa` (PR merge `4b6566f6`)
+passes on [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256570) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40454405087/job/122024256355). Each job builds the
+real CLI and file-routed fixture, compiles the tagged test, then records one
+top-level test and three mode subcases: native HTTP, buffered mock Runtime API
+and streaming mock Runtime API. Each uses a fresh generated executable with
+three warm requests, producing nine exact paired response/After identity
+observations per SDK. The third mock event omits gateway metadata while the
+retained first context keeps its original IDs. Ordinary HTTP reports empty IDs.
+
+Each SDK records three actual child Wait returns with exit 0/no KILL, joined
+mock handlers/servers and PID/start identities. Exactly four real generated
+helpers are audited, and post-test source hashes remain unchanged. These are
+Linux AMD64 nonroot functional checks with the executable working from `/`;
+there is no independent final namespace audit, read-only-container, ARM64,
+whole-process RSS/resource/soak, browser or AWS qualification. They do not create
+35 individual named API test receipts. The [dedicated workflow](../.github/workflows/serverless-context.yml)
+is component evidence, not an all-green core workflow or whole-release result.
 
 The fixture requires **both** `deployment` and `invocation_context` tags. Its
 compile command selects them together:
