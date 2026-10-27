@@ -198,7 +198,11 @@ func TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands(t *testi
 				} else if controller == "foreign" {
 					f.sw.Set("controller", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign-worker.js"}))
 				}
-				if err := operation.call(context.Background()); err != ErrOfflineConflict || f.c.conflictReason != "registration-empty-selection" {
+				wantReason := "registration-proof-unavailable"
+				if controller == "foreign" {
+					wantReason = "controller-worker"
+				}
+				if err := operation.call(context.Background()); err != ErrOfflineConflict || f.c.conflictReason != wantReason {
 					t.Fatalf("mutation accepted an unproven registration: err=%v reason=%q", err, f.c.conflictReason)
 				}
 				if len(f.commands) != 0 || f.registers != 0 || f.updates != 0 || f.unregisters != 0 || f.c.busy {
