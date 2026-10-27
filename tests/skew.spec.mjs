@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installSkewDiagnostics, captureSkewDiagnostics } from './skew-diagnostics.mjs';
+import { installSkewDiagnostics, captureSkewDiagnostics, observeSkewPrefetch } from './skew-diagnostics.mjs';
 
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
 const notes = page => page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Field notes', exact: true });
@@ -59,13 +59,29 @@ for (const cacheState of ['cold', 'warm']) {
     await notes(page).focus();
     const response = await prefetched;
     expect(response.request().isNavigationRequest()).toBe(false);
-    await response.finished();
+    // Observe the same reader used by Go. DevTools may report ERR_ABORTED even
+    // after native EOF; a terminal protocol event is not the application body.
+    const observed = await observeSkewPrefetch(page);
+    expect(observed.fetches).toBe(1);
+    expect(observed.ambiguous).toBe(false);
+    expect(observed.eof).toBe(true);
+    expect(observed.truncated).toBe(false);
+    expect(observed.error).toBeNull();
+    expect(observed.aborts).toBe(0);
+    expect(observed.bytes).toBeGreaterThan(0);
+    expect(observed.bytes).toBeLessThanOrEqual(64 * 1024);
+    expect(Buffer.byteLength(observed.bodyText, 'utf8')).toBe(observed.bytes);
+    expect(observed.url).toBe(response.url());
+    expect(observed.status).toBe(response.status());
+    for (const name of ['content-type', 'x-nextgo-configuration', 'x-nextgo-protocol', 'x-nextgo-prefetch']) {
+      expect(observed.headers[name]).toBe(response.headers()[name] ?? null);
+    }
     // Chromium's synchronous headers() can contain only provisional redirect
     // headers. Await the complete set before checking framework request intent.
     const requestHeaders = await response.request().allHeaders();
     expect(requestHeaders['x-nextgo-purpose']).toBe('prefetch');
     expect(requestHeaders['x-nextgo-navigate']).toBe('1');
-    const envelope = await response.json();
+    const envelope = JSON.parse(observed.bodyText);
     expect(envelope.configuration).not.toBe(configuration);
     expect(response.headers()['x-nextgo-configuration']).toBe(envelope.configuration);
     expect(response.headers()['x-nextgo-protocol']).toBe(String(envelope.version));
