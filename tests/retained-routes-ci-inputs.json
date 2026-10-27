@@ -377,9 +377,9 @@
     },
     {
       "path": "tests/retained-routes.spec.mjs",
-      "sha256": "606ece33e6d4b0e4259944b72fca47b3acdbcf55dc426215d686f0b2d9f59fc5",
-      "bytes": 19193,
-      "origin": "exact actual37d source"
+      "sha256": "6024072e61e9658d07c6a7206b8e0b7c8286d7f0dd4ae6850424601807865419",
+      "bytes": 22455,
+      "origin": "Reviewed read-only scroll diagnostic6024072e; existing assertion/actions/counts/timeouts unchanged; no cause/fix result inherited"
     },
     {
       "path": "tests/static-shell-ci-build.mjs",
@@ -732,7 +732,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "Exact67 selected sources, unchanged52/41-Go framework subset and3 test-infrastructure files have root and independent source review. ready permits the reviewed workflow only; no runtime result, parity or release qualification is inherited. Existing72 browser cases,73 native closures and all Go selectors remain required.",
+  "readinessMeaning": "Exact67 selected sources/52 framework-fixture sources have root+independent source review. ready permits this reviewed workflow only; the same72 browser cases/73 native closures/all Go requirements remain mandatory. No causal fix/runtime/parity result is inherited.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -868,14 +868,14 @@
     ]
   },
   "combinedSourceInput": {
-    "integrationBaseCommit": "452bca5d60cb3c716865c1d6cddb440ca1ff95d6",
-    "integrationBaseTree": "9892ce0593fcd6cb98fe3f2b6df24d934593127f",
-    "status": "CURRENT_RETAINED_GATE_AND_LAMBDA_DOCS_SOURCE_ONLY_RUNTIME_UNQUALIFIED",
+    "integrationBaseCommit": "3cc8859302aa951383c8a023bb940cf440d4d473",
+    "integrationBaseTree": "086cff3b7d49281102915edf74872b43bfec4c81",
+    "status": "READ_ONLY_SCROLL_DIAGNOSTIC_SOURCE_CURRENT_RUNTIME_UNQUALIFIED",
     "sourcePinCount": 67,
-    "sourcePinsTreeSHA256": "b2fb92e283284167cf0bc7fb64b971f52ffbcf33812d80c738963b92a29f4eeb",
+    "sourcePinsTreeSHA256": "bf6e6fdf79627a8ea3d6601dadbedc16a75d837db032abeb2975be55cc2158a5",
     "frameworkAndFixtureFiles": 52,
     "frameworkAndFixtureGoFiles": 41,
-    "frameworkAndFixtureTreeSHA256": "23c994b35d1d780505cefa63340a64aa0eba0463d889088290aa9375cece20df",
+    "frameworkAndFixtureTreeSHA256": "eca19f3abb3ec73682ad2ad4eb7664cd6177214d59890a1e53ffcbaba92f5ac5",
     "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
     "requiredCounts": {
       "native": 39,
@@ -1279,5 +1279,89 @@
       "mockInvocationSubtests": 14
     },
     "scope": "Original immutable fixture ZIP and local mock Runtime API result only; no current merge, retained browser, AWS, physical isolation or production-maturity qualification inherited."
+  },
+  "priorScrollDiagnosticRetainedSourceInput": {
+    "integrationBaseCommit": "452bca5d60cb3c716865c1d6cddb440ca1ff95d6",
+    "integrationBaseTree": "9892ce0593fcd6cb98fe3f2b6df24d934593127f",
+    "status": "CURRENT_RETAINED_GATE_AND_LAMBDA_DOCS_SOURCE_ONLY_RUNTIME_UNQUALIFIED",
+    "sourcePinCount": 67,
+    "sourcePinsTreeSHA256": "b2fb92e283284167cf0bc7fb64b971f52ffbcf33812d80c738963b92a29f4eeb",
+    "frameworkAndFixtureFiles": 52,
+    "frameworkAndFixtureGoFiles": 41,
+    "frameworkAndFixtureTreeSHA256": "23c994b35d1d780505cefa63340a64aa0eba0463d889088290aa9375cece20df",
+    "treeEncoding": "sorted(path UTF8+NUL+exact source bytes+NUL); selected tree excludes input-contract self",
+    "requiredCounts": {
+      "native": 39,
+      "core": 58,
+      "devcore": 43,
+      "portable": 13,
+      "ui": 6
+    },
+    "offlineDonorCommit": "eeb4fc2497e81022f1aa990a19eacaa8894654ec",
+    "offlineCommonAncestor": "739464f737c0960526e91e3ee0a6fa365f9d6826",
+    "nativeExistingBehaviorRequirementsAdded": [
+      "TestCompileWorkspaceWithSiblingServerAndBrowserDependency",
+      "TestGeneratedOverlayIdentityEmbedAndProvenance",
+      "TestWatcherRecoversBrokenWorkspaceAndReplacement",
+      "TestWorkspaceFingerprintAndOffPolicy",
+      "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
+      "TestWorkspaceUnselectedAppDiagnostic"
+    ],
+    "offlineCoreAndDevcoreRequirementsAdded": [
+      "TestOfflineReacquisitionCancellationFencesBeforeAdmissionAndAfterLastRead",
+      "TestOfflineReacquisitionCancellationKeepsPhysicalReadAdmissionUntilSettlement",
+      "TestOfflineReacquisitionChecksEntireFirstInventoryBeforeTargetedRead",
+      "TestOfflineReacquisitionDoesNotAssumeCachedNativeObjectIsRepaired",
+      "TestOfflineReacquisitionKeepsNativeReadRejectionsAndMalformedListFailClosed",
+      "TestOfflineReacquisitionLeavesAbsentRegistrationBehaviorUnchanged",
+      "TestOfflineReacquisitionPreservesNormalOwnedAbsentAndStatusReadCounts",
+      "TestOfflineReacquisitionRejectsChangedSecondInventoryAndRevalidatesAfterIt",
+      "TestOfflineReacquisitionRejectsUnavailableOrForeignTargetedProof",
+      "TestOfflineReacquisitionRejectsUnprovedAuthorityForEveryMutation",
+      "TestOfflineReacquisitionSupportsAllMutationsWithCurrentReplacementRecord",
+      "TestOfflineRecoveredMutationChecksOwnershipAfterAwaitedMessages",
+      "TestOfflineRecoveredUpdateRechecksProofImmediatelyBeforeDispatch",
+      "TestOfflineUnprovenRegistrationRemainsStrictForAllMutatingCommands"
+    ],
+    "limits": [
+      "No combined runtime evidence inherited from previous source/compiler/browser results.",
+      "Failure-only observer is not exercised by success paths; no realm repair is claimed.",
+      "72 browser cases and73 native closures perSDK remain required.",
+      "Historical metadata outer-controller failure and G06 controller-death/resource boundary remain open.",
+      "All79 capabilities/11 release gates and full changed-output V10 remain open."
+    ],
+    "parent63PinCompositionManifestSHA256": "e5a6c6ed9a5eb9a690e13839901420abbc75aa752f2e6a4564ecf613f34e67cb",
+    "parent63PinTreeSHA256": "157a8c438ac187f85b475846fa0a624e7acd6c366639f99aee76460348884e03",
+    "parent64PinARMManifestSHA256": "1398f51465a650354504e1700a155bd71e651c56ed10e513067aa94cb9ef7e25",
+    "parent64PinTreeSHA256": "06827bb5106ba7ef473bde5c4cb6d72548c0091b9679eb3bb51169e93a67e90c",
+    "httpNativeRequiredRegressionAdded": "TestHTTPCancellationAtSuccessfulResponseEOFDoesNotAcknowledgeSuccess",
+    "historicalFramework50TreeSHA256": "cc49c4b6b416ac9df9df2099c9d5963178c181c619de2bd1587ba905031e3174",
+    "prior66PinTreeSHA256": "a8d239a087c0f99596c9a143b5bd6227a560bb4559157b72ebbd63361c681f78"
+  },
+  "scrollObservationDiagnostic": {
+    "sourceBaseCommit": "62a0646ae4f056d27c5b23b5d5ab3cfd886d0f69",
+    "sourceBaseTree": "1b8d017edfdd5b77beb868e1ac483c55266376b8",
+    "kind": "READ_ONLY_FIXED_SCALARS_IN_TWO_EXISTING_EVALUATIONS",
+    "filteredTraceSummarySHA256": "abfd2d435c1b8a98b31be472779ff1aba72614836000fc27e12fb676b2a1df8a",
+    "actualTraceFinding": "A initially reaches500 after return then moves to309 about11\u201319ms later; mechanism and exact saved history state remain unobserved.",
+    "primaryAssertion": "Original {window,nested,same} fields are sampled FIRST and compared exactly with {...saved,same:true}. No500 weakening.",
+    "changes": [
+      "Existing outgoing click evaluation returns fixed before/after numbers and booleans around same single native click.",
+      "Existing final after-back evaluation samples original actual first, then returns fixed observation.",
+      "One<=4096byte JSON attachment in existing case finally after assertion attempt; read/attach exceptions are incomplete and do not replace primary assertion."
+    ],
+    "unchanged": [
+      "No new browser RPCs, waits, event listeners, timers or production hooks.",
+      "Same initial fill/focus/window500/nested160, saved-history wait, back and focused-draft expectation.",
+      "Same18 titles/four profiles/72 cases/73 native closures and all existing Go counts/skips/GOENV."
+    ],
+    "limits": [
+      "Numeric and boolean getters/serialization can perturb timing slightly.",
+      "A later historyY is not labeled the popstate event value.",
+      "Missing optional numbers use present:false; value0 in that case is not an observedzero.",
+      "This source is unexecuted and does not identify or fix the production cause."
+    ],
+    "compositionBaseCommit": "3cc8859302aa951383c8a023bb940cf440d4d473",
+    "limit": "Read-only observations can perturb layout/timing; a passing diagnostic run is not a production fix or causal explanation."
   }
 }
