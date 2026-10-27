@@ -10,7 +10,7 @@ export const check = (ok, message) => {if (!ok) throw Error(message);};
 export const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 export const variants = ['EAGER_ROOT','EAGER_MOUNTED','LAZY_ROOT','LAZY_MOUNTED'];
 const generated = ['routes/nextgo_gen.go','actionrefs/nextgo_gen.go','actionrefs/nextgo_gen_js.go','actionrefs/nextgo_gen_server.go'].map(path => 'examples/static-shell/' + path);
-const testerPins = {'tests/static-shell-host.mjs':'a5437350bd6da54ac52a0fadf311505deffc32daf348b2a42db46c75f8921513','tests/static-shell.spec.mjs':'7a912c372a7589db4329a3379aca7443057bfdecd4bd8a22480a6f4595127c61','tests/static-shell.config.mjs':'fa17f9935fe04125d8b4d1cbb3b37e4684d21840fa156a1b289a4502c9c16078'};
+const testerPins = {'tests/static-shell-host.mjs':'02f810f6467d4584f6ffd21cb6e7e87b9b6e99e6b2370a75eb1633bf1dcc0dd6','tests/static-shell.spec.mjs':'7a912c372a7589db4329a3379aca7443057bfdecd4bd8a22480a6f4595127c61','tests/static-shell.config.mjs':'fa17f9935fe04125d8b4d1cbb3b37e4684d21840fa156a1b289a4502c9c16078'};
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const outside = (parent, path) => {const rel = relative(parent, path); return isAbsolute(rel) || rel === '..' || rel.startsWith('..' + sep);};
 
