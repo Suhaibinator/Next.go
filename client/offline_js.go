@@ -457,7 +457,7 @@ func (c *offlineController) registrationForOperation(ctx context.Context, status
 				return offlineRegistrationSelection{}, e
 			}
 			if ownership == offlineRegistrationUnproven && !statusOnly {
-				return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty")
+				return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty-selection")
 			}
 			if sawOverlap {
 				return offlineRegistrationSelection{}, c.ownershipConflict("registration-duplicate")
