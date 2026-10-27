@@ -561,6 +561,10 @@ func restoreRetainedFocus(pop bool) {
 		return
 	}
 	if view.focus.Truthy() && view.focus.Get("isConnected").Bool() && view.root.Call("contains", view.focus).Bool() {
+		// Materialize the restored control before focusing it. Otherwise an
+		// engine may attach its renderer while focused and queue a later reveal.
+		// Saved nested positions are restored after focus, with no delayed replay.
+		_ = view.focus.Get("offsetWidth")
 		view.focus.Call("focus", map[string]any{"preventScroll": true})
 		if view.selectionDirection != "" && view.focus.Get("setSelectionRange").Type() == js.TypeFunction {
 			start, end, direction := view.focus.Get("selectionStart"), view.focus.Get("selectionEnd"), view.focus.Get("selectionDirection")

@@ -262,12 +262,14 @@ func TestRetainedFocusPreservesUnchangedNativeSelection(t *testing.T) {
 		t.Run(changed, func(t *testing.T) {
 			f := retainedRouterEnvironment(t)
 			view := retainedCurrent
-			js.Global().Get("Function").New("node", `
+			js.Global().Get("Function").New("node", "document", `
 node.selectionStart=2;node.selectionEnd=7;node.selectionDirection='backward';
 node.selectionCalls=0;node.focusCalls=0;node.preventedScroll=false;
-node.focus=function(options){this.focusCalls++;this.preventedScroll=options?.preventScroll===true;};
+node.layoutReads=0;node.layoutBeforeFocus=false;node.focusedDuringLayout=false;
+Object.defineProperty(node,'offsetWidth',{get(){this.layoutReads++;this.focusedDuringLayout=document.activeElement===this;return 320;}});
+node.focus=function(options){this.layoutBeforeFocus=this.layoutReads===1&&!this.focusedDuringLayout;this.focusCalls++;this.preventedScroll=options?.preventScroll===true;document.activeElement=this;};
 node.setSelectionRange=function(start,end,direction){this.selectionCalls++;this.selectionStart=start;this.selectionEnd=end;this.selectionDirection=direction;};
-`).Invoke(f.draft)
+`).Invoke(f.draft, doc)
 			f.old.Set("scrollTop", 73)
 			captureRetained(view)
 			switch changed {
@@ -279,6 +281,9 @@ node.setSelectionRange=function(start,end,direction){this.selectionCalls++;this.
 				f.draft.Set("selectionDirection", "forward")
 			}
 			f.old.Set("scrollTop", 0)
+			// Navigation has focused its ordinary destination. Native controls
+			// must finish materializing while that other element still has focus.
+			doc.Set("activeElement", f.fresh)
 			retainedFocus = view
 			restoreRetainedFocus(true)
 			wantCalls := 1
@@ -291,11 +296,14 @@ node.setSelectionRange=function(start,end,direction){this.selectionCalls++;this.
 			if f.draft.Get("selectionStart").Int() != 2 || f.draft.Get("selectionEnd").Int() != 7 || f.draft.Get("selectionDirection").String() != "backward" {
 				t.Fatal("saved differing selection was not restored")
 			}
+			if f.draft.Get("layoutReads").Int() != 1 || !f.draft.Get("layoutBeforeFocus").Bool() || !doc.Get("activeElement").Equal(f.draft) {
+				t.Fatal("restored control was not materialized before focus")
+			}
 			if f.draft.Get("focusCalls").Int() != 1 || !f.draft.Get("preventedScroll").Bool() || f.old.Get("scrollTop").Int() != 73 || retainedFocus != nil {
 				t.Fatal("focus, owner scroll, or one-use focus ownership was not restored")
 			}
 			restoreRetainedFocus(true)
-			if f.draft.Get("selectionCalls").Int() != wantCalls || f.draft.Get("focusCalls").Int() != 1 {
+			if f.draft.Get("selectionCalls").Int() != wantCalls || f.draft.Get("focusCalls").Int() != 1 || f.draft.Get("layoutReads").Int() != 1 {
 				t.Fatal("consumed retained focus was replayed")
 			}
 		})
