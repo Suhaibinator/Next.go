@@ -206,12 +206,16 @@ automatic headers/logging/tracing and grants no authorization. Values outside
 1–256 visible-ASCII bytes are omitted; existing Runtime API validation and
 response/error routing are unchanged. A missing gateway ID shadows an older
 inherited value. Existing bounded `nextgo.After` contexts retain request values.
-Fresh unit and native/local buffered/local streaming executable qualification
-remain pending; the [dedicated workflow](../.github/workflows/serverless-context.yml)
-is unexecuted. Its generated fixture requires both `deployment` and
-`invocation_context` tags; plain deployment-tag tests retain their existing
-interface. No actual AWS proof is claimed. See [context semantics, application-
-owned examples and fixture instructions](SERVERLESS_CONTEXT.md).
+Actual Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051756) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051677) core jobs
+pass unfiltered `go test -race ./...`, including the native `serverless` package;
+this is package-level evidence, not individual verbose records for the seven
+new source-declared groups. The [first dedicated executable run](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) builds
+both SDK CLIs/native fixtures and audits generated helpers, then fails tagged
+test compilation before all three executable transport modes. A subsequent
+assignment-only fixture correction awaits fresh CI. The fixture still requires
+both `deployment` and `invocation_context` tags; plain deployment-tag tests keep
+their existing interface. No actual AWS proof is claimed. See the [exact run/job
+links and qualification limits](SERVERLESS_CONTEXT.md#proof-boundary).
 
 ### Runtime behavior and limits
 

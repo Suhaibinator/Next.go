@@ -1,9 +1,10 @@
 # Serverless request correlation context
 
-**Experimental — runtime qualification pending.** The two getters below are
-implemented and source-reviewed. Their fresh unit and generated native/local
-buffered/local streaming executable checks have not run, and public CI is
-pending. No AWS, browser or production qualification follows from publication.
+**Experimental — generated-executable qualification pending.** Both supported
+SDKs have actual native race-suite/package coverage for the getters. The
+dedicated executable workflow built the real CLI and fixture, then failed test
+compilation before any transport mode ran. The scoped evidence and pending
+fixture correction are recorded below; no AWS or production qualification follows.
 
 ## Read two distinct identifiers
 
@@ -113,20 +114,34 @@ this is context inheritance, not automatic native request identity.
 
 ## Proof boundary
 
-The API unit tests and generated-executable fixture are prepared to check
-omission/ownership, spoofed headers, warm reuse, cancellation, completion and
-native/local buffered/local streaming behavior. They remain unexecuted for this
-feature. Existing deployment checks keep their own checkpoint scope.
+The [core run 40449940848](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848) for public head `9cdb1f0` records successful
+Linux AMD64 [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051756) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449940848/job/122010051677) jobs running
+unfiltered `go test -race ./...`, including an `ok` result for the `serverless`
+package. Its source declares seven new default-native test groups without build
+constraints or Skip calls. The non-verbose CI logs provide package-level pass
+evidence, not individual named PASS records for those seven groups or 35
+separately observed test passes.
 
-The [dedicated workflow](../.github/workflows/serverless-context.yml) declares
-four build/run phases per SDK: build the real CLI once, build the file-routed
-fixture once, compile the separately tagged test and run the actual executable
-checks. Each future run requires three fresh native children (HTTP, buffered
-mock Runtime API and streaming mock Runtime API), with three requests per
-child to exercise warm reuse. These are future assertions, not observed passes.
-The workflow targets Linux AMD64 nonroot functional behavior, not read-only
-Docker isolation, ARM64, whole-process resource/soak limits or final namespace
-sampling.
+This is scoped native API evidence at that source checkpoint. The five API/test
+files are byte-identical in the local `0b91dbf` documentation base, but source
+equivalence is not fresh whole-head qualification of later fixture corrections.
+Earlier deployment checks also retain their own checkpoint scope.
+
+The [dedicated run 40449938031](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031) preserves the first executable-fixture
+failure on both [Go 1.24.13](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031/job/122010042753) and [Go 1.27.3](https://github.com/Suhaibinator/Next.go/actions/runs/40449938031/job/122010042946). Both jobs built
+the real CLI and native file-routed fixture and verified its four actual
+generated helper additions. Compilation of the separately tagged test then
+failed at line 561 because a short declaration introduced no new variables.
+No HTTP, buffered mock Runtime API or streaming mock Runtime API executable
+mode ran. The failed attempt remains failed. The later assignment-only test
+correction is source-reviewed but awaits fresh CI; it is not executable proof.
+
+The [dedicated workflow](../.github/workflows/serverless-context.yml) defines
+four phases per SDK: real CLI build, fixture build, tagged test compilation
+and executable checks. Three fresh native children with three requests each
+remain required future transport assertions, not passing observations. This
+workflow targets Linux AMD64 nonroot functional behavior, not read-only Docker
+isolation, ARM64, whole-process resource/soak limits or final namespace sampling.
 
 The fixture requires **both** `deployment` and `invocation_context` tags. Its
 compile command selects them together:
