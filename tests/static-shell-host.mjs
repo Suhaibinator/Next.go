@@ -184,7 +184,7 @@ async function refused(port, state) {
 export async function startStaticShellHost(input, {leaseMS} = {}) {
   check(Number.isInteger(leaseMS) && leaseMS >= 1000 && leaseMS <= 120000, 'explicit finite static-host lease 1000..120000ms required');
   const artifact = await validateStaticArtifact(input); // All validation precedes listen.
-  const sockets = new Set(), responses = new Set(), handlers = new Set(), records = [];
+  const sockets = new Map(), responses = new Set(), handlers = new Set(), records = [];
   const operations = {active:new Set(), closeErrors:[]};
   const listenerErrors = [];
   let overflow = 0, fault = null, closing, port, expired = false, closedProof = null;
@@ -245,7 +245,15 @@ export async function startStaticShellHost(input, {leaseMS} = {}) {
     }
   }
   server.headersTimeout = 5000; server.requestTimeout = 10000; server.keepAliveTimeout = 1000;
-  server.on('connection', socket => {sockets.add(socket); socket.once('close', () => sockets.delete(socket));});
+  server.maxConnections = 128;
+  server.on('connection', socket => {
+    let resolveClose;
+    const closed = new Promise(resolve => {resolveClose = resolve;});
+    sockets.set(socket, closed);
+    // Own the lifetime event from registration. Delete before resolving so
+    // cleanup cannot observe a completed join with stale socket bookkeeping.
+    socket.once('close', () => {sockets.delete(socket); resolveClose();});
+  });
   server.on('error', error => listenerErrors.push(String(error.message).slice(0,160)));
   let timer;
   const fixture = {
@@ -271,7 +279,8 @@ export async function startStaticShellHost(input, {leaseMS} = {}) {
           if (server.listening) {
             state.serverCloseRequested = true;
             const joinedServer = new Promise((resolve, reject) => server.close(error => {state.serverCallbackJoined = true; if (error) reject(error); else resolve();}));
-            const joinedSockets = [...sockets].map(socket => new Promise(resolve => {if (socket.closed) {resolve(); return;} socket.once('close', resolve); socket.destroy();}));
+            const joinedSockets = [...sockets.values()];
+            for (const socket of sockets.keys()) socket.destroy();
             server.closeAllConnections();
             await Promise.all([joinedServer, ...joinedSockets]);
           }
