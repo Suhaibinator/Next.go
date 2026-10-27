@@ -618,6 +618,76 @@ jobs:
           path: ${{ env.NEXTGO_LINK_STATUS_CI }}/failure/
           if-no-files-found: warn
           retention-days: 7
+  client-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.13', '1.27.3']
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '1'
+      GOFLAGS: -p=1 -mod=readonly
+      GOMEMLIMIT: 384MiB
+      GOTELEMETRY: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      NEXTGO_CLIENT_ONLY_GO_VERSION: ${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          cache: npm
+      - name: Install pinned browser test dependencies
+        timeout-minutes: 10
+        run: npm ci --ignore-scripts
+      - name: Install Playwright browsers and system dependencies
+        timeout-minutes: 60
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Own client-only qualification paths
+        shell: bash
+        run: |
+          set -eu
+          nextgo_client_only_root=$(mktemp -d "$RUNNER_TEMP/nextgo-client-only-ci.XXXXXX")
+          export NEXTGO_CLIENT_ONLY_CI="$nextgo_client_only_root"
+          node scripts/client-only-ci.mjs init
+          {
+            echo "NEXTGO_CLIENT_ONLY_CI=$nextgo_client_only_root"
+            echo "GOCACHE=$nextgo_client_only_root/go-cache"
+            echo "GOMODCACHE=$nextgo_client_only_root/mod-cache"
+            echo "TMPDIR=$nextgo_client_only_root/tmp"
+            echo "NEXTGO_E2E_RESULTS=$nextgo_client_only_root/browser"
+            echo "NEXTGO_E2E_SERVER_BINARY=$nextgo_client_only_root/artifacts/demo/server"
+          } >> "$GITHUB_ENV"
+      - name: Build the actual CLI and production demo
+        timeout-minutes: 25
+        run: node scripts/client-only-ci.mjs build
+      - name: Discover and qualify the unchanged client-only browser matrix
+        timeout-minutes: 25
+        run: node scripts/client-only-ci.mjs qualify
+      - name: Collect bounded client-only qualification evidence
+        if: always()
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          if [ -n "${NEXTGO_CLIENT_ONLY_CI:-}" ]; then
+            node scripts/client-only-ci.mjs collect
+          else
+            echo 'Client-only qualification did not initialize an owned evidence root.'
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: client-only-${{ matrix.go }}
+          path: .nextgo-test-results/client-only-ci-${{ matrix.go }}/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
   container:
     runs-on: ubuntu-latest
     steps:
