@@ -116,6 +116,8 @@ func runWithOptions(ctx context.Context, handler http.Handler, endpoint string, 
 }
 
 func completeInvocation(ctx context.Context, handler http.Handler, endpoint string, client *http.Client, options runtimeOptions, id string, deadlineMS int64, event Request, invocationErr error) error {
+	ctx = withInvocationID(ctx, id)
+	ctx = withGatewayRequestID(ctx, event.RequestContext.RequestID)
 	invokeCtx, cancelInvocation := context.WithDeadline(ctx, time.UnixMilli(deadlineMS))
 	defer cancelInvocation()
 	invokeCtx, collector := postresponse.Collect(invokeCtx)

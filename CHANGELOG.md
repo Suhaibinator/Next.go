@@ -34,6 +34,24 @@ unreleased section records current source work and its scoped verification. See
   the held ARM64 resource profile, providers, production or full SPA parity.
   All 79 capability rows and 11 open release gates remain.
 
+## Unreleased — serverless correlation context (runtime CI pending)
+
+- Add `serverless.InvocationID` and `serverless.GatewayRequestID` for
+  distinct, owned, at-most-256-byte visible-ASCII request metadata. Missing or
+  nonportable metadata is empty; it does not reject an otherwise accepted
+  transport ID or change Runtime API response/error routing.
+- Keep caller HTTP headers separate from context values. Run refreshes both
+  values per invocation; event conversion replaces gateway metadata, including
+  empty omission, while preserving a supplied parent's invocation context.
+  Existing completion contexts retain the values without new scheduling.
+- Fresh unit and generated-executable checks remain unexecuted. A dedicated
+  Linux AMD64 functional workflow plans one real CLI/fixture build per SDK and
+  native/buffered/streaming checks; these are not passing observations. The
+  fixture selects `deployment,invocation_context` together, keeping ordinary
+  deployment-tag tests unchanged. [Context and CI scope](docs/SERVERLESS_CONTEXT.md).
+- Logging remains application opt-in; no automatic response headers, telemetry/
+  X-Ray conversion, authentication, AWS or release qualification is added.
+
 ## Unreleased — explicit client-only component boundaries
 
 - Add `ui.ClientIsland` with a useful server fallback and one synchronous

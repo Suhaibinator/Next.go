@@ -197,6 +197,22 @@ uploads. Real AWS streaming validation remains a release gate: check early
 HTML/chunks with an authorized streaming client, reverse-proxy/CDN buffering,
 WASM hydration, deadline failures, and observable client behavior after errors.
 
+### Invocation and gateway correlation context (qualification pending)
+
+`serverless.InvocationID(ctx)` / `serverless.GatewayRequestID(ctx)` expose
+distinct bounded context metadata from Run and HTTP API v2
+event conversion. It reads no caller-supplied HTTP correlation headers, adds no
+automatic headers/logging/tracing and grants no authorization. Values outside
+1–256 visible-ASCII bytes are omitted; existing Runtime API validation and
+response/error routing are unchanged. A missing gateway ID shadows an older
+inherited value. Existing bounded `nextgo.After` contexts retain request values.
+Fresh unit and native/local buffered/local streaming executable qualification
+remain pending; the [dedicated workflow](../.github/workflows/serverless-context.yml)
+is unexecuted. Its generated fixture requires both `deployment` and
+`invocation_context` tags; plain deployment-tag tests retain their existing
+interface. No actual AWS proof is claimed. See [context semantics, application-
+owned examples and fixture instructions](SERVERLESS_CONTEXT.md).
+
 ### Runtime behavior and limits
 
 - Each invocation gets a request context with the Lambda deadline. Application
