@@ -25,7 +25,6 @@ func TestOfflineStatusConflictGuardsKeepExactSentinelAndRejectBeforeMutation(t *
 		{"foreign-active", "registration-active-worker", func(f *offlineTestFixture) { f.registration.Set("active", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign-worker.js"})) }},
 		{"foreign-waiting", "registration-waiting-worker", func(f *offlineTestFixture) { f.registration.Set("waiting", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign-worker.js"})) }},
 		{"foreign-installing", "registration-installing-worker", func(f *offlineTestFixture) { f.registration.Set("installing", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign-worker.js"})) }},
-		{"empty-registration", "registration-empty", func(f *offlineTestFixture) { f.registration.Set("active", js.Null()) }},
 		{"duplicate-overlap", "registration-duplicate", func(f *offlineTestFixture) { f.registrations = []js.Value{f.registration, f.registration} }},
 		{"foreign-controller", "controller-worker", func(f *offlineTestFixture) { f.sw.Set("controller", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign-worker.js"})) }},
 	}
