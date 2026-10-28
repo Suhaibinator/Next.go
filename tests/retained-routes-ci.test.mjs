@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
+import {observeRetainedOwnerScroll} from './retained-owner-scroll-observation.mjs';
 import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle} from './retained-routes-ci.mjs';
 
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
@@ -155,4 +156,105 @@ test('module attachment has its own finite4KiB decoded cap while native proof de
   const body=Buffer.from(JSON.stringify(moduleProof())).toString('base64');assert.deepEqual(await proofAttachment({contentType:'application/json',body},'/tmp/qualification',4096),moduleProof());
   const oversized=Buffer.from(JSON.stringify({padding:'x'.repeat(4096)})).toString('base64');await assert.rejects(proofAttachment({contentType:'application/json',body:oversized},'/tmp/qualification',4096));
   await assert.rejects(proofAttachment({contentType:'application/json',body},'/tmp/qualification',8192));
+});
+
+// Pure fake-native accessor tests. These do not simulate native browser scroll
+// restoration, substitute application responses or prove a browser diagnosis.
+function scrollAccessorFixture() {
+  const calls = {get: 0, set: 0, coercions: 0, receivers: [], inputs: []};
+  const state = {value: 0, getError: null, setError: null, setResult: undefined, busy: false, active: true};
+  const prototype = {};
+  Object.defineProperty(prototype, 'scrollTop', {configurable: true, enumerable: true,
+    get() {calls.get++; calls.receivers.push(this); if (state.getError) throw state.getError; return state.value;},
+    set(value) {calls.set++; calls.receivers.push(this); calls.inputs.push(value); if (state.setError) throw state.setError; state.value = Number(value); return state.setResult;},
+  });
+  const owner = Object.create(prototype);
+  Object.assign(owner, {hidden: false, isConnected: true, hasAttribute: name => name === 'data-nextgo-view-active' && state.active});
+  const world = {location: {pathname: '/owner'}, document: {querySelector: () => owner, getElementById: () => ({hasAttribute: name => name === 'aria-busy' && state.busy})}};
+  return {owner, world, calls, state, prototype};
+}
+test('owner scroll observer install and finish perform zero native scroll reads or writes', () => {
+  const f = scrollAccessorFixture(), original = Object.getOwnPropertyDescriptor(f.prototype, 'scrollTop');
+  assert.equal(observeRetainedOwnerScroll({world: f.world}).installed, true);
+  assert.equal(f.calls.get, 0); assert.equal(f.calls.set, 0);
+  const result = observeRetainedOwnerScroll({world: f.world, command: 'finish'});
+  assert.equal(result.disposed, true); assert.equal(result.stateCleared, true); assert.equal(result.rows.length, 0);
+  assert.equal(f.calls.get, 0); assert.equal(f.calls.set, 0);
+  assert.equal(Object.getOwnPropertyDescriptor(f.owner, 'scrollTop'), undefined);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(f.prototype, 'scrollTop'), original);
+});
+test('owner scroll observer forwards exactly one native call with original receiver and coercion', () => {
+  const f = scrollAccessorFixture(); observeRetainedOwnerScroll({world: f.world});
+  const input = {valueOf() {f.calls.coercions++; return 200;}};
+  f.owner.scrollTop = input;
+  assert.equal(f.calls.set, 1); assert.equal(f.calls.get, 0); assert.equal(f.calls.coercions, 1); assert.equal(f.calls.inputs[0], input);
+  assert.equal(f.owner.scrollTop, 200); assert.equal(f.calls.get, 1);
+  f.state.setResult = 17;
+  const own = Object.getOwnPropertyDescriptor(f.owner, 'scrollTop');
+  assert.equal(own.set.call(f.owner, 42), 17); assert.equal(f.calls.set, 2); assert.equal(f.calls.get, 1);
+  assert.ok(f.calls.receivers.every(owner => owner === f.owner));
+  const result = observeRetainedOwnerScroll({world: f.world, command: 'finish'});
+  assert.equal(f.calls.set, 2); assert.equal(f.calls.get, 1);
+  assert.deepEqual(result.rows.map(row => [row.get, row.set, row.requestedPresent, row.returnedPresent]), [[false,true,false,false],[true,false,false,true],[false,true,true,true]]);
+  assert.equal(result.rows[0].returned, 0); assert.equal(result.rows[2].returned, 17);
+  const special = scrollAccessorFixture(); observeRetainedOwnerScroll({world: special.world});
+  special.state.value = NaN; assert.ok(Number.isNaN(special.owner.scrollTop));
+  special.owner.scrollTop = Infinity; assert.equal(special.state.value, Infinity);
+  const nonfinite = observeRetainedOwnerScroll({world: special.world, command: 'finish'});
+  assert.equal(special.calls.get, 1); assert.equal(special.calls.set, 1);
+  assert.equal(nonfinite.rows[0].returnedPresent, false); assert.equal(nonfinite.rows[1].requestedPresent, false);
+});
+test('owner scroll observer preserves native thrown identity without coercion or hidden getter', () => {
+  const f = scrollAccessorFixture(); observeRetainedOwnerScroll({world: f.world});
+  const setterError = new Error('native setter'), getterError = new Error('native getter');
+  const input = {valueOf() {throw Error('observer must not coerce');}};
+  f.state.setError = setterError;
+  assert.throws(() => {f.owner.scrollTop = input;}, error => error === setterError);
+  assert.equal(f.calls.set, 1); assert.equal(f.calls.get, 0); assert.equal(f.calls.coercions, 0);
+  f.state.getError = getterError;
+  assert.throws(() => f.owner.scrollTop, error => error === getterError);
+  const result = observeRetainedOwnerScroll({world: f.world, command: 'finish'});
+  assert.equal(f.calls.set, 1); assert.equal(f.calls.get, 1);
+  assert.equal(result.rows.length, 2); assert.ok(result.rows.every(row => row.threw));
+  assert.ok(result.rows.every(row => !row.returnedPresent));
+  assert.equal(result.rows[0].requestedPresent, false);
+});
+test('owner scroll observer records only finite scalars and truthful phase booleans with a hard64row cap', () => {
+  const f = scrollAccessorFixture(); observeRetainedOwnerScroll({world: f.world});
+  f.world.location.pathname = '/b'; f.owner.hidden = true; f.owner.isConnected = false; f.state.busy = true; f.state.active = false;
+  for (let i = 0; i < 65; i++) {f.state.value = i; assert.equal(f.owner.scrollTop, i);}
+  const result = observeRetainedOwnerScroll({world: f.world, command: 'finish'});
+  assert.equal(f.calls.get, 65); assert.equal(f.calls.set, 0); assert.equal(result.total, 65); assert.equal(result.dropped, 1); assert.equal(result.complete, false);
+  assert.equal(result.rows.length, 64); assert.deepEqual(result.rows.map(row => row.sequence), Array.from({length: 64}, (_, i) => i + 1));
+  assert.ok(result.rows.every(row => row.phaseKnown && row.pathB && !row.pathOwner && row.busy && !row.connected && row.hidden && !row.active));
+  assert.ok(result.rows.every(row => Object.values(row).every(value => typeof value === 'boolean' || typeof value === 'number' && Number.isFinite(value))));
+  const fields = ['sequence','get','set','threw','requestedPresent','requested','returnedPresent','returned','phaseKnown','pathOwner','pathB','busy','connected','hidden','active'].sort();
+  assert.ok(result.rows.every(row => {assert.deepEqual(Object.keys(row).sort(), fields); return true;}));
+  for (const unavailable of [() => null, () => {throw Error('phase unavailable');}]) {
+    const unknown = scrollAccessorFixture(); unknown.world.document.getElementById = unavailable;
+    observeRetainedOwnerScroll({world: unknown.world}); assert.equal(unknown.owner.scrollTop, 0);
+    const report = observeRetainedOwnerScroll({world: unknown.world, command: 'finish'});
+    assert.equal(unknown.calls.get, 1); assert.equal(unknown.calls.set, 0);
+    assert.equal(report.complete, false); assert.equal(report.rows[0].phaseKnown, false);
+  }
+});
+test('owner scroll observer refuses existing or unsupported properties without modifying them', () => {
+  const f = scrollAccessorFixture();
+  Object.defineProperty(f.owner, 'scrollTop', {value: 9, configurable: true});
+  const own = Object.getOwnPropertyDescriptor(f.owner, 'scrollTop');
+  assert.equal(observeRetainedOwnerScroll({world: f.world}).installed, false);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(f.owner, 'scrollTop'), own); assert.equal(f.calls.get, 0); assert.equal(f.calls.set, 0);
+  const missing = scrollAccessorFixture(); Object.setPrototypeOf(missing.owner, {});
+  assert.equal(observeRetainedOwnerScroll({world: missing.world}).installed, false);
+  const closed = scrollAccessorFixture(); Object.preventExtensions(closed.owner);
+  assert.equal(observeRetainedOwnerScroll({world: closed.world}).installed, false);
+  assert.equal(observeRetainedOwnerScroll({world: closed.world, command: 'finish'}).reason, 'not-installed');
+});
+test('owner scroll observer disposal never overwrites a later foreign own descriptor', () => {
+  const f = scrollAccessorFixture(); observeRetainedOwnerScroll({world: f.world});
+  Object.defineProperty(f.owner, 'scrollTop', {value: 23, configurable: true});
+  const result = observeRetainedOwnerScroll({world: f.world, command: 'finish'});
+  assert.equal(result.disposed, false); assert.equal(result.complete, false); assert.equal(result.stateCleared, true);
+  assert.equal(Object.getOwnPropertyDescriptor(f.owner, 'scrollTop').value, 23);
+  assert.equal(f.calls.get, 0); assert.equal(f.calls.set, 0);
 });
