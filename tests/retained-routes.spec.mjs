@@ -1,7 +1,6 @@
 import {test as base,expect} from '@playwright/test';
 import {startRetainedServer} from './retained-routes-fixture.mjs';
 import {holdRequests,holdPage} from './link-status-gates.mjs';
-import {observeRetainedOwnerScroll} from './retained-owner-scroll-observation.mjs';
 
 const test=base.extend({native:async({page},use,info)=>{
   const startup=new AbortController();const closed=()=>startup.abort(Error('Owned page closed during startup'));page.once('close',closed);
@@ -155,10 +154,9 @@ for(const kind of ['details','anchor','radio','form','form-association']){
 }
 
 test('a sole eager island owner retains its own identity state and scroll container',async({page,native},info)=>{
-  let savedActual,afterBackActual,savedObservation,outgoingObservation,afterBackObservation,accessorInstallation;
+  let savedActual,afterBackActual,savedObservation,outgoingObservation,afterBackObservation;
   try{
   await page.goto(native.origin+'/owner');await ready(page);
-  accessorInstallation=await page.evaluate(observeRetainedOwnerScroll,{command:'install'});
   await expect(page.locator('#nextgo-app > [data-nextgo-island="retentionpanel"]')).toHaveAttribute('data-nextgo-hydrated','true');
   await part(page,'increment').click();
   const sampled=await page.evaluate(()=>{
@@ -189,12 +187,6 @@ test('a sole eager island owner retains its own identity state and scroll contai
   });afterBackActual=restored.actual;afterBackObservation=restored.observation;
   expect(restored.actual).toBe(scroll);expect(afterBackObservation.focusedDraft).toBe(true);await expect(part(page,'count')).toHaveText('3');await expect(part(page,'draft')).toHaveValue('Owner island draft');
   }finally{
-    try{
-      const accessor=await page.evaluate(observeRetainedOwnerScroll,{command:'finish'});
-      const body=Buffer.from(JSON.stringify({version:1,installation:accessorInstallation||null,accessor}));
-      if(body.length<=32768)await info.attach('retained-owner-scroll-accessor',{body,contentType:'application/json'});
-      else console.warn('Retained owner accessor diagnostics incomplete: attachment byte cap');
-    }catch{console.warn('Retained owner accessor diagnostics unavailable');}
     // Fixed scalar observations do not reveal component text, props or URLs.
     // Outgoing commit-time capture is unobserved; these are click/back samples.
     try{

@@ -350,6 +350,8 @@ func applicationIslandNodes() js.Value {
 	return applicationContentRoot().Call("querySelectorAll", "[data-nextgo-island]")
 }
 func hideRetained(view *retainedView) {
+	cancelRetainedSettlementFor(view)
+
 	view.root.Call("removeAttribute", "data-nextgo-view-active")
 	view.root.Set("hidden", true)
 	view.root.Call("setAttribute", "inert", "")
@@ -443,6 +445,7 @@ func retireRetainedOwnership(view *retainedView) {
 	if view == nil {
 		return
 	}
+	cancelRetainedSettlementFor(view)
 	view.root.Call("remove")
 	delete(retainedViews, view.info.ID)
 	retainedOwners.remove(view.info.ID)
@@ -500,6 +503,7 @@ func failRetainedActivity(view *retainedView, scope *Scope, err error, id uint64
 	if view == nil || err == nil {
 		return
 	}
+	cancelRetainedSettlementFor(view)
 	view.valid = false
 	view.activityErr = errors.Join(view.activityErr, err)
 	retainedOwners.dropAliases(view.info.ID)
@@ -530,6 +534,8 @@ func failRetainedActivity(view *retainedView, scope *Scope, err error, id uint64
 // preserveActive is used for mutation fences: active UI continues normally, but
 // cannot later become a reusable snapshot. Hidden private state is discarded.
 func clearRetainedViews(preserveActive bool) error {
+	cancelRetainedSettlement()
+
 	snapshot := make([]*retainedView, 0, len(retainedViews))
 	for _, view := range retainedViews {
 		snapshot = append(snapshot, view)
@@ -603,12 +609,16 @@ func captureRetained(view *retainedView) {
 	}
 }
 
-func restoreRetainedFocus(pop bool) {
-	defer func() { _ = recover() }()
+func restoreRetainedFocus(pop bool) (settlement *retainedSettlementSnapshot) {
+	defer func() {
+		if recover() != nil {
+			settlement = nil
+		}
+	}()
 	view := retainedFocus
 	retainedFocus = nil
 	if !pop || view == nil || view != retainedCurrent {
-		return
+		return nil
 	}
 	if view.focus.Truthy() && view.focus.Get("isConnected").Bool() && view.root.Call("contains", view.focus).Bool() {
 		// Materialize the restored control before focusing it. Otherwise an
@@ -633,6 +643,7 @@ func restoreRetainedFocus(pop bool) {
 			entry.node.Set("scrollTop", entry.y)
 		}
 	}
+	return captureRetainedSettlement(view)
 }
 
 type retainedDOMPlan struct {

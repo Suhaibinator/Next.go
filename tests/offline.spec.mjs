@@ -389,3 +389,209 @@ test('explicit Go disable reports retained charged payloads until closed clients
   expect(shelf.records.slice(prior).filter(record => record.path.startsWith('/_nextgo/offline/documents/'))).toEqual([]);
   await info.attach('explicit-disable-cache-accounting', {body: JSON.stringify({before, retained, remaining, beforeAccounting, retainedAccounting, reconciledAccounting}), contentType: 'application/json'});
 });
+
+// Fault ONLY the parent realm's registration wrappers. The child retains the
+// browser's real ServiceWorkerContainer methods and updates the actual A/B
+// artifact-backed registration. This forces a branch; it does not reproduce or
+// explain the historical native empty-record failure.
+async function parentEmptyRegistrationFault(page, countNativeUpdates = false) {
+  await page.evaluate(countNativeUpdates => {
+    const sw = navigator.serviceWorker, descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
+    const names = ['getRegistrations', 'getRegistration'];
+    if (globalThis.offlineEmptyParentFault || names.some(name => Object.hasOwn(sw, name))) throw new Error('Parent container is already instrumented');
+    const nativeList = sw.getRegistrations, nativeTarget = sw.getRegistration;
+    const state = {lists: 0, lookups: 0, added: 0, removed: 0, live: new Set(), maxLive: 0, frameListeners: new Map(), nativeUpdates: null, nativeUpdateWitness: countNativeUpdates ? 'no-attempt' : 'disabled'};
+    const empty = registration => registration?.scope === descriptor.scope ? {scope: registration.scope, active: null, waiting: null, installing: null} : registration;
+    const list = function(...args) {
+      if (this !== sw) throw new Error('Unexpected parent list receiver');
+      if (++state.lists > 16) throw new Error('Parent list fault exceeds finite budget');
+      return Reflect.apply(nativeList, this, args).then(values => values.map(empty));
+    };
+    const target = function(...args) {
+      if (this !== sw) throw new Error('Unexpected parent lookup receiver');
+      if (++state.lookups > 4) throw new Error('Parent target fault exceeds finite budget');
+      return Reflect.apply(nativeTarget, this, args).then(empty);
+    };
+    const record = records => {
+      if (records.length > 128) throw new Error('Unexpected frame observer volume');
+      for (const record of records) {
+        for (const node of record.addedNodes) if (node.nodeType === 1 && node.tagName === 'IFRAME') {state.added++; state.live.add(node); state.maxLive = Math.max(state.maxLive, state.live.size);
+          if (countNativeUpdates) {
+            const onLoad = () => {
+            state.frameListeners.delete(node);
+            // A one-call forwarding witness in this exact child realm. No
+            // native object is stored in parent state or used after removal.
+            try {
+              const prototype = node.contentWindow.ServiceWorkerRegistration.prototype;
+              const own = Object.getOwnPropertyDescriptor(prototype, 'update');
+              if (!own || typeof own.value !== 'function') throw new Error('Missing native update descriptor');
+              const native = own.value;
+              Object.defineProperty(prototype, 'update', {...own, value: function(...args) {
+                Object.defineProperty(prototype, 'update', own);
+                state.nativeUpdateWitness = 'called';
+                if (this.scope !== descriptor.scope || ++state.nativeUpdates !== 1) throw new Error('Unexpected native update dispatch');
+                return Reflect.apply(native, this, args);
+              }});
+              state.nativeUpdates = 0; state.nativeUpdateWitness = 'installed';
+            } catch {state.nativeWitnessUnavailable = true; state.nativeUpdateWitness = 'unavailable'; state.nativeUpdates = null;}
+            };
+            state.frameListeners.set(node, onLoad);
+            node.addEventListener('load', onLoad, {once: true});
+          }
+        }
+        for (const node of record.removedNodes) if (state.live.delete(node)) {state.removed++; const listener = state.frameListeners.get(node); if (listener) node.removeEventListener('load', listener); state.frameListeners.delete(node);}
+      }
+      state.maxLive = Math.max(state.maxLive, state.live.size);
+    };
+    const observer = new MutationObserver(record);
+    observer.observe(document.documentElement, {childList: true});
+    Object.defineProperty(sw, 'getRegistrations', {value: list, configurable: true});
+    Object.defineProperty(sw, 'getRegistration', {value: target, configurable: true});
+    globalThis.offlineEmptyParentFault = {sw, list, target, state, observer, record};
+  }, countNativeUpdates);
+}
+async function retireParentEmptyRegistrationFault(page) {
+  return page.evaluate(() => {
+    const fault = globalThis.offlineEmptyParentFault;
+    if (!fault) throw new Error('Missing owned fault');
+    let proof;
+    try {
+      fault.record(fault.observer.takeRecords());
+      if (navigator.serviceWorker !== fault.sw || fault.sw.getRegistrations !== fault.list || fault.sw.getRegistration !== fault.target) throw new Error('Fault ownership changed');
+      delete fault.sw.getRegistrations; delete fault.sw.getRegistration;
+      if (Object.hasOwn(fault.sw, 'getRegistrations') || Object.hasOwn(fault.sw, 'getRegistration')) throw new Error('Parent wrappers were not restored');
+      proof = {forcedParentEmptyOnly: true, lists: fault.state.lists, lookups: fault.state.lookups, framesAdded: fault.state.added, framesRemoved: fault.state.removed, framesConnected: [...fault.state.live].filter(frame => frame.isConnected).length, maximumLiveFrames: fault.state.maxLive, nativeUpdateCalls: fault.state.nativeUpdates, nativeUpdateWitness: fault.state.nativeUpdateWitness, nativeWitnessUnavailable: !!fault.state.nativeWitnessUnavailable, pendingFrameListeners: fault.state.frameListeners.size};
+    } finally {
+      fault.observer.disconnect();
+      for (const [frame, listener] of fault.state.frameListeners) frame.removeEventListener('load', listener);
+      fault.state.frameListeners.clear();
+      if (fault.sw.getRegistrations === fault.list) delete fault.sw.getRegistrations;
+      if (fault.sw.getRegistration === fault.target) delete fault.sw.getRegistration;
+      delete globalThis.offlineEmptyParentFault;
+    }
+    return proof;
+  });
+}
+async function nextOfflineCompletion(page) {
+  const current = await controls(page).getAttribute('data-offline-completed-operations');
+  expect(current).toMatch(/^(0|[1-9][0-9]{0,9})$/);
+  expect(BigInt(current)).toBeLessThan(1n << 32n);
+  return ((BigInt(current) + 1n) % (1n << 32n)).toString();
+}
+
+test('Go update recovers a forced parent-empty proof through one live native realm without activating or remounting', async ({shelf}, info) => {
+  let page = await shelf.open();
+  const active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  await page.evaluate(() => {globalThis.freshRealmOfflineNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];});
+  await parentEmptyRegistrationFault(page);
+  let proof;
+  try {
+    await shelf.select('B');
+    const completion = await nextOfflineCompletion(page);
+    await page.locator('[data-offline-update]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-last-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+    expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
+    expect(await page.evaluate(() => freshRealmOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+    await expect(counter(page)).toHaveText('4');
+  } finally {proof = await retireParentEmptyRegistrationFault(page);}
+  expect(proof).toEqual({forcedParentEmptyOnly: true, lists: 4, lookups: 1, framesAdded: 1, framesRemoved: 1, framesConnected: 0, maximumLiveFrames: 1, nativeUpdateCalls: null, nativeUpdateWitness: 'disabled', nativeWitnessUnavailable: false, pendingFrameListeners: 0});
+  const waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
+  const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state, controller: navigator.serviceWorker.controller?.state, frames: document.querySelectorAll('iframe').length};});
+  expect(native).toEqual({active: 'activated', waiting: 'installed', controller: 'activated', frames: 0});
+  await info.attach('forced-parent-empty-live-realm-update', {body: JSON.stringify({proof, native, active, waiting, naturalCause: 'UNKNOWN'}), contentType: 'application/json'});
+  await shelf.closeBrowser(); page = await shelf.open(); await page.goto(shelf.origin + '/'); await ready(page);
+  const completion = await nextOfflineCompletion(page);
+  await page.locator('[data-offline-status-button]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', waiting);
+  await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', '');
+  await expect(counter(page)).toHaveText('3');
+});
+
+// Probe the actual native policy with the same empty frame options, then fully
+// remove it before the Go operation. A removed frame is not a claim about
+// instantaneous ServiceWorker client-ID erasure.
+async function blankFramePolicy(page) {
+  return page.evaluate(async () => {
+    if (document.querySelector('iframe')) throw new Error('Policy probe requires no preexisting frames');
+    const frame = document.createElement('iframe');
+    frame.hidden = true; frame.inert = true; frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true'); frame.src = 'about:blank';
+    let loaded = false, failed = false, violation = false, timer;
+    let finish;
+    const result = new Promise((resolve, reject) => {
+      const inspect = () => {
+        if (!loaded && !failed) return;
+        let accessible = false;
+        try {
+          const child = frame.contentWindow, childDocument = frame.contentDocument;
+          accessible = !!child && !!childDocument && child.location.href === 'about:blank' && child.origin === location.origin && childDocument.readyState === 'complete' && childDocument.body?.childNodes.length === 0 && !!child.navigator.serviceWorker;
+        } catch {}
+        if (accessible) resolve({nativePermitsLiveBlank: true, policyViolationObserved: violation});
+        else if (violation) resolve({nativePermitsLiveBlank: false, policyViolationObserved: true});
+      };
+      finish = inspect;
+      timer = setTimeout(() => reject(new Error('Native blank-frame policy remains unknown')), 5000);
+    });
+    const onLoad = () => {loaded = true; finish();};
+    const onError = () => {failed = true; finish();};
+    const onPolicy = event => {
+      // CSP serializes non-network blocked URLs as their scheme on some
+      // implementations. The sole owned iframe attempt has literal src blank.
+      if (event instanceof SecurityPolicyViolationEvent && event.isTrusted && event.effectiveDirective === 'frame-src' && ['about', 'about:blank'].includes(event.blockedURI) && frame.getAttribute('src') === 'about:blank' && document.querySelectorAll('iframe').length === 1 && frame.isConnected) {violation = true; finish();}
+    };
+    frame.addEventListener('load', onLoad); frame.addEventListener('error', onError);
+    document.addEventListener('securitypolicyviolation', onPolicy);
+    try {document.documentElement.append(frame); return await result;}
+    finally {
+      clearTimeout(timer); frame.removeEventListener('load', onLoad); frame.removeEventListener('error', onError);
+      document.removeEventListener('securitypolicyviolation', onPolicy); frame.remove();
+      if (frame.isConnected || document.querySelector('iframe')) throw new Error('Native policy probe did not retire');
+    }
+  });
+}
+
+test('Go parent-empty update honors actual native blank-frame CSP policy with real worker state and cleanup', async ({shelf}, info) => {
+  const page = await shelf.open(), active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
+  // No response-header or fixture-server changes. Some browsers permit the
+  // initial blank realm despite denying its explicit blank navigation.
+  await page.evaluate(() => {const policy = document.createElement('meta'); policy.httpEquiv = 'Content-Security-Policy'; policy.content = "frame-src 'none'"; document.head.append(policy);});
+  const policy = await blankFramePolicy(page);
+  await parentEmptyRegistrationFault(page, true);
+  let proof, waiting;
+  try {
+    await shelf.select('B');
+    const completion = await nextOfflineCompletion(page);
+    await page.locator('[data-offline-update]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    if (policy.nativePermitsLiveBlank) {
+      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+      await expect(controls(page)).toHaveAttribute('data-offline-last-error', '');
+      await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
+      waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
+    } else {
+      expect(policy.policyViolationObserved).toBe(true);
+      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', /conflict/);
+      await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', '');
+    }
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+    expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
+    await expect(counter(page)).toHaveText('3');
+  } finally {proof = await retireParentEmptyRegistrationFault(page);}
+  expect(proof.forcedParentEmptyOnly).toBe(true); expect(proof.lookups).toBe(1);
+  expect(proof.framesAdded).toBe(1); expect(proof.framesRemoved).toBe(1); expect(proof.framesConnected).toBe(0);
+  expect(proof.maximumLiveFrames).toBe(1); expect(proof.pendingFrameListeners).toBe(0);
+  const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state || null, frames: document.querySelectorAll('iframe').length};});
+  // Persist the bounded witness before requiring complete instrumentation. A
+  // native-denied/no-attempt realm is explicit UNKNOWN for call counting, not
+  // an observed zero. It cannot qualify this strict zero-dispatch assertion.
+  await info.attach('forced-parent-empty-native-csp-policy', {body: JSON.stringify({policy, proof, native, active, waiting: waiting || null, nativeDeniedNoObservableUpdateAttempt: !policy.nativePermitsLiveBlank && proof.nativeUpdateWitness === 'no-attempt', naturalCause: 'UNKNOWN'}), contentType: 'application/json'});
+  expect(proof.nativeWitnessUnavailable).toBe(false);
+  if (policy.nativePermitsLiveBlank) {expect(proof.nativeUpdateWitness).toBe('called'); expect(proof.nativeUpdateCalls).toBe(1);}
+  else {expect(proof.nativeUpdateWitness).toBe('installed'); expect(proof.nativeUpdateCalls).toBe(0);}
+  expect(native).toEqual({active: 'activated', waiting: policy.nativePermitsLiveBlank ? 'installed' : null, frames: 0});
+});

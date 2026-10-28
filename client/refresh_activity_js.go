@@ -117,6 +117,8 @@ func freezeRefreshActivity() refreshActivityStatus {
 	if !devRefreshBuild {
 		return refreshActivityStatus{}
 	}
+	// Cancel before taking the activity mutex: physical retirement calls Done.
+	cancelRetainedSettlement()
 	if refreshActivity.enabled {
 		refreshActivityMu.Lock()
 		refreshActivity.frozen = true

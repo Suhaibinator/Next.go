@@ -408,6 +408,7 @@ func flushMergeNotifications(authority func() bool) []propsFailure {
 // Only recognized authority changes call this. Ordinary navigation intent or
 // resource invalidation must never revoke the useful currently published UI.
 func revokeMergeDocument() {
+	cancelRetainedSettlement()
 	current := mergeCurrent
 	application := mergeApplication
 	if (current == nil || current.revoked) && (application == nil || application.revoked) {

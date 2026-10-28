@@ -616,6 +616,7 @@ func requestURL(target string) string {
 	return u.Get("href").String()
 }
 func invalidateCache() {
+	cancelRetainedSettlement()
 	if moduleMode {
 		_ = moduleCall("invalidate")
 		return
@@ -719,6 +720,7 @@ func saveScroll() {
 // Same-document history changes also supersede an outstanding page request.
 // Invalidating its ID prevents a response already in flight from committing.
 func cancelPendingNavigation() {
+	cancelRetainedSettlement()
 	cancelActionView()
 	skipViewTransition()
 	stopNavigationStream()
@@ -749,6 +751,7 @@ func startNavigationOptions(target string, pop bool, state js.Value, options Nav
 }
 
 func startLinkNavigation(target string, pop bool, state js.Value, options NavigationOptions, source js.Value) {
+	cancelRetainedSettlement()
 	if draftFrozen || refreshFrozen() {
 		return
 	}
@@ -1417,12 +1420,15 @@ func commitLegacy(ctx context.Context, parsed, root js.Value, data envelope, tar
 		captureMergeBindings()
 	}
 	completeAccessibleNavigation(previous, target, active, data.Title)
-	restoreRetainedFocus(pop)
+	settlement := restoreRetainedFocus(pop)
 	// Finish retained focus, selection and nested positions before the single
 	// explicit window restore.
 	restoreScroll(target, pop, state)
 	saveScroll()
 	notifyLocationObservers()
+	// Owned presentation work neither yields the atomic commit nor keeps its
+	// normally canceled navigation context alive. It never writes the window.
+	scheduleRetainedSettlement(settlement)
 	return nil
 }
 

@@ -172,6 +172,8 @@ func (s *Scope) dispose() {
 	guard := s.mergeCallbackGuard()
 	s.mergeCallbacks = guard != nil
 	s.closed = true
+	// Native cancellation wrappers may reenter this same scope synchronously.
+	cancelRetainedSettlementWithin(s.Root.Value)
 	if s.propsPreparingCancel != nil {
 		s.propsPreparingCancel()
 	}
