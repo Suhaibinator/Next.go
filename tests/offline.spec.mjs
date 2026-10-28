@@ -3,7 +3,7 @@ import {mkdir, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {readOfflineArtifacts, startOfflineFixture} from './offline-fixture.mjs';
 import {observeOfflineRegistrationProof} from './offline-registration-proof-diagnostics.mjs';
-import {observeOfflineUpdateFailure} from './offline-update-failure-observation.mjs';
+import {observeOfflineUpdateFailure, retireOfflineParentFault} from './offline-update-failure-observation.mjs';
 
 const browserTypes = {chromium, firefox, webkit};
 const controls = page => page.locator('[data-offline-controls]');
@@ -135,6 +135,12 @@ const test = base.extend({
           info.title === 'a genuine new generation waits while the old client is open and activates only after every scoped client closes') {
         try {await observeOfflineUpdateFailure(context, info);} catch {} // Never replace the original failure.
         try {await observeOfflineRegistrationProof(context, info, fixture.origin);} catch {console.warn('Offline registration diagnostic unavailable before attachment');}
+      }
+      if (info.status !== info.expectedStatus && [
+        'Go update recovers a forced parent-empty proof through one live native realm without activating or remounting',
+        'Go parent-empty update honors actual native blank-frame CSP policy with real worker state and cleanup',
+      ].includes(info.title)) {
+        try {await observeOfflineUpdateFailure(context, info);} catch {} // Late DOM only, before fixture close.
       }
       if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
           info.title === 'explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation') {
@@ -485,7 +491,7 @@ test('Go update recovers a forced parent-empty proof through one live native rea
   await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
   await page.evaluate(() => {globalThis.freshRealmOfflineNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];});
   await parentEmptyRegistrationFault(page);
-  let proof;
+  let proof, primaryFailed = false;
   try {
     await shelf.select('B');
     const completion = await nextOfflineCompletion(page);
@@ -498,7 +504,8 @@ test('Go update recovers a forced parent-empty proof through one live native rea
     expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
     expect(await page.evaluate(() => freshRealmOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
     await expect(counter(page)).toHaveText('4');
-  } finally {proof = await retireParentEmptyRegistrationFault(page);}
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await retireOfflineParentFault(page, info, retireParentEmptyRegistrationFault, primaryFailed);}
   expect(proof).toEqual({forcedParentEmptyOnly: true, lists: 4, lookups: 1, framesAdded: 1, framesRemoved: 1, framesConnected: 0, maximumLiveFrames: 1, nativeUpdateCalls: null, nativeUpdateWitness: 'disabled', nativeWitnessUnavailable: false, pendingFrameListeners: 0});
   const waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
   const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state, controller: navigator.serviceWorker.controller?.state, frames: document.querySelectorAll('iframe').length};});
@@ -562,7 +569,7 @@ test('Go parent-empty update honors actual native blank-frame CSP policy with re
   await page.evaluate(() => {const policy = document.createElement('meta'); policy.httpEquiv = 'Content-Security-Policy'; policy.content = "frame-src 'none'"; document.head.append(policy);});
   const policy = await blankFramePolicy(page);
   await parentEmptyRegistrationFault(page, true);
-  let proof, waiting;
+  let proof, waiting, primaryFailed = false;
   try {
     await shelf.select('B');
     const completion = await nextOfflineCompletion(page);
@@ -581,7 +588,8 @@ test('Go parent-empty update honors actual native blank-frame CSP policy with re
     await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
     expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
     await expect(counter(page)).toHaveText('3');
-  } finally {proof = await retireParentEmptyRegistrationFault(page);}
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await retireOfflineParentFault(page, info, retireParentEmptyRegistrationFault, primaryFailed);}
   expect(proof.forcedParentEmptyOnly).toBe(true); expect(proof.lookups).toBe(1);
   expect(proof.framesAdded).toBe(1); expect(proof.framesRemoved).toBe(1); expect(proof.framesConnected).toBe(0);
   expect(proof.maximumLiveFrames).toBe(1); expect(proof.pendingFrameListeners).toBe(0);

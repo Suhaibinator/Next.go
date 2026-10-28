@@ -38,7 +38,7 @@ func (p offlineRealmParent) fence(ctx context.Context) error {
 		return err
 	}
 	if !current.Truthy() || !current.Equal(p.controller) || !p.c.ownedWorker(current) {
-		return p.c.ownershipConflict("controller-changed")
+		return p.c.ownershipConflict("parent-controller-changed")
 	}
 	if ctx.Err() != nil {
 		return ErrOfflineUnknown
@@ -224,6 +224,13 @@ func (r *offlineProofRealm) open(ctx context.Context) error {
 		return r.parent.c.ownershipConflict("registration-proof-empty-lookup")
 	}
 	r.controller = r.container.Get("controller")
+	// The helper's own controller is not registration mutation authority. An
+	// uncontrolled same-origin helper may use its native registry APIs; only
+	// exact native null is accepted as absence, and its captured state must stay
+	// unchanged. The parent still requires its exact owned nonnull controller.
+	if !r.controller.IsNull() && !r.parent.c.ownedWorker(r.controller) {
+		return r.parent.c.ownershipConflict("child-controller-invalid")
+	}
 	return r.fence(ctx)
 }
 
@@ -240,12 +247,12 @@ func (r *offlineProofRealm) fence(ctx context.Context) error {
 		!r.window.Get("navigator").Get("serviceWorker").Equal(r.container) {
 		return ErrOfflineUnknown
 	}
-	current, err := r.parent.c.registrationController(r.container)
-	if err != nil {
-		return err
+	current := r.container.Get("controller")
+	if !current.IsNull() && !r.parent.c.ownedWorker(current) {
+		return r.parent.c.ownershipConflict("child-controller-invalid")
 	}
-	if !current.Truthy() || !current.Equal(r.controller) {
-		return r.parent.c.ownershipConflict("controller-changed")
+	if !current.Equal(r.controller) {
+		return r.parent.c.ownershipConflict("child-controller-changed")
 	}
 	return r.parent.fence(ctx)
 }

@@ -771,3 +771,90 @@ func TestOfflineFreshRealmParentTailLeaseBlocksReplacementUntilTrueJoin(t *testi
 		t.Fatal("old operation notified replacement subscribers with stale outcome")
 	}
 }
+
+// Registry proof is independent of whether this live same-origin helper is
+// controlled. Exercise the public operation rather than only its predicate.
+func TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority(t *testing.T) {
+	for _, mode := range []string{"stable-null", "undefined", "false", "number", "string", "object", "foreign", "null-to-owned", "null-to-undefined", "null-to-false", "null-to-foreign", "owned-to-null", "owned-to-different", "parent-lost", "empty-proof", "foreign-proof"} {
+		t.Run(mode, func(t *testing.T) {
+			x := freshOfflineRealmFixture(t)
+			x.childSW.Set("controller", js.Null())
+			wantReason := "child-controller-invalid"
+			switch mode {
+			case "undefined":
+				x.childSW.Set("controller", js.Undefined())
+			case "false":
+				x.childSW.Set("controller", false)
+			case "number":
+				x.childSW.Set("controller", 0)
+			case "string":
+				x.childSW.Set("controller", "")
+			case "object":
+				x.childSW.Set("controller", js.ValueOf(map[string]any{}))
+			case "foreign":
+				x.childSW.Set("controller", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign.js"}))
+			case "null-to-owned":
+				wantReason = "child-controller-changed"
+				x.beforeLookup = func() { x.childSW.Set("controller", x.f.worker) }
+			case "null-to-undefined":
+				x.beforeLookup = func() { x.childSW.Set("controller", js.Undefined()) }
+			case "null-to-false":
+				x.beforeLookup = func() { x.childSW.Set("controller", false) }
+			case "null-to-foreign":
+				x.beforeLookup = func() {
+					x.childSW.Set("controller", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign.js"}))
+				}
+			case "owned-to-null":
+				wantReason = "child-controller-changed"
+				x.childSW.Set("controller", x.f.worker)
+				x.beforeLookup = func() { x.childSW.Set("controller", js.Null()) }
+			case "owned-to-different":
+				wantReason = "child-controller-changed"
+				x.childSW.Set("controller", x.f.worker)
+				x.beforeLookup = func() {
+					x.childSW.Set("controller", js.ValueOf(map[string]any{"scriptURL": x.f.c.descriptor.WorkerURL}))
+				}
+			case "parent-lost":
+				wantReason = "parent-controller-changed"
+				x.beforeLookup = func() { x.f.sw.Set("controller", js.Null()) }
+			case "empty-proof":
+				wantReason = "registration-proof-empty-lookup"
+				x.candidate.Set("active", js.Null())
+			case "foreign-proof":
+				wantReason = "registration-active-worker"
+				x.candidate.Set("active", js.ValueOf(map[string]any{"scriptURL": "https://reader.test/foreign.js"}))
+			}
+			err := CheckOfflineUpdate(context.Background())
+			if mode == "stable-null" {
+				if err != nil {
+					t.Fatal(err)
+				}
+				want := []string{"parent-list", "parent-target", "child-list", "child-target", "parent-list", "child-list", "update", "parent-list", "child-list", "status", "remove", "parent-list", "status"}
+				if !reflect.DeepEqual(x.trace, want) || x.parentReads != 4 || x.childReads != 3 || x.lookups != 1 || x.updates != 1 {
+					t.Fatalf("uncontrolled helper bypassed or duplicated proof: %v", x.trace)
+				}
+				if !x.f.sw.Get("controller").Equal(x.f.worker) || !x.childSW.Get("controller").IsNull() {
+					t.Fatal("successful update changed parent or helper control")
+				}
+				if got := OfflineStatus(); got.ActiveGeneration != strings.Repeat("d", 64) || got.WaitingGeneration != strings.Repeat("e", 64) || got.Phase != "waiting" || got.LastError != "" {
+					t.Fatalf("lost proven waiting/parent status: %+v", got)
+				}
+			} else {
+				if !errors.Is(err, ErrOfflineConflict) || x.f.c.conflictReason != wantReason {
+					t.Fatalf("invalid controller/proof was not rejected precisely: %v (%s)", err, x.f.c.conflictReason)
+				}
+				if x.updates != 0 || len(x.f.commands) != 0 || OfflineStatus().WaitingGeneration != "" {
+					t.Fatal("rejected authority mutated worker or published waiting status")
+				}
+			}
+			if x.created != 1 || x.removed != 1 || offlineRealmInUse != nil || x.f.c.busy || x.f.registers != 0 || x.f.unregisters != 0 {
+				t.Fatal("helper operation escaped update-only cleanup/admission")
+			}
+			for _, request := range x.f.commands {
+				if request.Command != "status" {
+					t.Fatal("helper sent a mutating worker message")
+				}
+			}
+		})
+	}
+}
