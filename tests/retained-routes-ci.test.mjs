@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {observeRetainedOwnerScroll} from './retained-owner-scroll-observation.mjs';
-import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle} from './retained-routes-ci.mjs';
+import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose} from './retained-routes-ci.mjs';
 
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
 
@@ -257,4 +257,57 @@ test('owner scroll observer disposal never overwrites a later foreign own descri
   assert.equal(result.disposed, false); assert.equal(result.complete, false); assert.equal(result.stateCleared, true);
   assert.equal(Object.getOwnPropertyDescriptor(f.owner, 'scrollTop').value, 23);
   assert.equal(f.calls.get, 0); assert.equal(f.calls.set, 0);
+});
+
+// New lifecycle integration source uses the actual runner join and completion
+// functions with synchronous fake kernel outcomes and joined fake timer receipts.
+// It launches no process, touches no /proc and schedules no real timer.
+const drainCommandFixture=(code=0)=>({name:'bounded-command',pid:700,closed:true,code,signal:null,groupEmpty:false,cleanupDeferred:false,cleanupTimedOut:false,timedOut:false,interrupted:false,outputExceeded:false});
+function commandDrainIO(outcomes,{onWait}={}){
+  let clock=0,index=0;const observed=[],waits=[];
+  return {observed,waits,io:{now:()=>clock,probe:group=>{observed.push(group);return outcomes[Math.min(index++,outcomes.length-1)];},wait:async(ms,signal)=>{waits.push(ms);clock+=ms;onWait?.(signal);return {joined:true,outstanding:0,timersStarted:1,timersCleared:1,abortListenersAdded:signal?1:0,abortListenersRemoved:signal?1:0};}}};
+}
+test('actual command completion keeps exit1 failed even after a joined ESRCH group drain',async()=>{
+  const proof=drainCommandFixture(1),fake=commandDrainIO(['PRESENT','PRESENT','ESRCH']);
+  const result=await joinClosedCommandGroup(proof,{deadlineMS:500},fake.io);
+  assert.equal(result.empty,true);assert.equal(result.lastOutcome,'ESRCH');assert.equal(result.joined,true);assert.equal(result.outstanding,0);assert.equal(proof.groupEmpty,true);assert.deepEqual(fake.observed,[700,700,700]);assert.equal(fake.waits.length,2);
+  assert.throws(()=>validateCommandCompletion(proof));
+});
+test('actual command acceptance requires both original zero-exit guards and the attached ESRCH receipt',async()=>{
+  const proof=drainCommandFixture(),fake=commandDrainIO(['ESRCH']);await joinClosedCommandGroup(proof,{deadlineMS:500},fake.io);
+  assert.strictEqual(validateCommandCompletion(proof),proof);assert.equal(fake.waits.length,0);
+  for(const change of [{closed:false},{groupEmpty:false},{code:1},{signal:'SIGTERM'},{cleanupDeferred:true},{cleanupTimedOut:true},{timedOut:true},{interrupted:true},{outputExceeded:true},{groupDrain:undefined}])assert.throws(()=>validateCommandCompletion({...proof,...change}));
+  assert.throws(()=>validateCommandCompletion(proof,Error('spawn failure')));
+  for(const mutate of [r=>{r.deadlineMS=r.finishedAtMS;},r=>{r.attempts=99;},r=>{r.timersCleared=r.timersStarted+1;},r=>{r.outstanding=null;},r=>{r.signalAuthority=true;}]){const changed=structuredClone(proof);mutate(changed.groupDrain);assert.throws(()=>validateCommandCompletion(changed));}
+
+});
+test('present permission and unavailable command groups never gain empty credit from leader close',async()=>{
+  for(const outcome of ['PRESENT','PERMISSION_DENIED','UNAVAILABLE']){
+    const proof=drainCommandFixture(),fake=commandDrainIO([outcome]);const result=await joinClosedCommandGroup(proof,{deadlineMS:35},fake.io);
+    assert.equal(result.empty,false);assert.equal(result.signalAuthority,false);assert.equal(result.censusConsulted,false);assert.equal(proof.groupEmpty,false);assert.equal(proof.cleanupDeferred,true);assert.equal(result.outstanding,0);assert.throws(()=>validateCommandCompletion(proof));
+  }
+});
+test('original command deadline prevents fresh post-close budget and a later scripted ESRCH is not consumed',async()=>{
+  const proof=drainCommandFixture(),fake=commandDrainIO(['PRESENT','ESRCH']);const result=await joinClosedCommandGroup(proof,{deadlineMS:10},fake.io);
+  assert.equal(result.empty,false);assert.equal(result.reason,'DEADLINE_EXPIRED');assert.equal(result.deadlineMS,10);assert.deepEqual(fake.observed,[700]);assert.deepEqual(fake.waits,[10]);assert.equal(result.outstanding,0);assert.throws(()=>validateCommandCompletion(proof));
+});
+test('interruption output cap timeout and a superseded normal join preserve their original failures',async()=>{
+  for(const flag of ['interrupted','outputExceeded','timedOut']){const proof={...drainCommandFixture(),[flag]:true},fake=commandDrainIO(['ESRCH']);await joinClosedCommandGroup(proof,{deadlineMS:500},fake.io);assert.equal(proof.groupEmpty,false);assert.equal(proof.cleanupDeferred,true);assert.throws(()=>validateCommandCompletion(proof));}
+  const proof=drainCommandFixture(),fake=commandDrainIO(['ESRCH']);await joinClosedCommandGroup(proof,{deadlineMS:500,canCredit:()=>false},fake.io);assert.equal(proof.groupEmpty,false);assert.throws(()=>validateCommandCompletion(proof));
+});
+test('abort during a joined observation wait leaves no normal command credit or outstanding timer',async()=>{
+  const controller=new AbortController(),proof=drainCommandFixture(),fake=commandDrainIO(['PRESENT','ESRCH'],{onWait:()=>controller.abort()});const result=await joinClosedCommandGroup(proof,{deadlineMS:500,signal:controller.signal},fake.io);
+  assert.equal(result.reason,'ABORTED');assert.equal(result.empty,false);assert.equal(result.outstanding,0);assert.equal(result.joined,true);assert.deepEqual(fake.observed,[700]);assert.equal(proof.groupEmpty,false);assert.throws(()=>validateCommandCompletion(proof));
+});
+test('insufficient proof space fails closed and preserves the pre-existing command evidence',async()=>{
+  const proof={...drainCommandFixture(),padding:'x'.repeat(60<<10)},before=structuredClone(proof),fake=commandDrainIO(['ESRCH']);await joinClosedCommandGroup(proof,{deadlineMS:500},fake.io);
+  assert.equal(proof.groupEmpty,false);assert.equal(proof.cleanupDeferred,true);assert.equal(Object.hasOwn(proof,'groupDrain'),false);assert.equal(proof.padding,before.padding);assert.equal(proof.code,before.code);assert.throws(()=>validateCommandCompletion(proof));
+});
+function joinedCloseTimers(){let next=0;const handles=new Map(),cleared=[];return {handles,cleared,io:{setTimeout:(callback,ms)=>{const id=++next;handles.set(id,{callback,ms});return id;},clearTimeout:id=>{cleared.push(id);handles.delete(id);}}};}
+test('command-close completion cancels its losing timer before resolve or reject',async()=>{
+  for(const reject of [false,true]){let resolveClose,rejectClose;const completion=new Promise((resolve,reject)=>{resolveClose=resolve;rejectClose=reject;}),timers=joinedCloseTimers(),waiting=waitForCommandClose(completion,3000,timers.io);assert.equal(timers.handles.size,1);if(reject)rejectClose(Error('fake close failure'));else resolveClose();if(reject)await assert.rejects(waiting);else assert.equal(await waiting,true);assert.equal(timers.handles.size,0);assert.equal(timers.cleared.length,1);}
+});
+test('command-close expiry owns and clears its timer without claiming real child closure',async()=>{
+  const timers=joinedCloseTimers(),completion=new Promise(()=>{}),waiting=waitForCommandClose(completion,2000,timers.io);const [{callback,ms}]=timers.handles.values();assert.equal(ms,2000);callback();assert.equal(await waiting,false);assert.equal(timers.handles.size,0);assert.equal(timers.cleared.length,1);
+  for(const bad of [0,-1,NaN,3001])assert.throws(()=>waitForCommandClose(completion,bad,timers.io));
 });

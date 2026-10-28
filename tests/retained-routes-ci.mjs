@@ -7,10 +7,12 @@ import {basename,delimiter,dirname,isAbsolute,join,relative,resolve,sep} from 'n
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import {performance} from 'node:perf_hooks';
 import {probeRuntimeAssets} from './retained-routes-assets.mjs';
 import {check,sha,readBounded,writeJSON,json,inventory,commandEnvironment} from './static-shell-ci-build.mjs';
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
 import {observeLinuxProcessGroup,attachGroupCensus} from './retained-process-group-census.mjs';
+import {groupDrainLimits,drainClosedProcessGroup,attachGroupDrain,validGroupDrainObservation} from './retained-command-group-drain.mjs';
 const selectedTarget=()=>nativeTarget(process.env.NEXTGO_RETAINED_NATIVE_ARCH,process.platform,process.arch);
 const browserPath=root=>selectedTarget().goArch==='amd64'?'/ms-playwright':join(root,'playwright');
 
@@ -29,7 +31,40 @@ const hex=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const content=items=>items.map(({path,bytes,sha256})=>({path,bytes,sha256}));
 const shellQuote=value=>"'"+value.replaceAll("'","'\\''")+"'";
 const groupPresent=pid=>{try{process.kill(-pid,0);return true;}catch(error){if(error.code==='ESRCH')return false;throw error;}};
-const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+// Own the deadline timer even when the real child closes first. A settled
+// race alone would otherwise leave its losing timeout callback scheduled.
+function waitForCommandClose(completion,timeoutMS,timers={setTimeout,clearTimeout}){
+  check(Number.isInteger(timeoutMS)&&timeoutMS>0&&timeoutMS<=3000&&typeof timers.setTimeout==='function'&&typeof timers.clearTimeout==='function','finite command-close wait required');
+  return new Promise((resolve,reject)=>{
+    let handle,armed=false,pending,settled=false;
+    const finish=(closed,error)=>{
+      if(settled)return;
+      if(!armed){pending={closed,error};return;}
+      settled=true;
+      try{if(handle!==undefined)timers.clearTimeout(handle);}catch(failure){error=error||failure;}
+      if(error)reject(error);else resolve(closed);
+    };
+    try{handle=timers.setTimeout(()=>finish(false),timeoutMS);armed=true;if(pending)finish(pending.closed,pending.error);Promise.resolve(completion).then(()=>finish(true),error=>finish(false,error));}
+    catch(error){armed=true;finish(false,error);}
+  });
+}
+// This helper does not release the command on leader close. Only an attached,
+// physically joined ESRCH observation can establish this limited group credit.
+async function joinClosedCommandGroup(proof,options,io){
+  proof.groupEmpty=false;
+  const result=await drainClosedProcessGroup(proof.pid,{...options,closed:proof.closed===true},io);
+  try{attachGroupDrain(proof,result);}catch{proof.cleanupDeferred=true;return result;}
+  const unchangedAuthority=proof.closed===true&&!proof.timedOut&&!proof.interrupted&&!proof.outputExceeded&&!proof.cleanupDeferred&&!options.signal?.aborted&&(!options.canCredit||options.canCredit());
+  proof.groupEmpty=unchangedAuthority&&result.empty===true;
+  if(!proof.groupEmpty)proof.cleanupDeferred=true;
+  return result;
+}
+function validateCommandCompletion(proof,spawnError){
+  const drain=proof.groupDrain;
+  check(!spawnError&&proof.closed===true&&proof.groupEmpty===true&&proof.cleanupDeferred===false&&proof.cleanupTimedOut===false&&proof.timedOut===false&&proof.interrupted===false&&proof.outputExceeded===false&&proof.code===0&&proof.signal===null,'owned command failed: '+proof.name);
+  check(Number.isSafeInteger(proof.pid)&&proof.pid>1&&validGroupDrainObservation(drain)&&drain.version===1&&drain.group===proof.pid&&drain.closed===true&&drain.empty===true&&drain.status==='EMPTY'&&drain.reason==='EMPTY'&&drain.lastOutcome==='ESRCH'&&drain.joined===true&&drain.outstanding===0&&drain.signalAuthority===false&&drain.censusConsulted===false&&drain.processTreeAbsence===false,'owned command lacks joined after-close ESRCH observation: '+proof.name);
+  return proof;
+}
 
 // Command groups are observed, never used as historical signal authority.
 // Unresolved descendants/identity are a failed campaign for outer containment.
@@ -38,10 +73,10 @@ async function runChild(root,name,command,args,{cwd,env,timeoutMS,stdoutLimit=1<
   const executable=await lstat(command,{bigint:true});check(executable.isFile()&&executable.nlink>=1n&&Boolean(executable.mode&0o111n),'regular command executable required');
   const {checkNativeChild,checkedChildSignal}=await import(pathToFileURL(join(cwd,'tests','retained-routes-native-identity.mjs')).href);
   const proof={name,command,args,pid:null,code:null,signal:null,closed:false,groupEmpty:false,timedOut:false,interrupted:false,outputExceeded:false,cleanupTimedOut:false,termSent:false,killSent:false,identity:null,identityChecks:[],identityUnavailableAfterClose:false,cleanupDeferred:false,stdoutBytes:0,stderrBytes:0};
-  const buffers={stdout:[],stderr:[]};let child,watchdog,spawnError,resolveClose,initial,expected,stopping,census;
+  const buffers={stdout:[],stderr:[]},drainAbort=new AbortController();let child,watchdog,commandDeadlineMS,closedAtMS,spawnError,resolveClose,initial,expected,stopping,census;
   const closed=new Promise(resolve=>{resolveClose=resolve;});
-  // Observe only a group already found nonempty by the existing check. This
-  // adds no signal authority, retry, timer wait, cleanup action, or passing receipt.
+  // Observe at most once after an explicit positive numeric-group probe. The
+  // census is diagnostic only: it cannot establish absence or change drain flags.
   async function recordPresentGroup(){
     if(census)return census;
     census=(async()=>{
@@ -51,11 +86,12 @@ async function runChild(root,name,command,args,{cwd,env,timeoutMS,stdoutLimit=1<
   }
   async function stop(){
     if(stopping)return stopping;
+    drainAbort.abort();
     stopping=(async()=>{
       try{
         if(!proof.closed){check(initial,'no verified live command leader; outer controller required');proof.termSent=await checkedChildSignal(child,initial,expected,'SIGTERM',proof.identityChecks);}
-        await Promise.race([closed,pause(3000)]);
-        if(!proof.closed){proof.killSent=await checkedChildSignal(child,initial,expected,'SIGKILL',proof.identityChecks);await Promise.race([closed,pause(2000)]);}
+        await waitForCommandClose(closed,3000);
+        if(!proof.closed){proof.killSent=await checkedChildSignal(child,initial,expected,'SIGKILL',proof.identityChecks);await waitForCommandClose(closed,2000);}
         proof.groupEmpty=proof.pid?!groupPresent(proof.pid):true;
         if(!proof.groupEmpty)await recordPresentGroup();
         proof.cleanupTimedOut=!proof.closed||!proof.groupEmpty;
@@ -68,28 +104,41 @@ async function runChild(root,name,command,args,{cwd,env,timeoutMS,stdoutLimit=1<
   try{
     child=spawn(command,args,{cwd,env,detached:true,stdio:['ignore','pipe','pipe']});proof.pid=child.pid??null;
     expected={pid:child.pid,uid:process.getuid(),executable:{path:command,dev:executable.dev.toString(),inode:executable.ino.toString()}};
-    child.once('error',error=>{spawnError=error;});child.once('close',(code,signal)=>{Object.assign(proof,{closed:true,code,signal});resolveClose();});
+    child.once('error',error=>{spawnError=error;});child.once('close',(code,signal)=>{closedAtMS=performance.now();Object.assign(proof,{closed:true,code,signal});resolveClose();});
     for(const stream of ['stdout','stderr']){check(child[stream],'supervised pipe unavailable');child[stream].on('data',chunk=>{
       const key=stream+'Bytes',cap=stream==='stdout'?stdoutLimit:1<<20,used=proof[key]||0,room=Math.max(0,cap-used);
       if(room)buffers[stream].push(chunk.subarray(0,room));proof[key]=used+chunk.length;
       if(proof[key]>cap){proof.outputExceeded=true;void stop();}
     });}
+    commandDeadlineMS=performance.now()+timeoutMS;
     watchdog=setTimeout(()=>{proof.timedOut=true;void stop();},timeoutMS);
     try{initial=await checkNativeChild(child,null,expected,'capture',proof.identityChecks);proof.identity=initial;}
     catch(error){
       // A command may finish before /proc is sampled. This gives no signal
       // authority: accept only an already joined successful absent group.
-      await Promise.race([closed,pause(50)]);
+      await waitForCommandClose(closed,50);
       if(proof.closed&&proof.code===0&&!groupPresent(child.pid)){proof.identityUnavailableAfterClose=true;}else{proof.identityFailure=String(error.message).slice(0,512);await stop();}
     }
-    while(!proof.closed&&!proof.cleanupDeferred){await Promise.race([closed,pause(50)]);if(stopping)await stopping;}
+    while(!proof.closed&&!proof.cleanupDeferred){await waitForCommandClose(closed,50);if(stopping)await stopping;}
     if(stopping)await stopping;
-    proof.groupEmpty=proof.pid?!groupPresent(proof.pid):true;
-    if(!proof.groupEmpty){proof.cleanupDeferred=true;await recordPresentGroup();}
-    check(!spawnError&&proof.closed&&proof.groupEmpty&&!proof.cleanupDeferred&&!proof.cleanupTimedOut&&!proof.timedOut&&!proof.interrupted&&!proof.outputExceeded&&proof.code===0&&proof.signal===null,'owned command failed: '+name);
+    if(proof.closed&&!stopping&&!proof.cleanupDeferred&&!proof.timedOut&&!proof.interrupted&&!proof.outputExceeded){
+      const drain=await joinClosedCommandGroup(proof,{deadlineMS:Math.min(commandDeadlineMS,closedAtMS+groupDrainLimits.maxBudgetMS),signal:drainAbort.signal,canCredit:()=>!stopping});
+      // A watchdog or interrupt can request stop while the observation waits.
+      // Join that existing cleanup path before writing any terminal receipt.
+      if(stopping)await stopping;
+      if(!proof.groupEmpty&&drain.samples?.some(sample=>sample.outcome==='PRESENT'))await recordPresentGroup();
+    }else{
+      // Existing failure/stop budgets and exact live-child signal authority are
+      // unchanged. They gain no extra drain interval after a watchdog/cap/signal.
+      proof.groupEmpty=proof.pid?!groupPresent(proof.pid):true;
+      if(!proof.groupEmpty){proof.cleanupDeferred=true;await recordPresentGroup();}
+    }
+    validateCommandCompletion(proof,spawnError);
     return Buffer.concat(buffers.stdout);
   }finally{
     if(child?.pid&&!proof.closed&&!proof.cleanupDeferred)await stop();
+    if(stopping)await stopping;
+    drainAbort.abort();
     clearTimeout(watchdog);process.off('SIGINT',interrupt);process.off('SIGTERM',interrupt);
     await writeFile(join(root,'logs',name+'.stdout'),Buffer.concat(buffers.stdout),{mode:0o600});
     await writeFile(join(root,'logs',name+'.stderr'),Buffer.concat(buffers.stderr),{mode:0o600});
@@ -126,11 +175,11 @@ async function init(){
   const before=await inventory(source,true);await writeJSON(join(root,'source-before.json'),before,8<<20);
   const contract=await json(join(source,'tests','retained-routes-ci-inputs.json'),1<<20);
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
-  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=192,'reviewed input contract required');
+  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=193,'reviewed input contract required');
   validateQualificationRequirements(contract);
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
-  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-owner-scroll-observation.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-process-group-census.mjs','tests/retained-process-group-census.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','tests/merge-config.mjs','tests/merge-fixture.mjs','tests/merge-spec.mjs','tests/retained-routes-assets.mjs','tests/retained-routes-assets.test.mjs','scripts/test-wasm.sh','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
+  for(const path of ['tests/retained-routes.spec.mjs','tests/retained-owner-scroll-observation.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-fixture.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-process-group-census.mjs','tests/retained-process-group-census.test.mjs','tests/retained-command-group-drain.mjs','tests/retained-command-group-drain.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','tests/merge-config.mjs','tests/merge-fixture.mjs','tests/merge-spec.mjs','tests/retained-routes-assets.mjs','tests/retained-routes-assets.test.mjs','scripts/test-wasm.sh','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
   await writeJSON(join(root,'inputs.json'),contract,1<<20);
   await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,nativeTarget:target.goArch,resourceEnvelope:target.goArch==='amd64'?'container: cpu2 memory4GiB no-extra-swap pids768 shm512MiB':'standard public ubuntu-24.04-arm hosted job; container hard limits not asserted',sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','other architectures/platforms and separate SDK/arch cells','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
 }
@@ -273,7 +322,7 @@ async function units(){
     check(actual.every(proof=>proof.closed===true&&proof.code===0&&proof.signal===null&&proof.unchanged===true&&Number.isSafeInteger(proof.pid)&&proof.pid>0&&hex(proof.sha256)&&proof.mode===(phase==='native'?'native':'wasm')),'invalid actual test-executable proof');
   }
   await writeJSON(join(root,'test-executable-summary.json'),receipts,4<<20);
-  await step(state,'harness-unit-tests',process.execPath,['--test','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-ci.test.mjs','tests/link-status-gates.test.mjs','tests/retained-routes-assets.test.mjs','tests/retained-process-group-census.test.mjs'],env,60000);
+  await step(state,'harness-unit-tests',process.execPath,['--test','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-fixture.test.mjs','tests/retained-routes-ci.test.mjs','tests/link-status-gates.test.mjs','tests/retained-routes-assets.test.mjs','tests/retained-process-group-census.test.mjs','tests/retained-command-group-drain.test.mjs'],env,60000);
   await unchanged(source,after);report.status='UNITS_PASSED';report.cli={path:cli,sha256:sha(await readBounded(cli,128<<20))};await chmod(cli,0o500);await writeJSON(join(root,'campaign.json'),report,8<<20);
 }
 
@@ -479,5 +528,5 @@ async function cleanup(){
   process.stdout.write('Marker-verified successful qualification root removed; incomplete roots are never silently removed.\n');
 }
 async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='install-browsers')return installBrowsers();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
-export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild};
+export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose};
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});
