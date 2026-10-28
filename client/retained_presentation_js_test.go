@@ -23,15 +23,15 @@ func retainedSettlementEnvironment(t *testing.T) *retainedSettlementFixture {
 		t.Fatal("another physical settlement owner exists")
 	}
 	oldWin, oldPrivacy := win, mergePrivacy
-	oldDraft, oldAction, oldModule := draftFrozen, actionViewFrozen, moduleMode
+	oldDraft, oldAction := draftFrozen, actionViewFrozen
 	oldMerge, oldApplication := mergeCurrent, mergeApplication
 	// Restore global authority only after the fixture has disposed its own scope.
 	t.Cleanup(func() {
 		win, mergePrivacy = oldWin, oldPrivacy
-		draftFrozen, actionViewFrozen, moduleMode = oldDraft, oldAction, oldModule
+		draftFrozen, actionViewFrozen = oldDraft, oldAction
 		mergeCurrent, mergeApplication = oldMerge, oldApplication
 	})
-	draftFrozen, actionViewFrozen, moduleMode = false, false, false
+	draftFrozen, actionViewFrozen = false, false
 	mergeCurrent, mergeApplication = nil, nil
 	router := retainedRouterEnvironment(t)
 	browser := js.Global().Get("Function").New("document", `
@@ -93,7 +93,7 @@ return (()=>{
 			t.Error("physical callback accounting did not retire after mock realm destroy")
 		}
 		win, mergePrivacy = oldWin, oldPrivacy
-		draftFrozen, actionViewFrozen, moduleMode = oldDraft, oldAction, oldModule
+		draftFrozen, actionViewFrozen = oldDraft, oldAction
 	})
 	key := strings.Repeat("c", 32)
 	ownedHistory.put(key, historyRecord{URL: currentURL})
