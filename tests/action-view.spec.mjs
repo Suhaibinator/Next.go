@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { observeActionViewFailure } from './action-view-failure-diagnostics.mjs';
 
 const origin = 'http://127.0.0.1:4185';
 const actionPath = '/_nextgo/actions/view/save/v1';
@@ -101,17 +102,25 @@ test('a multipart generated call returns typed data and a streamed Go counter th
   const actual = await records(request, trace); expect(actual.filter(record => record.method === 'GET')).toHaveLength(1); expect(actual.filter(record => record.method === 'POST')).toHaveLength(1);
 });
 
-test('pre-confirmation validation and private action failures keep the current view and permit a valid retry', async ({ page }) => {
+test('pre-confirmation validation and private action failures keep the current view and permit a valid retry', async ({ page }, testInfo) => {
   await page.goto('/action-view'); await ready(page); const initial = await number(ssrCount(page)), revision = await number(ssrRevision(page));
-  const invalid = await post(page, page.locator('[data-av-invalid]'), 422);
-  expect(invalid.headers()['content-type']).toContain('application/json'); expect((await invalid.json()).error.fields.amount).toBe('Enter a whole number from 1 to 5.');
-  await expect(page.locator('[data-av-error]')).toHaveText('Enter a whole number from 1 to 5.');
-  await expect(ssrCount(page)).toHaveText(String(initial)); await expect(receipt(page)).toHaveAttribute('data-confirmed', 'false');
-  const failure = await post(page, page.locator('[data-av-fail]'), 500);
-  expect((await failure.json()).error.message).toBe('The action could not be completed.');
-  await expect(page.locator('[data-av-status]')).toHaveText('The action could not be completed.');
-  expect(await page.content()).not.toContain('private action view storage diagnostic'); await expect(ssrRevision(page)).toHaveText(String(revision));
-  await post(page, jsonButton(page)); await assertFresh(page, initial + 1, revision + 1); await assertReceipt(page, initial + 1, revision + 1);
+  const diagnostic = observeActionViewFailure(page, endpoint);
+  try {
+    const invalid = await post(page, page.locator('[data-av-invalid]'), 422);
+    diagnostic.bindResponse(invalid);
+    expect(invalid.headers()['content-type']).toContain('application/json'); expect((await invalid.json()).error.fields.amount).toBe('Enter a whole number from 1 to 5.');
+    await expect(page.locator('[data-av-error]')).toHaveText('Enter a whole number from 1 to 5.');
+    await expect(ssrCount(page)).toHaveText(String(initial)); await expect(receipt(page)).toHaveAttribute('data-confirmed', 'false');
+    const failure = await post(page, page.locator('[data-av-fail]'), 500);
+    expect((await failure.json()).error.message).toBe('The action could not be completed.');
+    await expect(page.locator('[data-av-status]')).toHaveText('The action could not be completed.');
+    expect(await page.content()).not.toContain('private action view storage diagnostic'); await expect(ssrRevision(page)).toHaveText(String(revision));
+    await post(page, jsonButton(page)); await assertFresh(page, initial + 1, revision + 1); await assertReceipt(page, initial + 1, revision + 1);
+  } catch (error) {
+    // Diagnostic publication cannot suppress or replace the original failure.
+    try { await diagnostic.attachFailure(testInfo); } catch {}
+    throw error;
+  } finally { diagnostic.dispose(); }
 });
 
 test('a failed deferred view preserves confirmed data and explicit refresh never repeats that mutation', async ({ page, request }) => {

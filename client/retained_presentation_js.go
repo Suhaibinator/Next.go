@@ -434,7 +434,10 @@ func (job *retainedSettlementJob) ownsFocusEvent(event js.Value) bool {
 	if snapshot == nil || !job.valid() {
 		return false
 	}
-	target := event.Get("target")
+	// Value.Get does not catch JavaScript accessor exceptions at the WASM
+	// boundary. Use the checked call import so a throwing target getter becomes
+	// a Go js.Error handled by the existing callback recovery and job revocation.
+	target := js.Global().Get("Reflect").Call("get", event, "target")
 	if !job.valid() || job.snapshot != snapshot {
 		return false
 	}

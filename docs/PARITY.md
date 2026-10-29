@@ -8,27 +8,46 @@ The baseline includes the current App Router, supported Pages Router application
 
 ## Current qualification and next source increment
 
-The immutable `46bf41a3` HTTP-helper increment has matching native and WASM
-unit evidence on Linux AMD64 with Go 1.24.13 and 1.27.3: all 85 new test rows
-pass in their required phases. Chromium also passes the forced fresh-realm
-UPDATE and parent `frame-src` denial cases. The complete offline matrix remains
-red: 17 passes, a Firefox Disable ownership-proof refusal and 22 unrun cases.
-Its later diagnostic realm contrast does not establish the browser's cause or
-grant destructive authority. Helper-response `worker-src` enforcement remains
-unverified. The AMD64/Go 1.27 retained report still has 48 passes, one WebKit
-scroll-restoration failure (`200` expected, `1283` observed), 23 unrun retained
-cases and 72 unrun merge cases. These are scoped results, not release gates.
+The published `6ef17fce` retained-focus increment remains unqualified. Both
+Go 1.24.13 and 1.27.3 source jobs reached the new core-WASM regression: ten
+subcases passed, then `throwing-target` terminated the WASM runtime before a
+subcase or root PASS. The core Go jobs also fail their WASM step; the inspected
+ARM retained jobs stop before browser qualification. No remaining phase or
+WebKit scroll result can be inferred from those partial runs. Static-shell,
+Lambda-package and invocation-context jobs report success, with fresh inner
+artifact audits still outstanding. Other jobs were still running at this October 29 observation.
 
-The next source increment preserves a pending retained presentation when a
-`focusin` event targets the exact already-focused control and every existing
-ownership, selection, history and privacy check remains valid. Other focus or
-input intent still cancels restoration; no focus, window-scroll or history
-operation is replayed. This is a source-correctness policy change whose browser
-effectiveness and relationship to the WebKit failure remain unproven. A separate
-location-refresh diagnostic retains the original waits, assertions and deadline
-and records bounded failure stages and native request events. It claims no
-runtime fix for the earlier refresh timeout. All 79 capabilities and 11 release
-gates remain open; new source still requires fresh compilation and execution.
+The correction changes only the event target read to a checked Go
+`Reflect.Call("get", event, "target")` boundary. Official Go source for both
+SDKs shows that the `Value.Get` import performs a bare JavaScript property read,
+while the call import catches JavaScript exceptions and converts them into a
+Go error panic. Prior reasoning that Go `defer/recover` alone contained this
+throwing getter was incorrect and is retracted. The exact existing regression,
+all eleven subcases and their dispatch/assertion paths remain unchanged. Source
+review and standalone formatting passed; fresh matching-SDK execution must
+verify the correction. This does not harden other unchecked property reads or
+protect against malicious replacement of JavaScript intrinsics.
+[Go bridge](https://github.com/golang/go/blob/go1.27.3/lib/wasm/wasm_exec.js),
+[Go syscall/js](https://github.com/golang/go/blob/go1.27.3/src/syscall/js/js.go).
+
+The `6ef17fce` dedicated streaming job reports 59 passes and one Chromium
+`response.json()` body-retrieval failure. Its parent `46bf41a3` snapshot plus
+source supports Go having decoded and displayed the expected validation error,
+but does not establish the native failure's cause or the unreached assertions.
+The additive diagnostic preserves the original body assertion, waits and
+exception; it records bounded passive events, binds the asserted response's
+exact request identity, and reports mismatches as unknown. It adds no DOM
+inspection, request replay or response-body wait. Browser subscription transport
+and ordinary failure-attachment I/O are not claimed to be absent.
+
+The `6ef17fce` offline matrix stops at a Firefox Disable failure: 17 passes,
+one failure and 22 unrun cases. Parent HTTP-helper unit and Chromium evidence
+remains scoped historical evidence. The paired Disable-recovery implementation,
+legacy-worker qualification and helper-response worker-CSP witness are private
+work, outside this increment. Their source reviews do not establish native
+execution or admit expanded browser counts. WebKit restoration effectiveness,
+full browser/deployment qualification, all 79 capabilities and all 11 release
+gates remain open. No parent result is inherited as a pass for new source.
 
 ## Stable patch baseline update
 
