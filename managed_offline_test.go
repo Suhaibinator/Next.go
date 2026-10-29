@@ -7,9 +7,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -488,5 +491,251 @@ func TestManagedOfflineSavedHTMLResourcesAndRawTextAreClosed(t *testing.T) {
 	app = managedOfflineApp(t, config)
 	if err := app.PrepareOfflineBundle(context.Background()); err == nil || app.managedOffline.published.Load() != nil || handlerCalls.Load() != 0 {
 		t.Fatal("unlisted handler stylesheet admitted", err, handlerCalls.Load())
+	}
+}
+
+func TestManagedOfflineRegistrationHelperIsInertAndUsesApplicationPolicies(t *testing.T) {
+	for _, base := range []string{"", "/reader"} {
+		t.Run(base, func(t *testing.T) {
+			config, _ := managedOfflineFixture(t, base)
+			var pages, helpers, ordinary atomic.Int32
+			page := config.Routes[0].Page
+			config.Routes[0].Page = func(c *Context) (Page, error) { pages.Add(1); return page(c) }
+			config.Routes = append(config.Routes, Route{Pattern: "/api/health", API: func(w http.ResponseWriter, r *http.Request) {
+				ordinary.Add(1)
+				w.WriteHeader(201)
+				_, _ = io.WriteString(w, "normal")
+			}})
+			config.Headers = http.Header{"X-Global-Policy": {"normal"}}
+			config.HeaderRules = []HeaderRule{
+				{Source: offline.RegistrationHelperPath, Headers: []HeaderValue{{Name: "Content-Security-Policy", Value: "worker-src 'none'"}, {Name: "X-Frame-Options", Value: "DENY"}}},
+				{Source: offline.RegistrationHelperPath, Has: []RuleCondition{{Type: HeaderCondition, Key: "X-Session"}}, Headers: []HeaderValue{{Name: "X-Sensitive-Rule", Value: "applied"}}},
+			}
+			config.Middleware = []func(http.Handler) http.Handler{func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path == offline.RegistrationHelperPath {
+						helpers.Add(1)
+						if w.Header().Get("Content-Security-Policy") != "worker-src 'none'" || w.Header().Get("X-Global-Policy") != "normal" {
+							t.Error("helper bypassed application header rules")
+						}
+						w.Header().Set("Cache-Control", "public, max-age=999")
+						if r.Header.Get("Cookie") != "" {
+							http.SetCookie(w, &http.Cookie{Name: "session", Value: "rotated", HttpOnly: true, Secure: true})
+						}
+					}
+					next.ServeHTTP(w, r)
+				})
+			}}
+			app := managedOfflineApp(t, config)
+			path := base + offline.RegistrationHelperPath
+			before := managedOfflineRequest(app, "GET", path, nil)
+			if before.Code != 503 || helpers.Load() != 1 || pages.Load() != 0 || before.Header().Get("Set-Cookie") != "" {
+				t.Fatal("unready helper bypassed policy or ran a loader", before.Code, before.Header(), helpers.Load(), pages.Load())
+			}
+			if err := app.PrepareOfflineBundle(context.Background()); err != nil {
+				t.Fatal(err)
+			}
+			pages.Store(0)
+			for _, tc := range []struct {
+				method  string
+				session bool
+			}{{"GET", false}, {"HEAD", false}, {"GET", true}} {
+				header := http.Header{"Accept-Encoding": {"gzip"}, "X-Session": {"present"}, "If-None-Match": {"*"}, "If-Modified-Since": {"Wed, 21 Oct 2015 07:28:00 GMT"}}
+				if tc.session {
+					header.Set("Cookie", "session=old")
+					header.Set("Authorization", "Bearer private")
+				}
+				response := managedOfflineRequest(app, tc.method, path, header)
+				if response.Code != 200 || response.Header().Get("Content-Type") != "text/html; charset=utf-8" || response.Header().Get("Content-Length") != fmt.Sprint(len(offlineRegistrationHelperHTML)) || response.Header().Get("Cache-Control") != "no-store, no-transform" || response.Header().Get("Content-Encoding") != "" || response.Header().Get("X-Content-Type-Options") != "nosniff" || response.Header().Get("Referrer-Policy") != "no-referrer" || response.Header().Get("X-Frame-Options") != "DENY" || response.Header().Get("X-Sensitive-Rule") != "applied" {
+					t.Fatal(tc, response.Code, response.Header())
+				}
+				if tc.method == "HEAD" && response.Body.Len() != 0 || tc.method == "GET" && response.Body.String() != offlineRegistrationHelperHTML {
+					t.Fatal(tc, response.Body.String())
+				}
+				policies := response.Header().Values("Content-Security-Policy")
+				if len(policies) != 2 || policies[0] != "worker-src 'none'" || !strings.Contains(policies[1], "worker-src https://site.test"+base+offline.WorkerScriptPath+";") || !strings.Contains(policies[1], "script-src 'none'") {
+					t.Fatal("application/helper CSP policies did not intersect", policies)
+				}
+				cookies := response.Header().Values("Set-Cookie")
+				if tc.session && (len(cookies) != 1 || cookies[0] != "session=rotated; HttpOnly; Secure") || !tc.session && len(cookies) != 0 {
+					t.Fatal("middleware session refresh dropped or helper originated cookie", cookies)
+				}
+				for _, name := range []string{"ETag", "Last-Modified", "Location", "Refresh", "Content-Disposition", offlineAdmissionHeader, offlineDocumentHeader, offlineGenerationHeader} {
+					if response.Header().Get(name) != "" {
+						t.Fatal("helper inherited variant/navigation data", name, response.Header())
+					}
+				}
+			}
+			if pages.Load() != 0 {
+				t.Fatal("helper ran page loader", pages.Load())
+			}
+			for _, entry := range app.managedOffline.published.Load().catalog.Entries() {
+				if strings.Contains(entry.URL, offline.RegistrationHelperPath) {
+					t.Fatal("helper entered persistent catalog", entry)
+				}
+			}
+			if _, exists := app.managedOffline.files[path]; exists {
+				t.Fatal("helper became a compiler/runtime asset")
+			}
+			plain := managedOfflineRequest(app, "GET", base+"/api/health", nil)
+			if plain.Code != 201 || plain.Body.String() != "normal" || ordinary.Load() != 1 || plain.Header().Get("Referrer-Policy") != "strict-origin-when-cross-origin" || plain.Header().Get("Content-Security-Policy") != "" {
+				t.Fatal("ordinary middleware/handler behavior changed", plain.Code, plain.Header(), plain.Body.String())
+			}
+			prior := helpers.Load()
+			if got := managedOfflineRequest(app, "GET", base+offline.CatalogPath, nil); got.Code != 200 || helpers.Load() != prior {
+				t.Fatal("existing early service path changed", got.Code, helpers.Load())
+			}
+		})
+	}
+}
+
+func TestManagedOfflineRegistrationHelperRejectsVariantsBeforeAnyLoader(t *testing.T) {
+	config, _ := managedOfflineFixture(t, "/reader")
+	var pages atomic.Int32
+	page := config.Routes[0].Page
+	config.Routes[0].Page = func(c *Context) (Page, error) { pages.Add(1); return page(c) }
+	config.NotFound = func(*Context) (Page, error) { pages.Add(1); return Page{Body: ui.Text("private not found")}, nil }
+	app := managedOfflineApp(t, config)
+	if err := app.PrepareOfflineBundle(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	pages.Store(0)
+	path := "/reader" + offline.RegistrationHelperPath
+	for _, kind := range []string{"post", "query", "force-query", "trailing", "encoded", "encoded-namespace", "body", "length", "transfer", "trailer", "range", "if-range", "spa", "stream", "purpose", "prepare", "generation", "admission", "document", "host", "scheme", "userinfo", "fragment", "opaque", "invalid-raw-path"} {
+		t.Run(kind, func(t *testing.T) {
+			request := httptest.NewRequest("GET", "https://site.test"+path, nil)
+			switch kind {
+			case "post":
+				request.Method = "POST"
+			case "query":
+				request.URL.RawQuery = "private=1"
+			case "force-query":
+				request.URL.ForceQuery = true
+			case "trailing":
+				request.URL.Path += "/"
+			case "encoded":
+				request.URL.RawPath = strings.Replace(path, "registration", "%72egistration", 1)
+			case "encoded-namespace":
+				request.URL.RawPath = strings.Replace(path, "offline", "%6fffline", 1)
+			case "body":
+				request.Body = io.NopCloser(strings.NewReader("private"))
+			case "length":
+				request.ContentLength = 1
+			case "transfer":
+				request.TransferEncoding = []string{"chunked"}
+			case "trailer":
+				request.Trailer = http.Header{"X-Private": {"present"}}
+			case "range":
+				request.Header.Set("Range", "bytes=0-1")
+			case "if-range":
+				request.Header.Set("If-Range", "tag")
+			case "spa":
+				request.Header.Set("X-Nextgo-Navigate", "1")
+			case "stream":
+				request.Header.Set(navigation.StreamHeader, "1")
+			case "purpose":
+				request.Header.Set(navigation.PurposeHeader, "prefetch")
+			case "prepare":
+				request.Header.Set("X-Nextgo-Offline-Prepare", "1")
+			case "generation":
+				request.Header.Set(offlineGenerationHeader, "old")
+			case "admission":
+				request.Header.Set(offlineAdmissionHeader, "old")
+			case "document":
+				request.Header.Set(offlineDocumentHeader, "old")
+			case "host":
+				request.Host = "foreign.test"
+			case "scheme":
+				request.URL.Scheme = "http"
+			case "userinfo":
+				request.URL.User = url.User("private")
+			case "fragment":
+				request.URL.Fragment = "private"
+			case "opaque":
+				request.URL.Opaque = "opaque"
+			case "invalid-raw-path":
+				request.URL.RawPath = "/invalid%not-an-escape"
+			}
+			response := httptest.NewRecorder()
+			app.ServeHTTP(response, request)
+			if response.Code < 400 || strings.Contains(response.Body.String(), "data-nextgo-offline-helper") || pages.Load() != 0 {
+				t.Fatal(kind, response.Code, response.Header(), response.Body.String(), pages.Load())
+			}
+			if !strings.Contains(response.Header().Get("Cache-Control"), "no-store") {
+				t.Fatal("helper refusal cache policy", kind, response.Header())
+			}
+		})
+	}
+	for _, kind := range []string{"rewrite", "strip-query", "change-method", "deny", "enter-helper"} {
+		t.Run(kind, func(t *testing.T) {
+			local, _ := managedOfflineFixture(t, "")
+			local.NotFound = func(*Context) (Page, error) { t.Error("middleware mutation entered NotFound"); return Page{}, nil }
+			local.Middleware = []func(http.Handler) http.Handler{func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if kind == "enter-helper" && r.URL.Path == "/entered" {
+						clone := r.Clone(r.Context())
+						clone.URL.Path = offline.RegistrationHelperPath
+						clone.URL.RawPath = ""
+						next.ServeHTTP(w, clone)
+						return
+					}
+					if r.URL.Path == offline.RegistrationHelperPath {
+						clone := r.Clone(r.Context())
+						switch kind {
+						case "rewrite":
+							clone.URL.Path = "/public"
+							clone.URL.RawPath = ""
+						case "strip-query":
+							clone.URL.RawQuery = ""
+						case "change-method":
+							clone.Method = "HEAD"
+						case "deny":
+							w.Header().Set("Cache-Control", "public")
+							w.Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
+							http.SetCookie(w, &http.Cookie{Name: "session", Value: "refreshed"})
+							http.Error(w, "application denied", 403)
+							return
+						}
+						r = clone
+					}
+					next.ServeHTTP(w, r)
+				})
+			}}
+			app := managedOfflineApp(t, local)
+			if err := app.PrepareOfflineBundle(context.Background()); err != nil {
+				t.Fatal(err)
+			}
+			path := offline.RegistrationHelperPath
+			if kind == "strip-query" {
+				path += "?private=1"
+			}
+			if kind == "enter-helper" {
+				path = "/entered"
+			}
+			response := managedOfflineRequest(app, "GET", path, http.Header{"Accept-Encoding": {"gzip"}})
+			if response.Code < 400 || response.Header().Get("Cache-Control") != "no-store, no-transform" || response.Header().Get("Content-Encoding") != "" || strings.Contains(response.Body.String(), "data-nextgo-offline-helper") {
+				t.Fatal(kind, response.Code, response.Header(), response.Body.String())
+			}
+			if kind == "deny" && (response.Code != 403 || response.Header().Get("Set-Cookie") != "session=refreshed" || response.Header().Values("Content-Security-Policy")[0] != "frame-ancestors 'none'") {
+				t.Fatal("application denial/session policy changed", response.Code, response.Header())
+			}
+		})
+	}
+}
+
+func TestManagedOfflineRegistrationHelperHasNoDefaultServiceAndCannotCollide(t *testing.T) {
+	config, _ := managedOfflineFixture(t, "")
+	config.Routes = append(config.Routes, Route{Pattern: "/_nextgo/:service/registration-helper-v1", API: func(http.ResponseWriter, *http.Request) { t.Error("shadowing API ran") }})
+	if app, err := New(config); err == nil {
+		_ = app.Close(context.Background())
+		t.Fatal("dynamic helper collision admitted")
+	}
+	plain := testApp(t, Config{Routes: []Route{{Pattern: offline.RegistrationHelperPath, API: func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(202)
+		_, _ = io.WriteString(w, "ordinary explicit API")
+	}}}})
+	response := managedOfflineRequest(plain, "GET", offline.RegistrationHelperPath, nil)
+	if response.Code != 202 || response.Body.String() != "ordinary explicit API" || response.Header().Get("Content-Security-Policy") != "" {
+		t.Fatal("default-off API behavior changed", response.Code, response.Header(), response.Body.String())
 	}
 }

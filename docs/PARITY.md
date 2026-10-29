@@ -1,6 +1,6 @@
 # Next.go capability parity and production release gates
 
-Research baseline: **October 23, 2026**, official Next.js documentation identifying **v16.4.3** as latest ([release](https://github.com/vercel/next.js/releases/tag/v16.4.3), commit `29bbeab09981148ade186e8599ecdede15abc281`). The original October 22 inventory used v16.4.2; the patch delta is recorded below without removing any capability or gate. The [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest) was rechecked on October 27 and still identifies stable v16.4.3. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
+Research baseline: **October 23, 2026**, official Next.js documentation identifying **v16.4.3** as latest ([release](https://github.com/vercel/next.js/releases/tag/v16.4.3), commit `29bbeab09981148ade186e8599ecdede15abc281`). The original October 22 inventory used v16.4.2; the patch delta is recorded below without removing any capability or gate. The [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest) was rechecked on October 29 and still identifies stable v16.4.3. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
 
 The target is an alternative implemented in Go, with Go/WASM browser behavior and only the JavaScript runtime bridge that WASM requires. Equivalent user-visible capabilities may have idiomatic Go APIs. React, JSX, RSC wire formats, JavaScript configuration syntax, npm packages, and exact Next.js source APIs are not compatibility promises. Their underlying capabilities remain in this inventory. An existing Next.js application cannot currently be imported or run unchanged.
 
@@ -37,6 +37,24 @@ it does not add a full lazy-module merge or development state-transfer contract.
 Its prepared tests and existing ABI-5 results do not prove current matching-SDK
 builds, browser/deployment behavior, resource stabilization or production maturity.
 All **79 capability rows and 11 release gates remain open**.
+
+The subsequent offline-registration recovery increment replaces the provisional
+`about:blank` proof frame with an inert same-origin HTTP helper document. Its
+request passes through application middleware and header rules; its response
+adds a restrictive CSP, uses `no-store, no-transform`, and never enters the
+offline catalog. The Go client keeps one navigation lease until a trusted load,
+checks the final document and native registration ownership, and then removes
+the frame. Cancellation revokes authority without asserting that pending native
+work has ended. This source increment still requires matching-SDK and native
+browser qualification. Its authored browser cases cover parent `frame-src`
+denial; loaded-helper response `worker-src` enforcement remains unverified.
+
+The preceding immutable `203e20f3` CI run reports successful Go, Linux container,
+streaming and refresh jobs. Its general browser suite recorded 334 passes and
+one location-refresh response-wait timeout. The retained-view campaign
+still fails WebKit scroll restoration, and the offline campaign fails its first
+forced fresh-realm update with a native invalid-document-state error. These
+results do not qualify the HTTP-helper increment or establish production parity.
 
 Native race tests and vet pass on Go 1.24.13 (Linux) and 1.27.3 (macOS), with matching-toolchain WASM unit tests and WASM vet on both versions. This includes locale/cache/profile, tracing, view transitions, parallel routes, selected-segment APIs, interceptions, committed browser-location subscriptions, generated typed paths/parameters, optimistic intent state, typed mutation transport, managed draft mode, native history restoration, bounded environment/public-runtime configuration and multi-module workspace/build-input handling and bounded nested streaming/navigation transport.
 

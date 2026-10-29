@@ -519,7 +519,7 @@ func newApp(c Config) (*App, error) {
 		}
 		a.handler = c.Middleware[i](a.handler)
 	}
-	a.handler = offlineResponseCompression(a, a.handler, httpx.Compression(a.handler))
+	a.handler = a.offlineRegistrationHelperHandler(a.handler, offlineResponseCompression(a, a.handler, httpx.Compression(a.handler)))
 	if err := a.initPrerenderRuntime(); err != nil {
 		return nil, err
 	}
@@ -565,6 +565,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.serveRequest(w, r)
 }
 func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
+	r, w = a.bindOfflineRegistrationHelper(r, w)
 	if a.serveManagedOffline(w, r) {
 		return
 	}
@@ -624,6 +625,9 @@ func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
 	a.handler.ServeHTTP(w, r)
 }
 func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
+	if a.serveOfflineRegistrationHelper(w, r) {
+		return
+	}
 	if capture := offlineCaptureFor(r); capture != nil && !a.offlineRequestValid(r, capture) {
 		capture.err = ErrOfflineAdmission
 		http.Error(w, "Offline preparation refused", http.StatusInternalServerError)

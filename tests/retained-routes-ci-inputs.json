@@ -227,15 +227,15 @@
     },
     {
       "path": "client/offline_realm_js.go",
-      "sha256": "3e12854593a65c0caefeddf853684cca0a7ac878f20cf2218486cb40efb03b9d",
-      "bytes": 16955,
-      "origin": "Exact current combined nullable helper-controller policy and failure-only observation source; no compiler/test/browser qualification"
+      "sha256": "eba881ea8f07b31828736db7bf4453dcedf1c29a15bbcf9a27c7a48722178f92",
+      "bytes": 20893,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "client/offline_realm_js_test.go",
-      "sha256": "63edede63d7330e3eafa9829f4f67a53452fc576e0d403b0dc36184ecc55e30a",
-      "bytes": 32860,
-      "origin": "Exact current combined nullable helper-controller policy and failure-only observation source; no compiler/test/browser qualification"
+      "sha256": "deb07904b3901cde5dd00a6cb0f83efe352d389f250c54b1ae6315a87fd44f60",
+      "bytes": 44837,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "client/offline_realm_module_js_test.go",
@@ -491,9 +491,9 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "03fcb2da81b7c4b4ae851da61376e19466172a62cd9ec8bf78192ce924303a05",
-      "bytes": 192308,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "22ef1d4e1cc73665643ab6d5d2a4a4e5534bc2c4eeb0bcaeac349015b2575839",
+      "bytes": 193555,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "docs/RETAINED_ROUTES.md",
@@ -844,6 +844,18 @@
       "origin": "actual93pathformattedframeworkPlusReviewedDocs"
     },
     {
+      "path": "managed_offline.go",
+      "sha256": "9ed14408b0e40a6dbd1d8d999024fd253c959db04a3aa270cdc5e00ab7346e65",
+      "bytes": 26144,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+    },
+    {
+      "path": "managed_offline_test.go",
+      "sha256": "f475898bff33bdd83adfcb739cc2e8f61246cde68c92f2af2af2d8e72d7fbfaa",
+      "bytes": 33957,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+    },
+    {
       "path": "merge_test.go",
       "sha256": "82f4981244e9c9e56b2bacd78dc9ad42e20b75f03533475746497f9fd0681bb1",
       "bytes": 11386,
@@ -851,9 +863,21 @@
     },
     {
       "path": "nextgo.go",
-      "sha256": "6a0f82b13bfc0f442301d6426229346b630408dcb5b65a78dcdb8f70be8d3bbf",
-      "bytes": 47154,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7",
+      "bytes": 47304,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+    },
+    {
+      "path": "offline/descriptor.go",
+      "sha256": "b6a63334460dd94e04bb23f24da834dcc654f1b0696ed99e9cebd44909fb7e49",
+      "bytes": 8321,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+    },
+    {
+      "path": "offline/descriptor_test.go",
+      "sha256": "660e9e21b7c973816462bb9ac33c7fdeedb7d23e5dec399b222cafb0f9af7e9c",
+      "bytes": 8487,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "package-lock.json",
@@ -953,9 +977,9 @@
     },
     {
       "path": "tests/offline.spec.mjs",
-      "sha256": "8a1b29178887947ce92f2c9115d8b84870994e4afdf09bff6329f1d315348a40",
-      "bytes": 44252,
-      "origin": "Exact current combined nullable helper-controller policy and failure-only observation source; no compiler/test/browser qualification"
+      "sha256": "f30963eb34de20c5d1cf924e502c1d20be7f45df29e55a5f420e6743d2f190c1",
+      "bytes": 54849,
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "tests/retained-command-group-drain.mjs",
@@ -1001,9 +1025,9 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "9566e9d2fdd1b34b21b53e8e645c59a94a20c45de46d33afe3210dd40f7f00d9",
+      "sha256": "9d4dd5ff664cd6e5aa297b327ae1528894e72e67cc0e4933a9e7c774d3b04394",
       "bytes": 64811,
-      "origin": "Exact reviewed dual-browser source composition; sole approved finite input admission guard; uncompiled and unexecuted"
+      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
@@ -1290,7 +1314,11 @@
       "TestWithoutRecorderShadowsOnlyTheChildAndPreservesContext",
       "TestWorkspaceFingerprintAndOffPolicy",
       "TestWorkspaceParentDoesNotOwnUnlistedNestedModule",
-      "TestWorkspaceUnselectedAppDiagnostic"
+      "TestWorkspaceUnselectedAppDiagnostic",
+      "TestManagedOfflineRegistrationHelperIsInertAndUsesApplicationPolicies",
+      "TestManagedOfflineRegistrationHelperRejectsVariantsBeforeAnyLoader",
+      "TestManagedOfflineRegistrationHelperHasNoDefaultServiceAndCannotCollide",
+      "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
     ],
     "core": [
       "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
@@ -1486,7 +1514,14 @@
       "TestOfflineFreshRealmCanceledWaitingMessageClosesParentPortsBeforeFrame",
       "TestOfflineFreshRealmParentTailLeaseBlocksReplacementUntilTrueJoin",
       "TestRetainedPresentationScopeDisposalRejectsSynchronousReentry",
-      "TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority"
+      "TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority",
+      "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
+      "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
+      "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
+      "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
+      "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
+      "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation",
+      "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
     ],
     "devcore": [
       "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
@@ -1651,7 +1686,13 @@
       "TestOfflineFreshRealmWaitingReceiptQuarantinesUnconfirmedPortCleanup",
       "TestOfflineFreshRealmCanceledWaitingMessageClosesParentPortsBeforeFrame",
       "TestOfflineFreshRealmParentTailLeaseBlocksReplacementUntilTrueJoin",
-      "TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority"
+      "TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority",
+      "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
+      "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
+      "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
+      "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
+      "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
+      "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation"
     ],
     "portable": [
       "TestRetainedLifetimeCapacityCheckDoesNotPartiallyHide",
@@ -1801,9 +1842,9 @@
     "the three-view bound evicts the oldest owner and unsupported author IDs take the cold path"
   ],
   "targetCounts": {
-    "native": 85,
-    "core": 194,
-    "devcore": 163,
+    "native": 89,
+    "core": 201,
+    "devcore": 169,
     "portable": 13,
     "ui": 12,
     "module": 44,
@@ -1940,6 +1981,15 @@
       "inputBytes": 399161,
       "historicalOnly": true,
       "runtimeQualificationInherited": false
+    },
+    {
+      "kind": "published203e-foundation-for-http-helper",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
     }
   ],
   "newNativeRegressionCount": 30,
@@ -1955,7 +2005,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "EXISTING HOSTED CI WIRE ONLY. Root explicitly admitted this exact six-path source candidate to the unchanged hosted CI profile and198cap for prospective fresh qualification. Full combined source peer and separately reviewed controlled publisher/root publication remain mandatory. This ready=true permits producer init only; sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false. No new typecheck, Go tests, Node groups, browser correction, native cause, provider or79capability/11gate result is claimed.",
+  "readinessMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2027,17 +2077,17 @@
     "arm64"
   ],
   "architectureQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/architectureQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorCombinedSourceInput": {
@@ -2092,46 +2142,54 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
-    "integrationBaseCommit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
-    "integrationBaseTree": "6012ce86b901a9a2fa520db51801a098f946cdfb",
+    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
+    "integrationBaseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+    "integrationBaseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/combinedSourceInput",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
-    "sourcePinCount": 198,
-    "sourcePinCap": 198,
-    "sourcePinsTreeSHA256": "354948c4de3c55577fb82d5abe994b16a48e23a66517bfd1c6c519edff72a62d",
-    "sourcePinBytes": 2080920,
+    "currentQualification": "offlineHTTPHelperQualification",
+    "sourcePinCount": 202,
+    "sourcePinCap": 202,
+    "sourcePinsTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
+    "sourcePinBytes": 2185738,
     "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL;excludesinputself",
-    "previous198RowsUnchanged": 194,
-    "previous198RowsRebound": 4,
-    "currentNewSourcePins": 0,
+    "previous198RowsUnchanged": 192,
+    "previous198RowsRebound": 6,
+    "currentNewSourcePins": 4,
     "reboundSourcePinPaths": [
       "client/offline_realm_js.go",
       "client/offline_realm_js_test.go",
-      "tests/offline-update-failure-observation.mjs",
-      "tests/offline.spec.mjs"
+      "docs/PARITY.md",
+      "nextgo.go",
+      "tests/offline.spec.mjs",
+      "tests/retained-routes-ci.mjs"
     ],
-    "changedGenericCIUnitPathOutsideSelectedPins": "tests/offline-ci-artifacts.test.mjs",
+    "addedSourcePinPaths": [
+      "managed_offline.go",
+      "managed_offline_test.go",
+      "offline/descriptor.go",
+      "offline/descriptor_test.go"
+    ],
     "immediateBaseGoFiles": 1287,
     "currentGoFiles": 1287,
-    "currentGoBytes": 6370079,
-    "currentGoContentTreeSHA256": "247ef28ab4f93b2980b8e8a8c61c8830c763c8b6ddd1f268bc26fa01a9637012",
-    "immediateModifiedProductionGoFiles": 1,
-    "immediateModifiedExistingGoTestFiles": 1,
+    "currentGoBytes": 6410669,
+    "currentGoContentTreeSHA256": "53f19306689045d169fa77dad3918b7571a22304481230ff592c8e194508703c",
+    "immediateModifiedProductionGoFiles": 4,
+    "immediateModifiedExistingGoTestFiles": 3,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1285,
+    "otherImmediateBaseGoFilesUnchanged": 1280,
     "workflowSourceChanged": false,
-    "producerAndAllCapsChanged": false,
+    "producerSourcePinGuardChanged": true,
+    "otherCapsChanged": false,
     "advertisedABIChanged": false,
-    "currentWholeSourceQualification": "NONE. Exact separately reviewed component sources are combined privately; current mixed typecheck/tests/browser behavior remain unexecuted."
+    "currentWholeSourceQualification": "COMPLETE_ELEVEN_PATH_SOURCE_REVIEW_PASS_ONLY. Exact root-formatted Go outputs, browser witness spec, finite202 source guard, parity documentation and input metadata were reviewed together. No mixed compilation or runtime qualification."
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2829,24 +2887,24 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
+    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/queryRefreshQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
-    "sourcePins": 198,
-    "sourcePinCap": 198,
-    "currentSourcePinTreeSHA256": "354948c4de3c55577fb82d5abe994b16a48e23a66517bfd1c6c519edff72a62d",
+    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+    "sourcePins": 202,
+    "sourcePinCap": 202,
+    "currentSourcePinTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
     "currentRequiredCounts": {
-      "native": 85,
-      "core": 194,
-      "devcore": 163,
+      "native": 89,
+      "core": 201,
+      "devcore": 169,
       "portable": 13,
       "ui": 12,
       "module": 44,
@@ -2859,7 +2917,7 @@
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
     "independentOfflineCases": 40,
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeExecuted": false,
     "runtimeQualified": false,
     "newTypecheckPassed": false
@@ -2975,64 +3033,90 @@
     "executed": false
   },
   "sourceFormattingQualification": {
-    "status": "EXACT_TWO_GO_ROOT_STANDALONE_FORMAT_SYNTAX_RESULT_ONLY_NO_MIXED_TYPE_OR_RUNTIME_PROOF",
+    "status": "EXACT_SEVEN_GO_ROOT_STANDALONE_FORMAT_SYNTAX_RESULT_ONLY_NO_MIXED_TYPE_OR_RUNTIME_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/sourceFormattingQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
     "rootFormatterReceipt": {
-      "path": ".nextgo-test-results/recovery/source-formatting-offline-helper-controller-8d53-v1/run/result.json",
-      "bytes": 2004,
-      "sha256": "bd494374cc448fedf388ba3b275074882f415ee41e975f1b20b6ededb65ebce1"
+      "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/result.json",
+      "bytes": 4112,
+      "sha256": "4b71a9ced05c217fe294fe78ae39ecb1c9ec1dc45114d44359acca4edc678aa2"
     },
     "rootFormatterDelta": {
-      "path": ".nextgo-test-results/recovery/source-formatting-offline-helper-controller-8d53-v1/run/source.patch",
-      "bytes": 2184,
-      "sha256": "4bede62c392c9407ff221ea734b79a957fb6b7a78d392159a66eca7c4de72901"
+      "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/source.patch",
+      "bytes": 43071,
+      "sha256": "97b8defc74c2c85932993cfe219105069d19f5cdd54632df9342b2c7a2147b3b"
     },
-    "independentFormattedContentPeers": [
-      {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-format-review-offline-controller-peer-v1/FORMAT_REVIEW.json",
-        "bytes": 1059,
-        "sha256": "b27a130adc0a0178f0c855fa3e4017b5ed0cb038d4d9f7fc6d11ad16977d5217"
-      },
-      {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-actual-output-audit-v1/FORMATTER_OUTPUT_AUDIT.json",
-        "bytes": 2861,
-        "sha256": "f1b733e797376c93f5d24a587c31c3e5f566b69e8d9e5de8a6b83214abc8e3f4"
-      }
-    ],
-    "rootReportedJoinedFormatterChildren": 2,
+    "rawSourceManifest": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-raw/MANIFEST.json",
+      "bytes": 8517,
+      "sha256": "818cf76a86e0a7db273c3c5052dadd1b949cf54f101f6923c412c0c49f4219f5"
+    },
+    "rawFullSourcePeer": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-source-review-serverless-v1/SOURCE_REVIEW.json",
+      "bytes": 12679,
+      "sha256": "dbfce81c0ecc89b9861dac104fa578f1d23af6ba151b3d3405b9fd0dd7916e05"
+    },
+    "rootReportedJoinedFormatterChildren": 7,
     "rootReportedFormatterChildExitCodeEach": 0,
     "rootReportedFormatterChildStderrBytes": 0,
     "rootReportedFormatterTERMorKILL": false,
-    "formatterOutputGoBytes": 49815,
-    "productionOutputByteExactRaw": true,
-    "testOnlyFourPlainBlockExpansions": true,
-    "rootReportedOuterControllerNote": "Darwin confstr error code 5 warning used /tmp fallback; outer-only, not formatter child stderr. No warning byte count is claimed. Outer completion0/.092s and inner formatter .016s were reported by root.",
+    "formatterOutputGoBytes": 189943,
     "formattedFiles": [
       {
         "path": "client/offline_realm_js.go",
-        "bytes": 16955,
-        "sha256": "3e12854593a65c0caefeddf853684cca0a7ac878f20cf2218486cb40efb03b9d"
+        "bytes": 20893,
+        "sha256": "eba881ea8f07b31828736db7bf4453dcedf1c29a15bbcf9a27c7a48722178f92"
       },
       {
         "path": "client/offline_realm_js_test.go",
-        "bytes": 32860,
-        "sha256": "63edede63d7330e3eafa9829f4f67a53452fc576e0d403b0dc36184ecc55e30a"
+        "bytes": 44837,
+        "sha256": "deb07904b3901cde5dd00a6cb0f83efe352d389f250c54b1ae6315a87fd44f60"
+      },
+      {
+        "path": "managed_offline.go",
+        "bytes": 26144,
+        "sha256": "9ed14408b0e40a6dbd1d8d999024fd253c959db04a3aa270cdc5e00ab7346e65"
+      },
+      {
+        "path": "managed_offline_test.go",
+        "bytes": 33957,
+        "sha256": "f475898bff33bdd83adfcb739cc2e8f61246cde68c92f2af2af2d8e72d7fbfaa"
+      },
+      {
+        "path": "nextgo.go",
+        "bytes": 47304,
+        "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7"
+      },
+      {
+        "path": "offline/descriptor.go",
+        "bytes": 8321,
+        "sha256": "b6a63334460dd94e04bb23f24da834dcc654f1b0696ed99e9cebd44909fb7e49"
+      },
+      {
+        "path": "offline/descriptor_test.go",
+        "bytes": 8487,
+        "sha256": "660e9e21b7c973816462bb9ac33c7fdeedb7d23e5dec399b222cafb0f9af7e9c"
       }
     ],
     "composerFormatterOrParserExecuted": false,
     "newTypecheckExecuted": false,
     "newTestsExecuted": false,
     "NodeParserOrTestsExecuted": false,
-    "runtimeQualified": false
+    "runtimeQualified": false,
+    "independentActualOutputAudit": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-actual-format-audit-v1/FORMAT_REVIEW.json",
+      "bytes": 12852,
+      "sha256": "cb3a4ca314e439481d75d8bcb83fec0a31873b5c726626dfd4a46e0069d774cb"
+    },
+    "independentActualOutputAuditScope": "All seven actual outputs and formatter delta match reviewed raw source; five formatting-only lexical/layout changes, two byte-exact. No typecheck/compiler/tests/runtime result."
   },
   "metadataCounterCorrection": {
     "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
@@ -3118,78 +3202,88 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exact8d six-path combination: nullable helper-controller policy in client/offline_realm_js.go, one additive nonmodule Go root in its test, failure-only observer/spec and eight pure Node helper groups in the existing generic-CI unit entry, plus this input.198selected rows=194exact+4rebound; unit entry is an existing genericCI/fullGit-bound path outside selected198 and adds no slot/cap. Go1287=1285exact+1production+1existingtest changed, no new/deletedGo. Four-tuple presentation fixture repair remains byte-exact. All old requirements/order/skips remain plus one core/dev root194/163; module44/devmodule46/native85/portable13/UI12 unchanged. Ten offline titles/fourprofiles40cases and strict432cases440closures preserved. Current8d checkpoints are compact historical commit/inputSHA/JSONPointer references, not copied promotions. Existing hosted CI wire admitted by root; combined source/publisher peer and root publication remain pending; no runtime/nativecause/browserfix/profile/measurement/79-or-11 claim.",
+  "sourceInputScope": "Exact203e eleven-path HTTP-helper source combination: seven existing Go files after one root-controlled standalone formatter run, one browser witness spec, one explicit producer pin-cap literal, parity documentation and this input.202selected rows preserve all198 old paths:192exact+6rebound+4previously-unselected existing native source/test paths. Go1287=1280exact+4existing production+3existingtests modified; no new/deletedGo. Preserve all old requirement ordering/skips and append4native/7core/6devcore roots for89/201/169; module44/devmodule46/portable13/UI12 unchanged. Strict432cases440closures and40independent offline cases remain mandatory.132prior snapshots unchanged;21current-looking old objects are compact immutable203e pointers. Root deliberately admitted the finite202 source guard and existing CI wire only. Complete eleven-path source review passed; ready=true permits prospective producer init after controlled publisher review and root publication, while sourceReady/profileReady/runtime qualification remain false. No runtime, browser-fix, full CSP, native historical cause, provider or79capability/11gate result.",
   "finalSourceReadinessReview": {
-    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
+    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/finalSourceReadinessReview",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
-    "baseTree": "6012ce86b901a9a2fa520db51801a098f946cdfb",
-    "sourcePins": 198,
-    "sourcePinCap": 198,
+    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+    "baseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
+    "sourcePins": 202,
+    "sourcePinCap": 202,
     "ready": true,
-    "readyMeaning": "EXISTING_CI_WIRE_ONLY_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
+    "readyMeaning": "EXISTING_CI_WIRE_ONLY_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "runtimeExecuted": false,
     "runtimeQualified": false,
     "newTypecheckPassed": false,
-    "externalFullSixPathSourcePeerRequired": true,
+    "externalFullElevenPathSourcePeerRequired": true,
     "externalPublisherPeerRequired": true,
     "rootPublicationRequired": true,
     "componentSourceAndFormatProvenance": [
       {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-v1-raw/MANIFEST.json",
-        "bytes": 3096,
-        "sha256": "354a51275463150660464bc283ecb5128ad4a996e7157ded1a461328af0daca8"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-raw/MANIFEST.json",
+        "bytes": 8517,
+        "sha256": "818cf76a86e0a7db273c3c5052dadd1b949cf54f101f6923c412c0c49f4219f5"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-v1-review-offline-controller-peer-v1/SOURCE_REVIEW.json",
-        "bytes": 9135,
-        "sha256": "d7c6a5e43db89e34dac2a5e4e7ee5d92b020aee4c4161508d67ca4de61aaa413"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-source-review-serverless-v1/SOURCE_REVIEW.json",
+        "bytes": 12679,
+        "sha256": "dbfce81c0ecc89b9861dac104fa578f1d23af6ba151b3d3405b9fd0dd7916e05"
       },
       {
-        "path": ".nextgo-test-results/recovery/source-formatting-offline-helper-controller-8d53-v1/run/result.json",
-        "bytes": 2004,
-        "sha256": "bd494374cc448fedf388ba3b275074882f415ee41e975f1b20b6ededb65ebce1"
+        "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/result.json",
+        "bytes": 4112,
+        "sha256": "4b71a9ced05c217fe294fe78ae39ecb1c9ec1dc45114d44359acca4edc678aa2"
       },
       {
-        "path": ".nextgo-test-results/recovery/source-formatting-offline-helper-controller-8d53-v1/run/source.patch",
-        "bytes": 2184,
-        "sha256": "4bede62c392c9407ff221ea734b79a957fb6b7a78d392159a66eca7c4de72901"
+        "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/source.patch",
+        "bytes": 43071,
+        "sha256": "97b8defc74c2c85932993cfe219105069d19f5cdd54632df9342b2c7a2147b3b"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-format-review-offline-controller-peer-v1/FORMAT_REVIEW.json",
-        "bytes": 1059,
-        "sha256": "b27a130adc0a0178f0c855fa3e4017b5ed0cb038d4d9f7fc6d11ad16977d5217"
+        "path": ".nextgo-test-results/recovery/http-helper-parity-doc-203e-v3/source.md",
+        "bytes": 193555,
+        "sha256": "22ef1d4e1cc73665643ab6d5d2a4a4e5534bc2c4eeb0bcaeac349015b2575839"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-helper-controller-8d53-actual-output-audit-v1/FORMATTER_OUTPUT_AUDIT.json",
-        "bytes": 2861,
-        "sha256": "f1b733e797376c93f5d24a587c31c3e5f566b69e8d9e5de8a6b83214abc8e3f4"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-ci-composition-plan-v1/MANIFEST.json",
+        "bytes": 828,
+        "sha256": "cd38409731a4e8721a54025cbeed4f57d1a58ab23474a9e16d04ec6d70aa38fa"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-failed-case-observation-8d53-v2-raw/MANIFEST.json",
-        "bytes": 3465,
-        "sha256": "737efc5cc9826041677a11368f44924bcbd4cf2f9f36faba8e1832b2cf55c6c8"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-actual-format-audit-v1/FORMAT_REVIEW.json",
+        "bytes": 12852,
+        "sha256": "cb3a4ca314e439481d75d8bcb83fec0a31873b5c726626dfd4a46e0069d774cb"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-failed-case-observation-8d53-v2-review-serverless-v1/SOURCE_REVIEW.json",
-        "bytes": 7999,
-        "sha256": "d2c681361ab9de7acc95ae5516162a042b8269c0bb99f7caa9dfeac109f60afb"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
+        "bytes": 12282,
+        "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-failed-case-observation-8d53-v2-review-architecture-v1/SOURCE_REVIEW.json",
-        "bytes": 2039,
-        "sha256": "0b042189e01057e8c386657f2bcfa5489eb070b1024d124ac2a22ac52338c485"
+        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 8407,
+        "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
       }
     ],
-    "meaning": "Root explicitly admits unchanged hosted CI profile/198cap for fresh qualification. Whole six-path source peer and controlled publisher peer/root publication are still required. No future peer hash, candidate commit or self-referential input hash is invented; runtime/profile/source/browser-fix/cause qualification remains false."
+    "meaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
+    "fullElevenPathSourcePeer": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 8407,
+      "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
+    },
+    "sourceReviewedPrivatePacket": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
+      "bytes": 12282,
+      "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
+    }
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -3353,17 +3447,17 @@
     "publishedNativeFixturePath": "client/retained_devrefresh_js_test.go"
   },
   "lambdaSourceReadinessReview": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/lambdaSourceReadinessReview",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorHeaderAuthorityQueryRefreshQualification": {
@@ -3540,17 +3634,17 @@
     "limit": "Onlystandaloneformatter/parsersucceeded; module/native typechecking, actualGo/WASM/browser/productionbehavior and allrelease gates remainunproven."
   },
   "streamHeaderAuthorityQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/streamHeaderAuthorityQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorRevokedRetirementQueryRefreshQualification": {
@@ -3762,17 +3856,17 @@
     "meaning": "Original173pin/allGo-unchanged Lambda-onlyreview remainsverbatim underpriorHeaderAuthorityLambdaSourceReadinessReview. Its21Lambdaimplementation/workflowbytes remainexact3f4, butitdoesnotverifynewGoheaders/fourgroups/current180source."
   },
   "revokedRetirementQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/revokedRetirementQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorWindowScrollQueryRefreshQualification": {
@@ -3981,31 +4075,31 @@
     "meaning": "Priorreviewobjectsand21Lambdaimplementation/workflowbytespreserved; old173rowhash/allGo-unchanged orheader-only2Go scope doesnotcovercurrentretirement."
   },
   "windowScrollQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/windowScrollQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "offlineDiagnosticQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/offlineDiagnosticQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorFixtureObservationQueryRefreshQualification": {
@@ -4324,17 +4418,17 @@
   },
   "priorFixtureObservationReadinessMeaning": "CI enablement only, contingent on the exact full five-path peer gate. Current181pins include three rebound existing rows and one added test-helper dependency; core164/dev148 and all432browsercases/440closures mandatory. Formatting and static source review do not establish compilation, browser correction, native cause, deployment or maturity.",
   "fixtureObservationQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/fixtureObservationQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorOwnerAccessorQueryRefreshQualification": {
@@ -4618,17 +4712,17 @@
     "meaning": "Prior object preserved verbatim under historicalSnapshot. The current fixture changes do not modify production, Go or existing helper source; prior runtime correction is not inferred."
   },
   "ownerScrollAccessorQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/ownerScrollAccessorQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorOwnerAccessorCIReadyReadinessMeaning": "PRIVATE test-only five-path182pin composition; readinessFALSE until independent full-composition peer and explicit root CI enablement decision. All required arrays, titles, skips and432cases/440closures unchanged. No current diagnostic execution, runtime repair, cause, deployment, maturity or79/11 gate closure.",
@@ -4875,17 +4969,17 @@
     ]
   },
   "ownerAccessorCIReadinessTransition": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/ownerAccessorCIReadinessTransition",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorPrivateA95MIMEDrainWorkspaceArchitectureQualification": {
@@ -5223,17 +5317,17 @@
     "profileReadyKeyPresent": false
   },
   "privateA95MIMEDrainWorkspaceQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/privateA95MIMEDrainWorkspaceQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorA95Finite193GuardSourceInputScope": "PRIVATE exacta95 nine-path MIME+finitecommanddrain+safeworkspaceretirement source. Observer helper/spec/sixNode groups byte-exact; runner/ci.test deliberatelymerged.193pins=179unchangeda95rows+3rebound+11new; inputselfexcluded. Only2MIMEGo changed(1production/1existingtest),1280otherGo exact,noaddedGo. Existing192guard NOTchanged; unadmitted readyfalse. All prior a95/9888 history preserved.",
@@ -5702,17 +5796,17 @@
     "profileReadyKeyPresent": false
   },
   "a95MIMEDrainWorkspaceCIReadinessTransition": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/a95MIMEDrainWorkspaceCIReadinessTransition",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorDualBrowserFixQueryRefreshQualification": {
@@ -6629,59 +6723,59 @@
     "publicationOrExecutionPerformed": false
   },
   "presentationSettlementQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/presentationSettlementQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "offlineFreshRealmUpdateQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/offlineFreshRealmUpdateQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "uninstrumentedRetainedQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/uninstrumentedRetainedQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "dualBrowserFixCompositionQualification": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/dualBrowserFixCompositionQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "blockedDualBrowserFixV1Provenance": {
@@ -7091,31 +7185,31 @@
     "blockedV1ProvenanceKey": "blockedDualBrowserFixV1Provenance"
   },
   "dualBrowserFixCIReadinessTransition": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/dualBrowserFixCIReadinessTransition",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "lambdaImplementationWorkflowSourceScope": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/lambdaImplementationWorkflowSourceScope",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorReadyDualBrowserFixArchitectureQualification": {
@@ -7218,143 +7312,167 @@
     "meaning": "Full old checkpoint preserved verbatim in historicalSnapshot. Earlier ready/sourcepeer/formats/1282Go claims are not current1287Go proof. Lambda implementation/workflow/ABI/application bytes and all retained/mock campaign contracts stay exact9d."
   },
   "readyScopeCorrectionProvenance": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/readyScopeCorrectionProvenance",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "priorReadyDualBrowserFixSourceInputScope": "CURRENT exact9d corrected full15path composition:198pins=184base193rows exact+9rebound+5newGo; relativeblockedv1,196pins exact+2rebound(scope/presentationtest). Go1287=1276baseGo exact+6existing production modified+2production added+3tests added.15presentation production-core groups plus13offline core/dev and1module/dev root; counts193core162dev44module46. Twenty actual9d priorDualBrowserFix snapshots exact; blockedv1 and I01 hold separately preserved. All retained/mock432cases440closures and originaloffline27786byte32caseprefix+8newcases unchanged. Source correction is not runtime/native-cause/browser-fix proof; readyfalse pending fullv2peer/root.",
   "fixtureRepair": {
-    "status": "HISTORICAL_8D_CHECKPOINT_NOT_CURRENT_CONTROLLER_POLICY_OBSERVATION_PROOF",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
     "publishedFoundation": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
       "JSONPointer": "/fixtureRepair",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHelperControllerObservationQualification",
+    "currentQualification": "offlineHTTPHelperQualification",
     "runtimeQualificationInherited": false
   },
   "offlineHelperControllerObservationQualification": {
-    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
-    "baseCommit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
-    "baseTree": "6012ce86b901a9a2fa520db51801a098f946cdfb",
-    "publishedFoundationInput": {
-      "commit": "8d53f0bacac4b8cfde0cf7d649da156cff9fa3fe",
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
+    "publishedFoundation": {
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "1f039c49bd47a6815d5baef0f4c76e55c71bd877d16d3a8da6172f59d488dfee",
-      "inputBytes": 399161,
-      "JSONPointer": "/fixtureRepair",
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
+      "JSONPointer": "/offlineHelperControllerObservationQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "scope": "One coherent production helper-controller policy correction with additive pure Go regression and failure-only diagnostic coverage; no native browser cause or browser correction is proved.",
-    "productionPolicy": "Recovery parent remains exact, owned and nonnull. Only the already-owned fresh helper may retain its captured native null controller: null/null may retain exact child registration authority, an owned populated helper controller must stay owned/same, changed/invalid/foreign controllers stay rejected. Exact full/target/final registration identity, parent controller, lifecycle/epoch/mode authority, and failure ownership are not waived.",
-    "prospectiveGoRequirements": {
-      "newRoot": "TestOfflineFreshRealmStableNullControllerKeepsExactMutationAuthority",
-      "subcases": 16,
-      "core": 194,
-      "devcore": 163,
-      "module": 44,
-      "devmodule": 46,
-      "newCore": 1,
-      "newDevcore": 1,
-      "newModule": 0,
-      "newDevmodule": 0,
-      "tagReason": "Test file js&&wasm&&!nextgo_module; production helper is shared js&&wasm. Existing module no-authority witness stays required."
+    "currentQualification": "offlineHTTPHelperQualification",
+    "runtimeQualificationInherited": false
+  },
+  "offlineHelperControllerObservationCIWireTransition": {
+    "status": "HISTORICAL_203E_CHECKPOINT_NOT_CURRENT_HTTP_HELPER_PROOF",
+    "publishedFoundation": {
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
+      "JSONPointer": "/offlineHelperControllerObservationCIWireTransition",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
     },
-    "prospectiveNodeRequirements": {
-      "existingGenericCIEntry": "tests/offline-ci-artifacts.test.mjs",
-      "existingWorkflow": ".github/workflows/ci.yml",
-      "existingCommand": "node --test tests/offline-ci-artifacts.test.mjs",
-      "beforeRootGroups": 16,
-      "afterRootGroups": 24,
-      "addedGroups": [
-        "offline failure DOM observation preserves full fixed categories and exactly seven scalar reads",
-        "offline failure DOM observation suppresses unknown values without inventing truncation or absence",
-        "offline failure unavailable-page gates emit unavailable rather than false scalar evidence",
-        "offline fault retirement attaches fixed proof after cleanup and returns the original proof",
-        "offline fault cleanup throw still fails a previously passing body and emits no raw error",
-        "offline fault diagnostics cannot mask the primary assertion or prevent cleanup",
-        "offline diagnostic attachment rejection preserves a successful retirement result",
-        "offline retirement scalar projection preserves unknown rather than promoting it to zero"
+    "currentQualification": "offlineHTTPHelperQualification",
+    "runtimeQualificationInherited": false
+  },
+  "offlineHTTPHelperQualification": {
+    "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
+    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+    "baseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
+    "publishedFoundationInput": {
+      "path": "tests/retained-routes-ci-inputs.json",
+      "sha256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "bytes": 404819
+    },
+    "sourceScope": "Inert same-origin HTTP helper document routed through trusted application middleware/HeaderRules; one immutable-src private frame and exact document/controller/native registration guards; no default service for applications without managed offline support.",
+    "helperPath": "/_nextgo/offline/registration-helper-v1",
+    "helperProtocol": "Fixed HTML marker1; no new descriptor or module ABI field; one native navigation attempt.",
+    "properties": [
+      "Meaningful initial SSR and existing normal owned-registration command path remain unchanged.",
+      "Helper itself creates no session cookie; trusted application middleware may keep its session-refresh Set-Cookie. App CSP is intersected with appended restrictive exact-worker helper policy.",
+      "First valid immutable HTTP src is set before connection; only trusted exact-target load retires the native navigation attempt. Deadline/contextcancel/error/disconnect do not erase physical work.",
+      "A five-second logical authority deadline is not a guaranteed wall-return bound. A missing terminal native load quarantines the one charged frame; replacement updates stay busy.",
+      "Parent exact owned nonnull controller remains required; child controller may be stable native null or unchanged owned value. Full inventory, exact worker/lease/proof/update/waiting guards remain.",
+      "Qualified browser nativeUpdateCalls is null unless actual instrumentation is available and complete; unsupported observation is never zero."
+    ],
+    "finiteSourceAdmission": {
+      "status": "ROOT_TECHNICAL_ADMISSION_EXACT_FINITE202_SOURCE_GUARD_SOURCE_ONLY",
+      "previousProducerMaximumPins": 198,
+      "currentProducerMaximumPins": 202,
+      "actualSourcePins": 202,
+      "preservedOldSourcePaths": 198,
+      "newExistingNativeSourcePaths": [
+        "managed_offline.go",
+        "managed_offline_test.go",
+        "offline/descriptor.go",
+        "offline/descriptor_test.go"
       ],
-      "selected198PinAdded": false,
-      "meaning": "Existing genericCI/fullGit-bound unit path, not a new retained producer phase or selective slot. Eight actual-helper fake groups are prospective only."
+      "exactSourceDelta": "contract.files.length<=198 -> contract.files.length<=202",
+      "producerPath": "tests/retained-routes-ci.mjs",
+      "producerSourceSHA256": "9d4dd5ff664cd6e5aa297b327ae1528894e72e67cc0e4933a9e7c774d3b04394",
+      "allOtherCapsTimeoutsRetriesSkipsResourcesCasesAndClosuresUnchanged": true,
+      "actualHostedInitExecuted": false,
+      "actualOverCapRejectionExecuted": false,
+      "noMirroredLiteralTestOrUnrelatedRefactor": true,
+      "rootInstruction": "Deliberately expand active selectedsource finitecap198→202 preservingall198existingrows +exact4HTTPnativepaths, no timeout/resource/case/lifetime/skip changes. Counts89/201/169/44/46/13/12 accepted as source-requiredtestclosure (notPASS)."
     },
-    "fixedDiagnosticCategoriesAdded": [
-      "registration-proof-empty-installing",
-      "parent-controller-changed",
-      "child-controller-changed",
-      "child-controller-invalid"
-    ],
-    "preservedPresentationTupleFixture": {
-      "path": "client/retained_presentation_js_test.go",
-      "bytes": 26402,
-      "sha256": "217c72b4e7f7f50d552bfa23e64280fcc1542f559525b5a3bb9e2b250e5e8d61",
-      "changedInThisIncrement": false
-    },
-    "changedPaths": [
-      "client/offline_realm_js.go",
-      "client/offline_realm_js_test.go",
-      "tests/offline-ci-artifacts.test.mjs",
-      "tests/offline-update-failure-observation.mjs",
-      "tests/offline.spec.mjs",
-      "tests/retained-routes-ci-inputs.json"
-    ],
-    "sourcePinCount": 198,
-    "sourcePinCap": 198,
-    "sourcePinTreeSHA256": "354948c4de3c55577fb82d5abe994b16a48e23a66517bfd1c6c519edff72a62d",
-    "sourcePinBytes": 2080920,
-    "currentGoFiles": 1287,
-    "modifiedProductionGoFiles": 1,
-    "modifiedExistingGoTests": 1,
-    "unchangedGoFiles": 1285,
-    "addedOrDeletedGoFiles": 0,
     "requiredCounts": {
-      "native": 85,
-      "core": 194,
-      "devcore": 163,
+      "native": 89,
+      "core": 201,
+      "devcore": 169,
       "portable": 13,
       "ui": 12,
       "module": 44,
       "devmodule": 46
     },
-    "allModesCasesAndClosures": {
+    "newGoRequirements": {
       "native": [
-        144,
-        146
+        "TestManagedOfflineRegistrationHelperIsInertAndUsesApplicationPolicies",
+        "TestManagedOfflineRegistrationHelperRejectsVariantsBeforeAnyLoader",
+        "TestManagedOfflineRegistrationHelperHasNoDefaultServiceAndCannotCollide",
+        "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
       ],
-      "buffered": [
-        144,
-        146
+      "core": [
+        "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
+        "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
+        "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
+        "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
+        "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
+        "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation",
+        "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
       ],
-      "streaming": [
-        144,
-        146
-      ],
-      "total": [
-        432,
-        440
+      "devcore": [
+        "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
+        "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
+        "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
+        "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
+        "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
+        "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation"
       ]
     },
-    "offlineProspectiveCases": {
-      "unchangedTitles": 10,
-      "unchangedProfiles": 4,
-      "cases": 40
+    "changedPaths": [
+      "client/offline_realm_js.go",
+      "client/offline_realm_js_test.go",
+      "docs/PARITY.md",
+      "managed_offline.go",
+      "managed_offline_test.go",
+      "nextgo.go",
+      "offline/descriptor.go",
+      "offline/descriptor_test.go",
+      "tests/offline.spec.mjs",
+      "tests/retained-routes-ci-inputs.json",
+      "tests/retained-routes-ci.mjs"
+    ],
+    "sourcePinCount": 202,
+    "sourcePinCap": 202,
+    "sourcePinTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
+    "sourcePinBytes": 2185738,
+    "currentGoFiles": 1287,
+    "currentGoBytes": 6410669,
+    "currentGoContentTreeSHA256": "53f19306689045d169fa77dad3918b7571a22304481230ff592c8e194508703c",
+    "wholeSourceContractExcludingInputSelf": {
+      "files": 1740,
+      "bytes": 10343456,
+      "sha256": "c1992fa7a91db6ab26f3ca5bb052b4c81619400d611dc5ef2cd4b5bbbc841dd9",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL"
     },
-    "historicalCurrentKeysReboundTo8dPointers": [
+    "allModesCases": 432,
+    "allModesClosures": 440,
+    "independentOfflineCases": 40,
+    "historicalCurrentKeysReboundTo203ePointers": [
       "architectureQualification",
       "lambdaSourceReadinessReview",
       "streamHeaderAuthorityQualification",
@@ -7373,9 +7491,17 @@
       "dualBrowserFixCIReadinessTransition",
       "lambdaImplementationWorkflowSourceScope",
       "readyScopeCorrectionProvenance",
-      "fixtureRepair"
+      "fixtureRepair",
+      "offlineHelperControllerObservationQualification",
+      "offlineHelperControllerObservationCIWireTransition"
     ],
-    "separateCurrent8dRuntimeEvidenceJournal": "Owned separately by ci_evidence_audit/root; no mutation or result copying here.",
+    "historicalPriorSnapshotsPreserved": 132,
+    "knownCoverageGaps": [
+      "Loaded HTTP helper RESPONSE worker-src denial is not a native-browser witness in the current40cases; parent frame-src denial and successful helper update are authored, not yet run.",
+      "The prior203e invalid-document native error is current evidence; the HTTP helper is a proposed eligibility repair, not evidence of its own success or the historical Firefox empty-wrapper cause.",
+      "Final exact URL/shape does not reveal full redirect history or HTTP status. Trusted middleware may deny/redirect; actual native wire witness remains required.",
+      "No response-level CSP conformance, socket disappearance, worker-client-ID erasure, native worker-job join or hard wall-return guarantee."
+    ],
     "ready": true,
     "sourceReady": false,
     "profileReady": false,
@@ -7387,23 +7513,35 @@
     "wholeSourcePeerRequired": true,
     "allCapabilitiesOpen": 79,
     "allGatesOpen": 11,
-    "readyMeaning": "EXISTING_CI_WIRE_ONLY_PENDING_FULL_COMPOSITION_AND_PUBLISHER_SOURCE_PEERS",
-    "allExistingDiagnosticAllowlistValuesAndBrowserAssertionsPreserved": true
+    "readyMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed."
   },
-  "offlineHelperControllerObservationCIWireTransition": {
-    "status": "ROOT_TECHNICAL_ADMISSION_EXISTING_CI_WIRE_ONLY_NO_EXECUTION_OR_NEW_PROMOTION",
-    "initialPrivateCandidate": {
-      "manifestPath": ".nextgo-test-results/recovery/offline-controller-policy-observation-8d53-composition-v1/MANIFEST.json",
-      "manifestSHA256": "06472b74f1154a111ffe9a971f32d41da8a97699fb2393733deec26195fb8005",
-      "inputSHA256": "ba2cc232c3838f37318a919bc2900f1ec64881b67f5404eeb464ee6a2c0125cf",
-      "inputBytes": 402652,
-      "ready": false,
-      "preservedImmutable": true
+  "offlineHTTPHelperCIWireTransition": {
+    "status": "ROOT_TECHNICAL_ADMISSION_EXISTING_HOSTED_CI_WIRE_ONLY_NO_EXECUTION_OR_RELEASE_PROMOTION",
+    "sourceReviewedPrivatePacket": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
+      "bytes": 12282,
+      "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
     },
-    "rootDecision": "Root explicitly requested one final CI-wire-ready derivative after dual diagnostic/raw production/actual formatter source reviews. Existing hosted CI profile/198cap/selectors and one added core/dev requirement only; full combined source peer and publisher/root gates remain mandatory.",
-    "changeScope": "Current ready/status/wording and this exact provenance transition only; all five code sources,198 pin rows,all requirements and historical snapshots unchanged.",
+    "fullElevenPathSourcePeer": {
+      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 8407,
+      "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
+    },
+    "rootDecision": "After complete source peer PASS, enable only existing hosted CI producer init for exact202-source union and required test closure. Preserve all ten noninput postimages,202pin rows,mandatorytest arrays,132historical snapshots,case/closure/skip controls and resource profile. Append exactly one immutable203e foundation ancestry entry while retaining all18previous entries. Controlled publisher source peer and root publication remain mandatory.",
+    "changeScope": "Current ready/status/meaning, exact historical203e ancestry append and source-review provenance only; no feature/driver/SDK/timeout/case/lifetime/skip/sourcepin/root changes.",
+    "ancestryAppended": {
+      "kind": "published203e-foundation-for-http-helper",
+      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
+      "inputBytes": 404819,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
+    },
+    "previousAncestryEntries": 18,
+    "allPreviousAncestryEntriesUnchanged": true,
     "ready": true,
-    "readyMeaning": "EXISTING_CI_WIRE_ONLY_NOT_RUNTIME_OR_SOURCE_QUALIFICATION",
+    "readyMeaning": "EXISTING_CI_WIRE_ONLY",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -7412,7 +7550,6 @@
     "nativeCauseIdentified": false,
     "measurementAdmitted": false,
     "localHeavyProviderPermission": false,
-    "fullSourcePeerRequired": true,
     "publisherSourcePeerRequired": true,
     "rootPublicationRequired": true
   }

@@ -61,6 +61,9 @@ type offlineProofRealm struct {
 	pending                                              int
 	retired                                              bool
 	activity                                             *refreshActivityLease
+	helperURL                                            string
+	navigationPending, navigationFailed                  bool
+	navigationCallbacks                                  int
 }
 
 type offlineFreshUpdateResult struct {
@@ -84,11 +87,15 @@ func (c *offlineController) updateInFreshRealm(ctx context.Context, container, c
 	if doc.Get("createElement").Type() != js.TypeFunction || !doc.Get("documentElement").Truthy() {
 		return result, c.ownershipConflict("registration-proof-empty-lookup")
 	}
+	helperURL, e := offline.RegistrationHelperURL(p.descriptor.WorkerURL)
+	if e != nil {
+		return result, ErrOfflineUnknown
+	}
 	activity, e := beginRefreshActivity()
 	if e != nil {
 		return result, e
 	}
-	r := &offlineProofRealm{parent: p, activity: activity}
+	r := &offlineProofRealm{parent: p, activity: activity, helperURL: helperURL}
 	offlineRealmInUse = r
 	defer func() {
 		if recover() != nil {
@@ -184,6 +191,80 @@ func (r *offlineProofRealm) removeListeners() (err error) {
 	return nil
 }
 
+// A single immutable HTTP src is set before first connection. HTML's special
+// initial about:blank insertion load therefore cannot settle this attempt.
+// Only the native exact-target load is a high-level navigation terminal event;
+// it says nothing about successful content, socket closure or client-ID removal.
+func (r *offlineProofRealm) listenNavigation(event string, completed chan<- struct{}) {
+	l := &offlineRealmListener{target: r.frame, event: event}
+	l.callback = js.FuncOf(func(_ js.Value, args []js.Value) any {
+		r.navigationCallbacks++
+		defer func() {
+			r.navigationCallbacks--
+			if !r.navigationPending && r.navigationCallbacks == 0 {
+				select {
+				case completed <- struct{}{}:
+				default:
+				}
+			}
+		}()
+		// Synthetic events and another target cannot retire native navigation.
+		// A malformed host event leaves the one charge quarantined.
+		defer func() { _ = recover() }()
+		if !r.navigationPending || len(args) != 1 || args[0].Type() != js.TypeObject {
+			return nil
+		}
+		e := args[0]
+		if e.Get("isTrusted").Type() != js.TypeBoolean || !e.Get("isTrusted").Bool() || !e.Get("target").Equal(r.frame) {
+			return nil
+		}
+		if event == "load" {
+			r.navigationPending = false
+		} else {
+			// Iframe error alone has no proved terminal lifecycle guarantee.
+			// Preserve the failure and await the corresponding native load.
+			r.navigationFailed = true
+		}
+		return nil
+	})
+	r.listeners = append(r.listeners, l)
+	l.installed = true
+	r.frame.Call("addEventListener", event, l.callback)
+}
+
+// Cancellation/deadline revoke authority but cannot abandon navigation work.
+// Missing native load retains one frame/global lease indefinitely for outer
+// containment; no second attempt, src retarget or remove-as-abort is allowed.
+// The channel argument is the real timer in production and a deterministic
+// deadline seam in source tests, not an alternative browser completion source.
+func (r *offlineProofRealm) awaitNavigation(ctx context.Context, completed <-chan struct{}, expired <-chan time.Time) error {
+	canceled := ctx.Done()
+	var logical error
+	for r.navigationPending || r.navigationCallbacks != 0 {
+		select {
+		case <-completed:
+		case <-canceled:
+			logical = ErrOfflineUnknown
+			canceled = nil
+		case <-expired:
+			if logical == nil {
+				logical = r.parent.c.ownershipConflict("registration-proof-empty-lookup")
+			}
+			expired = nil
+		}
+	}
+	if ctx.Err() != nil {
+		return ErrOfflineUnknown
+	}
+	if logical != nil {
+		return logical
+	}
+	if r.navigationFailed {
+		return r.parent.c.ownershipConflict("registration-proof-empty-lookup")
+	}
+	return nil
+}
+
 func (r *offlineProofRealm) open(ctx context.Context) error {
 	if err := r.parent.fence(ctx); err != nil {
 		return err
@@ -194,24 +275,38 @@ func (r *offlineProofRealm) open(ctx context.Context) error {
 	r.frame.Set("inert", true)
 	r.frame.Set("tabIndex", -1)
 	r.frame.Call("setAttribute", "aria-hidden", "true")
-	r.frame.Set("src", "about:blank")
-	loaded := make(chan bool, 2)
-	r.listen(r.frame, "load", loaded, true)
-	r.listen(r.frame, "error", loaded, false)
+	r.frame.Set("loading", "eager")
+	r.frame.Set("referrerPolicy", "no-referrer")
+	r.frame.Set("src", r.helperURL)
+	completed := make(chan struct{}, 1)
+	r.listenNavigation("load", completed)
+	r.listenNavigation("error", completed)
+	// Setup may call host code. Do not begin a new HTTP navigation after a
+	// known cancellation/controller change or with a reused/retargeted node.
+	if err := r.parent.fence(ctx); err != nil {
+		return err
+	}
+	if !r.frame.Get("ownerDocument").Equal(r.parent.document) || r.frame.Get("isConnected").Bool() || r.frame.Get("parentNode").Truthy() || r.frame.Get("src").String() != r.helperURL {
+		return ErrOfflineUnknown
+	}
+	// Final detached-node validation itself can call host getters. Recheck the
+	// request/parent after those calls, immediately before starting native work.
+	if err := r.parent.fence(ctx); err != nil {
+		return err
+	}
+	// Mark before the native append: a host throw after possible navigation
+	// must not be mistaken for a never-started or physically retired request.
+	r.navigationPending = true
 	r.host.Call("appendChild", r.frame)
 	timer := time.NewTimer(5 * time.Second)
 	defer timer.Stop()
-	select {
-	case ok := <-loaded:
-		if !ok {
-			return r.parent.c.ownershipConflict("registration-proof-empty-lookup")
-		}
-	case <-ctx.Done():
-		return ErrOfflineUnknown
-	case <-timer.C:
-		return r.parent.c.ownershipConflict("registration-proof-empty-lookup")
+	if err := r.awaitNavigation(ctx, completed, timer.C); err != nil {
+		return err
 	}
 	if err := r.removeListeners(); err != nil {
+		return err
+	}
+	if err := r.parent.fence(ctx); err != nil {
 		return err
 	}
 	r.window = r.frame.Get("contentWindow")
@@ -224,10 +319,8 @@ func (r *offlineProofRealm) open(ctx context.Context) error {
 		return r.parent.c.ownershipConflict("registration-proof-empty-lookup")
 	}
 	r.controller = r.container.Get("controller")
-	// The helper's own controller is not registration mutation authority. An
-	// uncontrolled same-origin helper may use its native registry APIs; only
-	// exact native null is accepted as absence, and its captured state must stay
-	// unchanged. The parent still requires its exact owned nonnull controller.
+	// Child control is not registry mutation authority. The captured native
+	// null/owned identity must stay stable; parent control remains mandatory.
 	if !r.controller.IsNull() && !r.parent.c.ownedWorker(r.controller) {
 		return r.parent.c.ownershipConflict("child-controller-invalid")
 	}
@@ -241,8 +334,10 @@ func (r *offlineProofRealm) fence(ctx context.Context) error {
 	if offlineRealmInUse != r || !r.frame.Truthy() || !r.frame.Get("isConnected").Bool() ||
 		!r.frame.Get("ownerDocument").Equal(r.parent.document) || !r.frame.Get("parentNode").Equal(r.host) ||
 		!r.frame.Get("contentWindow").Equal(r.window) || !r.frame.Get("contentDocument").Equal(r.document) ||
-		r.window.Get("closed").Bool() || r.window.Get("location").Get("href").String() != "about:blank" ||
+		r.window.Get("closed").Bool() || r.window.Get("location").Get("href").String() != r.helperURL || r.frame.Get("src").String() != r.helperURL ||
 		r.window.Get("origin").String() != r.parent.origin || r.document.Get("readyState").String() != "complete" ||
+		!r.document.Get("documentElement").Truthy() || r.document.Get("documentElement").Call("getAttribute", "data-nextgo-offline-helper").String() != "1" ||
+		!r.document.Get("head").Truthy() || r.document.Get("head").Get("childNodes").Length() != 0 ||
 		!r.document.Get("body").Truthy() || r.document.Get("body").Get("childNodes").Length() != 0 ||
 		!r.window.Get("navigator").Get("serviceWorker").Equal(r.container) {
 		return ErrOfflineUnknown
@@ -485,7 +580,7 @@ func (r *offlineProofRealm) retireFrame() (err error) {
 			err = ErrOfflineUnknown
 		}
 	}()
-	if r.pending != 0 {
+	if r.pending != 0 || r.navigationPending || r.navigationCallbacks != 0 {
 		return ErrOfflineUnknown
 	}
 	if err = r.removeListeners(); err != nil {
@@ -524,7 +619,7 @@ func (r *offlineProofRealm) close() (err error) {
 			err = ErrOfflineUnknown
 		}
 	}()
-	if r.pending != 0 {
+	if r.pending != 0 || r.navigationPending || r.navigationCallbacks != 0 {
 		return ErrOfflineUnknown
 	}
 	if err := r.retireFrame(); err != nil {

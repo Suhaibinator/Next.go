@@ -138,7 +138,7 @@ const test = base.extend({
       }
       if (info.status !== info.expectedStatus && [
         'Go update recovers a forced parent-empty proof through one live native realm without activating or remounting',
-        'Go parent-empty update honors actual native blank-frame CSP policy with real worker state and cleanup',
+        'Go parent-empty update honors actual native HTTP-helper CSP policy with real worker state and cleanup',
       ].includes(info.title)) {
         try {await observeOfflineUpdateFailure(context, info);} catch {} // Late DOM only, before fixture close.
       }
@@ -396,17 +396,29 @@ test('explicit Go disable reports retained charged payloads until closed clients
   await info.attach('explicit-disable-cache-accounting', {body: JSON.stringify({before, retained, remaining, beforeAccounting, retainedAccounting, reconciledAccounting}), contentType: 'application/json'});
 });
 
-// Fault ONLY the parent realm's registration wrappers. The child retains the
-// browser's real ServiceWorkerContainer methods and updates the actual A/B
-// artifact-backed registration. This forces a branch; it does not reproduce or
-// explain the historical native empty-record failure.
+// Fault ONLY the parent realm's registration wrappers. The helper still uses
+// real native registry objects and the genuine artifact-backed A/B worker.
+// Creation/append/removal witnesses forward the same native call exactly once.
+// They perturb timing; they force a branch, not the historical Firefox cause.
+const registrationHelperPath = '/_nextgo/offline/registration-helper-v1';
 async function parentEmptyRegistrationFault(page, countNativeUpdates = false) {
-  await page.evaluate(countNativeUpdates => {
-    const sw = navigator.serviceWorker, descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
+  await page.evaluate(({countNativeUpdates, helperPath}) => {
+    const sw = navigator.serviceWorker, host = document.documentElement;
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
     const names = ['getRegistrations', 'getRegistration'];
-    if (globalThis.offlineEmptyParentFault || names.some(name => Object.hasOwn(sw, name))) throw new Error('Parent container is already instrumented');
+    if (globalThis.offlineEmptyParentFault || names.some(name => Object.hasOwn(sw, name)) ||
+        Object.hasOwn(document, 'createElement') || Object.hasOwn(host, 'appendChild') || Object.hasOwn(host, 'removeChild')) throw new Error('Parent realm is already instrumented');
     const nativeList = sw.getRegistrations, nativeTarget = sw.getRegistration;
-    const state = {lists: 0, lookups: 0, added: 0, removed: 0, live: new Set(), maxLive: 0, frameListeners: new Map(), nativeUpdates: null, nativeUpdateWitness: countNativeUpdates ? 'no-attempt' : 'disabled'};
+    const nativeCreate = document.createElement, nativeAppend = host.appendChild, nativeRemove = host.removeChild;
+    const workerSuffix = '/_nextgo/offline/sw.js';
+    if (!descriptor.workerURL.endsWith(workerSuffix)) throw new Error('Unexpected worker path');
+    const helperURL = descriptor.workerURL.slice(0, -workerSuffix.length) + helperPath;
+    if (new URL(helperURL).origin !== location.origin) throw new Error('Unexpected helper origin');
+    const state = {lists: 0, lookups: 0, added: 0, removed: 0, live: new Set(), maxLive: 0,
+      frames: new Map(), nativeUpdates: countNativeUpdates ? 0 : null,
+      nativeUpdateWitness: countNativeUpdates ? 'no-attempt' : 'disabled', nativeWitnessUnavailable: false,
+      trustedLoads: 0, eligibleLoads: 0, ineligibleLoads: 0, inaccessibleLoads: 0, initialWitnesses: 0, finalWitnesses: 0,
+      updateScopeExact: true, witnessCleanupKnown: true, forwardingRestored: false};
     const empty = registration => registration?.scope === descriptor.scope ? {scope: registration.scope, active: null, waiting: null, installing: null} : registration;
     const list = function(...args) {
       if (this !== sw) throw new Error('Unexpected parent list receiver');
@@ -418,43 +430,121 @@ async function parentEmptyRegistrationFault(page, countNativeUpdates = false) {
       if (++state.lookups > 4) throw new Error('Parent target fault exceeds finite budget');
       return Reflect.apply(nativeTarget, this, args).then(empty);
     };
+    const markUnavailable = () => {state.nativeWitnessUnavailable = true; state.nativeUpdateWitness = 'unavailable';};
+    const installUpdateWitness = (frame, owned, phase) => {
+      try {
+        const child = frame.contentWindow;
+        if (!child || child.origin !== location.origin) throw new Error('Unreachable witness realm');
+        const prototype = child.ServiceWorkerRegistration.prototype;
+        if (!owned.prototypes.some(value => value.prototype === prototype)) {
+          if (owned.prototypes.length >= 2) throw new Error('Witness realm bound exceeded');
+          const own = Object.getOwnPropertyDescriptor(prototype, 'update');
+          if (!own || typeof own.value !== 'function') throw new Error('Missing native update descriptor');
+          const forward = function(...args) {
+            // Keep a cumulative count; never reset after the first realm or call.
+            if (state.nativeUpdates < 8) state.nativeUpdates++; else markUnavailable();
+            if (state.nativeUpdateWitness !== 'unavailable') state.nativeUpdateWitness = 'called';
+            state.updateScopeExact = state.updateScopeExact && this.scope === descriptor.scope;
+            return Reflect.apply(own.value, this, args);
+          };
+          // Register ownership before a host call can partially succeed/throw.
+          owned.prototypes.push({prototype, own, forward});
+          Object.defineProperty(prototype, 'update', {...own, value: forward});
+        }
+        state[phase === 'initial' ? 'initialWitnesses' : 'finalWitnesses']++;
+        if (state.nativeUpdateWitness !== 'called' && state.nativeUpdateWitness !== 'unavailable') state.nativeUpdateWitness = 'installed';
+      } catch {markUnavailable();}
+    };
+    const retireFrameWitness = owned => {
+      if (owned.retired) return;
+      let known = true;
+      if (owned.listener) {
+        try {owned.frame.removeEventListener('load', owned.listener); owned.listener = null;} catch {known = false;}
+      }
+      for (const value of owned.prototypes) {
+        if (value.restored) continue;
+        try {
+          const current = Object.getOwnPropertyDescriptor(value.prototype, 'update');
+          if (current?.value !== value.forward) throw new Error('Update witness ownership changed');
+          Object.defineProperty(value.prototype, 'update', value.own);
+          if (Object.getOwnPropertyDescriptor(value.prototype, 'update')?.value !== value.own.value) throw new Error('Update witness did not restore');
+          value.restored = true;
+        } catch {known = false;}
+      }
+      // A failed checked restoration remains unknown; it cannot gain zero-call
+      // qualification or clear ownership by pretending cleanup succeeded.
+      if (!known) {state.witnessCleanupKnown = false; throw new Error('Native update witness cleanup is unknown');}
+      owned.prototypes.length = 0; owned.retired = true;
+    };
+    const create = function(...args) {
+      const node = Reflect.apply(nativeCreate, this, args);
+      if (this !== document || !countNativeUpdates || String(args[0]).toLowerCase() !== 'iframe') return node;
+      if (state.frames.size >= 1) throw new Error('More than one recovery frame created');
+      const owned = {frame: node, prototypes: [], listener: null, retired: false};
+      // This registration precedes Go's listener registration. An append-only
+      // hook would be too late to assume the final native realm was witnessed.
+      owned.listener = event => {
+        if (!event.isTrusted || event.target !== node || owned.retired) return;
+        state.trustedLoads++;
+        if (state.trustedLoads > 1 || node.getAttribute('src') !== helperURL) {markUnavailable(); return;}
+        let eligible = false, inaccessible = false;
+        try {
+          const child = node.contentWindow, childDocument = node.contentDocument;
+          inaccessible = childDocument === null;
+          eligible = !!child && !!childDocument && child.location.href === helperURL && child.origin === location.origin &&
+            childDocument.readyState === 'complete' && childDocument.documentElement?.getAttribute('data-nextgo-offline-helper') === '1' &&
+            childDocument.head?.childNodes.length === 0 && childDocument.body?.childNodes.length === 0;
+        } catch {}
+        if (eligible) {state.eligibleLoads++; installUpdateWitness(node, owned, 'final');}
+        else {state.ineligibleLoads++; if (inaccessible) state.inaccessibleLoads++;}
+      };
+      state.frames.set(node, owned);
+      node.addEventListener('load', owned.listener);
+      return node;
+    };
+    const append = function(...args) {
+      const value = Reflect.apply(nativeAppend, this, args);
+      const node = args[0], owned = state.frames.get(node);
+      if (this === host && owned && !owned.retired) {
+        if (node.getAttribute('src') !== helperURL || node.parentNode !== host) {markUnavailable(); return value;}
+        // A valid HTTP src was already set before this first native insertion.
+        // The initial same-origin realm can be instrumented before append returns.
+        installUpdateWitness(node, owned, 'initial');
+      }
+      return value;
+    };
+    const remove = function(...args) {
+      const node = args[0], owned = state.frames.get(node);
+      if (this === host && owned) {
+        // Restore/drop child-native objects BEFORE native removal, never by
+        // inspecting a detached child's stale prototypes afterwards.
+        retireFrameWitness(owned); state.frames.delete(node);
+      }
+      return Reflect.apply(nativeRemove, this, args);
+    };
     const record = records => {
       if (records.length > 128) throw new Error('Unexpected frame observer volume');
-      for (const record of records) {
-        for (const node of record.addedNodes) if (node.nodeType === 1 && node.tagName === 'IFRAME') {state.added++; state.live.add(node); state.maxLive = Math.max(state.maxLive, state.live.size);
-          if (countNativeUpdates) {
-            const onLoad = () => {
-            state.frameListeners.delete(node);
-            // A one-call forwarding witness in this exact child realm. No
-            // native object is stored in parent state or used after removal.
-            try {
-              const prototype = node.contentWindow.ServiceWorkerRegistration.prototype;
-              const own = Object.getOwnPropertyDescriptor(prototype, 'update');
-              if (!own || typeof own.value !== 'function') throw new Error('Missing native update descriptor');
-              const native = own.value;
-              Object.defineProperty(prototype, 'update', {...own, value: function(...args) {
-                Object.defineProperty(prototype, 'update', own);
-                state.nativeUpdateWitness = 'called';
-                if (this.scope !== descriptor.scope || ++state.nativeUpdates !== 1) throw new Error('Unexpected native update dispatch');
-                return Reflect.apply(native, this, args);
-              }});
-              state.nativeUpdates = 0; state.nativeUpdateWitness = 'installed';
-            } catch {state.nativeWitnessUnavailable = true; state.nativeUpdateWitness = 'unavailable'; state.nativeUpdates = null;}
-            };
-            state.frameListeners.set(node, onLoad);
-            node.addEventListener('load', onLoad, {once: true});
-          }
+      for (const value of records) {
+        for (const node of value.addedNodes) if (node.nodeType === 1 && node.tagName === 'IFRAME') {state.added++; state.live.add(node); state.maxLive = Math.max(state.maxLive, state.live.size);}
+        for (const node of value.removedNodes) if (state.live.delete(node)) {
+          state.removed++;
+          // Bypassing the checked removeChild seam is observable UNKNOWN. Drop
+          // references without using native objects after the frame is gone.
+          if (state.frames.has(node)) {state.witnessCleanupKnown = false; state.frames.delete(node);}
         }
-        for (const node of record.removedNodes) if (state.live.delete(node)) {state.removed++; const listener = state.frameListeners.get(node); if (listener) node.removeEventListener('load', listener); state.frameListeners.delete(node);}
       }
-      state.maxLive = Math.max(state.maxLive, state.live.size);
     };
     const observer = new MutationObserver(record);
-    observer.observe(document.documentElement, {childList: true});
+    observer.observe(host, {childList: true});
     Object.defineProperty(sw, 'getRegistrations', {value: list, configurable: true});
     Object.defineProperty(sw, 'getRegistration', {value: target, configurable: true});
-    globalThis.offlineEmptyParentFault = {sw, list, target, state, observer, record};
-  }, countNativeUpdates);
+    if (countNativeUpdates) {
+      Object.defineProperty(document, 'createElement', {value: create, configurable: true});
+      Object.defineProperty(host, 'appendChild', {value: append, configurable: true});
+      Object.defineProperty(host, 'removeChild', {value: remove, configurable: true});
+    }
+    globalThis.offlineEmptyParentFault = {sw, host, list, target, create, append, remove, state, observer, record, retireFrameWitness, countNativeUpdates};
+  }, {countNativeUpdates, helperPath: registrationHelperPath});
 }
 async function retireParentEmptyRegistrationFault(page) {
   return page.evaluate(() => {
@@ -464,15 +554,38 @@ async function retireParentEmptyRegistrationFault(page) {
     try {
       fault.record(fault.observer.takeRecords());
       if (navigator.serviceWorker !== fault.sw || fault.sw.getRegistrations !== fault.list || fault.sw.getRegistration !== fault.target) throw new Error('Fault ownership changed');
+      if (fault.countNativeUpdates && (document.createElement !== fault.create || fault.host.appendChild !== fault.append || fault.host.removeChild !== fault.remove)) throw new Error('Forwarding witness ownership changed');
+      for (const owned of fault.state.frames.values()) {
+        if (!owned.frame.isConnected) {fault.state.witnessCleanupKnown = false; throw new Error('Unjoined detached witness realm');}
+        fault.retireFrameWitness(owned);
+      }
+      fault.state.frames.clear();
       delete fault.sw.getRegistrations; delete fault.sw.getRegistration;
-      if (Object.hasOwn(fault.sw, 'getRegistrations') || Object.hasOwn(fault.sw, 'getRegistration')) throw new Error('Parent wrappers were not restored');
-      proof = {forcedParentEmptyOnly: true, lists: fault.state.lists, lookups: fault.state.lookups, framesAdded: fault.state.added, framesRemoved: fault.state.removed, framesConnected: [...fault.state.live].filter(frame => frame.isConnected).length, maximumLiveFrames: fault.state.maxLive, nativeUpdateCalls: fault.state.nativeUpdates, nativeUpdateWitness: fault.state.nativeUpdateWitness, nativeWitnessUnavailable: !!fault.state.nativeWitnessUnavailable, pendingFrameListeners: fault.state.frameListeners.size};
+      if (fault.countNativeUpdates) {delete document.createElement; delete fault.host.appendChild; delete fault.host.removeChild;}
+      if (Object.hasOwn(fault.sw, 'getRegistrations') || Object.hasOwn(fault.sw, 'getRegistration') ||
+          fault.countNativeUpdates && (Object.hasOwn(document, 'createElement') || Object.hasOwn(fault.host, 'appendChild') || Object.hasOwn(fault.host, 'removeChild'))) throw new Error('Parent forwarding wrappers were not restored');
+      fault.state.forwardingRestored = true;
+      // The cumulative internal counter starts before instrumentation, but it is
+      // NOT a qualified total until every reachable required realm was covered.
+      // A native-null terminal contentDocument cannot expose registry objects;
+      // other wrong-shape/incomplete/failed witnesses remain UNKNOWN, never 0.
+      const qualifiedCalls = fault.countNativeUpdates && !fault.state.nativeWitnessUnavailable &&
+        fault.state.witnessCleanupKnown && fault.state.forwardingRestored && fault.state.initialWitnesses === 1 &&
+        fault.state.added === 1 && fault.state.removed === 1 && fault.state.live.size === 0 &&
+        fault.state.trustedLoads === 1 && (fault.state.eligibleLoads === 1 && fault.state.finalWitnesses === 1 ||
+          fault.state.ineligibleLoads === 1 && fault.state.inaccessibleLoads === 1);
+      proof = {forcedParentEmptyOnly: true, lists: fault.state.lists, lookups: fault.state.lookups, framesAdded: fault.state.added, framesRemoved: fault.state.removed, framesConnected: [...fault.state.live].filter(frame => frame.isConnected).length, maximumLiveFrames: fault.state.maxLive, nativeUpdateCalls: qualifiedCalls ? fault.state.nativeUpdates : null, nativeUpdateWitness: fault.state.nativeUpdateWitness, nativeWitnessUnavailable: fault.state.nativeWitnessUnavailable, pendingFrameListeners: [...fault.state.frames.values()].filter(value => value.listener).length,
+        trustedLoads: fault.state.trustedLoads, eligibleLoads: fault.state.eligibleLoads, ineligibleLoads: fault.state.ineligibleLoads, inaccessibleLoads: fault.state.inaccessibleLoads, initialWitnesses: fault.state.initialWitnesses, finalWitnesses: fault.state.finalWitnesses, updateScopeExact: fault.state.updateScopeExact, witnessCleanupKnown: fault.state.witnessCleanupKnown, forwardingRestored: fault.state.forwardingRestored};
+      if (!proof.witnessCleanupKnown) throw new Error('Witness cleanup could not be proved');
     } finally {
       fault.observer.disconnect();
-      for (const [frame, listener] of fault.state.frameListeners) frame.removeEventListener('load', listener);
-      fault.state.frameListeners.clear();
+      // Conditional restoration preserves a foreign replacement. Unknown child
+      // cleanup is not fabricated: failed cases retain the browser for teardown.
       if (fault.sw.getRegistrations === fault.list) delete fault.sw.getRegistrations;
       if (fault.sw.getRegistration === fault.target) delete fault.sw.getRegistration;
+      if (document.createElement === fault.create) delete document.createElement;
+      if (fault.host.appendChild === fault.append) delete fault.host.appendChild;
+      if (fault.host.removeChild === fault.remove) delete fault.host.removeChild;
       delete globalThis.offlineEmptyParentFault;
     }
     return proof;
@@ -490,7 +603,7 @@ test('Go update recovers a forced parent-empty proof through one live native rea
   const active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
   await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
   await page.evaluate(() => {globalThis.freshRealmOfflineNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];});
-  await parentEmptyRegistrationFault(page);
+  await parentEmptyRegistrationFault(page, true);
   let proof, primaryFailed = false;
   try {
     await shelf.select('B');
@@ -506,11 +619,14 @@ test('Go update recovers a forced parent-empty proof through one live native rea
     await expect(counter(page)).toHaveText('4');
   } catch (error) {primaryFailed = true; throw error;}
   finally {proof = await retireOfflineParentFault(page, info, retireParentEmptyRegistrationFault, primaryFailed);}
-  expect(proof).toEqual({forcedParentEmptyOnly: true, lists: 4, lookups: 1, framesAdded: 1, framesRemoved: 1, framesConnected: 0, maximumLiveFrames: 1, nativeUpdateCalls: null, nativeUpdateWitness: 'disabled', nativeWitnessUnavailable: false, pendingFrameListeners: 0});
+  expect(proof).toEqual({forcedParentEmptyOnly: true, lists: 4, lookups: 1, framesAdded: 1, framesRemoved: 1, framesConnected: 0, maximumLiveFrames: 1, nativeUpdateCalls: 1, nativeUpdateWitness: 'called', nativeWitnessUnavailable: false, pendingFrameListeners: 0,
+    trustedLoads: 1, eligibleLoads: 1, ineligibleLoads: 0, inaccessibleLoads: 0, initialWitnesses: 1, finalWitnesses: 1, updateScopeExact: true, witnessCleanupKnown: true, forwardingRestored: true});
   const waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
   const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state, controller: navigator.serviceWorker.controller?.state, frames: document.querySelectorAll('iframe').length};});
   expect(native).toEqual({active: 'activated', waiting: 'installed', controller: 'activated', frames: 0});
-  await info.attach('forced-parent-empty-live-realm-update', {body: JSON.stringify({proof, native, active, waiting, naturalCause: 'UNKNOWN'}), contentType: 'application/json'});
+  const helperRequests = shelf.records.filter(value => value.path === registrationHelperPath);
+  expect(helperRequests).toEqual([{generation: 'B', method: 'GET', path: registrationHelperPath, status: 200}]);
+  await info.attach('forced-parent-empty-live-realm-update', {body: JSON.stringify({proof, native, helperRequests, active, waiting, naturalCause: 'UNKNOWN', nativeEligibility: 'actual HTTP helper registry/update flight; no browser-cause inference'}), contentType: 'application/json'});
   await shelf.closeBrowser(); page = await shelf.open(); await page.goto(shelf.origin + '/'); await ready(page);
   const completion = await nextOfflineCompletion(page);
   await page.locator('[data-offline-status-button]').click();
@@ -520,54 +636,71 @@ test('Go update recovers a forced parent-empty proof through one live native rea
   await expect(counter(page)).toHaveText('3');
 });
 
-// Probe the actual native policy with the same empty frame options, then fully
-// remove it before the Go operation. A removed frame is not a claim about
-// instantaneous ServiceWorker client-ID erasure.
-async function blankFramePolicy(page) {
-  return page.evaluate(async () => {
+// One immutable HTTP src is set BEFORE insertion. Only a trusted exact-target
+// load retires that high-level native navigation; error/timeout/removal do not.
+// Failed navigation documents also load but never grant helper authority.
+async function httpHelperPolicy(page) {
+  return page.evaluate(async helperPath => {
     if (document.querySelector('iframe')) throw new Error('Policy probe requires no preexisting frames');
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline')), suffix = '/_nextgo/offline/sw.js';
+    if (!descriptor.workerURL.endsWith(suffix)) throw new Error('Unexpected worker path');
+    const helperURL = descriptor.workerURL.slice(0, -suffix.length) + helperPath;
+    if (new URL(helperURL).origin !== location.origin) throw new Error('Unexpected helper origin');
     const frame = document.createElement('iframe');
-    frame.hidden = true; frame.inert = true; frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true'); frame.src = 'about:blank';
-    let loaded = false, failed = false, violation = false, timer;
-    let finish;
+    frame.hidden = true; frame.inert = true; frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true');
+    frame.loading = 'eager'; frame.referrerPolicy = 'no-referrer'; frame.src = helperURL;
+    let trustedLoad = false, violation = false, timer, timedOut = false, settled = false, finish;
+    const cleanup = () => {
+      frame.removeEventListener('load', onLoad); frame.removeEventListener('error', onError);
+      document.removeEventListener('securitypolicyviolation', onPolicy);
+      if (!trustedLoad) throw new Error('No native navigation terminal observation');
+      frame.remove();
+      if (frame.isConnected || document.querySelector('iframe')) throw new Error('Native policy probe did not retire');
+    };
     const result = new Promise((resolve, reject) => {
-      const inspect = () => {
-        if (!loaded && !failed) return;
+      finish = () => {
+        if (!trustedLoad || settled) return;
         let accessible = false;
         try {
           const child = frame.contentWindow, childDocument = frame.contentDocument;
-          accessible = !!child && !!childDocument && child.location.href === 'about:blank' && child.origin === location.origin && childDocument.readyState === 'complete' && childDocument.body?.childNodes.length === 0 && !!child.navigator.serviceWorker;
+          accessible = !!child && !!childDocument && child.location.href === helperURL && child.origin === location.origin &&
+            childDocument.readyState === 'complete' && childDocument.documentElement?.getAttribute('data-nextgo-offline-helper') === '1' &&
+            childDocument.head?.childNodes.length === 0 && childDocument.body?.childNodes.length === 0 && !!child.navigator.serviceWorker;
         } catch {}
-        if (accessible) resolve({nativePermitsLiveBlank: true, policyViolationObserved: violation});
-        else if (violation) resolve({nativePermitsLiveBlank: false, policyViolationObserved: true});
+        if (accessible || violation) {settled = true; resolve({nativePermitsHTTPHelper: accessible, policyViolationObserved: violation, trustedNavigationLoad: true});}
       };
-      finish = inspect;
-      timer = setTimeout(() => reject(new Error('Native blank-frame policy remains unknown')), 5000);
+      timer = setTimeout(() => {timedOut = true; settled = true; reject(new Error('Native HTTP helper policy remains unknown; navigation still charged until trusted load'));}, 5000);
     });
-    const onLoad = () => {loaded = true; finish();};
-    const onError = () => {failed = true; finish();};
+    const onLoad = event => {
+      if (!event.isTrusted || event.target !== frame || frame.getAttribute('src') !== helperURL) return;
+      trustedLoad = true;
+      if (timedOut) cleanup(); else finish();
+    };
+    const onError = event => {
+      // An error does not prove that the one navigation attempt settled. Keep
+      // the live frame/listener ownership for a later trusted load or teardown.
+      if (!event.isTrusted || event.target !== frame) return;
+    };
     const onPolicy = event => {
-      // CSP serializes non-network blocked URLs as their scheme on some
-      // implementations. The sole owned iframe attempt has literal src blank.
-      if (event instanceof SecurityPolicyViolationEvent && event.isTrusted && event.effectiveDirective === 'frame-src' && ['about', 'about:blank'].includes(event.blockedURI) && frame.getAttribute('src') === 'about:blank' && document.querySelectorAll('iframe').length === 1 && frame.isConnected) {violation = true; finish();}
+      if (event instanceof SecurityPolicyViolationEvent && event.isTrusted && event.disposition === 'enforce' &&
+          event.effectiveDirective === 'frame-src' && event.blockedURI === helperURL && frame.getAttribute('src') === helperURL &&
+          document.querySelectorAll('iframe').length === 1 && frame.isConnected) {violation = true; finish();}
     };
     frame.addEventListener('load', onLoad); frame.addEventListener('error', onError);
     document.addEventListener('securitypolicyviolation', onPolicy);
-    try {document.documentElement.append(frame); return await result;}
-    finally {
-      clearTimeout(timer); frame.removeEventListener('load', onLoad); frame.removeEventListener('error', onError);
-      document.removeEventListener('securitypolicyviolation', onPolicy); frame.remove();
-      if (frame.isConnected || document.querySelector('iframe')) throw new Error('Native policy probe did not retire');
-    }
-  });
+    try {document.documentElement.appendChild(frame); return await result;}
+    finally {clearTimeout(timer); if (trustedLoad) cleanup();}
+    // With no trusted load, closure-held listeners/frame remain one charged
+    // attempt; the failed case's existing browser-context owner must contain it.
+  }, registrationHelperPath);
 }
 
-test('Go parent-empty update honors actual native blank-frame CSP policy with real worker state and cleanup', async ({shelf}, info) => {
+test('Go parent-empty update honors actual native HTTP-helper CSP policy with real worker state and cleanup', async ({shelf}, info) => {
   const page = await shelf.open(), active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
-  // No response-header or fixture-server changes. Some browsers permit the
-  // initial blank realm despite denying its explicit blank navigation.
+  // This exact parent policy governs loading the HTTP child; an HTTP child does
+  // not inherit every parent-only worker-src policy. No response/header bypass.
   await page.evaluate(() => {const policy = document.createElement('meta'); policy.httpEquiv = 'Content-Security-Policy'; policy.content = "frame-src 'none'"; document.head.append(policy);});
-  const policy = await blankFramePolicy(page);
+  const policy = await httpHelperPolicy(page);
   await parentEmptyRegistrationFault(page, true);
   let proof, waiting, primaryFailed = false;
   try {
@@ -575,14 +708,14 @@ test('Go parent-empty update honors actual native blank-frame CSP policy with re
     const completion = await nextOfflineCompletion(page);
     await page.locator('[data-offline-update]').click();
     await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
-    if (policy.nativePermitsLiveBlank) {
+    if (policy.nativePermitsHTTPHelper) {
       await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
       await expect(controls(page)).toHaveAttribute('data-offline-last-error', '');
       await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
       waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
     } else {
       expect(policy.policyViolationObserved).toBe(true);
-      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', /conflict/);
+      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', 'conflict');
       await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', '');
     }
     await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
@@ -593,13 +726,14 @@ test('Go parent-empty update honors actual native blank-frame CSP policy with re
   expect(proof.forcedParentEmptyOnly).toBe(true); expect(proof.lookups).toBe(1);
   expect(proof.framesAdded).toBe(1); expect(proof.framesRemoved).toBe(1); expect(proof.framesConnected).toBe(0);
   expect(proof.maximumLiveFrames).toBe(1); expect(proof.pendingFrameListeners).toBe(0);
+  expect(proof.nativeWitnessUnavailable).toBe(false); expect(proof.witnessCleanupKnown).toBe(true); expect(proof.forwardingRestored).toBe(true);
+  expect(proof.trustedLoads).toBe(1); expect(proof.initialWitnesses).toBe(1); expect(proof.updateScopeExact).toBe(true);
+  if (policy.nativePermitsHTTPHelper) {expect(proof.nativeUpdateWitness).toBe('called'); expect(proof.nativeUpdateCalls).toBe(1); expect(proof.eligibleLoads).toBe(1); expect(proof.finalWitnesses).toBe(1);}
+  else {expect(proof.nativeUpdateWitness).toBe('installed'); expect(proof.nativeUpdateCalls).toBe(0); expect(proof.ineligibleLoads).toBe(1); expect(proof.inaccessibleLoads).toBe(1); expect(proof.finalWitnesses).toBe(0);}
   const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state || null, frames: document.querySelectorAll('iframe').length};});
-  // Persist the bounded witness before requiring complete instrumentation. A
-  // native-denied/no-attempt realm is explicit UNKNOWN for call counting, not
-  // an observed zero. It cannot qualify this strict zero-dispatch assertion.
-  await info.attach('forced-parent-empty-native-csp-policy', {body: JSON.stringify({policy, proof, native, active, waiting: waiting || null, nativeDeniedNoObservableUpdateAttempt: !policy.nativePermitsLiveBlank && proof.nativeUpdateWitness === 'no-attempt', naturalCause: 'UNKNOWN'}), contentType: 'application/json'});
-  expect(proof.nativeWitnessUnavailable).toBe(false);
-  if (policy.nativePermitsLiveBlank) {expect(proof.nativeUpdateWitness).toBe('called'); expect(proof.nativeUpdateCalls).toBe(1);}
-  else {expect(proof.nativeUpdateWitness).toBe('installed'); expect(proof.nativeUpdateCalls).toBe(0);}
-  expect(native).toEqual({active: 'activated', waiting: policy.nativePermitsLiveBlank ? 'installed' : null, frames: 0});
+  expect(native).toEqual({active: 'activated', waiting: policy.nativePermitsHTTPHelper ? 'installed' : null, frames: 0});
+  const helperRequests = shelf.records.filter(value => value.path === registrationHelperPath);
+  if (policy.nativePermitsHTTPHelper) expect(helperRequests).toEqual([{generation: 'A', method: 'GET', path: registrationHelperPath, status: 200}, {generation: 'B', method: 'GET', path: registrationHelperPath, status: 200}]);
+  else expect(helperRequests).toEqual([]);
+  await info.attach('forced-parent-empty-native-csp-policy', {body: JSON.stringify({policy, proof, native, helperRequests, active, waiting: waiting || null, naturalCause: 'UNKNOWN', meaning: 'Native load retires one high-level attempt; no socket or worker-client-ID disappearance claim. Zero counts require an available initial native update spy and ineligible terminal document.'}), contentType: 'application/json'});
 });
