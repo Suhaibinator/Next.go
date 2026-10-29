@@ -1,6 +1,7 @@
 import {test as base,expect} from '@playwright/test';
 import {startRetainedServer} from './retained-routes-fixture.mjs';
 import {holdRequests,holdPage} from './link-status-gates.mjs';
+import {armRetainedScrollProbe,collectRetainedScrollProbe} from './retained-scroll-diagnostics.mjs';
 
 const test=base.extend({native:async({page},use,info)=>{
   const startup=new AbortController();const closed=()=>startup.abort(Error('Owned page closed during startup'));page.once('close',closed);
@@ -60,7 +61,7 @@ test('hidden effects stop and a real owned HTTP read is canceled without replay'
 });
 
 test('history restores focus and real window and nested scroll without reloading the document',async({page,native},info)=>{
-  let saved,outgoing,afterBack;
+  let saved,outgoing,afterBack,phaseProbe,phaseArmAttempted=false,originalAssertionAttempted=false;
   try{
   await page.goto(native.origin+'/a');await ready(page);await saveA(page);await part(page,'draft').fill('Focused draft');await part(page,'draft').focus();
   await page.evaluate(()=>{window.scrollTo(0,500);document.querySelector('[data-retained-scroll]').scrollTop=160;});
@@ -77,6 +78,11 @@ test('history restores focus and real window and nested scroll without reloading
     };
     const before=read();document.querySelector('nav a[href="/b"]').click();return {before,after:read()};
   });await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
+  // Source-admitted diagnostic: arm only on B, immediately before expected back.
+  // Native wrappers and selection IDL probes may change scheduling; a pass is not
+  // a bug-fix result. Setup/collection failure must preserve the original test.
+  phaseArmAttempted=true;
+  try{phaseProbe=await armRetainedScrollProbe(page);}catch{}
   await backA(page);await expect(part(page,'draft')).toBeFocused();
   const restored=await page.evaluate(()=>{
     // Sample the original assertion's exact fields FIRST, before diagnostics.
@@ -89,12 +95,18 @@ test('history restores focus and real window and nested scroll without reloading
     return {actual,observation};
   });
   afterBack=restored.observation;
+  originalAssertionAttempted=true;
   expect(restored.actual).toEqual({...saved,same:true});
   // This fixture has no application status styles: loading must not move it.
   expect(outgoing.before.complete && outgoing.after.complete).toBe(true);
   expect(outgoing.after.windowY).toEqual(outgoing.before.windowY);
   expect(outgoing.after.documentY).toEqual(outgoing.before.documentY);
   }finally{
+    // Collect only after the original assertion attempt (or an earlier original
+    // failure). No geometry reads, extra focus/scroll calls, waits, or retries occur.
+    let phase;
+    try{phase=await collectRetainedScrollProbe(page,phaseProbe,phaseArmAttempted);}
+    catch{phase={version:1,observed:false,sameDocument:null,cleanup:{attempted:null},collectionFailed:true};}
     // Attachment happens after the original assertion attempt. Missing values
     // stay unknown; a later historyY is not the popstate event's saved value.
     try{
@@ -103,6 +115,12 @@ test('history restores focus and real window and nested scroll without reloading
       if(body.length<=4096)await info.attach('retained-scroll-observations',{body,contentType:'application/json'});
       else console.warn('Retained scroll diagnostics incomplete: attachment byte cap');
     }catch{console.warn('Retained scroll diagnostics incomplete: attachment failed');}
+    try{
+      const proof={version:1,phaseArmAttempted,originalAssertionAttempted,phase};
+      const body=Buffer.from(JSON.stringify(proof));
+      if(body.length<=8192)await info.attach('retained-scroll-phase-observations',{body,contentType:'application/json'});
+      else console.warn('Retained scroll phase diagnostics incomplete: attachment byte cap');
+    }catch{console.warn('Retained scroll phase diagnostics incomplete: attachment failed');}
   }
 });
 

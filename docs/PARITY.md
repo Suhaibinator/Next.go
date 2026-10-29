@@ -8,46 +8,103 @@ The baseline includes the current App Router, supported Pages Router application
 
 ## Current qualification and next source increment
 
-The published `6ef17fce` retained-focus increment remains unqualified. Both
-Go 1.24.13 and 1.27.3 source jobs reached the new core-WASM regression: ten
-subcases passed, then `throwing-target` terminated the WASM runtime before a
-subcase or root PASS. The core Go jobs also fail their WASM step; the inspected
-ARM retained jobs stop before browser qualification. No remaining phase or
-WebKit scroll result can be inferred from those partial runs. Static-shell,
-Lambda-package and invocation-context jobs report success, with fresh inner
-artifact audits still outstanding. Other jobs were still running at this October 29 observation.
+The published `ebb90471` increment corrects the focus-event target read at the
+Go/JavaScript exception boundary. Both Go 1.24.13 and 1.27.3 now have actual
+RUN/PASS evidence for all 600 declared source-phase checks per SDK, with no
+required root skipped. The preserved focus regression and all eleven subcases,
+including `throwing-target`, pass in Node 22.23.3/WASM. Native race tests, six
+WASM streams and the real CLI's retained/merge production builds complete.
+The seven physical Go streams satisfy nine logical requirement groups because
+the portable roots run inside both module/client streams. Vet completion is
+supported by strict workflow progression. Redirected compiler/runtime hashes,
+test executables and production binary payloads were not independently
+inspected. These are scoped source-job results, not native-browser or release
+qualification. [Source run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915423).
 
-The correction changes only the event target read to a checked Go
-`Reflect.Call("get", event, "target")` boundary. Official Go source for both
-SDKs shows that the `Value.Get` import performs a bare JavaScript property read,
-while the call import catches JavaScript exceptions and converts them into a
-Go error panic. Prior reasoning that Go `defer/recover` alone contained this
-throwing getter was incorrect and is retracted. The exact existing regression,
-all eleven subcases and their dispatch/assertion paths remain unchanged. Source
-review and standalone formatting passed; fresh matching-SDK execution must
-verify the correction. This does not harden other unchecked property reads or
-protect against malicious replacement of JavaScript intrinsics.
+Four Linux SDK/ISA packaging cells cover Go 1.24.13/1.27.3 and amd64/arm64.
+Their actual pass records and immutable test source support 56 native local
+mock-Runtime flights using extracted generated bootstraps. Each cell executes
+only its matching ISA; the other architecture is cross-built and inspected.
+Separate ordinary-HTTP and local buffered/streaming invocation-context tests
+record 18 paired response/After observations and six cleanup receipts across
+the two SDKs. Generated ZIP/bootstrap/WASM bytes and redirected proof payloads
+were not independently downloaded in these audits. This is local mock Runtime
+API evidence, not AWS deployment, universal process-tree/resource isolation or
+provider qualification. AWS execution remains unauthorized.
+[Packaging run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915327),
+[invocation-context run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915353).
+
+The current CI result is mixed. Streaming prints eight passing suite summaries
+totaling 280 cases, including all 60 action-view cases. This run does not prove
+a causal correction for the earlier native response-body lookup failure. The
+action diagnostic remains passive and bounded, preserves the original body
+read/assertions/timeouts, and binds only the initial asserted response's exact
+request. Later error/retry responses cannot inherit that identity. Static shell,
+refresh, link status, independent zones and container jobs report terminal
+success through the Actions API; every inner browser/resource assertion has
+not been independently inspected. In particular, the static shell's 48-case
+payload was redirected and is not established merely by job status.
+
+The general browser batch records 334 passes and one workspace-development
+failure: a raw evaluation loses its execution context while waiting for the
+intended reload after manifest restoration. The proposed test-only correction
+uses one bounded Playwright `waitForFunction` task instead of repeatedly
+calling raw evaluation, preserving the predicate, 45-second timeout, test titles,
+fixtures and other assertions, and disposing its returned handle. Playwright's
+rerunnable task mechanism supports this choice; no fresh runtime result yet
+qualifies the proposed correction.
+
+Offline records 19 passes, one Firefox failure and 20 unrun cases. The failure
+is in the native CSP policy test probe before the Go Update action, so it does
+not demonstrate a failed Go Update. The native load/violation branch remains
+unknown. Only bounded passive timeout diagnostics are proposed here: cached
+observations, capped counters/records/strings and a guarded console record
+before the original rejection. Unobserved values remain unknown; the original
+5-second timer, predicate, rejection, cleanup and all 40 case identities remain.
+No new DOM probe, event-field read, request, frame, timer, listener or retry is
+added. Actual console-event retention and the native cause remain unverified.
+The larger Disable-recovery implementation and profile-selection work remain
+private and outside this increment.
+
+All four retained-route jobs fail the completion guard for their first browser
+matrix command; later merge/Lambda browser modes are unexecuted. Bounded
+inspection of four selected JSON members from the 224-entry AMD64/Go1.27.3
+artifact establishes that cell's 38 passes, one WebKit history failure and 33
+unrun cases, with no retries. It does not establish sibling SDK/ISA case counts.
+The original assertion expects window Y=500, nested Y=160 and the same document;
+it receives window Y=246, nested Y=160 and the same document. Immediate outgoing
+samples before/after the native click both retain Y=500. The later back sample
+shows Y=246. Neither incoming popstate data, the restore/layout event timeline
+nor the first cause of that change is captured; later assertions were not
+reached. Its 39 inline native cleanup receipts record UID 0, so this is not
+non-root qualification. [Retained run](https://github.com/Suhaibinator/Next.go/actions/runs/40949917910).
+
+The proposed retained follow-up adds bounded phase diagnostics while keeping
+the failing assertion and waits intact. It is observation work, not a restoration
+fix. No source review or passing synthetic Node/WASM test supplies the missing
+native event timeline, broad browser closure evidence or production result.
+The source packet enables a fresh qualification run; source review supplies
+no execution or readiness evidence. Native requirements and the 432 retained
+cases/440 closures and independent offline 40-case contract are unchanged. Larger native-accessor and lazy-module lifecycle
+proposals remain private and unadmitted.
+
+Historical `6ef17fce` evidence remains a failed baseline: both SDKs reached ten
+passing focus subcases, then `throwing-target` terminated the WASM runtime
+before its own or the root PASS. Its action suite had 59 passes and one body-read
+failure; its offline matrix had 17 passes, one failure and 22 unrun cases. Those
+partial results do not qualify later source. The prior reasoning that Go
+`defer/recover` alone contained the throwing getter was incorrect and remains
+retracted. Official Go source shows that `Value.Get` performs a bare JavaScript
+property read while the call import catches JavaScript exceptions and converts
+them to a Go error panic. The narrow `Reflect.Call("get", event, "target")`
+correction does not harden other unchecked reads or protect against replacement
+of JavaScript intrinsics.
 [Go bridge](https://github.com/golang/go/blob/go1.27.3/lib/wasm/wasm_exec.js),
 [Go syscall/js](https://github.com/golang/go/blob/go1.27.3/src/syscall/js/js.go).
 
-The `6ef17fce` dedicated streaming job reports 59 passes and one Chromium
-`response.json()` body-retrieval failure. Its parent `46bf41a3` snapshot plus
-source supports Go having decoded and displayed the expected validation error,
-but does not establish the native failure's cause or the unreached assertions.
-The additive diagnostic preserves the original body assertion, waits and
-exception; it records bounded passive events, binds the asserted response's
-exact request identity, and reports mismatches as unknown. It adds no DOM
-inspection, request replay or response-body wait. Browser subscription transport
-and ordinary failure-attachment I/O are not claimed to be absent.
-
-The `6ef17fce` offline matrix stops at a Firefox Disable failure: 17 passes,
-one failure and 22 unrun cases. Parent HTTP-helper unit and Chromium evidence
-remains scoped historical evidence. The paired Disable-recovery implementation,
-legacy-worker qualification and helper-response worker-CSP witness are private
-work, outside this increment. Their source reviews do not establish native
-execution or admit expanded browser counts. WebKit restoration effectiveness,
-full browser/deployment qualification, all 79 capabilities and all 11 release
-gates remain open. No parent result is inherited as a pass for new source.
+All **79 capability rows and 11 production release gates remain open**. No test
+is removed to obtain these results. This framework does not claim full Next.js
+compatibility or production maturity.
 
 ## Stable patch baseline update
 

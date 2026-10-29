@@ -650,6 +650,13 @@ async function httpHelperPolicy(page) {
     frame.hidden = true; frame.inert = true; frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true');
     frame.loading = 'eager'; frame.referrerPolicy = 'no-referrer'; frame.src = helperURL;
     let trustedLoad = false, violation = false, timer, timedOut = false, settled = false, finish;
+    // Passive evidence only: cache values already read by the existing handlers.
+    // No event, DOM or native observation is added when the deadline rejects.
+    const passive = {trustedExactLoads: 0, acceptedLoads: 0, trustedExactErrors: 0,
+      accessibilityChecks: 0, accessibleChecks: 0, inaccessibleChecks: 0,
+      trustedPolicyEvents: 0, policyObservations: []};
+    const bump = key => {try {if (passive[key] < 32) passive[key]++;} catch {}};
+    const scalar = (value, maximum) => typeof value === 'string' ? value.slice(0, maximum) : null;
     const cleanup = () => {
       frame.removeEventListener('load', onLoad); frame.removeEventListener('error', onError);
       document.removeEventListener('securitypolicyviolation', onPolicy);
@@ -667,23 +674,61 @@ async function httpHelperPolicy(page) {
             childDocument.readyState === 'complete' && childDocument.documentElement?.getAttribute('data-nextgo-offline-helper') === '1' &&
             childDocument.head?.childNodes.length === 0 && childDocument.body?.childNodes.length === 0 && !!child.navigator.serviceWorker;
         } catch {}
+        bump('accessibilityChecks'); bump(accessible ? 'accessibleChecks' : 'inaccessibleChecks');
         if (accessible || violation) {settled = true; resolve({nativePermitsHTTPHelper: accessible, policyViolationObserved: violation, trustedNavigationLoad: true});}
       };
-      timer = setTimeout(() => {timedOut = true; settled = true; reject(new Error('Native HTTP helper policy remains unknown; navigation still charged until trusted load'));}, 5000);
+      timer = setTimeout(() => {
+        timedOut = true; settled = true;
+        // This precedes the original rejection/finally. A trusted load can still
+        // make finally retire the frame; this snapshot does not claim otherwise.
+        try {
+          const body = JSON.stringify({version: 1, snapshotPhase: 'before-original-rejection',
+            trustedNavigationLoad: trustedLoad, policyViolationObserved: violation, countsSaturateAt: 32,
+            trustedExactLoads: passive.trustedExactLoads, acceptedLoads: passive.acceptedLoads,
+            trustedExactErrors: passive.trustedExactErrors, accessibilityChecks: passive.accessibilityChecks,
+            accessibleChecks: passive.accessibleChecks, inaccessibleChecks: passive.inaccessibleChecks,
+            trustedPolicyEvents: passive.trustedPolicyEvents, policyObservations: passive.policyObservations});
+          if (body.length <= 12288) console.warn('NEXTGO_OFFLINE_HTTP_HELPER_POLICY_TIMEOUT ' + body);
+        } catch {} // Diagnostic failure cannot mask the original rejection.
+        reject(new Error('Native HTTP helper policy remains unknown; navigation still charged until trusted load'));
+      }, 5000);
     });
     const onLoad = event => {
-      if (!event.isTrusted || event.target !== frame || frame.getAttribute('src') !== helperURL) return;
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      const target = event.target;
+      if (target !== frame) return;
+      bump('trustedExactLoads');
+      if (frame.getAttribute('src') !== helperURL) return;
+      bump('acceptedLoads');
       trustedLoad = true;
       if (timedOut) cleanup(); else finish();
     };
     const onError = event => {
       // An error does not prove that the one navigation attempt settled. Keep
       // the live frame/listener ownership for a later trusted load or teardown.
-      if (!event.isTrusted || event.target !== frame) return;
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      const target = event.target;
+      if (target !== frame) return;
+      bump('trustedExactErrors');
     };
     const onPolicy = event => {
-      if (event instanceof SecurityPolicyViolationEvent && event.isTrusted && event.disposition === 'enforce' &&
-          event.effectiveDirective === 'frame-src' && event.blockedURI === helperURL && frame.getAttribute('src') === helperURL &&
+      if (!(event instanceof SecurityPolicyViolationEvent)) return;
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      bump('trustedPolicyEvents');
+      // Preserve the original short-circuit read order. Null means that the
+      // original predicate never reached that field, not that it was absent.
+      const disposition = event.disposition;
+      const directive = disposition === 'enforce' ? event.effectiveDirective : null;
+      const blockedURI = disposition === 'enforce' && directive === 'frame-src' ? event.blockedURI : null;
+      try {
+        if (passive.policyObservations.length < 4) passive.policyObservations.push({
+          disposition: scalar(disposition, 32), directive: scalar(directive, 64), blockedURI: scalar(blockedURI, 256),
+          blockedURITruncated: typeof blockedURI === 'string' ? blockedURI.length > 256 : null});
+      } catch {} // Passive projection failure must not change the policy predicate.
+      if (disposition === 'enforce' && directive === 'frame-src' && blockedURI === helperURL && frame.getAttribute('src') === helperURL &&
           document.querySelectorAll('iframe').length === 1 && frame.isConnected) {violation = true; finish();}
     };
     frame.addEventListener('load', onLoad); frame.addEventListener('error', onError);
