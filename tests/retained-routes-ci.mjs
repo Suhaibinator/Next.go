@@ -175,7 +175,7 @@ async function init(){
   const before=await inventory(source,true);await writeJSON(join(root,'source-before.json'),before,8<<20);
   const contract=await json(join(source,'tests','retained-routes-ci-inputs.json'),1<<20);
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
-  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=202,'reviewed input contract required');
+  check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=203,'reviewed input contract required');
   validateQualificationRequirements(contract);
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}

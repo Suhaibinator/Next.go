@@ -377,15 +377,15 @@
     },
     {
       "path": "client/retained_presentation_js.go",
-      "sha256": "49174dd5bb4a5fe0be0327b1e8f0c7ac048c0638130bf535d502a7b4b3946eee",
-      "bytes": 19688,
-      "origin": "Exact reviewed dual-browser source composition; presentation; uncompiled and unexecuted"
+      "sha256": "97a509a4984af2a950e4d2d0c7ba18cad42a3e3dd862962697c72519ec06ea15",
+      "bytes": 20585,
+      "origin": "Exact46bf owned-focus/source-only location diagnostic composition; reused root-formatted Go outputs; runtime-unqualified"
     },
     {
       "path": "client/retained_presentation_js_test.go",
-      "sha256": "217c72b4e7f7f50d552bfa23e64280fcc1542f559525b5a3bb9e2b250e5e8d61",
-      "bytes": 26402,
-      "origin": "Exact root-approved four-line test constant fixture repair; no new formatter/parser/compiler/runtime proof"
+      "sha256": "1925048fc4b3dbdfa4fdc4bdbe94d6f245709018e816025697ba158b8d4c2d0a",
+      "bytes": 29575,
+      "origin": "Exact46bf owned-focus/source-only location diagnostic composition; reused root-formatted Go outputs; runtime-unqualified"
     },
     {
       "path": "client/retained_routes_js.go",
@@ -491,9 +491,9 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "22ef1d4e1cc73665643ab6d5d2a4a4e5534bc2c4eeb0bcaeac349015b2575839",
-      "bytes": 193555,
-      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+      "sha256": "3b973646a0b39c594f927c5909ee0740824b1bd299afb1129f2ac0a220193498",
+      "bytes": 195166,
+      "origin": "Exact46bf owned-focus/source-only location diagnostic composition; reused root-formatted Go outputs; runtime-unqualified"
     },
     {
       "path": "docs/RETAINED_ROUTES.md",
@@ -940,6 +940,12 @@
       "origin": "exactImmutableRootb7e"
     },
     {
+      "path": "tests/location.spec.mjs",
+      "sha256": "d90709da9e42d3c9603d60277441528c25da07a5e3abf0edee53debeaf41f41a",
+      "bytes": 17119,
+      "origin": "Exact46bf owned-focus/source-only location diagnostic composition; reused root-formatted Go outputs; runtime-unqualified"
+    },
+    {
       "path": "tests/merge-config.mjs",
       "sha256": "a497a19fa30bd919ff091d6a0a9e5ba7159f60b75f462f22fb0eae6a15197cbb",
       "bytes": 1018,
@@ -1025,9 +1031,9 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "9d4dd5ff664cd6e5aa297b327ae1528894e72e67cc0e4933a9e7c774d3b04394",
+      "sha256": "8588adf363e2fe8d929894ca91801e390c3666f890eb9d069622a791014ae0d9",
       "bytes": 64811,
-      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+      "origin": "Exact46bf owned-focus/source-only location diagnostic composition; reused root-formatted Go outputs; runtime-unqualified"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
@@ -1521,7 +1527,8 @@
       "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
       "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
       "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation",
-      "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
+      "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax",
+      "TestRetainedPresentationOwnedFocusInKeepsOnlyExactCurrentTarget"
     ],
     "devcore": [
       "TestClientIslandBufferedCustomOutputRequiresUniqueExactOccurrence",
@@ -1843,7 +1850,7 @@
   ],
   "targetCounts": {
     "native": 89,
-    "core": 201,
+    "core": 202,
     "devcore": 169,
     "portable": 13,
     "ui": 12,
@@ -1990,6 +1997,15 @@
       "inputBytes": 404819,
       "historicalOnly": true,
       "runtimeQualificationInherited": false
+    },
+    {
+      "kind": "published46bf-foundation-for-owned-focus-location-diagnostic",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
     }
   ],
   "newNativeRegressionCount": 30,
@@ -2005,7 +2021,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
+  "readinessMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite203 selected-source union preserving all202 previous paths plus the existing generic location spec, one mandatory core-only root for202core/169devcore, and unchanged resource/time/case/closure/skip controls. Complete six-path source review passed; two Go postimages reuse previously executed root formatting output, without another formatter/parser run. This ready=true permits prospective hosted producer init only. Controlled publisher peer and root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false. No parent general/container/streaming PASS is inherited; separate retained/offline/action-view streaming browser failures remain open. No new typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2143,53 +2159,48 @@
   },
   "combinedSourceInput": {
     "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
-    "integrationBaseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
-    "integrationBaseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
+    "integrationBaseCommit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+    "integrationBaseTree": "fbe13d75a714e71f685f7123f82bbfbaaf671517",
     "publishedFoundation": {
-      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "inputBytes": 404819,
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
       "JSONPointer": "/combinedSourceInput",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "currentQualification": "offlineHTTPHelperQualification",
-    "sourcePinCount": 202,
-    "sourcePinCap": 202,
-    "sourcePinsTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
-    "sourcePinBytes": 2185738,
+    "currentQualification": "retainedOwnedFocusAndLocationDiagnosticQualification",
+    "sourcePinCount": 203,
+    "sourcePinCap": 203,
+    "sourcePinsTreeSHA256": "93b3e2fc70b9be0ff1ff17627e553027f9e225fbc5e36a98e3248244e2c6f162",
+    "sourcePinBytes": 2208538,
     "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL;excludesinputself",
-    "previous198RowsUnchanged": 192,
-    "previous198RowsRebound": 6,
-    "currentNewSourcePins": 4,
+    "previous202RowsUnchanged": 198,
+    "previous202RowsRebound": 4,
+    "currentNewSourcePins": 1,
     "reboundSourcePinPaths": [
-      "client/offline_realm_js.go",
-      "client/offline_realm_js_test.go",
+      "client/retained_presentation_js.go",
+      "client/retained_presentation_js_test.go",
       "docs/PARITY.md",
-      "nextgo.go",
-      "tests/offline.spec.mjs",
       "tests/retained-routes-ci.mjs"
     ],
     "addedSourcePinPaths": [
-      "managed_offline.go",
-      "managed_offline_test.go",
-      "offline/descriptor.go",
-      "offline/descriptor_test.go"
+      "tests/location.spec.mjs"
     ],
     "immediateBaseGoFiles": 1287,
     "currentGoFiles": 1287,
-    "currentGoBytes": 6410669,
-    "currentGoContentTreeSHA256": "53f19306689045d169fa77dad3918b7571a22304481230ff592c8e194508703c",
-    "immediateModifiedProductionGoFiles": 4,
-    "immediateModifiedExistingGoTestFiles": 3,
+    "currentGoBytes": 6414739,
+    "currentGoContentTreeSHA256": "a208ff6ca557124a9a3119847cb467005f9500427d38864a0371d2f76aa6c554",
+    "immediateModifiedProductionGoFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 1,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1280,
+    "otherImmediateBaseGoFilesUnchanged": 1285,
     "workflowSourceChanged": false,
     "producerSourcePinGuardChanged": true,
     "otherCapsChanged": false,
     "advertisedABIChanged": false,
-    "currentWholeSourceQualification": "COMPLETE_ELEVEN_PATH_SOURCE_REVIEW_PASS_ONLY. Exact root-formatted Go outputs, browser witness spec, finite202 source guard, parity documentation and input metadata were reviewed together. No mixed compilation or runtime qualification."
+    "currentWholeSourceQualification": "COMPLETE_SIX_PATH_SOURCE_REVIEW_PASS_ONLY. Exact reused root-formatted Go sources, failure-only location diagnostic, finite203 source guard, parity documentation and input metadata reviewed together. No new mixed compilation or runtime qualification."
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2889,21 +2900,21 @@
   "queryRefreshQualification": {
     "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "publishedFoundation": {
-      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "inputBytes": 404819,
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
       "JSONPointer": "/queryRefreshQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
-    "sourcePins": 202,
-    "sourcePinCap": 202,
-    "currentSourcePinTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
+    "baseCommit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+    "sourcePins": 203,
+    "sourcePinCap": 203,
+    "currentSourcePinTreeSHA256": "93b3e2fc70b9be0ff1ff17627e553027f9e225fbc5e36a98e3248244e2c6f162",
     "currentRequiredCounts": {
       "native": 89,
-      "core": 201,
+      "core": 202,
       "devcore": 169,
       "portable": 13,
       "ui": 12,
@@ -2917,7 +2928,8 @@
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
     "independentOfflineCases": 40,
-    "currentQualification": "offlineHTTPHelperQualification",
+    "currentQualification": "retainedOwnedFocusAndLocationDiagnosticQualification",
+    "newlyPinnedLocationSpecExecutedByRetainedSuite": false,
     "runtimeExecuted": false,
     "runtimeQualified": false,
     "newTypecheckPassed": false
@@ -3033,90 +3045,57 @@
     "executed": false
   },
   "sourceFormattingQualification": {
-    "status": "EXACT_SEVEN_GO_ROOT_STANDALONE_FORMAT_SYNTAX_RESULT_ONLY_NO_MIXED_TYPE_OR_RUNTIME_PROOF",
+    "status": "EXACT_TWO_REUSED_ROOT_STANDALONE_FORMAT_OUTPUTS_ONLY_NO_NEW_PARSE_COMPILE_OR_TEST",
     "publishedFoundation": {
-      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "inputBytes": 404819,
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
       "JSONPointer": "/sourceFormattingQualification",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+    "baseCommit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+    "sourceManifest": {
+      "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/MANIFEST.json",
+      "bytes": 4861,
+      "sha256": "3cb23febeefca17ec88724fc8b3b77d7985629dd91549ba3539416998232ea5e"
+    },
+    "independentSourceRebasePeer": {
+      "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1-review-independent-v1/SOURCE_REVIEW.json",
+      "bytes": 3160,
+      "sha256": "248b2de9525c91fb612417be87908ef212a8e3600cf5129fac997e95c455d3f2"
+    },
+    "rootActualFormatterOutputAudit": {
+      "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/FORMATTER_OUTPUT_AUDIT.json",
+      "bytes": 2700,
+      "sha256": "99d595acc1dbc9644e24b2ba5d90d615e049df22e12a60ac5c5375f3a266a8a8"
+    },
     "rootFormatterReceipt": {
-      "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/result.json",
-      "bytes": 4112,
-      "sha256": "4b71a9ced05c217fe294fe78ae39ecb1c9ec1dc45114d44359acca4edc678aa2"
+      "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/FORMATTING_RESULT.json",
+      "bytes": 2019,
+      "sha256": "a454e2d0a8be91613bccc6ec3c2d4b78fb36a02195bd23d6885359e6c01eb574"
     },
-    "rootFormatterDelta": {
-      "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/source.patch",
-      "bytes": 43071,
-      "sha256": "97b8defc74c2c85932993cfe219105069d19f5cdd54632df9342b2c7a2147b3b"
-    },
-    "rawSourceManifest": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-raw/MANIFEST.json",
-      "bytes": 8517,
-      "sha256": "818cf76a86e0a7db273c3c5052dadd1b949cf54f101f6923c412c0c49f4219f5"
-    },
-    "rawFullSourcePeer": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-source-review-serverless-v1/SOURCE_REVIEW.json",
-      "bytes": 12679,
-      "sha256": "dbfce81c0ecc89b9861dac104fa578f1d23af6ba151b3d3405b9fd0dd7916e05"
-    },
-    "rootReportedJoinedFormatterChildren": 7,
-    "rootReportedFormatterChildExitCodeEach": 0,
-    "rootReportedFormatterChildStderrBytes": 0,
-    "rootReportedFormatterTERMorKILL": false,
-    "formatterOutputGoBytes": 189943,
+    "preimagesByteExactPreviouslyFormatted203eSource": true,
     "formattedFiles": [
       {
-        "path": "client/offline_realm_js.go",
-        "bytes": 20893,
-        "sha256": "eba881ea8f07b31828736db7bf4453dcedf1c29a15bbcf9a27c7a48722178f92"
+        "path": "client/retained_presentation_js.go",
+        "bytes": 20585,
+        "sha256": "97a509a4984af2a950e4d2d0c7ba18cad42a3e3dd862962697c72519ec06ea15"
       },
       {
-        "path": "client/offline_realm_js_test.go",
-        "bytes": 44837,
-        "sha256": "deb07904b3901cde5dd00a6cb0f83efe352d389f250c54b1ae6315a87fd44f60"
-      },
-      {
-        "path": "managed_offline.go",
-        "bytes": 26144,
-        "sha256": "9ed14408b0e40a6dbd1d8d999024fd253c959db04a3aa270cdc5e00ab7346e65"
-      },
-      {
-        "path": "managed_offline_test.go",
-        "bytes": 33957,
-        "sha256": "f475898bff33bdd83adfcb739cc2e8f61246cde68c92f2af2af2d8e72d7fbfaa"
-      },
-      {
-        "path": "nextgo.go",
-        "bytes": 47304,
-        "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7"
-      },
-      {
-        "path": "offline/descriptor.go",
-        "bytes": 8321,
-        "sha256": "b6a63334460dd94e04bb23f24da834dcc654f1b0696ed99e9cebd44909fb7e49"
-      },
-      {
-        "path": "offline/descriptor_test.go",
-        "bytes": 8487,
-        "sha256": "660e9e21b7c973816462bb9ac33c7fdeedb7d23e5dec399b222cafb0f9af7e9c"
+        "path": "client/retained_presentation_js_test.go",
+        "bytes": 29575,
+        "sha256": "1925048fc4b3dbdfa4fdc4bdbe94d6f245709018e816025697ba158b8d4c2d0a"
       }
     ],
-    "composerFormatterOrParserExecuted": false,
+    "formatterOutputGoBytes": 50160,
+    "formatterRerun": false,
+    "newFormatterOrParserExecuted": false,
     "newTypecheckExecuted": false,
     "newTestsExecuted": false,
     "NodeParserOrTestsExecuted": false,
-    "runtimeQualified": false,
-    "independentActualOutputAudit": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-actual-format-audit-v1/FORMAT_REVIEW.json",
-      "bytes": 12852,
-      "sha256": "cb3a4ca314e439481d75d8bcb83fec0a31873b5c726626dfd4a46e0069d774cb"
-    },
-    "independentActualOutputAuditScope": "All seven actual outputs and formatter delta match reviewed raw source; five formatting-only lexical/layout changes, two byte-exact. No typecheck/compiler/tests/runtime result."
+    "runtimeQualified": false
   },
   "metadataCounterCorrection": {
     "status": "SOURCE_ONLY_EXACT_INVENTORY_RECOUNT",
@@ -3202,87 +3181,92 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exact203e eleven-path HTTP-helper source combination: seven existing Go files after one root-controlled standalone formatter run, one browser witness spec, one explicit producer pin-cap literal, parity documentation and this input.202selected rows preserve all198 old paths:192exact+6rebound+4previously-unselected existing native source/test paths. Go1287=1280exact+4existing production+3existingtests modified; no new/deletedGo. Preserve all old requirement ordering/skips and append4native/7core/6devcore roots for89/201/169; module44/devmodule46/portable13/UI12 unchanged. Strict432cases440closures and40independent offline cases remain mandatory.132prior snapshots unchanged;21current-looking old objects are compact immutable203e pointers. Root deliberately admitted the finite202 source guard and existing CI wire only. Complete eleven-path source review passed; ready=true permits prospective producer init after controlled publisher review and root publication, while sourceReady/profileReady/runtime qualification remain false. No runtime, browser-fix, full CSP, native historical cause, provider or79capability/11gate result.",
+  "sourceInputScope": "Exact46bf six-path owned-focus and location-diagnostic source combination: two existing Go files reused byte-exact from completed root standalone formatting, one generic browser test diagnostic, one explicit producer source-pin cap literal, parity documentation and input.203selected rows preserve all202oldpaths:198exact+4rebound+1previously-unselected existing generic location spec. Go1287=1285exact+1existingproduction+1existingtest modified; no new/deletedGo. Every old requirement and skip remains, with one appended production-core-only root:89native/202core/169devcore/44module/46devmodule/13portable/12UI. Strict432cases440closures and40independentofflinecases remain mandatory; selecting location.spec.mjs does not make retained suite execute the generic location test.132prior snapshots and21historical203e-pointerobjects remain exact; two currentHTTPobjects become compact immutable46bfpointers. One46bffoundation ancestry entry is appended after unchanged19entryprefix; laterCIwiretransition must not append again. Source-only focus policy is not nativeWebKitcause/fix proof; locationwitness is diagnostics preserving original waits/assertions/titles/timeouts. Complete six-path source review passed; ready=true permits only prospective existing hosted producer init after controlled publisher review and root publication. sourceReady/profileReady/runtime qualification remain false; no new runtime/provider/79capability/11gate claim.",
   "finalSourceReadinessReview": {
     "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "publishedFoundation": {
-      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "inputBytes": 404819,
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
       "JSONPointer": "/finalSourceReadinessReview",
       "historicalOnly": true,
       "runtimeQualificationInherited": false
     },
-    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
-    "baseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
-    "sourcePins": 202,
-    "sourcePinCap": 202,
+    "baseCommit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+    "baseTree": "fbe13d75a714e71f685f7123f82bbfbaaf671517",
+    "sourcePins": 203,
+    "sourcePinCap": 203,
     "ready": true,
     "readyMeaning": "EXISTING_CI_WIRE_ONLY_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
     "runtimeExecuted": false,
     "runtimeQualified": false,
     "newTypecheckPassed": false,
-    "externalFullElevenPathSourcePeerRequired": true,
+    "externalFullSixPathSourcePeerRequired": true,
     "externalPublisherPeerRequired": true,
     "rootPublicationRequired": true,
     "componentSourceAndFormatProvenance": [
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-raw/MANIFEST.json",
-        "bytes": 8517,
-        "sha256": "818cf76a86e0a7db273c3c5052dadd1b949cf54f101f6923c412c0c49f4219f5"
+        "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/MANIFEST.json",
+        "bytes": 4861,
+        "sha256": "3cb23febeefca17ec88724fc8b3b77d7985629dd91549ba3539416998232ea5e"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-source-review-serverless-v1/SOURCE_REVIEW.json",
-        "bytes": 12679,
-        "sha256": "dbfce81c0ecc89b9861dac104fa578f1d23af6ba151b3d3405b9fd0dd7916e05"
+        "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1-review-independent-v1/SOURCE_REVIEW.json",
+        "bytes": 3160,
+        "sha256": "248b2de9525c91fb612417be87908ef212a8e3600cf5129fac997e95c455d3f2"
       },
       {
-        "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/result.json",
-        "bytes": 4112,
-        "sha256": "4b71a9ced05c217fe294fe78ae39ecb1c9ec1dc45114d44359acca4edc678aa2"
+        "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/FORMATTER_OUTPUT_AUDIT.json",
+        "bytes": 2700,
+        "sha256": "99d595acc1dbc9644e24b2ba5d90d615e049df22e12a60ac5c5375f3a266a8a8"
       },
       {
-        "path": ".nextgo-test-results/recovery/source-formatting-offline-http-helper-203e-v2-controller-v1/run/source.patch",
-        "bytes": 43071,
-        "sha256": "97b8defc74c2c85932993cfe219105069d19f5cdd54632df9342b2c7a2147b3b"
+        "path": ".nextgo-test-results/recovery/retained-owned-focusin-46bf-formatted-v1/FORMATTING_RESULT.json",
+        "bytes": 2019,
+        "sha256": "a454e2d0a8be91613bccc6ec3c2d4b78fb36a02195bd23d6885359e6c01eb574"
       },
       {
-        "path": ".nextgo-test-results/recovery/http-helper-parity-doc-203e-v3/source.md",
-        "bytes": 193555,
-        "sha256": "22ef1d4e1cc73665643ab6d5d2a4a4e5534bc2c4eeb0bcaeac349015b2575839"
+        "path": ".nextgo-test-results/recovery/location-refresh-wait-diagnostics-46bf-v2/MANIFEST.json",
+        "bytes": 2480,
+        "sha256": "ea10d98e1ffe26d2ed958bded7901316cbfaaa8ee7aef68e74eebc94e6920c0a"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-ci-composition-plan-v1/MANIFEST.json",
-        "bytes": 828,
-        "sha256": "cd38409731a4e8721a54025cbeed4f57d1a58ab23474a9e16d04ec6d70aa38fa"
+        "path": ".nextgo-test-results/recovery/location-refresh-wait-diagnostics-46bf-v2-review-independent-v2/SOURCE_REVIEW.json",
+        "bytes": 4191,
+        "sha256": "5c433f93581faae5d387885646cfed1365532face59b59c6617f12aa970a5e7e"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-v2-actual-format-audit-v1/FORMAT_REVIEW.json",
-        "bytes": 12852,
-        "sha256": "cb3a4ca314e439481d75d8bcb83fec0a31873b5c726626dfd4a46e0069d774cb"
+        "path": ".nextgo-test-results/recovery/focus-location-parity-doc-46bf-v1/source.md",
+        "bytes": 195166,
+        "sha256": "3b973646a0b39c594f927c5909ee0740824b1bd299afb1129f2ac0a220193498"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
-        "bytes": 12282,
-        "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
+        "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-plan-v1/MANIFEST.json",
+        "bytes": 3194,
+        "sha256": "fa821f728eb037e05644800f7b90b5b34ddaaf7abfb1f15c934232762ad1231b"
       },
       {
-        "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
-        "bytes": 8407,
-        "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
+        "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1/MANIFEST.json",
+        "bytes": 9798,
+        "sha256": "0596d210e45a65292e65f91a57d90497e28eb40b858779e408b8755d99a1e23c"
+      },
+      {
+        "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1-review-http-source-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 8945,
+        "sha256": "bc7a29e85d6c1b66b3de429488170c2e1b6d8a062244338c4b72052dee595918"
       }
     ],
-    "meaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
-    "fullElevenPathSourcePeer": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
-      "bytes": 8407,
-      "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
+    "meaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite203 selected-source union preserving all202 previous paths plus the existing generic location spec, one mandatory core-only root for202core/169devcore, and unchanged resource/time/case/closure/skip controls. Complete six-path source review passed; two Go postimages reuse previously executed root formatting output, without another formatter/parser run. This ready=true permits prospective hosted producer init only. Controlled publisher peer and root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false. No parent general/container/streaming PASS is inherited; separate retained/offline/action-view streaming browser failures remain open. No new typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed.",
+    "fullSixPathSourcePeer": {
+      "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1-review-http-source-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 8945,
+      "sha256": "bc7a29e85d6c1b66b3de429488170c2e1b6d8a062244338c4b72052dee595918"
     },
     "sourceReviewedPrivatePacket": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
-      "bytes": 12282,
-      "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
+      "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1/MANIFEST.json",
+      "bytes": 9798,
+      "sha256": "0596d210e45a65292e65f91a57d90497e28eb40b858779e408b8755d99a1e23c"
     }
   },
   "devRefreshFixtureIsolationCorrection": {
@@ -7369,110 +7353,106 @@
     "runtimeQualificationInherited": false
   },
   "offlineHTTPHelperQualification": {
+    "status": "HISTORICAL_46BF_HTTP_HELPER_CHECKPOINT_NOT_CURRENT_FOCUS_OR_LOCATION_DIAGNOSTIC_PROOF",
+    "publishedFoundation": {
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
+      "JSONPointer": "/offlineHTTPHelperQualification",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
+    },
+    "currentQualification": "retainedOwnedFocusAndLocationDiagnosticQualification",
+    "runtimeQualificationInherited": false
+  },
+  "offlineHTTPHelperCIWireTransition": {
+    "status": "HISTORICAL_46BF_HTTP_HELPER_CHECKPOINT_NOT_CURRENT_FOCUS_OR_LOCATION_DIAGNOSTIC_PROOF",
+    "publishedFoundation": {
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
+      "JSONPointer": "/offlineHTTPHelperCIWireTransition",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
+    },
+    "currentQualification": "retainedOwnedFocusAndLocationDiagnosticQualification",
+    "runtimeQualificationInherited": false
+  },
+  "retainedOwnedFocusAndLocationDiagnosticQualification": {
     "status": "PRIVATE_EXISTING_CI_WIRE_ADMITTED_PENDING_CONTROLLED_PUBLISHER_REVIEW_AND_ROOT_PUBLICATION",
-    "baseCommit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
-    "baseTree": "7cdc115aee35df37bf3a7f3f5af104a42c22d29c",
+    "baseCommit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+    "baseTree": "fbe13d75a714e71f685f7123f82bbfbaaf671517",
     "publishedFoundationInput": {
       "path": "tests/retained-routes-ci-inputs.json",
-      "sha256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "bytes": 404819
+      "sha256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "bytes": 413665
     },
-    "sourceScope": "Inert same-origin HTTP helper document routed through trusted application middleware/HeaderRules; one immutable-src private frame and exact document/controller/native registration guards; no default service for applications without managed offline support.",
-    "helperPath": "/_nextgo/offline/registration-helper-v1",
-    "helperProtocol": "Fixed HTML marker1; no new descriptor or module ABI field; one native navigation attempt.",
-    "properties": [
-      "Meaningful initial SSR and existing normal owned-registration command path remain unchanged.",
-      "Helper itself creates no session cookie; trusted application middleware may keep its session-refresh Set-Cookie. App CSP is intersected with appended restrictive exact-worker helper policy.",
-      "First valid immutable HTTP src is set before connection; only trusted exact-target load retires the native navigation attempt. Deadline/contextcancel/error/disconnect do not erase physical work.",
-      "A five-second logical authority deadline is not a guaranteed wall-return bound. A missing terminal native load quarantines the one charged frame; replacement updates stay busy.",
-      "Parent exact owned nonnull controller remains required; child controller may be stable native null or unchanged owned value. Full inventory, exact worker/lease/proof/update/waiting guards remain.",
-      "Qualified browser nativeUpdateCalls is null unless actual instrumentation is available and complete; unsupported observation is never zero."
+    "focusPolicy": "A focusin event for the exact currently owned focused control does not alone revoke pending presentation; ownership/privacy/history/selection/input guards and bounded reentrant focus checking still revoke invalid authority.",
+    "focusNativeEffectiveness": "UNPROVEN. Current WebKit200→1283 observation does not establish focusin cause, actual job timing or effectiveness of this candidate.",
+    "locationDiagnostic": "Failure-only fixed stage and public HTTP flags plus bounded owned request events; at most4candidate and1selected request references,3listeners,4096byte attachment. Original wait predicate, Response.finished await, status/location/history assertions,10titles andtimeouts preserved. No extra browser/server request or Response/body wait is added; ordinary failure attachments perform async test-evidence I/O.",
+    "diagnosticLimits": [
+      "Flags mean observed by these owned listeners; not observed is not native absence/cancellation/physicaljoin/frameworkcause.",
+      "Response.finished resolving does not newly assert its return value or establish additional body-completion semantics.",
+      "Selecting generic location.spec.mjs binds changedsource; retained browser suite does not execute that generic suite."
     ],
     "finiteSourceAdmission": {
-      "status": "ROOT_TECHNICAL_ADMISSION_EXACT_FINITE202_SOURCE_GUARD_SOURCE_ONLY",
-      "previousProducerMaximumPins": 198,
-      "currentProducerMaximumPins": 202,
-      "actualSourcePins": 202,
-      "preservedOldSourcePaths": 198,
-      "newExistingNativeSourcePaths": [
-        "managed_offline.go",
-        "managed_offline_test.go",
-        "offline/descriptor.go",
-        "offline/descriptor_test.go"
-      ],
-      "exactSourceDelta": "contract.files.length<=198 -> contract.files.length<=202",
+      "status": "ROOT_TECHNICAL_ADMISSION_EXACT_FINITE203_SOURCE_GUARD_SOURCE_ONLY",
+      "previousProducerMaximumPins": 202,
+      "currentProducerMaximumPins": 203,
+      "actualSourcePins": 203,
+      "preservedOldSourcePaths": 202,
+      "addedExistingSourcePath": "tests/location.spec.mjs",
+      "exactSourceDelta": "contract.files.length<=202 -> contract.files.length<=203",
       "producerPath": "tests/retained-routes-ci.mjs",
-      "producerSourceSHA256": "9d4dd5ff664cd6e5aa297b327ae1528894e72e67cc0e4933a9e7c774d3b04394",
+      "producerSourceSHA256": "8588adf363e2fe8d929894ca91801e390c3666f890eb9d069622a791014ae0d9",
       "allOtherCapsTimeoutsRetriesSkipsResourcesCasesAndClosuresUnchanged": true,
       "actualHostedInitExecuted": false,
       "actualOverCapRejectionExecuted": false,
       "noMirroredLiteralTestOrUnrelatedRefactor": true,
-      "rootInstruction": "Deliberately expand active selectedsource finitecap198→202 preservingall198existingrows +exact4HTTPnativepaths, no timeout/resource/case/lifetime/skip changes. Counts89/201/169/44/46/13/12 accepted as source-requiredtestclosure (notPASS)."
+      "rootInstruction": "nextfinite203pins = preserveALL202oldpaths +newexistingtests/location.spec.mjs; producerSOLEcapliteral202→203; allothercaps/resources/cases/lifetimes/skips untouched; core201→202 ONLY newcore-root TestRetainedPresentationOwnedFocusInKeepsOnlyExactCurrentTarget11subcases."
     },
     "requiredCounts": {
       "native": 89,
-      "core": 201,
+      "core": 202,
       "devcore": 169,
       "portable": 13,
       "ui": 12,
       "module": 44,
       "devmodule": 46
     },
-    "newGoRequirements": {
-      "native": [
-        "TestManagedOfflineRegistrationHelperIsInertAndUsesApplicationPolicies",
-        "TestManagedOfflineRegistrationHelperRejectsVariantsBeforeAnyLoader",
-        "TestManagedOfflineRegistrationHelperHasNoDefaultServiceAndCannotCollide",
-        "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
-      ],
-      "core": [
-        "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
-        "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
-        "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
-        "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
-        "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
-        "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation",
-        "TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax"
-      ],
-      "devcore": [
-        "TestOfflineHTTPHelperNavigationNeedsTrustedExactTargetLoad",
-        "TestOfflineHTTPHelperCanceledNavigationBlocksReplacementUntilNativeLoad",
-        "TestOfflineHTTPHelperDeadlineCannotRetirePendingNavigation",
-        "TestOfflineHTTPHelperRejectsUnusableLoadedDocumentBeforeRegistryRead",
-        "TestOfflineHTTPHelperAppendThrowKeepsAttemptChargedUntilTrustedLoad",
-        "TestOfflineHTTPHelperRechecksParentBeforeStartingNavigation"
-      ]
+    "newGoRequirement": {
+      "target": "core",
+      "name": "TestRetainedPresentationOwnedFocusInKeepsOnlyExactCurrentTarget",
+      "prospectiveSubcases": 11,
+      "buildConstraint": "js && wasm && !nextgo_module && !nextgo_devrefresh"
     },
     "changedPaths": [
-      "client/offline_realm_js.go",
-      "client/offline_realm_js_test.go",
+      "client/retained_presentation_js.go",
+      "client/retained_presentation_js_test.go",
       "docs/PARITY.md",
-      "managed_offline.go",
-      "managed_offline_test.go",
-      "nextgo.go",
-      "offline/descriptor.go",
-      "offline/descriptor_test.go",
-      "tests/offline.spec.mjs",
+      "tests/location.spec.mjs",
       "tests/retained-routes-ci-inputs.json",
       "tests/retained-routes-ci.mjs"
     ],
-    "sourcePinCount": 202,
-    "sourcePinCap": 202,
-    "sourcePinTreeSHA256": "a1ef252ab1de667ba2671a8e4227d1d50bc543fa3e036c7e0e3395863e485a92",
-    "sourcePinBytes": 2185738,
+    "sourcePinCount": 203,
+    "sourcePinCap": 203,
+    "sourcePinTreeSHA256": "93b3e2fc70b9be0ff1ff17627e553027f9e225fbc5e36a98e3248244e2c6f162",
+    "sourcePinBytes": 2208538,
     "currentGoFiles": 1287,
-    "currentGoBytes": 6410669,
-    "currentGoContentTreeSHA256": "53f19306689045d169fa77dad3918b7571a22304481230ff592c8e194508703c",
+    "currentGoBytes": 6414739,
+    "currentGoContentTreeSHA256": "a208ff6ca557124a9a3119847cb467005f9500427d38864a0371d2f76aa6c554",
     "wholeSourceContractExcludingInputSelf": {
       "files": 1740,
-      "bytes": 10343456,
-      "sha256": "c1992fa7a91db6ab26f3ca5bb052b4c81619400d611dc5ef2cd4b5bbbc841dd9",
+      "bytes": 10355201,
+      "sha256": "d365e152c549f8d4ce9603a632ff047ba9d465280acf18888c174dd614951fa0",
       "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL"
     },
     "allModesCases": 432,
     "allModesClosures": 440,
     "independentOfflineCases": 40,
-    "historicalCurrentKeysReboundTo203ePointers": [
+    "historical203ePointerKeysPreserved": [
       "architectureQualification",
       "lambdaSourceReadinessReview",
       "streamHeaderAuthorityQualification",
@@ -7495,12 +7475,26 @@
       "offlineHelperControllerObservationQualification",
       "offlineHelperControllerObservationCIWireTransition"
     ],
+    "currentHTTPKeysReboundTo46bfPointers": [
+      "offlineHTTPHelperQualification",
+      "offlineHTTPHelperCIWireTransition"
+    ],
     "historicalPriorSnapshotsPreserved": 132,
+    "oldAncestryEntriesPreserved": 19,
+    "new46bfFoundationAncestryEntry": {
+      "kind": "published46bf-foundation-for-owned-focus-location-diagnostic",
+      "commit": "46bf41a35b5db96f81927c6f138ca1a8e36e2d6d",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "9f1e5cb2fd7dc038fe8c7cebebd9ab724c14d980c68d51e0baf6af019e9ae1b0",
+      "inputBytes": 413665,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
+    },
+    "baseRuntimeEvidenceInherited": false,
     "knownCoverageGaps": [
-      "Loaded HTTP helper RESPONSE worker-src denial is not a native-browser witness in the current40cases; parent frame-src denial and successful helper update are authored, not yet run.",
-      "The prior203e invalid-document native error is current evidence; the HTTP helper is a proposed eligibility repair, not evidence of its own success or the historical Firefox empty-wrapper cause.",
-      "Final exact URL/shape does not reveal full redirect history or HTTP status. Trusted middleware may deny/redirect; actual native wire witness remains required.",
-      "No response-level CSP conformance, socket disappearance, worker-client-ID erasure, native worker-job join or hard wall-return guarantee."
+      "Current46bf retainedWebKitfailure andFirefoxdisabletargetedemptylookup remain open; this source composition does not qualify a repair.",
+      "Loaded HTTP-helper RESPONSE worker-src denial remains a separate native-browser coverage gap.",
+      "All new focus/diagnostic behavior requires fresh Go/WASM/generic browser and deployment qualification at its eventual immutable published source."
     ],
     "ready": true,
     "sourceReady": false,
@@ -7513,33 +7507,26 @@
     "wholeSourcePeerRequired": true,
     "allCapabilitiesOpen": 79,
     "allGatesOpen": 11,
-    "readyMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite202 selected-source union preserving all198 previous paths plus four native paths, unchanged resource/time/case/closure/skip controls, and mandatory89native/201core/169devcore source requirements. Complete eleven-path source review and actual standalone formatter-output audit passed. This ready=true permits producer init for prospective fresh qualification only. Controlled publisher peer/root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false; no current typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed."
+    "readyMeaning": "EXISTING HOSTED CI WIRE ONLY. Root deliberately admitted the exact finite203 selected-source union preserving all202 previous paths plus the existing generic location spec, one mandatory core-only root for202core/169devcore, and unchanged resource/time/case/closure/skip controls. Complete six-path source review passed; two Go postimages reuse previously executed root formatting output, without another formatter/parser run. This ready=true permits prospective hosted producer init only. Controlled publisher peer and root publication remain required. sourceReady/profileReady/runtimeQualified/browserFixQualified/nativeCauseIdentified/measurementAdmitted remain false. No parent general/container/streaming PASS is inherited; separate retained/offline/action-view streaming browser failures remain open. No new typecheck, tests, native-browser correction, historical native cause, provider or79capability/11gate result is claimed."
   },
-  "offlineHTTPHelperCIWireTransition": {
+  "retainedOwnedFocusAndLocationDiagnosticCIWireTransition": {
     "status": "ROOT_TECHNICAL_ADMISSION_EXISTING_HOSTED_CI_WIRE_ONLY_NO_EXECUTION_OR_RELEASE_PROMOTION",
     "sourceReviewedPrivatePacket": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2/MANIFEST.json",
-      "bytes": 12282,
-      "sha256": "c813d8dda54173b4a0e7862f02133625b1a3702305dc9a86507aa533ca9b7599"
+      "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1/MANIFEST.json",
+      "bytes": 9798,
+      "sha256": "0596d210e45a65292e65f91a57d90497e28eb40b858779e408b8755d99a1e23c"
     },
-    "fullElevenPathSourcePeer": {
-      "path": ".nextgo-test-results/recovery/offline-http-helper-203e-composition-v2-review-http-source-peer-v1/SOURCE_REVIEW.json",
-      "bytes": 8407,
-      "sha256": "89abd4c1a3410f3e59be29752c7359aa014d0675a058cfc7d8cee870525872d2"
+    "fullSixPathSourcePeer": {
+      "path": ".nextgo-test-results/recovery/retained-focus-location-46bf-composition-v1-review-http-source-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 8945,
+      "sha256": "bc7a29e85d6c1b66b3de429488170c2e1b6d8a062244338c4b72052dee595918"
     },
-    "rootDecision": "After complete source peer PASS, enable only existing hosted CI producer init for exact202-source union and required test closure. Preserve all ten noninput postimages,202pin rows,mandatorytest arrays,132historical snapshots,case/closure/skip controls and resource profile. Append exactly one immutable203e foundation ancestry entry while retaining all18previous entries. Controlled publisher source peer and root publication remain mandatory.",
-    "changeScope": "Current ready/status/meaning, exact historical203e ancestry append and source-review provenance only; no feature/driver/SDK/timeout/case/lifetime/skip/sourcepin/root changes.",
-    "ancestryAppended": {
-      "kind": "published203e-foundation-for-http-helper",
-      "commit": "203e20f31095a8712faaff21bdb30e2efb6aad5b",
-      "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "ad2e726323de373c79aec25376c79c2960107d81c390de732051c09c74c5da43",
-      "inputBytes": 404819,
-      "historicalOnly": true,
-      "runtimeQualificationInherited": false
-    },
-    "previousAncestryEntries": 18,
-    "allPreviousAncestryEntriesUnchanged": true,
+    "rootDecision": "After complete six-path source peer PASS, enable only existing hosted producer init for exact203 selected-source union and required source test closure. Preserve all five noninput postimages,203pin rows,old root arrays plus sole core root,132prior values,21historical203e-pointerobjects,two46bf historicalHTTPpointers,case/lifetime/skip/resource controls and complete20-entry ancestry. No second ancestry append. Controlled publisher source peer/root publication remain mandatory.",
+    "changeScope": "Current ready/status/qualified scope wording, source-review provenance and precise no-extra-browser-request/body-wait statement only. Failure attachment remains ordinary async test-evidence I/O; no runtime fix or pass is inferred.",
+    "ancestryChanged": false,
+    "ancestryEntries": 20,
+    "reviewed46bfFoundationAlreadyAppended": true,
+    "allAncestryEntriesUnchanged": true,
     "ready": true,
     "readyMeaning": "EXISTING_CI_WIRE_ONLY",
     "sourceReady": false,
@@ -7549,6 +7536,7 @@
     "browserFixQualified": false,
     "nativeCauseIdentified": false,
     "measurementAdmitted": false,
+    "formatterRerun": false,
     "localHeavyProviderPermission": false,
     "publisherSourcePeerRequired": true,
     "rootPublicationRequired": true

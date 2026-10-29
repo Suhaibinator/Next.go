@@ -175,7 +175,10 @@ func TestRetainedPresentationTrustedInputAndFocusIntentWin(t *testing.T) {
 			job := f.start(t)
 			f.browser.Call("frame")
 			f.drift()
-			f.browser.Call("emit", event, event != "focusin") // Programmatic focus is also intent.
+			if event == "focusin" {
+				doc.Set("activeElement", f.router.fresh) // A real focus change remains intent.
+			}
+			f.browser.Call("emit", event, event != "focusin")
 			if !job.closed || job.snapshot != nil || f.router.old.Get("scrollTop").Int() != 1283 {
 				t.Fatal("overrode input/focus or kept private snapshot")
 			}
@@ -611,6 +614,82 @@ let calls=0;return function(handle){calls++;this.settlementCancelCalls=calls;if(
 			stop()
 			if cleanupCalls != 1 {
 				t.Fatal("second disposal repeated application cleanup")
+			}
+			f.empty(t)
+		})
+	}
+}
+
+// This policy witness is not a WebKit event-order or browser-cause model.
+func TestRetainedPresentationOwnedFocusInKeepsOnlyExactCurrentTarget(t *testing.T) {
+	for _, kind := range []string{"native-owned", "synthetic-owned"} {
+		t.Run(kind, func(t *testing.T) {
+			f := retainedSettlementEnvironment(t)
+			job := f.start(t)
+			f.browser.Call("frame")
+			f.drift()
+			f.browser.Call("emit", "focusin", kind == "native-owned")
+			if job.closed || job.snapshot == nil || job.completedFrames != 1 {
+				t.Fatal("exact current owned focus event revoked the pending presentation")
+			}
+			f.browser.Call("frame")
+			if f.router.old.Get("scrollTop").Int() != 200 || f.browser.Get("focusCalls").Int() != 1 || f.browser.Get("frameRequests").Int() != 2 || f.browser.Get("windowWrites").Int() != 0 {
+				t.Fatal("owned focus event lost reconciliation or replayed focus/window/scheduling")
+			}
+			f.empty(t)
+		})
+	}
+	for _, kind := range []string{"foreign-target", "missing-target", "different-current-focus", "selection-revoked", "privacy-revoked", "history-revoked"} {
+		t.Run(kind, func(t *testing.T) {
+			f := retainedSettlementEnvironment(t)
+			job := f.start(t)
+			f.browser.Call("frame")
+			f.drift()
+			event := map[string]any{"type": "focusin", "target": f.router.draft, "isTrusted": false}
+			switch kind {
+			case "foreign-target":
+				event["target"] = f.router.fresh
+			case "missing-target":
+				delete(event, "target")
+			case "different-current-focus":
+				doc.Set("activeElement", f.router.fresh)
+			case "selection-revoked":
+				f.router.draft.Set("selectionStart", 3)
+			case "privacy-revoked":
+				mergePrivacy++
+			case "history-revoked":
+				win.Get("history").Get("state").Set("nextgoEntry", strings.Repeat("d", 32))
+			}
+			job.guard.fn.Invoke(event)
+			if !job.closed || job.snapshot != nil || f.router.old.Get("scrollTop").Int() != 1283 {
+				t.Fatal("invalid focus event renewed authority or overrode new presentation intent")
+			}
+			f.empty(t)
+		})
+	}
+	for _, kind := range []string{"reentrant-target", "revoked-in-target", "throwing-target"} {
+		t.Run(kind, func(t *testing.T) {
+			f := retainedSettlementEnvironment(t)
+			job := f.start(t)
+			f.browser.Call("frame")
+			f.drift()
+			calls := 0
+			event := js.Undefined()
+			again := js.FuncOf(func(js.Value, []js.Value) any {
+				calls++
+				if kind == "revoked-in-target" {
+					cancelRetainedSettlement()
+				} else if calls == 1 {
+					// One explicit repeat makes a missing reentry guard fail finitely.
+					job.guard.fn.Invoke(event)
+				}
+				return nil
+			})
+			defer again.Release()
+			event = js.Global().Get("Function").New("focus", "again", "kind", `return {type:'focusin',isTrusted:false,get target(){if(kind==='throwing-target')throw Error('target unavailable');again();return focus;}};`).Invoke(f.router.draft, again, kind)
+			job.guard.fn.Invoke(event)
+			if !job.closed || job.snapshot != nil || job.checkingFocus || f.router.old.Get("scrollTop").Int() != 1283 || calls > 1 {
+				t.Fatal("reentrant/revoked target check retained authority, read again or leaked checking state")
 			}
 			f.empty(t)
 		})

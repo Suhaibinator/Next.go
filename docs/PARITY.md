@@ -6,6 +6,30 @@ The target is an alternative implemented in Go, with Go/WASM browser behavior an
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
 
+## Current qualification and next source increment
+
+The immutable `46bf41a3` HTTP-helper increment has matching native and WASM
+unit evidence on Linux AMD64 with Go 1.24.13 and 1.27.3: all 85 new test rows
+pass in their required phases. Chromium also passes the forced fresh-realm
+UPDATE and parent `frame-src` denial cases. The complete offline matrix remains
+red: 17 passes, a Firefox Disable ownership-proof refusal and 22 unrun cases.
+Its later diagnostic realm contrast does not establish the browser's cause or
+grant destructive authority. Helper-response `worker-src` enforcement remains
+unverified. The AMD64/Go 1.27 retained report still has 48 passes, one WebKit
+scroll-restoration failure (`200` expected, `1283` observed), 23 unrun retained
+cases and 72 unrun merge cases. These are scoped results, not release gates.
+
+The next source increment preserves a pending retained presentation when a
+`focusin` event targets the exact already-focused control and every existing
+ownership, selection, history and privacy check remains valid. Other focus or
+input intent still cancels restoration; no focus, window-scroll or history
+operation is replayed. This is a source-correctness policy change whose browser
+effectiveness and relationship to the WebKit failure remain unproven. A separate
+location-refresh diagnostic retains the original waits, assertions and deadline
+and records bounded failure stages and native request events. It claims no
+runtime fix for the earlier refresh timeout. All 79 capabilities and 11 release
+gates remain open; new source still requires fresh compilation and execution.
+
 ## Stable patch baseline update
 
 The [v16.4.2…v16.4.3 comparison](https://github.com/vercel/next.js/compare/v16.4.2...v16.4.3)

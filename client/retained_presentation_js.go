@@ -49,6 +49,7 @@ type retainedSettlementJob struct {
 	listeners              []retainedSettlementListener
 	completedFrames, setup int
 	closed                 bool
+	checkingFocus          bool
 }
 
 // Physical capacity, not logical activity: an uncertain native cancel/detach
@@ -417,6 +418,28 @@ func (job *retainedSettlementJob) frame(index int) {
 	job.reconcile()
 	job.stop()
 }
+
+// An event for the exact already-focused control does not by itself revoke the
+// saved presentation. Trust alone does not distinguish native restoration from
+// user focus; actual trusted input and every existing authority fence still win.
+func (job *retainedSettlementJob) ownsFocusEvent(event js.Value) bool {
+	// Validity/target getters can reenter the listener. A nested focus check must
+	// revoke rather than recursively revalidate or renew the snapshot.
+	if job.checkingFocus {
+		return false
+	}
+	job.checkingFocus = true
+	defer func() { job.checkingFocus = false }()
+	snapshot := job.snapshot
+	if snapshot == nil || !job.valid() {
+		return false
+	}
+	target := event.Get("target")
+	if !job.valid() || job.snapshot != snapshot {
+		return false
+	}
+	return target.Equal(snapshot.focus) && job.valid()
+}
 func (job *retainedSettlementJob) intent(args []js.Value) {
 	if job.closed || len(args) == 0 {
 		return
@@ -424,7 +447,11 @@ func (job *retainedSettlementJob) intent(args []js.Value) {
 	event := args[0]
 	kind := event.Get("type").String()
 	switch kind {
-	case "focusin", "pagehide":
+	case "focusin":
+		if !job.ownsFocusEvent(event) {
+			job.stop()
+		}
+	case "pagehide":
 		job.stop()
 	case "visibilitychange":
 		if doc.Get("visibilityState").String() != "visible" {
