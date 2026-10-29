@@ -8,6 +8,66 @@ The baseline includes the current App Router, supported Pages Router application
 
 ## Current qualification and next source increment
 
+The published source baseline is now `3d583dc7`. Its bounded CI checkpoint at
+23:16 UTC on October 29 records 17 successful jobs, six failures and one general
+browser job still running. A later exact-job step query reports all 27 general
+browser steps completed (26 success, one skipped), including `Complete job`
+success; that wrapper does not return a full job conclusion or detailed case
+counts. Go 1.24.13 has independently matched actual RUN=1/PASS=1/SKIP=0 for all
+600 required checks and the focus root plus eleven subcases under Node/WASM.
+Go 1.27.3 has API source-job success, but its one detailed-log fetch returned
+`Transport closed`; current detailed 600/root-subcase evidence remains unknown.
+No prior-head runtime result qualifies the proposed source successor.
+
+Current streaming summaries show 220 passes before the action-view suite's
+59 passes and one Chromium failure, totaling 279 passes and one failure.
+The obsolete-build case fails at its second CDP response-body read after the
+application has displayed the exact decoded public rejection. Selected saved
+trace text plus the existing typed decoder support that observation. The
+historically named `response.json` output is actually the 42-byte POST request
+resource, not a recovered response body. The origin of the recorded
+`ERR_ABORTED` and CDP body unavailability remains unknown; no post-click
+navigation is recorded, and generic scheduled-navigation logs do not prove a
+reload. The failed case does not reach valid-retry assertions and differs from
+the separate passive validation-diagnostic case.
+
+Current offline summaries show 17 passes, one Firefox failure and 22 unrun
+cases. Explicit Go Disable times out waiting for enabled=false, receiving true
+with a reported operation conflict. Its later Firefox native CSP-policy case
+is unrun. All four retained cells fail: amd64/Go1.27.3 stops at the owned native
+command before production/browser phases; three siblings stop in the first
+browser matrix. Their console logs do not expose the redirected cause or exact
+case counts. All four cleanup commands refuse incomplete campaigns. Artifact
+metadata alone does not supply native/browser proof or cleanup completion.
+
+The proposed action-view observation correction exposes only the actual typed
+public Error.Code in a stable demo status attribute. Three rejected-response
+CDP body reads become exact decoded-code assertions, preserving status,
+protocol/revision, content type, message/field, receipt, count, retry and POST
+cardinality checks. Successful retries must clear the attribute. Runtime
+abort/EOF and navigation behavior are unchanged. The browser correction and
+new source remain unexecuted and unqualified.
+
+The retained producer also gains an expected full-Go source check before
+compilation. It reuses the existing bounded source inventory and regular-file
+reader, hashes all 1,287 Go paths using the publisher's exact canonical byte
+encoding, and compares count/bytes/digest to the current qualification.
+This covers the modified demo Go file without adding or removing any of the
+207 selected paths or raising their cap. Four proposed source-guard regression
+roots cover changed/missing/added/stale identities and unsafe/aliased inputs;
+none has executed. The producer does not claim an expected whole-repository
+fingerprint check: whole-source identities remain controlled-publication
+provenance, with existing before/after inventory checks retained. All 600 Go
+requirements, 432 retained cases/440 closures and independent offline 40-case
+contract remain exact. Larger private lifecycle/Disable families stay excluded.
+[Current source run](https://github.com/Suhaibinator/Next.go/actions/runs/40966526826),
+[current CI](https://github.com/Suhaibinator/Next.go/actions/runs/40966526822),
+[current retained run](https://github.com/Suhaibinator/Next.go/actions/runs/40966526931).
+
+The following `ebb90471` checkpoint is preserved as historical evidence only;
+its references to proposed/current work describe that earlier checkpoint and
+must not be transferred to the source successor above.
+
 The published `ebb90471` increment corrects the focus-event target read at the
 Go/JavaScript exception boundary. Both Go 1.24.13 and 1.27.3 now have actual
 RUN/PASS evidence for all 600 declared source-phase checks per SDK, with no

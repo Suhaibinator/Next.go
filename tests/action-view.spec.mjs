@@ -108,14 +108,17 @@ test('pre-confirmation validation and private action failures keep the current v
   try {
     const invalid = await post(page, page.locator('[data-av-invalid]'), 422);
     diagnostic.bindResponse(invalid);
-    expect(invalid.headers()['content-type']).toContain('application/json'); expect((await invalid.json()).error.fields.amount).toBe('Enter a whole number from 1 to 5.');
+    expect(invalid.headers()['content-type']).toContain('application/json');
+    await expect(page.locator('[data-av-status]')).toHaveAttribute('data-av-error-code', 'validation_error');
     await expect(page.locator('[data-av-error]')).toHaveText('Enter a whole number from 1 to 5.');
     await expect(ssrCount(page)).toHaveText(String(initial)); await expect(receipt(page)).toHaveAttribute('data-confirmed', 'false');
     const failure = await post(page, page.locator('[data-av-fail]'), 500);
-    expect((await failure.json()).error.message).toBe('The action could not be completed.');
+    expect(failure.headers()['content-type']).toContain('application/json');
+    await expect(page.locator('[data-av-status]')).toHaveAttribute('data-av-error-code', 'internal_error');
     await expect(page.locator('[data-av-status]')).toHaveText('The action could not be completed.');
     expect(await page.content()).not.toContain('private action view storage diagnostic'); await expect(ssrRevision(page)).toHaveText(String(revision));
     await post(page, jsonButton(page)); await assertFresh(page, initial + 1, revision + 1); await assertReceipt(page, initial + 1, revision + 1);
+    await expect(page.locator('[data-av-status]')).toHaveAttribute('data-av-error-code', '');
   } catch (error) {
     // Diagnostic publication cannot suppress or replace the original failure.
     try { await diagnostic.attachFailure(testInfo); } catch {}
@@ -201,10 +204,13 @@ for (const skew of ['build', 'configuration', 'protocol']) test(`obsolete ${skew
   const trace = randomUUID(); await page.setExtraHTTPHeaders(headers(trace)); await page.goto('/action-view'); await ready(page);
   const initial = await number(ssrCount(page)), revision = await number(ssrRevision(page));
   await page.setExtraHTTPHeaders(headers(trace, { 'X-Fixture-Action-View-Skew': skew })); const response = await post(page, jsonButton(page), 409);
-  expect(response.headers()['content-type']).toContain('application/json'); expect((await response.json()).error.code).toBe('view_unavailable');
+  expect(response.headers()['content-type']).toContain('application/json');
+  await expect(page.locator('[data-av-status]')).toHaveAttribute('data-av-error-code', 'view_unavailable');
+  await expect(page.locator('[data-av-status]')).toHaveText('Reload before requesting refreshed action UI.');
   await expect(receipt(page)).toHaveAttribute('data-confirmed', 'false'); await expect(ssrCount(page)).toHaveText(String(initial));
   await page.setExtraHTTPHeaders(headers(trace)); await amount(page).fill('2'); await post(page, jsonButton(page));
   await assertFresh(page, initial + 2, revision + 1); await assertReceipt(page, initial + 2, revision + 1);
+  await expect(page.locator('[data-av-status]')).toHaveAttribute('data-av-error-code', '');
   expect((await records(request, trace)).filter(record => record.method === 'POST')).toHaveLength(2);
 });
 

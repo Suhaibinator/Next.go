@@ -162,6 +162,29 @@ function validateQualificationRequirements(contract){
   for(const app of Object.values(apps))check(Array.isArray(contract[app.titles])&&contract[app.titles].length===app.perProfile&&new Set(contract[app.titles]).size===app.perProfile&&contract[app.titles].every(title=>typeof title==='string'&&title.length<=1024),'exact reviewed browser titles required: '+app.id);
   check(contract.mergeBrowserTitles.includes(lazyModuleTitle),'real generated lazy module case is mandatory');
 }
+// Enforce the expected Go bytes before compilation, including Go outside the
+// finite selected-file list. Canonical encoding matches the controlled publisher.
+async function validateFullGoSource(source,before,expected){
+  check(isAbsolute(source)&&await realpath(source)===source,'canonical full-Go source root required');
+  check(Array.isArray(before)&&before.length<=8192,'bounded source inventory required');
+  check(expected&&Number.isSafeInteger(expected.files)&&expected.files>0&&expected.files<=8192&&Number.isSafeInteger(expected.bytes)&&expected.bytes>=0&&expected.bytes<=128<<20&&hex(expected.sha256)&&expected.treeEncoding==='sortedpathUTF8+NUL+exactsourcebytes+NUL','expected full-Go source contract required');
+  const rows=before.filter(item=>typeof item?.path==='string'&&item.path.endsWith('.go'));
+  check(rows.length===expected.files,'full-Go source count changed');
+  const seen=new Set(),hash=createHash('sha256');let bytes=0;
+  rows.sort((a,b)=>Buffer.compare(Buffer.from(a.path,'utf8'),Buffer.from(b.path,'utf8')));
+  for(const item of rows){
+    check(Buffer.byteLength(item.path,'utf8')<=512&&!isAbsolute(item.path)&&!/[\\\u0000-\u001f\u007f]/.test(item.path)&&item.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&!seen.has(item.path),'canonical unique full-Go path required');
+    check(Number.isSafeInteger(item.bytes)&&item.bytes>=0&&item.bytes<=16<<20&&hex(item.sha256)&&bytes+item.bytes<=128<<20,'bounded full-Go inventory record required');
+    seen.add(item.path);
+    const data=await readBounded(join(source,item.path),16<<20);
+    check(data.length===item.bytes&&sha(data)===item.sha256,'Go source changed after inventory');
+    bytes+=data.length;hash.update(Buffer.from(item.path,'utf8'));hash.update(Buffer.from([0]));hash.update(data);hash.update(Buffer.from([0]));
+  }
+  const digest=hash.digest('hex');
+  check(bytes===expected.bytes&&digest===expected.sha256,'full-Go expected source identity changed');
+  return {files:rows.length,bytes,sha256:digest,treeEncoding:expected.treeEncoding};
+}
+
 async function init(){
   const target=selectedTarget();check(process.version==='v24.22.1','exact native Node24.22.1 required');
   const source=await realpath(process.env.GITHUB_WORKSPACE||process.cwd()),temp=await realpath(process.env.RUNNER_TEMP||'');
@@ -180,6 +203,10 @@ async function init(){
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
   for(const path of ['tests/retained-routes.spec.mjs','tests/retained-owner-scroll-observation.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-fixture.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-process-group-census.mjs','tests/retained-process-group-census.test.mjs','tests/retained-command-group-drain.mjs','tests/retained-command-group-drain.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','tests/merge-config.mjs','tests/merge-fixture.mjs','tests/merge-spec.mjs','tests/retained-routes-assets.mjs','tests/retained-routes-assets.test.mjs','scripts/test-wasm.sh','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
+  const currentKey=contract.combinedSourceInput?.currentQualification;
+  check(typeof currentKey==='string'&&currentKey.length<=128&&Object.hasOwn(contract,currentKey),'current full-Go qualification required');
+  check(contract[currentKey]?.GoSource?.files===1287,'expected1287 Go source files required');
+  await validateFullGoSource(source,before,contract[currentKey].GoSource);
   await writeJSON(join(root,'inputs.json'),contract,1<<20);
   await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,nativeTarget:target.goArch,resourceEnvelope:target.goArch==='amd64'?'container: cpu2 memory4GiB no-extra-swap pids768 shm512MiB':'standard public ubuntu-24.04-arm hosted job; container hard limits not asserted',sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','other architectures/platforms and separate SDK/arch cells','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
 }
@@ -528,5 +555,5 @@ async function cleanup(){
   process.stdout.write('Marker-verified successful qualification root removed; incomplete roots are never silently removed.\n');
 }
 async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='install-browsers')return installBrowsers();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
-export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose};
+export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose};
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});

@@ -1,9 +1,13 @@
 // Pure evidence-auditor negatives. No application responses or processes.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,writeFile,symlink,realpath,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {observeRetainedOwnerScroll} from './retained-owner-scroll-observation.mjs';
-import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose} from './retained-routes-ci.mjs';
+import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose} from './retained-routes-ci.mjs';
 
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
 
@@ -310,4 +314,54 @@ test('command-close completion cancels its losing timer before resolve or reject
 test('command-close expiry owns and clears its timer without claiming real child closure',async()=>{
   const timers=joinedCloseTimers(),completion=new Promise(()=>{}),waiting=waitForCommandClose(completion,2000,timers.io);const [{callback,ms}]=timers.handles.values();assert.equal(ms,2000);callback();assert.equal(await waiting,false);assert.equal(timers.handles.size,0);assert.equal(timers.cleared.length,1);
   for(const bad of [0,-1,NaN,3001])assert.throws(()=>waitForCommandClose(completion,bad,timers.io));
+});
+
+// Real bounded temporary files exercise source admission; no Go program runs.
+async function fullGoFixture(run){
+  const root=await realpath(await mkdtemp(join(tmpdir(),'nextgo-go-source-guard-')));
+  try{
+    const files=[{path:'z.go',data:Buffer.from('package guard\n')},{path:'nested/a.go',data:Buffer.from('package nested\n')}];
+    await mkdir(join(root,'nested'));for(const item of files)await writeFile(join(root,item.path),item.data);
+    await writeFile(join(root,'ordinary.txt'),'not part of Go identity');
+    const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+    const rows=files.map(item=>({path:item.path,bytes:item.data.length,sha256:digest(item.data)}));
+    // Independently computed with the publisher's Python canonical encoder.
+    const expected={files:2,bytes:29,sha256:'b4854a877c1aafa3cefb9504aafd49a405af52d4c7dc09d65825f2178676eb4f',treeEncoding:'sortedpathUTF8+NUL+exactsourcebytes+NUL'};
+    await run({root,files,rows,expected,digest});
+  }finally{await rm(root,{recursive:true,force:false,maxRetries:0});}
+}
+test('full-Go guard matches publisher ordering and checks Go outside selected pins',async()=>{
+  await fullGoFixture(async({root,rows,expected})=>{
+    const before=structuredClone(rows),actual=await validateFullGoSource(root,[...rows].reverse(),expected);
+    assert.deepEqual(actual,expected);assert.deepEqual(rows,before);
+  });
+});
+test('full-Go guard rejects modified missing added and stale expected source',async()=>{
+  await fullGoFixture(async({root,rows,expected,digest})=>{
+    await assert.rejects(validateFullGoSource(root,rows.slice(1),expected));
+    await assert.rejects(validateFullGoSource(root,[...rows,{path:'extra.go',bytes:0,sha256:digest(Buffer.alloc(0))}],expected));
+    await assert.rejects(validateFullGoSource(root,rows,{...expected,bytes:expected.bytes+1}));
+    await assert.rejects(validateFullGoSource(root,rows,{...expected,sha256:'0'.repeat(64)}));
+    await writeFile(join(root,rows[0].path),'package changed\n');
+    await assert.rejects(validateFullGoSource(root,rows,expected));
+    await rm(join(root,rows[0].path));
+    await assert.rejects(validateFullGoSource(root,rows,expected));
+  });
+});
+test('full-Go guard rejects duplicate unsafe and aliased paths before source credit',async()=>{
+  await fullGoFixture(async({root,rows,expected})=>{
+    await assert.rejects(validateFullGoSource(root,[rows[0],rows[0]],expected));
+    for(const path of ['../outside.go','/outside.go','nested/../outside.go','nested\\outside.go','bad\u0000.go'])await assert.rejects(validateFullGoSource(root,[{...rows[0],path},rows[1]],expected));
+    await symlink(join(root,rows[0].path),join(root,'alias.go'));
+    await assert.rejects(validateFullGoSource(root,[{...rows[0],path:'alias.go'},rows[1]],expected));
+    await symlink(join(root,'nested'),join(root,'alias-directory'));
+    await assert.rejects(validateFullGoSource(root,[rows[0],{...rows[1],path:'alias-directory/a.go'}],expected));
+  });
+});
+test('full-Go guard refuses unbounded and malformed expected identity',async()=>{
+  await fullGoFixture(async({root,rows,expected})=>{
+    for(const delta of [{files:0},{files:8193},{bytes:-1},{bytes:(128<<20)+1},{sha256:'bad'},{treeEncoding:'other'}])await assert.rejects(validateFullGoSource(root,rows,{...expected,...delta}));
+    await assert.rejects(validateFullGoSource(root,[{...rows[0],bytes:(16<<20)+1},rows[1]],expected));
+    await assert.rejects(validateFullGoSource(root,[{...rows[0],sha256:'bad'},rows[1]],expected));
+  });
 });

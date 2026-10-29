@@ -491,8 +491,8 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "629c103b92a38ee1f3a0b10e82f78aaa153da0af782de685aa55bc739e60db55",
-      "bytes": 200406,
+      "sha256": "0f9375801c0c0f7f91ba53ea1fc0d5fbf1a5508ffa233f4c03d8f16bbabe4906",
+      "bytes": 204492,
       "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
     },
     {
@@ -923,8 +923,8 @@
     },
     {
       "path": "tests/action-view.spec.mjs",
-      "bytes": 27312,
-      "sha256": "bfdf54c2a23a54078ac64b6b3d05bcfb26b432d761de2f8da494ea2c065ac57f",
+      "bytes": 27755,
+      "sha256": "a5f7864fd9c772ff3a8860e73ab04f3a7e303df0c1c4a410584d473f3c369004",
       "origin": "Current6ef passive action diagnostic source; source pin does not execute generic suite in retained campaign; runtime unqualified"
     },
     {
@@ -1043,14 +1043,14 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "d71c596be33ba955808c408f08100d71bd81e4ccbccc073d95549fb9c140514d",
-      "bytes": 64811,
+      "sha256": "05daa2f9a2c93e8532eb467fb4a5daa5472245caea521bc61dbb533cfe95959d",
+      "bytes": 67260,
       "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
-      "sha256": "6e1e614c6ae47229c669b1e600f70ea394d080be07182e9bb44de3ebffa6148a",
-      "bytes": 34257,
+      "sha256": "df8492884565007cfc9c5e4bab5301346aec7868dfe962a4fae79c9312dae362",
+      "bytes": 37987,
       "origin": "Private source-only a95 MIME/drain/workspace rebase; deliberate observer-aware overlap merge;193pin admission conflict"
     },
     {
@@ -2068,6 +2068,40 @@
         "nativeBrowserCauseAndFix": "UNKNOWN",
         "runtimeQualificationInherited": false
       }
+    },
+    {
+      "kind": "published-3d-foundation-for-public-action-error-observation",
+      "commit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "10d2e5487f92d7c73b9281e3908c8ae5b81c71b22d15984ebbc642bbee32076c",
+      "inputBytes": 435337,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "actualSourceObservation": {
+        "Go124Actual600AndFocusRoot11": {
+          "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/go124-source-log-audit-v1/OUTPUT_AUDIT.json",
+          "bytes": 9509,
+          "sha256": "af060ddff1f1835ffdd382b87291e8eb3692f5e3a30a838e00ab54fe84899bc9"
+        },
+        "Go127API": "SUCCESS",
+        "Go127Detailed600AndFocus": "UNKNOWN_TRANSPORT_CLOSED_SINGLE_FETCH",
+        "generalBrowserStepMetadata": {
+          "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/general-browser-supported-steps-checkpoint.json",
+          "bytes": 5393,
+          "sha256": "a77f5bf7c63ffed4b9776c468e309df15b377367a1c36d42ab71ca4f7df918a7"
+        },
+        "retainedConsoleScope": {
+          "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/RETAINED_CONSOLE_AUDIT.json",
+          "bytes": 7060,
+          "sha256": "4d6630c4ed7d91224f97dcd40eb36645e6bb22bd9d933aae604281fe7052fe98"
+        },
+        "currentCheckpoint": {
+          "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/FINAL_CHECKPOINT.json",
+          "bytes": 3161,
+          "sha256": "76e5036f1c498e9c6127b409e0213672cddff297eb8cfb0c76d62a1ded1daf87"
+        },
+        "nativeBrowserCauseAndFix": "UNKNOWN"
+      }
     }
   ],
   "newNativeRegressionCount": 30,
@@ -2083,7 +2117,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "EXISTING HOSTED CI INIT ONLY: preserve ready=true as prospective structural authorization for the exact207 selected-source producer after separate whole-wire peer/root read, controlled publisher review/root execution and topic publication. The seven-path test/diagnostic source successor has no new runtime result. All1287Go files and600requirements,432cases440closures,offline40,skips/resources/native contracts remain exact. Existing21 ancestry entries remain literal-exact and one actualebb foundation is appended exactlyonce; later wire/publisher steps must not append again. sourceReady/profileReady/runtimeExecuted/runtimeQualified/nativeCauseIdentified/browserFixQualified remainfalse. All79capabilities11release gates stay OPEN; no AWS or local-heavy execution grant.",
+  "readinessMeaning": "EXISTING HOSTED INIT ONLY AFTER SEPARATE SOURCE PEER ROOT READ CONTROLLED PUBLISHER AND PUBLICATION. ready=true is prospective structural authorization for exact207selected paths plus expectedfullGo1287 enforcement; no new execution/readiness/nativecause/browserfix result. Requirements600/cases432closures440/offline40 unchanged. Existing22ancestry elements rawexact and one published3d foundation appended exactlyonce; no later append. All79capabilities11gates OPEN.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2220,50 +2254,54 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "SOURCE_REVIEW_ONLY_EXISTING_HOSTED_CI_INIT_BINDINGS_PENDING_WHOLE_WIRE_PEER_ROOT_AND_PUBLICATION",
-    "integrationBaseCommit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
-    "integrationBaseTree": "55d07eb68f8d043c0c141d8533fe9244562268a4",
+    "status": "SOURCE_ONLY_EXACT207_AND_FULL_GO_EXPECTED_BINDINGS_PENDING_PEER_ROOT_PUBLISHER_PUBLICATION",
+    "baseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+    "baseTree": "910192752782543d92994c48a3fc366db76f9bd1",
     "publishedFoundation": {
-      "commit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
+      "kind": "published-3d-foundation-for-public-action-error-observation",
+      "commit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "d55a5d9fbcc1a60a4a38ec9b280c52763c109bca6c7c12346be9e17abf9e7e05",
-      "inputBytes": 424663,
+      "inputSHA256": "10d2e5487f92d7c73b9281e3908c8ae5b81c71b22d15984ebbc642bbee32076c",
+      "inputBytes": 435337,
       "historicalOnly": true,
-      "runtimeQualificationInherited": false,
-      "JSONPointer": "/combinedSourceInput"
+      "runtimeQualificationInherited": false
     },
-    "currentQualification": "testDiagnosticsQualification",
-    "sourcePinCount": 207,
+    "currentQualification": "actionViewPublicErrorObservationQualification",
+    "sourcePins": 207,
     "sourcePinCap": 207,
-    "sourcePinsTreeSHA256": "6bfac8e31fb6cab9cf25426b0272d805340e20741d0ad80c342b8182633518a6",
-    "sourcePinBytes": 2262895,
-    "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL;excludesinputself",
-    "previous205RowsUnchanged": 201,
-    "previous205RowsRebound": 4,
-    "currentNewSourcePins": 2,
-    "reboundSourcePinPaths": [
-      "docs/PARITY.md",
-      "tests/offline.spec.mjs",
-      "tests/retained-routes-ci.mjs",
-      "tests/retained-routes.spec.mjs"
-    ],
-    "addedSourcePinPaths": [
-      "tests/retained-scroll-diagnostics.mjs",
-      "tests/workspace-dev.spec.mjs"
-    ],
-    "immediateBaseGoFiles": 1287,
+    "ready": true,
+    "readyMeaning": "PROSPECTIVE_EXISTING_HOSTED_INIT_ONLY_AFTER_SEPARATE_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "integrationBaseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+    "integrationBaseTree": "910192752782543d92994c48a3fc366db76f9bd1",
+    "sourcePinCount": 207,
+    "sourcePinsTreeSHA256": "6f9219ef5a8f54ccb0e2ee1b890031f6514396a27aa1594fba0970208c8bb1ba",
+    "sourcePinBytes": 2273603,
     "currentGoFiles": 1287,
-    "currentGoBytes": 6415005,
-    "currentGoContentTreeSHA256": "0d387ddebbbd94cb65a5e0ae05fbebd2d75508d20b8c1c133c265f29d4c36d9f",
-    "immediateModifiedProductionGoFiles": 0,
+    "currentGoBytes": 6415473,
+    "currentGoContentTreeSHA256": "fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895",
+    "immediateModifiedProductionGoFiles": 1,
     "immediateModifiedExistingGoTestFiles": 0,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1287,
-    "workflowSourceChanged": false,
-    "producerSourcePinGuardChanged": true,
-    "otherCapsChanged": false,
-    "advertisedABIChanged": false,
-    "currentWholeSourceQualification": "Rawfive-path SOURCE_PASS only; whole seven-path source/input peer still required. ready=true is prospective existing hosted init authorization after separate root/publisher/publication gates, never execution or production readiness."
+    "otherImmediateBaseGoFilesUnchanged": 1286,
+    "selectedPathSetUnchanged": true,
+    "producerFullGoExpectedGuard": true,
+    "producerWholeSourceExpectedGuard": false,
+    "nonSelectedModifiedGoSource": {
+      "path": "examples/demo/components/actionview/client_js.go",
+      "bytes": 7031,
+      "sha256": "6bc78cd2fd90acab765efa8a6ed3741e23349a660841b3cb23c78df8f7bd851b",
+      "selected207Row": false,
+      "enforcedBy": "Expected full-Go canonical count/bytes/digest guard in producer init before compilation"
+    }
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -2961,19 +2999,19 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "SOURCE_REVIEW_ONLY_EXISTING_HOSTED_CI_INIT_BINDINGS_PENDING_WHOLE_WIRE_PEER_ROOT_AND_PUBLICATION",
-    "baseCommit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
-    "baseTree": "55d07eb68f8d043c0c141d8533fe9244562268a4",
+    "status": "SOURCE_ONLY_EXACT207_AND_FULL_GO_EXPECTED_BINDINGS_PENDING_PEER_ROOT_PUBLISHER_PUBLICATION",
+    "baseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+    "baseTree": "910192752782543d92994c48a3fc366db76f9bd1",
     "publishedFoundation": {
-      "commit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
+      "kind": "published-3d-foundation-for-public-action-error-observation",
+      "commit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "d55a5d9fbcc1a60a4a38ec9b280c52763c109bca6c7c12346be9e17abf9e7e05",
-      "inputBytes": 424663,
+      "inputSHA256": "10d2e5487f92d7c73b9281e3908c8ae5b81c71b22d15984ebbc642bbee32076c",
+      "inputBytes": 435337,
       "historicalOnly": true,
-      "runtimeQualificationInherited": false,
-      "JSONPointer": "/queryRefreshQualification"
+      "runtimeQualificationInherited": false
     },
-    "currentQualification": "testDiagnosticsQualification",
+    "currentQualification": "actionViewPublicErrorObservationQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
@@ -2984,7 +3022,9 @@
     "runtimeQualified": false,
     "nativeCauseIdentified": false,
     "browserFixQualified": false,
-    "currentSourcePinTreeSHA256": "6bfac8e31fb6cab9cf25426b0272d805340e20741d0ad80c342b8182633518a6",
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
     "currentRequiredCounts": {
       "native": 89,
       "core": 202,
@@ -2994,14 +3034,11 @@
       "module": 44,
       "devmodule": 46
     },
-    "nativeBrowserCases": 144,
-    "nativeWorkerClosures": 146,
-    "perMockModeBrowserCases": 144,
-    "perMockModeWorkerClosures": 146,
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
     "independentOfflineCases": 40,
-    "newlySelectedWorkspaceSpecExecutedByRetainedSuite": false,
+    "currentSourcePinTreeSHA256": "6f9219ef5a8f54ccb0e2ee1b890031f6514396a27aa1594fba0970208c8bb1ba",
+    "currentGoContentTreeSHA256": "fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895",
     "newTypecheckPassed": false
   },
   "commandGroupCensus": {
@@ -3264,21 +3301,21 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exactebb seven-path test/diagnostic source successor: five byte-exact source-reviewed rawpostimages (workspace wait, passiveHTTPhelper-policyV2, retainedphaseV2spec/newhelper, currentPARITYsection), soleproducer selected-source cap205to207, and currentinput bindings. All1287Go and allGotests unchanged; noGoGuard/NativeBridge/Interop17/Core60/filter/privateDisable family. Selected207 retains all205paths:201fullrows exact,4sourcebindings rebound, existingworkspace andnewretainedhelper selected.600requirements,432cases440closures,offline40 and skip/resource/native contracts unchanged. Every untouched historical JSON value/rawspelling, existingchecked-target/action qualification+wire objects and original21ancestry elements remain literal-exact; appendone actualebb foundation with source-only600audit references. ready=true is prospective existing hosted init structural authorization only after separate peer/root/publisher/publication gates; sourceReady/profileReady/runtimeExecuted/runtimeQualified/cause/fix remainfalse. No browser proof or production maturity inherited.",
+  "sourceInputScope": "Exact3d publictypederror observation successor plus expectedfullGo1287 guard:6existingpaths,207selected paths unchanged/cap207,203rows exact4SHAbytes rebound; demoGo enforced via fullGo canonical guard although not one selectedrow.600names/432cases440closures/offline40/skips/resources unchanged. Historical values including testDiagnostics objects and132prior snapshots rawexact;22ancestry rawprefix plusone3d23. No runtime abort/EOF/GateA/privatefamily changes. EXISTING HOSTED INIT ONLY AFTER SEPARATE SOURCE PEER ROOT READ CONTROLLED PUBLISHER AND PUBLICATION. ready=true is prospective structural authorization for exact207selected paths plus expectedfullGo1287 enforcement; no new execution/readiness/nativecause/browserfix result. Requirements600/cases432closures440/offline40 unchanged. Existing22ancestry elements rawexact and one published3d foundation appended exactlyonce; no later append. All79capabilities11gates OPEN.",
   "finalSourceReadinessReview": {
-    "status": "SOURCE_REVIEW_ONLY_EXISTING_HOSTED_CI_INIT_BINDINGS_PENDING_WHOLE_WIRE_PEER_ROOT_AND_PUBLICATION",
-    "baseCommit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
-    "baseTree": "55d07eb68f8d043c0c141d8533fe9244562268a4",
+    "status": "SOURCE_ONLY_EXACT207_AND_FULL_GO_EXPECTED_BINDINGS_PENDING_PEER_ROOT_PUBLISHER_PUBLICATION",
+    "baseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+    "baseTree": "910192752782543d92994c48a3fc366db76f9bd1",
     "publishedFoundation": {
-      "commit": "ebb90471f1fa11ff9f30b5996a22060818f1f84d",
+      "kind": "published-3d-foundation-for-public-action-error-observation",
+      "commit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputSHA256": "d55a5d9fbcc1a60a4a38ec9b280c52763c109bca6c7c12346be9e17abf9e7e05",
-      "inputBytes": 424663,
+      "inputSHA256": "10d2e5487f92d7c73b9281e3908c8ae5b81c71b22d15984ebbc642bbee32076c",
+      "inputBytes": 435337,
       "historicalOnly": true,
-      "runtimeQualificationInherited": false,
-      "JSONPointer": "/finalSourceReadinessReview"
+      "runtimeQualificationInherited": false
     },
-    "currentQualification": "testDiagnosticsQualification",
+    "currentQualification": "actionViewPublicErrorObservationQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
@@ -3289,22 +3326,25 @@
     "runtimeQualified": false,
     "nativeCauseIdentified": false,
     "browserFixQualified": false,
-    "rawSourcePacket": {
-      "path": ".nextgo-test-results/recovery/ebb-test-diagnostics-raw-composition-v1/MANIFEST.json",
-      "bytes": 10619,
-      "sha256": "285cfbfe4c39968b527e3aff46ec273c3aab28382c78877744334d35acf1c19f"
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "observationSourcePacket": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/MANIFEST.json",
+      "bytes": 3176,
+      "sha256": "bdb78ce1a075b130bb9ba60378ff1609bd1fe3a8cd0a69b1ecc80fc7429b0620"
     },
-    "fullFivePathSourcePeer": {
-      "path": ".nextgo-test-results/recovery/ebb-test-diagnostics-raw-composition-v1-review-focus-publisher-v1/SOURCE_REVIEW.json",
-      "bytes": 9917,
-      "sha256": "c6882f664969907ace897bc384d53afe00ae6f2de3b332c91559032712146c29"
+    "observationSourcePeer": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-review-v1/SOURCE_REVIEW.json",
+      "bytes": 7212,
+      "sha256": "d58eaefd72a7cfbf68cad89a9dba1709e5b2a7916a05ec0d405cdd747bf87905"
     },
-    "wholeSevenPathSourcePeerRequired": true,
+    "wholeWireSourcePeerRequired": true,
     "externalPublisherPeerRequired": true,
     "rootOwnReadAndExactPublisherExecutionRequired": true,
     "rootPublicationRequired": true,
     "newTypecheckPassed": false,
-    "meaning": "EXISTING HOSTED CI INIT ONLY: preserve ready=true as prospective structural authorization for the exact207 selected-source producer after separate whole-wire peer/root read, controlled publisher review/root execution and topic publication. The seven-path test/diagnostic source successor has no new runtime result. All1287Go files and600requirements,432cases440closures,offline40,skips/resources/native contracts remain exact. Existing21 ancestry entries remain literal-exact and one actualebb foundation is appended exactlyonce; later wire/publisher steps must not append again. sourceReady/profileReady/runtimeExecuted/runtimeQualified/nativeCauseIdentified/browserFixQualified remainfalse. All79capabilities11release gates stay OPEN; no AWS or local-heavy execution grant."
+    "meaning": "EXISTING HOSTED INIT ONLY AFTER SEPARATE SOURCE PEER ROOT READ CONTROLLED PUBLISHER AND PUBLICATION. ready=true is prospective structural authorization for exact207selected paths plus expectedfullGo1287 enforcement; no new execution/readiness/nativecause/browserfix result. Requirements600/cases432closures440/offline40 unchanged. Existing22ancestry elements rawexact and one published3d foundation appended exactlyonce; no later append. All79capabilities11gates OPEN."
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -7976,6 +8016,226 @@
     "historicalSourcePinSpellingAndReceiptsUnchanged": true,
     "noCandidateParserRuntimeOrNewCIExecution": true,
     "publisherAndRootPublicationStillSeparate": true,
+    "all79Capabilities11GatesRemainOpen": true
+  },
+  "actionViewPublicErrorObservationQualification": {
+    "status": "SOURCE_ONLY_PUBLIC_TYPED_ERROR_OBSERVATION_AND_EXPECTED_FULL_GO_GUARD_PENDING_WHOLE_PEER_ROOT_AND_PUBLICATION",
+    "baseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+    "baseTree": "910192752782543d92994c48a3fc366db76f9bd1",
+    "publishedFoundation": {
+      "kind": "published-3d-foundation-for-public-action-error-observation",
+      "commit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputSHA256": "10d2e5487f92d7c73b9281e3908c8ae5b81c71b22d15984ebbc642bbee32076c",
+      "inputBytes": 435337,
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false
+    },
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PROSPECTIVE_EXISTING_HOSTED_INIT_ONLY_AFTER_SEPARATE_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "changedPaths": [
+      "docs/PARITY.md",
+      "examples/demo/components/actionview/client_js.go",
+      "tests/action-view.spec.mjs",
+      "tests/retained-routes-ci-inputs.json",
+      "tests/retained-routes-ci.mjs",
+      "tests/retained-routes-ci.test.mjs"
+    ],
+    "observationSourcePacket": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/MANIFEST.json",
+      "bytes": 3176,
+      "sha256": "bdb78ce1a075b130bb9ba60378ff1609bd1fe3a8cd0a69b1ecc80fc7429b0620"
+    },
+    "observationPatch": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/proposed.patch",
+      "bytes": 5726,
+      "sha256": "9a736e6ba837044ea76d9ca1347ce882cf4ca7ebf2d9818455de83804098bb51"
+    },
+    "observationSourcePeer": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-review-v1/SOURCE_REVIEW.json",
+      "bytes": 7212,
+      "sha256": "d58eaefd72a7cfbf68cad89a9dba1709e5b2a7916a05ec0d405cdd747bf87905"
+    },
+    "safeEvidence": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/EVIDENCE.json",
+      "bytes": 5896,
+      "sha256": "d79424046c4bea8c0dd23ef13153d7d23d95f75f0cb7dbb4aea9bf21a3022207"
+    },
+    "GoSource": {
+      "files": 1287,
+      "bytes": 6415473,
+      "sha256": "fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "unchangedGoFiles": 1286,
+      "modifiedProductionGoFiles": 1,
+      "modifiedGoPaths": [
+        "examples/demo/components/actionview/client_js.go"
+      ],
+      "allGoTestFilesByteExact": true,
+      "newGoRequirements": null,
+      "hostedExpectedIdentityGuardAdded": true,
+      "hostedGuardExecuted": false
+    },
+    "nonSelectedModifiedGoSource": {
+      "path": "examples/demo/components/actionview/client_js.go",
+      "bytes": 7031,
+      "sha256": "6bc78cd2fd90acab765efa8a6ed3741e23349a660841b3cb23c78df8f7bd851b",
+      "selected207Row": false,
+      "enforcedBy": "Expected full-Go canonical count/bytes/digest guard in producer init before compilation"
+    },
+    "selectedSource": {
+      "files": 207,
+      "bytes": 2273603,
+      "sha256": "6f9219ef5a8f54ccb0e2ee1b890031f6514396a27aa1594fba0970208c8bb1ba",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "previousRows": 207,
+      "allPreviousPathsAndOrderPreserved": true,
+      "oldFullRowsExact": 203,
+      "oldRowsRebound": 4,
+      "reboundPaths": [
+        "docs/PARITY.md",
+        "tests/action-view.spec.mjs",
+        "tests/retained-routes-ci.mjs",
+        "tests/retained-routes-ci.test.mjs"
+      ],
+      "addedSelectedPaths": [],
+      "droppedSelectedPaths": []
+    },
+    "wholeSourceContractExcludingInputSelf": {
+      "files": 1742,
+      "bytes": 10390182,
+      "sha256": "59bc93e99812b4504c46ff2094cc263da982e5556a90c9f2d64fe466331ecdc6",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL"
+    },
+    "producerSourceSHA256": "05daa2f9a2c93e8532eb467fb4a5daa5472245caea521bc61dbb533cfe95959d",
+    "producerSourceGuard": {
+      "selectedMaximumUnchanged207": true,
+      "fullGoExpectedCountBytesAndDigestEnforcedAtInit": true,
+      "usesExistingBoundedInventoryAndRegularReader": true,
+      "newWalkOrSymlinkFollowing": false,
+      "canonicalEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "wholeRepositoryExpectedIdentityEnforced": false,
+      "wholeRepositoryProvenanceEnforcedByControlledPublisher": true,
+      "newRegressionRoots": 4,
+      "regressionsExecuted": false,
+      "resourceAndBeforeAfterGuardsUnchanged": true
+    },
+    "requiredCounts": {
+      "native": 89,
+      "core": 202,
+      "devcore": 169,
+      "portable": 13,
+      "ui": 12,
+      "module": 44,
+      "devmodule": 46
+    },
+    "mandatoryPhaseRoots": 600,
+    "allRequiredArraysAndSkipContractsUnchanged": true,
+    "allModesCases": 432,
+    "allModesClosures": 440,
+    "independentOfflineCases": 40,
+    "allBrowserTitlesAndTimeoutsUnchanged": true,
+    "publicErrorCodes": [
+      "validation_error",
+      "internal_error",
+      "view_unavailable"
+    ],
+    "rejectedResponseCDPBodyReadsReplaced": 3,
+    "runtimeAbortEOFAndNavigationUnchanged": true,
+    "sourcePatchTested": false,
+    "historyPolicy": {
+      "prior132SnapshotsRawExact": true,
+      "allUntouchedHistoricalTopLevelValuesRawExact": true,
+      "existingTestDiagnosticsQualificationAndCIWireRawExact": true,
+      "old22AncestryElementRawSpansExact": true,
+      "appendExactlyOne3dFoundation": true,
+      "ancestryEntries": 23,
+      "laterWireOrPublisherMustNotAppendAgain": true
+    },
+    "originInterpretation": "All preserved existing files[].origin strings are LITERAL HISTORICAL LINEAGE ONLY; current SHA/bytes and this qualification/source peers govern current instrumentation and source. They grant no execution or runtime qualification.",
+    "published3dObservationOnly": {
+      "Go124Audit": {
+        "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/go124-source-log-audit-v1/OUTPUT_AUDIT.json",
+        "bytes": 9509,
+        "sha256": "af060ddff1f1835ffdd382b87291e8eb3692f5e3a30a838e00ab54fe84899bc9"
+      },
+      "Go127DetailedChecks": "UNKNOWN_SINGLE_TRANSPORT_CLOSED",
+      "generalBrowserSteps": {
+        "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/general-browser-supported-steps-checkpoint.json",
+        "bytes": 5393,
+        "sha256": "a77f5bf7c63ffed4b9776c468e309df15b377367a1c36d42ab71ca4f7df918a7"
+      },
+      "checkpoint": {
+        "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/FINAL_CHECKPOINT.json",
+        "bytes": 3161,
+        "sha256": "76e5036f1c498e9c6127b409e0213672cddff297eb8cfb0c76d62a1ded1daf87"
+      },
+      "retainedConsoleAudit": {
+        "path": ".nextgo-test-results/qualification/ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/RETAINED_CONSOLE_AUDIT.json",
+        "bytes": 7060,
+        "sha256": "4d6630c4ed7d91224f97dcd40eb36645e6bb22bd9d933aae604281fe7052fe98"
+      },
+      "safeSelectedTraceEvidence": {
+        "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/EVIDENCE.json",
+        "bytes": 5896,
+        "sha256": "d79424046c4bea8c0dd23ef13153d7d23d95f75f0cb7dbb4aea9bf21a3022207"
+      },
+      "historicalResponseJSONIsPOSTRequestResourceNotResponseBody": true,
+      "responseBodyRecovered": false,
+      "ERR_ABORTEDAndCDPBodyCause": "UNKNOWN",
+      "priorResultInherited": false
+    },
+    "historicalReasoningRetractionsPreserved": true,
+    "privateGateAAndLifecycleFamilyExcluded": true,
+    "noFormatterParserGoNodeSDKCacheBrowserDockerOrNetworkByAuthor": true,
+    "all79Capabilities11GatesRemainOpen": true
+  },
+  "actionViewPublicErrorObservationCIWireTransition": {
+    "status": "SOURCE_ONLY_EXACT207_INPUT_AND_FULL_GO_GUARD_BINDINGS_PENDING_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "ready": true,
+    "readyMeaning": "PROSPECTIVE_EXISTING_HOSTED_INIT_ONLY_AFTER_SEPARATE_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "currentQualification": "actionViewPublicErrorObservationQualification",
+    "selectedPathSetCount": 207,
+    "selectedCapChanged": false,
+    "producerFullGoExpectedGuardAdded": true,
+    "producerWholeSourceExpectedGuardAdded": false,
+    "old22AncestryElementsRawExact": true,
+    "one3dFoundationAlreadyAppended": true,
+    "ancestryEntries": 23,
+    "laterPublisherMustNotAppendAgain": true,
+    "observationSourcePacket": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-v1/MANIFEST.json",
+      "bytes": 3176,
+      "sha256": "bdb78ce1a075b130bb9ba60378ff1609bd1fe3a8cd0a69b1ecc80fc7429b0620"
+    },
+    "observationSourcePeer": {
+      "path": ".nextgo-test-results/recovery/3d-action-view-public-error-observation-review-v1/SOURCE_REVIEW.json",
+      "bytes": 7212,
+      "sha256": "d58eaefd72a7cfbf68cad89a9dba1709e5b2a7916a05ec0d405cdd747bf87905"
+    },
+    "wholeWireSourcePeerRequired": true,
+    "externalPublisherPeerRequired": true,
+    "rootOwnFullReadExecutionAndPublicationRequired": true,
     "all79Capabilities11GatesRemainOpen": true
   }
 }
