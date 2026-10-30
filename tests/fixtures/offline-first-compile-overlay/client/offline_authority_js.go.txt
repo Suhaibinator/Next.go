@@ -1,0 +1,92 @@
+//go:build js && wasm
+
+package client
+
+import (
+	"context"
+	"sync"
+	"syscall/js"
+
+	"github.com/Suhaibinator/Next.go/offline"
+)
+
+// This mutex guards only Go ownership/state transitions. No host operation,
+// callback, notification, cancellation or refresh activity utility runs under it.
+// Production doc/win identities are initialized before offline exposure.
+var offlineAuthorityMu sync.Mutex
+
+type offlineOperationAuthority struct {
+	c *offlineController
+	descriptor offline.ClientDescriptor
+	document, window js.Value
+}
+
+// Identity/tag operations on js.Value are Go operations; this helper never
+// reads a foreign property. The caller owns offlineAuthorityMu.
+func offlineCurrentAuthorityLocked(c *offlineController, descriptor offline.ClientDescriptor, document, window js.Value) bool {
+	return c != nil && documentOffline == c && c.state.Configured && c.state.Supported && c.busy &&
+		c.descriptor == descriptor && doc.Equal(document) && win.Equal(window)
+}
+
+func offlineOperationPhase(command string) (string, OfflineDiagnosticOperation) {
+	switch command {
+	case "status": return "checking", OfflineDiagnosticStatus
+	case "enable": return "enabling", OfflineDiagnosticEnable
+	case "update": return "updating", OfflineDiagnosticUpdate
+	case "disable": return "disabling", OfflineDiagnosticDisable
+	}
+	return "", OfflineDiagnosticOperationUnknown
+}
+
+// ctx is the internal WithTimeout context created by offlineOperation, never
+// an arbitrary caller implementation. Its final Err read linearizes admission.
+func offlineAdmitOperation(ctx context.Context, command string) (offlineOperationAuthority, error) {
+	phase, op := offlineOperationPhase(command)
+	if phase == "" { return offlineOperationAuthority{}, ErrOfflineProtocol }
+	offlineAuthorityMu.Lock()
+	defer offlineAuthorityMu.Unlock()
+	c := documentOffline
+	if c == nil || !c.state.Configured { return offlineOperationAuthority{}, ErrOfflineUnavailable }
+	if !c.state.Supported { return offlineOperationAuthority{}, ErrOfflineUnsupported }
+	if c.busy || offlineRealmInUse != nil { return offlineOperationAuthority{}, ErrOfflineBusy }
+	a := offlineOperationAuthority{c:c, descriptor:c.descriptor, document:doc, window:win}
+	if ctx.Err() != nil { return offlineOperationAuthority{}, ErrOfflineUnknown }
+	c.busy = true
+	c.conflictReason = ""
+	c.state.Phase, c.state.LastError = phase, ""
+	if command == "disable" { c.lastDisable = offlineDisableReceipt{} }
+	c.diag = offlineDiagnosticBeginLocked(c.diag, op, a.descriptor.RuntimeID, a.descriptor.ConfigurationID)
+	return a, nil
+}
+
+// Validation and browser/facet support evaluation must precede this call.
+// A slow initializer can never configure a replacement controller.
+func offlineCommitConfigurationLocked(c *offlineController, descriptor offline.ClientDescriptor, supported bool) bool {
+	if c == nil || documentOffline != c { return false }
+	c.descriptor = descriptor
+	c.state.Configured, c.state.Supported = true, supported
+	c.state.Scope, c.state.OwnerPolicyID = descriptor.Scope, descriptor.OwnerPolicyID
+	if supported { c.state.Phase = "checking" }
+	return true
+}
+
+func (a offlineOperationAuthority) currentLocked(ctx context.Context) bool {
+	return offlineCurrentAuthorityLocked(a.c,a.descriptor,a.document,a.window) && ctx.Err() == nil
+}
+
+func (a offlineOperationAuthority) apply(ctx context.Context, reply offlineReply) bool {
+	offlineAuthorityMu.Lock()
+	defer offlineAuthorityMu.Unlock()
+	if !a.currentLocked(ctx) { return false }
+	a.c.applyLocked(reply)
+	return true
+}
+
+// Increment and owner snapshot precede all formatting/channel/native work.
+func (c *offlineController) reserveOfflineRequest() (uint64, string, error) {
+	offlineAuthorityMu.Lock()
+	defer offlineAuthorityMu.Unlock()
+	if c.request == ^uint64(0) { return 0, "", ErrOfflineProtocol }
+	c.request++
+	return c.request, c.descriptor.OwnerPolicyID, nil
+}

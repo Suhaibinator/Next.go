@@ -1,0 +1,112 @@
+//go:build js && wasm
+
+package client
+
+import (
+ "syscall/js"
+ "testing"
+)
+
+// SOURCE ONLY: these tests have not been formatted, parsed, compiled or run.
+// Fake claims below prove optional failure handling only. Actual native
+// positives are isolated in the explicitly unadmitted native-browser file.
+func offlineNativeTestClaimSlot(t *testing.T, next js.Value) {
+ t.Helper()
+ g:=js.Global()
+ object:=checkedJSGet(g,"Object")
+ descriptorFunction:=checkedJSGet(object,"getOwnPropertyDescriptor")
+ old:=checkedJSInvoke(descriptorFunction,g,"__nextgoOfflineNativeClaimV1")
+ checkedJSDefineData(g,"__nextgoOfflineNativeClaimV1",next)
+ t.Cleanup(func(){
+  if old.IsUndefined() {
+   checkedJSInvoke(checkedJSGet(checkedJSGet(g,"Reflect"),"deleteProperty"),g,"__nextgoOfflineNativeClaimV1")
+  } else {
+   checkedJSInvoke(checkedJSReflection.defineProperty,g,"__nextgoOfflineNativeClaimV1",old)
+  }
+ })
+}
+func TestOfflineNativeMissingClaimIsOptional(t *testing.T) {
+ offlineNativeTestClaimSlot(t,js.Undefined())
+ if claimOfflineNativeCapability().valid {t.Fatal("missing claim became supported")}
+ // Existing generic interop remains usable when this optional claim is absent.
+ a:=checkedJSArray([]any{"ordinary",7,true})
+ if checkedJSLength(a)!=3 || checkedJSIndex(a,0).String()!="ordinary" {t.Fatal("ordinary core interop failed")}
+}
+func TestOfflineNativeThrowingClaimIsOptional(t *testing.T) {
+ if moduleMode {
+  calls:=0
+  unexpected:=js.FuncOf(func(js.Value,[]js.Value)any{calls++;return js.Undefined()})
+  defer unexpected.Release()
+  offlineNativeTestClaimSlot(t,unexpected.Value)
+  if claimOfflineNativeCapability().valid || calls!=0 {t.Fatal("module consumed eager-core claim")}
+  return
+ }
+ // An ordinary native Object.defineProperty call with a primitive target throws
+ // without invoking a Go callback panic. No eval/Function constructor is used.
+ g:=js.Global()
+ object:=checkedJSGet(g,"Object")
+ bound:=checkedJSCall(checkedJSGet(object,"defineProperty"),"bind",js.Undefined(),1,"x",checkedJSObject(map[string]any{}))
+ offlineNativeTestClaimSlot(t,bound)
+ if claimOfflineNativeCapability().valid {t.Fatal("throwing claim became supported")}
+}
+func TestOfflineNativeMalformedClaimIsOptional(t *testing.T) {
+ callback:=js.FuncOf(func(js.Value,[]js.Value)any{return checkedJSObject(map[string]any{"version":1,"supported":true,"prepare":js.Null()})})
+ defer callback.Release()
+ offlineNativeTestClaimSlot(t,callback.Value)
+ if claimOfflineNativeCapability().valid {t.Fatal("partial capability became supported")}
+}
+
+func TestOfflineNativeUnavailableHelpersDoNotPanic(t *testing.T) {
+ held:=offlineNativeFacet
+ offlineNativeFacet=offlineNativeCapability{}
+ defer func(){offlineNativeFacet=held}()
+ if offlineNativeReady() {t.Fatal("unavailable facet reported ready")}
+ if _,err:=offlineNativeCreateFrame(js.Undefined(),"https://example.invalid/helper");err!=ErrOfflineUnsupported {t.Fatal("frame support did not refuse locally")}
+ if _,err:=offlineNativeCaptureParent(js.Undefined(),js.Undefined());err!=ErrOfflineUnsupported {t.Fatal("parent support did not refuse locally")}
+ if _,err:=offlineNativeCreateChannel();err!=ErrOfflineUnsupported {t.Fatal("channel support did not refuse locally")}
+ if _,err:=offlineNativeInspectInventory(js.Undefined());err!=ErrOfflineUnsupported {t.Fatal("inventory support did not refuse locally")}
+ if _,err:=offlineNativePrepare(offlineNativeInput{});err!=ErrOfflineUnsupported {t.Fatal("prepare support did not refuse locally")}
+ _=OfflineStatus() // Ordinary public status remains callable without this facet.
+}
+func TestOfflineNativeReceiptRejectsUnknownTags(t *testing.T) {
+ // TESTONLY decoder model: it grants no capability/native brand or dispatch.
+ cases:=[]struct{name string;reason any;entered any}{
+  {"unknown reason",9,true},{"fractional reason",1.5,true},{"wrong entered tag",0,1},
+ }
+ for _,tc:=range cases {t.Run(tc.name,func(t *testing.T){
+  read:=js.FuncOf(func(js.Value,[]js.Value)any{return checkedJSArray([]any{1,"test",int(offlineNativeChildList),tc.entered,tc.reason,false,false,js.Undefined()})})
+  defer read.Release()
+  call:=&offlineNativeCall{read:read.Value,nonce:"test",operation:offlineNativeChildList}
+  if _,err:=call.readReceipt();err==nil {t.Fatal("malformed receipt accepted")}
+ })}
+}
+
+
+func TestOfflineNativeInventoryDecoderKeepsNullSlotsDistinct(t *testing.T) {
+ // TESTONLY private snapshot decoder model; no platform brand assertion.
+ registration:=checkedJSObject(map[string]any{})
+ worker:=checkedJSObject(map[string]any{})
+ cases:=[]struct{name string;active,waiting,installing js.Value;au,wu,iu string;valid bool}{
+  {"all null",js.Null(),js.Null(),js.Null(),"","","",true},
+  {"active only",worker,js.Null(),js.Null(),"https://example.invalid/sw.js","","",true},
+  {"waiting only",js.Null(),worker,js.Null(),"","https://example.invalid/sw.js","",true},
+  {"undefined active",js.Undefined(),js.Null(),js.Null(),"","","",false},
+  {"undefined waiting",worker,js.Undefined(),js.Null(),"https://example.invalid/sw.js","","",false},
+  {"null url mismatch",js.Null(),js.Null(),js.Null(),"https://example.invalid/sw.js","","",false},
+  {"object missing url",worker,js.Null(),js.Null(),"","","",false},
+ }
+ for _,tc:=range cases {t.Run(tc.name,func(t *testing.T){
+  row:=checkedJSArray([]any{registration,"https://example.invalid/",tc.active,tc.waiting,tc.installing,tc.au,tc.wu,tc.iu})
+  result,err:=offlineNativeDecodeInventory(checkedJSArray([]any{row}))
+  if (err==nil)!=tc.valid {t.Fatalf("valid=%v, error=%v",tc.valid,err)}
+  if tc.valid && (len(result)!=1 || !result[0].Active.Equal(tc.active) || !result[0].Waiting.Equal(tc.waiting) || !result[0].Installing.Equal(tc.installing)) {t.Fatal("native slot identity/null was lost")}
+ })}
+}
+
+func TestOfflineNativeInventoryDecoderRejectsMissingAndOversizedRows(t *testing.T) {
+ for _,size:=range []int{65,66} {
+  if _,err:=offlineNativeDecodeInventory(checkedJSArray(make([]any,size)));err==nil {t.Fatal("oversized inventory accepted")}
+ }
+ row:=checkedJSArray([]any{checkedJSObject(map[string]any{}),"https://example.invalid/",js.Null(),js.Null(),js.Null(),"",""})
+ if _,err:=offlineNativeDecodeInventory(checkedJSArray([]any{row}));err==nil {t.Fatal("partial inventory row accepted")}
+}

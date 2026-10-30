@@ -6,7 +6,71 @@ The target is an alternative implemented in Go, with Go/WASM browser behavior an
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
 
-## Current qualification and next source increment
+## Isolated native default first-compile debug profile
+
+Published foundation `b4efe93f0c760c93fdaba6868138d48033501899` retains the typed
+public-error demo change and the producer's expected full-Go guard. This private
+successor adds a separately reviewed, isolated Gate A compiler profile; it does
+not replace ordinary framework source with the private Disable implementation.
+All 1,287 ordinary Go files remain byte-exact b4: 6,415,473 bytes, canonical
+SHA-256 `fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895`.
+The existing producer dynamically reads the current qualification's `GoSource`
+and enforces this expected count, bytes and digest before compilation. That
+producer and its four guard-regression roots are unchanged. Whole-source hashes
+are publication provenance, not a new expected-whole-content enforcement claim.
+
+The debug profile has exactly 41 new non-Go control/input paths: a Python
+standard-library owner/supervisor/tool observer/collector/cleanup driver, its
+closed source contract, 26 Python protocol models, one workflow, and 37 exact
+reviewable UTF-8 `.txt` fixtures totaling 613,921 bytes. The fixture allowlist
+is explicit, capped at 1 MiB, and uses no glob, source archive, external URL or
+ignored bundle. The owner reconstructs immutable `3d583dc7` plus those postimages
+only in disposable owned output: tree `ba24a854fab69ee810394bc193507ba22f2a953e`,
+1,769 files and 1,311 Go files. This isolated source is distinct from the
+ordinary b4 successor; no successful compile of b4 or the private source exists
+yet. The 41 controls stay outside the old 207 selected-source pin list.
+
+The workflow requests immutable action commits and the Docker image digest
+previously observed in hash-bound current-3d logs. Its bounded same-repository
+PR opened/synchronize/reopened path trigger and future manual trigger use the
+actual PR head, separately recording event-merge and workflow identities. One
+90-minute aggregate job covers Go 1.24.13 then 1.27.3 serially: exactly 25
+compile commands and 13 Go metadata commands per SDK, CGO0/internal native
+linking, no race and no produced test/application/CLI execution. CPU2, memory4GiB,
+pids768 and shm512MiB are fixed. The 8GiB disk abort threshold is monitored, not
+a filesystem quota; there is no kernel network-deny claim. Original SDK archive
+provenance alone remains UNKNOWN under Root's first-debug exception. Requested
+immutable configuration and historical observations are not fresh measurements
+or a production authenticity result. Failure or capacity exhaustion is incomplete
+evidence, never permission to raise a cap or manufacture a pass.
+
+Root executed the exact 26 isolated process-mocked Python protocol models once:
+26 PASS, 0 FAIL, 1.332 seconds, joined exit0. Receipt SHA-256 is
+`cdccbab6934f5e7d4ec9a7af149b360676dc681dfbe7a1bb5d229fee442b8048`;
+this used no real child process, signals, Go, SDK, Node, browser or network. The
+complete 41-path source peer found no remaining functional finding after the
+immutable-pin/PR-bootstrap closure (receipt SHA-256
+`e2126f94b1e67a2351e4ea34b4ed6c6bc2f8d38a4ac01f03dd782bfe6be11bdb`).
+These model/source results do not prove a compiler, Go-unit, browser or runtime
+result. Root's technical acceptance is conditioned on this exact source
+composition, independent peer and controlled publisher review/publication; no
+workflow or publication is performed by this private composition.
+
+The existing 207 selected paths/cap, 256 root cap, all 600 required names/skips,
+432 retained browser cases/440 closures and 40 offline cases remain unchanged.
+All 23 prior ancestry elements are preserved; the published b4 input foundation
+is appended once as element24, with no later publisher append. GateB's 886 Go
+roots, the native-tagged4/browserCORE60/legacy4/response-CSP4 profiles, callback
+outer-return/Promise retirement, and promotion of the fixture source into
+ordinary framework source remain held. Go callback body exit is not proof of
+outer JavaScript return. All79 capabilities and11 release gates remain open;
+both cache aliases stay held, preview3011 stays protected and AWS remains NO.
+
+## Historical 3d checkpoint and b4 typed-error source increment
+
+The following preserved b4 discussion reports the earlier 3d checkpoint and the
+typed-error/full-Go-guard increment; its relative "current"/"proposed" language
+is historical and grants no new Gate A result.
 
 The published source baseline is now `3d583dc7`. Its bounded CI checkpoint at
 23:16 UTC on October 29 records 17 successful jobs, six failures and one general

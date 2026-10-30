@@ -1,0 +1,705 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"reflect"
+	"strings"
+	"syscall/js"
+	"testing"
+	"time"
+)
+
+type offlineDisableFixture struct {
+	x                *offlineRealmFixture
+	stats            js.Value
+	unregisters      int
+	onRequest        func(offlineRequest)
+	unregister       func() js.Value
+	expectQuarantine bool
+}
+
+// These explicitly native-shaped events are bounded unit fakes. They do not
+// attest that an installed browser generated a trusted event or retired a job.
+func freshOfflineDisableFixture(t *testing.T) *offlineDisableFixture {
+	t.Helper()
+	x := freshOfflineRealmFixture(t)
+	x.childWin.Set("Promise", js.Global().Get("Promise"))
+	x.childWin.Set("Reflect", js.Global().Get("Reflect"))
+	d := &offlineDisableFixture{x: x, stats: x.f.channels}
+	d.stats.Set("channels", js.Global().Get("Array").New())
+	channel := js.Global().Get("Function").New("stats", `return class {
+ constructor(){
+  stats.created++; let callback;
+  const p1={_closed:false,addEventListener(type,fn,options){if(options&&options.once)stats.once=(stats.once||0)+1;callback=fn;stats.listeners++},removeEventListener(){if(callback){callback=undefined;stats.listeners--}},start(){},close(){if(stats.closeFail)throw new Error('close failed');if(!this._closed){this._closed=true;stats.closed++}}};
+  const emit=(data,trusted=true,target=p1)=>{if(callback)callback({data,isTrusted:trusted,target})};
+  const p2={_closed:false,emit,postMessage(data){stats.last=p2;stats.data=data;if(stats.hold)return;if(stats.badFirst){emit({...data,requestID:'wrong'});emit(data,false);emit(data,true,{});}emit(data);if(stats.duplicate)emit(data);},close(){if(stats.closeFail)throw new Error('close failed');if(!this._closed){this._closed=true;stats.closed++}}};
+  this.port1=p1;this.port2=p2;stats.channels.push(this);if(stats.onConstruct)stats.onConstruct();
+  if(stats.constructThrow)throw new Error('after construction');
+ }
+}`).Invoke(d.stats)
+	win.Set("MessageChannel", channel)
+	original := x.f.respond
+	x.f.respond = func(request offlineRequest) offlineReply {
+		x.trace = append(x.trace, request.Command)
+		if d.onRequest != nil {
+			d.onRequest(request)
+		}
+		reply := original(request)
+		if request.Command == "disable-recovered" {
+			reply.State, reply.Enabled, reply.DeferredCleanup = "disabled", false, true
+			reply.ActiveGeneration = strings.Repeat("d", 64)
+		}
+		return reply
+	}
+	x.candidate.Set("unregister", x.f.fn(func(this js.Value, _ []js.Value) any {
+		if !this.Equal(x.candidate) || !x.frame.Get("isConnected").Bool() || offlineRealmInUse == nil || offlineRealmInUse.pending != 1 {
+			t.Error("unregister was not precharged on its live exact receiver")
+		}
+		d.unregisters++
+		x.trace = append(x.trace, "unregister")
+		if d.unregister != nil {
+			return d.unregister()
+		}
+		x.childEntries, x.parentEntries = nil, nil
+		return x.f.resolve(true)
+	}))
+ // Re-snapshot this explicitly TESTONLY platform after its native-model
+ // channel/method setup, before roots install authored getter overrides.
+ x.f.native.remember(win,x.candidate)
+ x.f.native.observerState(d.stats)
+ t.Cleanup(func(){
+  if offlineRealmInUse==nil{return}
+  if !d.expectQuarantine {t.Error("unexpected fresh Disable quarantine")}
+  d.stats.Set("closeFail",false)
+  // Revoke deliveries before marking a synthetic terminal and releasing funcs.
+  x.f.native.contain(t,offlineRealmInUse)
+  channels:=d.stats.Get("channels")
+  for i:=0;i<channels.Length();i++{channels.Index(i).Get("port1").Call("close");channels.Index(i).Get("port2").Call("close")}
+ })
+	return d
+}
+
+func (d *offlineDisableFixture) fresh(ctx context.Context) (offlineFreshDisableResult, error) {
+ // Direct unit helper admission only. Public operations continue to admit
+ // through production offlineOperation; base fixtures remain busy=false.
+ c:=d.x.f.c
+ offlineAuthorityMu.Lock()
+ if offlineRealmInUse!=nil || c.busy {offlineAuthorityMu.Unlock();return offlineFreshDisableResult{},ErrOfflineBusy}
+ c.busy=true
+ c.diag=offlineDiagnosticBeginLocked(c.diag,OfflineDiagnosticDisable,c.descriptor.RuntimeID,c.descriptor.ConfigurationID)
+ offlineAuthorityMu.Unlock()
+ defer func(){offlineAuthorityMu.Lock();c.busy=false;offlineAuthorityMu.Unlock()}()
+ return c.disableInFreshRealm(ctx,d.x.f.sw,d.x.f.worker)
+}
+
+func offlineDisableWait(t *testing.T, done <-chan struct{}, label string) {
+	t.Helper()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal(label)
+	}
+}
+
+func TestOfflineFreshDisableUsesOneCommandAndExactLiveNativeUnregister(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	d.x.childSW.Set("controller", js.Null())
+	d.stats.Set("badFirst", true)
+	d.stats.Set("duplicate", true)
+	checkReadCharge := func() {
+		if offlineRealmInUse == nil || offlineRealmInUse.pending != 1 || len(offlineRealmInUse.disableNative) != 1 {
+			t.Error("fresh read was not precharged before delivery")
+		}
+	}
+	d.x.beforeChildRead, d.x.beforeLookup = checkReadCharge, checkReadCharge
+	d.x.reply = func(label string, value js.Value) js.Value {
+		if label == "parent-list" {
+			checkReadCharge()
+		}
+		return value
+	}
+	d.x.afterRemove = func() {
+		if offlineRealmInUse == nil || offlineRealmInUse.disableObserver.valid || !offlineRealmInUse.disableObserver.then.IsUndefined() || !offlineRealmInUse.disableObserver.apply.IsUndefined() || len(offlineRealmInUse.disableNative) != 1 || offlineRealmInUse.pending != 1 || offlineRealmInUse.disableNative[0].operation != offlineNativeRetireLive || len(offlineRealmInUse.disableReplies) != 0 {
+			t.Error("child observer or native cell escaped frame retirement")
+		}
+		// Every child-global access after removal becomes an actual throwing
+		// host getter; the final inventory must use only live parent objects.
+		poison := js.Global().Get("Function").New("throw new Error('child used after removal')")
+		js.Global().Get("Object").Call("defineProperty", d.x.childWin, "navigator", map[string]any{"get": poison, "configurable": true})
+	}
+	result, err := d.fresh(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.disableAcknowledged || !result.unregisterAttempted || !result.unregisterResolvedTrue || !result.verifiedRegistryAbsent {
+		t.Fatalf("incomplete receipts: %+v", result)
+	}
+	if len(d.x.f.commands) != 2 || d.x.f.commands[0].Command != "status" || d.x.f.commands[1].Command != "disable-recovered" || d.unregisters != 1 || d.x.updates != 0 || d.x.f.registers != 0 || d.x.f.unregisters != 0 {
+		t.Fatalf("replayed or wrong-realm command: %+v", d.x.f.commands)
+	}
+	if d.x.removed != 1 || offlineRealmInUse != nil || !d.x.f.sw.Get("controller").Equal(d.x.f.worker) {
+		t.Fatal("completion lost parent controller or exact frame cleanup")
+	}
+	if !d.stats.Get("once").IsUndefined() {
+		t.Fatal("invalid ACK could consume a once listener")
+	}
+	if !result.status.DeferredCleanup || result.status.ActiveGeneration == "" {
+		t.Fatal("unregister fabricated physical cache erasure")
+	}
+	d.x.f.balanced(t)
+}
+
+func TestOfflineFreshDisableUnknownAndRefusedRepliesNeverUnregister(t *testing.T) {
+	for _, mode := range []string{"capacity", "unsupported", "busy", "failed", "enabled"} {
+		t.Run(mode, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			previous := d.x.f.respond
+			d.x.f.respond = func(request offlineRequest) offlineReply {
+				reply := previous(request)
+				if request.Command == "disable-recovered" {
+					switch mode {
+					case "capacity":
+						reply.Error = "client-capacity"
+					case "unsupported":
+						reply.Supported = false
+					case "busy":
+						reply.State = "busy"
+					case "failed":
+						reply.State = "failed"
+					case "enabled":
+						reply.State, reply.Enabled = "ready", true
+					}
+				}
+				return reply
+			}
+			result, err := d.fresh(context.Background())
+			if err == nil || result.disableAcknowledged || result.unregisterAttempted || d.unregisters != 0 || d.x.removed != 1 || offlineRealmInUse != nil {
+				t.Fatalf("refusal became disable/unregister authority: %+v %v", result, err)
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableLateOwnedReplyJoinsBeforeRetirement(t *testing.T) {
+	for _, phase := range []string{"status", "disable-recovered"} {
+		t.Run(phase, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			started := make(chan struct{}, 1)
+			d.onRequest = func(request offlineRequest) {
+				if request.Command == phase {
+					d.stats.Set("hold", true)
+					started <- struct{}{}
+				}
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			type outcome struct {
+				result offlineFreshDisableResult
+				err    error
+			}
+			done := make(chan outcome, 1)
+			joined := false
+			defer func() {
+				cancel()
+				if !joined {
+					if d.stats.Get("last").Truthy() {
+						d.stats.Get("last").Call("emit", d.stats.Get("data"))
+					}
+					select {
+					case <-done:
+					case <-time.After(time.Second):
+						t.Error("fixture could not join owned reply")
+					}
+				}
+			}()
+			go func() { result, err := d.fresh(ctx); done <- outcome{result, err} }()
+			offlineDisableWait(t, started, "owned reply was not dispatched")
+			cancel()
+			if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineBusy) {
+				t.Fatal("logical cancel admitted another frame", err)
+			}
+			select {
+			case <-done:
+				t.Fatal("cancellation abandoned owned RPC")
+			default:
+			}
+			if offlineRealmInUse == nil || offlineRealmInUse.pending != 1 || d.x.removed != 0 || !d.x.frame.Get("isConnected").Bool() {
+				t.Fatal("pending reply lost physical ownership")
+			}
+			d.stats.Get("last").Call("emit", d.stats.Get("data"))
+			select {
+			case got := <-done:
+				joined = true
+				if !errors.Is(got.err, ErrOfflineUnknown) || got.result.disableAcknowledged != (phase == "disable-recovered") || got.result.unregisterAttempted || d.unregisters != 0 {
+					t.Fatalf("late receipt was erased or used for new mutation: %+v %v", got.result, got.err)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("exact terminal reply did not join canceled operation")
+			}
+			if offlineRealmInUse != nil || d.x.removed != 1 {
+				t.Fatal("actual terminal reply did not permit checked cleanup")
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableUnregisterTerminalTruthSurvivesCancellation(t *testing.T) {
+	for _, terminal := range []string{"true", "false", "reject"} {
+		t.Run(terminal, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			var resolve, reject js.Value
+			pending := js.Global().Get("Promise").New(d.x.f.fn(func(_ js.Value, args []js.Value) any { resolve, reject = args[0], args[1]; return nil }))
+			started := make(chan struct{}, 1)
+			d.unregister = func() js.Value { started <- struct{}{}; return pending }
+			ctx, cancel := context.WithCancel(context.Background())
+			type outcome struct {
+				result offlineFreshDisableResult
+				err    error
+			}
+			done := make(chan outcome, 1)
+			joined := false
+			defer func() {
+				cancel()
+				if !joined {
+					resolve.Invoke(false)
+					select {
+					case <-done:
+					case <-time.After(time.Second):
+						t.Error("fixture could not join native unregister")
+					}
+				}
+			}()
+			go func() { result, err := d.fresh(ctx); done <- outcome{result, err} }()
+			offlineDisableWait(t, started, "unregister did not start")
+			cancel()
+			select {
+			case <-done:
+				t.Fatal("cancellation abandoned native unregister")
+			default:
+			}
+			if offlineRealmInUse == nil || offlineRealmInUse.pending != 1 || d.x.removed != 0 {
+				t.Fatal("native pending charge was lost")
+			}
+			if terminal == "reject" {
+				reject.Invoke("native refusal")
+			} else {
+				resolve.Invoke(terminal == "true")
+			}
+			select {
+			case got := <-done:
+				joined = true
+				if !errors.Is(got.err, ErrOfflineUnknown) || !got.result.disableAcknowledged || !got.result.unregisterAttempted || got.result.unregisterResolvedTrue != (terminal == "true") || got.result.verifiedRegistryAbsent {
+					t.Fatalf("native truth conflated with logical cancellation: %+v %v", got.result, got.err)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("native unregister terminal did not join")
+			}
+			if d.unregisters != 1 || offlineRealmInUse != nil || d.x.removed != 1 {
+				t.Fatal("native terminal retried or failed checked retirement")
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisablePromiseObserverBypassesAuthoredThen(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	authored := false
+	d.unregister = func() js.Value {
+		d.x.childEntries, d.x.parentEntries = nil, nil
+		promise := d.x.f.resolve(true)
+		promise.Set("then", d.x.f.fn(func(js.Value, []js.Value) any { authored = true; return nil }))
+		return promise
+	}
+	result, err := d.fresh(context.Background())
+	if err != nil || authored || !result.unregisterResolvedTrue || !result.verifiedRegistryAbsent {
+		t.Fatalf("observer trusted an instance then: %+v %v", result, err)
+	}
+}
+
+func TestOfflineFreshDisableCapturedObserverIgnoresLaterChildGlobalReplacement(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	nativeThen := js.Global().Get("Promise").Get("prototype").Get("then")
+	constructor := js.Global().Get("Function").New("return function InitialChildPromise(){}").Invoke()
+	constructor.Get("prototype").Set("then", nativeThen)
+	d.x.childWin.Set("Promise", constructor)
+	fakeCalls, changed := 0, false
+	fake := d.x.f.fn(func(js.Value, []js.Value) any { fakeCalls++; return nil })
+	d.x.beforeChildRead = func() {
+		if changed {
+			return
+		}
+		changed = true
+  // This hook runs during the first model child invocation. V3 observes
+  // through startup-captured parent primitives; no child global is consulted.
+		constructor.Get("prototype").Set("then", fake)
+		replacement := js.Global().Get("Function").New("return function ReplacementChildPromise(){}").Invoke()
+		replacement.Get("prototype").Set("then", fake)
+		d.x.childWin.Set("Promise", replacement)
+		d.x.childWin.Set("Reflect", map[string]any{"apply": fake})
+	}
+	result, err := d.fresh(context.Background())
+	if err != nil || !changed || fakeCalls != 0 || !result.disableAcknowledged || !result.unregisterResolvedTrue || !result.verifiedRegistryAbsent || d.unregisters != 1 {
+		t.Fatalf("native observer was looked up again from mutable child globals: %+v %v, fake=%d", result, err, fakeCalls)
+	}
+}
+
+func TestOfflineRecoveredDisableRefusalPublishesOnlyNewestConfirmedPreStatus(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	d.x.f.c.state.Enabled, d.x.f.c.state.ActiveGeneration, d.x.f.c.confirmedDisabled = false, strings.Repeat("a", 64), true
+	previous := d.x.f.respond
+	d.x.f.respond = func(request offlineRequest) offlineReply {
+		reply := previous(request)
+		if request.Command == "disable-recovered" {
+			reply.Error = "client-capacity"
+		}
+		return reply
+	}
+	if err := DisableOffline(context.Background()); err == nil {
+		t.Fatal("capacity refusal reported success")
+	}
+	state := OfflineStatus()
+	if !state.Enabled || state.ActiveGeneration != strings.Repeat("d", 64) || d.x.f.c.confirmedDisabled || !offlineNativeNavigation() || d.x.f.c.lastDisable.disableAcknowledged || d.unregisters != 0 {
+		t.Fatalf("refused control replaced newest confirmed pre-status with default false or stale state: %+v", state)
+	}
+}
+
+func TestOfflineFreshDisableLateObserverThrowReceiptStaysPrivateAndQuarantined(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	d.expectQuarantine = true
+	d.x.f.c.state.Enabled, d.x.f.c.state.ActiveGeneration = true, strings.Repeat("d", 64)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var resolve js.Value
+	held := js.Global().Get("Promise").New(d.x.f.fn(func(_ js.Value, args []js.Value) any { resolve = args[0]; return nil }))
+ // V3 TESTONLY observer failure injection uses the installed facet primitive;
+ // child Promise globals are deliberately bypassed by production capture.
+ d.x.f.native.observerState(d.stats)
+	d.unregister = func() js.Value { d.stats.Set("observerThrow", true); cancel(); return held }
+	old := documentOffline
+	if err := DisableOffline(ctx); !errors.Is(err, ErrOfflineUnknown) {
+		t.Fatal("throwing observer reported a known complete operation", err)
+	}
+	if !old.lastDisable.disableAcknowledged || !old.lastDisable.unregisterAttempted || old.lastDisable.unregisterResolvedTrue || old.lastDisable.verifiedRegistryAbsent || !old.state.Enabled || old.confirmedDisabled {
+		t.Fatal("pre-terminal outcome was erased or published as current disabled state")
+	}
+	lease := offlineRealmInUse
+	if lease == nil || lease.pending != 1 || len(lease.disableNative) != 1 || d.x.removed != 0 {
+		t.Fatal("unknown attached observer lost its physical quarantine")
+	}
+	cell := lease.disableNative[0]
+	oldState := old.state
+	replacement := *old
+	replacement.busy = false
+	replacement.state.Phase, replacement.state.LastError = "ready", ""
+	replacement.lastDisable = offlineDisableReceipt{}
+	documentOffline = &replacement
+	defer func() { documentOffline = old }()
+	newState := replacement.state
+	observed := 0
+	scope := &Scope{}
+	defer scope.dispose()
+	if err := SubscribeOffline(scope, func(OfflineState) { observed++ }); err != nil || observed != 1 {
+		t.Fatal("replacement observer setup failed", err)
+	}
+	if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineBusy) {
+		t.Fatal("replacement bypassed unknown observer quarantine", err)
+	}
+	resolve.Invoke(true)
+	if !cell.terminal {
+		offlineDisableWait(t, cell.done, "late native observer did not return")
+	}
+	if !cell.terminal || !cell.charged || !old.lastDisable.disableAcknowledged || !old.lastDisable.unregisterAttempted || !old.lastDisable.unregisterResolvedTrue || old.lastDisable.verifiedRegistryAbsent {
+		t.Fatal("late native true did not become exact old-operation private knowledge")
+	}
+	if !reflect.DeepEqual(old.state, oldState) || !reflect.DeepEqual(replacement.state, newState) || replacement.lastDisable != (offlineDisableReceipt{}) || observed != 1 || old.confirmedDisabled || replacement.confirmedDisabled {
+		t.Fatal("late private settlement published stale state or notified replacement observers")
+	}
+	if offlineRealmInUse != lease || lease.pending != 1 || d.x.removed != 0 || !d.x.frame.Get("isConnected").Bool() || !errors.Is(lease.close(), ErrOfflineUnknown) || d.unregisters != 1 {
+		t.Fatal("late terminal incorrectly cleared unknown observer attachment or replayed unregister")
+	}
+}
+
+func TestOfflineRecoveredDisablePartialCommitPreservesPublicKnowledge(t *testing.T) {
+	for _, terminal := range []string{"false", "rejected"} {
+		t.Run(terminal, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			d.x.f.c.state.Enabled, d.x.f.c.state.ActiveGeneration = true, strings.Repeat("d", 64)
+			d.unregister = func() js.Value {
+				if terminal == "rejected" {
+					return js.Global().Get("Promise").Call("reject", "native refused")
+				}
+				return d.x.f.resolve(false)
+			}
+			if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineUnknown) {
+				t.Fatal("partial unregister reported full success", err)
+			}
+			state := OfflineStatus()
+			if state.Enabled || !state.CleanupPending || state.ActiveGeneration == "" || !d.x.f.c.confirmedDisabled || offlineNativeNavigation() {
+				t.Fatalf("known disable receipt was rolled back or invented erasure: %+v", state)
+			}
+			if !d.x.f.c.lastDisable.disableAcknowledged || !d.x.f.c.lastDisable.unregisterAttempted || d.x.f.c.lastDisable.unregisterResolvedTrue || d.x.f.c.lastDisable.verifiedRegistryAbsent || d.unregisters != 1 {
+				t.Fatal("partial native outcome was conflated with successful cleanup")
+			}
+		})
+	}
+}
+
+func TestOfflineRecoveredDisableCanceledLateACKIsPrivateToOldController(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	d.x.f.c.state.Enabled = true
+	started := make(chan struct{}, 1)
+	d.onRequest = func(request offlineRequest) {
+		if request.Command == "disable-recovered" {
+			d.stats.Set("hold", true)
+			started <- struct{}{}
+		}
+	}
+	old := documentOffline
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	joined := false
+	defer func() {
+		cancel()
+		if !joined {
+			if d.stats.Get("last").Truthy() {
+				d.stats.Get("last").Call("emit", d.stats.Get("data"))
+			}
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+				t.Error("old controller reply did not join")
+			}
+		}
+		documentOffline = old
+	}()
+	go func() { done <- DisableOffline(ctx) }()
+	offlineDisableWait(t, started, "recovered command did not dispatch")
+	replacement := *old
+	replacement.busy = false
+	replacement.state.Phase, replacement.state.LastError = "ready", ""
+	documentOffline = &replacement
+	cancel()
+	if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineBusy) {
+		t.Fatal("replacement bypassed old physical lease", err)
+	}
+	d.stats.Get("last").Call("emit", d.stats.Get("data"))
+	select {
+	case err := <-done:
+		joined = true
+		if !errors.Is(err, ErrOfflineUnknown) {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("late old ACK did not join")
+	}
+	if !old.lastDisable.disableAcknowledged || old.lastDisable.unregisterAttempted || !old.state.Enabled || old.confirmedDisabled {
+		t.Fatal("late old receipt was erased or published without authority")
+	}
+	if replacement.state.Phase != "ready" || replacement.state.LastError != "" || !replacement.state.Enabled || replacement.confirmedDisabled || d.unregisters != 0 || offlineRealmInUse != nil {
+		t.Fatal("late old operation changed replacement state or issued unregister")
+	}
+}
+
+func TestOfflineFreshDisableRechecksCandidateAfterPortSetup(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+ d.expectQuarantine=true
+	d.stats.Set("onConstruct", d.x.f.fn(func(js.Value, []js.Value) any {
+		if d.stats.Get("created").Int() == 2 {
+			d.x.candidate.Set("active", js.Null())
+		}
+		return nil
+	}))
+	result, err := d.fresh(context.Background())
+	if err == nil || result.disableAcknowledged || result.unregisterAttempted || len(d.x.f.commands) != 1 || d.x.f.commands[0].Command != "status" || d.unregisters != 0 || offlineRealmInUse == nil || !offlineRealmInUse.quarantined || d.x.removed != 0 {
+		t.Fatalf("stale candidate survived port setup: %+v %v", result, err)
+	}
+ if _,next:=d.fresh(context.Background());!errors.Is(next,ErrOfflineBusy)||d.x.created!=1{t.Fatal("native candidate refusal admitted another helper",next)}
+ if !errors.Is(offlineRealmInUse.close(),ErrOfflineUnknown){t.Fatal("native candidate refusal used remove-as-abort")}
+}
+
+// V3 derivative: authored method/slot accessors cannot run in the native model.
+// The old final-getter revocation seam is replaced by a preparation hook below.
+func TestOfflineFreshDisableMethodGetterCannotCrossFinalDispatchFence(t *testing.T) {
+ for _,method:=range []string{"postMessage","unregister"}{t.Run(method,func(t *testing.T){
+  d:=freshOfflineDisableFixture(t)
+  target:=d.x.candidate;if method=="postMessage"{target=d.x.f.worker}
+  reads:=0
+  getter:=d.x.f.fn(func(js.Value,[]js.Value)any{reads++;d.x.candidate.Set("active",js.Null());return js.Undefined()})
+  js.Global().Get("Object").Call("defineProperty",target,method,map[string]any{"get":getter,"configurable":true})
+  result,err:=d.fresh(context.Background())
+  if err!=nil || reads!=0 || !result.disableAcknowledged || !result.unregisterAttempted || !result.unregisterResolvedTrue || !result.verifiedRegistryAbsent || d.unregisters!=1 || offlineRealmInUse!=nil || d.x.removed!=1 {
+   t.Fatalf("authored method getter crossed captured model dispatch: reads=%d result=%+v error=%v",reads,result,err)
+  }
+  if len(d.x.f.commands)!=2 || d.x.f.commands[0].Command!="status" || d.x.f.commands[1].Command!="disable-recovered" {t.Fatal("captured dispatch changed command count or role")}
+ })}
+}
+
+func TestOfflineFreshDisableFinalProofGetterRevocationStopsNextDestructiveInvocation(t *testing.T) {
+ for _,phase:=range []string{"control","unregister"}{for _,property:=range []string{"active","scriptURL"}{for _,revoked:=range []string{"parent-controller","parent-container","parent-document","child-document","child-controller"}{
+  t.Run(phase+"/"+property+"/"+revoked,func(t *testing.T){
+   d:=freshOfflineDisableFixture(t)
+   active:=js.ValueOf(map[string]any{"scriptURL":d.x.f.c.descriptor.WorkerURL,"postMessage":d.x.f.worker.Get("postMessage"),"state":"activated"})
+   d.x.candidate.Set("active",active)
+   d.x.f.native.remember(d.x.candidate,active)
+   target:=d.x.candidate;if property=="scriptURL"{target=active}
+   getterReads,hooks:=0,0
+   getter:=d.x.f.fn(func(js.Value,[]js.Value)any{getterReads++;return js.Undefined()})
+   js.Global().Get("Object").Call("defineProperty",target,property,map[string]any{"get":getter,"configurable":true})
+   originalDoc:=doc;defer func(){doc=originalDoc}()
+   var lease *offlineProofRealm
+   operation:=offlineNativeRPCActiveDisableRecovered;if phase=="unregister"{operation=offlineNativeUnregisterRegistration}
+   d.expectQuarantine=revoked!="parent-document"
+   d.x.f.native.before(d.x.f.fn(func(_ js.Value,args []js.Value)any{
+    if len(args)!=2 || args[0].Int()!=int(operation){return nil}
+    hooks++;lease=offlineRealmInUse
+    switch revoked{
+    case "parent-controller":d.x.f.sw.Set("controller",js.Null())
+    case "parent-container":win.Get("navigator").Set("serviceWorker",js.ValueOf(map[string]any{"controller":d.x.f.worker}))
+    case "parent-document":doc=js.ValueOf(map[string]any{})
+    case "child-document":d.x.frame.Set("contentDocument",js.ValueOf(map[string]any{}))
+    case "child-controller":d.x.childSW.Set("controller",js.Null())
+    }
+    return nil
+   }).Value)
+   result,err:=d.fresh(context.Background())
+   wantAck,wantCommands:=phase=="unregister",1;if wantAck{wantCommands=2}
+   if err==nil || hooks!=1 || getterReads!=0 {t.Fatalf("pre-entry revocation/getter bypass lost: error=%v hooks=%d getters=%d",err,hooks,getterReads)}
+   if result.disableAcknowledged!=wantAck || result.unregisterAttempted || result.unregisterResolvedTrue || result.verifiedRegistryAbsent || d.unregisters!=0 {t.Fatalf("revocation dispatched or erased partial knowledge: %+v",result)}
+   if wantAck && (!offlineDisableAcknowledged(result.status)||!d.x.f.c.lastDisable.disableAcknowledged){t.Fatal("known successful disable ACK was lost")}
+   if len(d.x.f.commands)!=wantCommands || d.x.f.commands[0].Command!="status" || wantAck&&d.x.f.commands[1].Command!="disable-recovered" || d.x.f.registers!=0 || d.x.updates!=0 || d.x.f.unregisters!=0 {t.Fatal("revocation retried or repaired native control")}
+   if revoked=="parent-document"{
+    if offlineRealmInUse!=nil || lease==nil || !lease.retired || lease.pending!=0 || !lease.frame.IsUndefined() || d.x.removed!=1 {t.Fatal("business ENTRY_REFUSED did not finish original physical cleanup")}
+   }else{
+    if offlineRealmInUse!=lease || lease==nil || !lease.quarantined || d.x.removed!=0 || !d.x.frame.Get("isConnected").Bool(){t.Fatal("V3 native identity refusal lost the original held realm")}
+    if _,next:=d.fresh(context.Background());!errors.Is(next,ErrOfflineBusy)||d.x.created!=1{t.Fatal("native identity refusal admitted a replacement frame",next)}
+    if !errors.Is(lease.close(),ErrOfflineUnknown){t.Fatal("native identity refusal used remove-as-abort")}
+   }
+  })
+ }}}
+}
+
+func TestOfflineFreshDisableUnknownNativeDeliveryKeepsSingletonQuarantined(t *testing.T) {
+	for _, mode := range []string{"thenable", "throw-after-start", "observer-throw-after-attachment"} {
+		t.Run(mode, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			d.expectQuarantine = true
+			if mode == "thenable" {
+				d.unregister = func() js.Value {
+					return js.ValueOf(map[string]any{"then": d.x.f.fn(func(js.Value, []js.Value) any { t.Error("authored thenable was invoked"); return nil })})
+				}
+			} else if mode == "throw-after-start" {
+				forward := d.x.candidate.Get("unregister")
+				d.x.candidate.Set("unregister", js.Global().Get("Function").New("forward", "return function(){forward.call(this);throw new Error('after start')}").Invoke(forward))
+			} else {
+    // Explicit TESTONLY same-observer attachment failure; no child global
+    // replacement is mistaken for the captured production observer.
+    d.x.f.native.observerState(d.stats)
+				d.unregister = func() js.Value {
+					promise := d.x.f.resolve(true)
+					d.stats.Set("observerThrow", true)
+					return promise
+				}
+			}
+			result, err := d.fresh(context.Background())
+			if !errors.Is(err, ErrOfflineUnknown) || !result.disableAcknowledged || !result.unregisterAttempted || result.verifiedRegistryAbsent || mode != "observer-throw-after-attachment" && result.unregisterResolvedTrue || d.unregisters != 1 {
+				t.Fatalf("unknown delivery fabricated completion: %+v %v", result, err)
+			}
+			if offlineRealmInUse == nil || offlineRealmInUse.pending != 1 || d.x.removed != 0 || len(offlineRealmInUse.disableNative) != 1 {
+				t.Fatal("unknown invocation/observer discarded ownership")
+			}
+			if mode == "observer-throw-after-attachment" {
+				cell := offlineRealmInUse.disableNative[0]
+				if !cell.terminal {
+					offlineDisableWait(t, cell.done, "attached native observer did not return")
+				}
+				if !cell.terminal || !cell.charged || offlineRealmInUse.close() == nil {
+					t.Fatal("unknown attachment was silently promoted to safe retirement")
+				}
+			}
+			if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineBusy) {
+				t.Fatal("unknown native work admitted another operation", err)
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableObservedReplacementNeverReceivesAnotherUnregister(t *testing.T) {
+	for _, at := range []string{"after-disable", "after-unregister", "after-frame-removal"} {
+		t.Run(at, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			foreign := js.ValueOf(map[string]any{"scope": d.x.f.c.descriptor.Scope, "active": map[string]any{"scriptURL": "https://reader.test/foreign.js"}})
+			if at == "after-disable" {
+				d.onRequest = func(request offlineRequest) {
+					if request.Command == "disable-recovered" {
+						d.x.childEntries = []js.Value{foreign}
+					}
+				}
+			} else if at == "after-unregister" {
+				d.unregister = func() js.Value { d.x.childEntries = []js.Value{foreign}; return d.x.f.resolve(true) }
+			} else {
+				d.x.afterRemove = func() { d.x.parentEntries = []js.Value{foreign} }
+			}
+			result, err := d.fresh(context.Background())
+			wantCalls := 1
+			if at == "after-disable" {
+				wantCalls = 0
+			}
+			if err == nil || !result.disableAcknowledged || result.verifiedRegistryAbsent || d.unregisters != wantCalls || d.x.removed != 1 || offlineRealmInUse != nil {
+				t.Fatalf("observed replacement was retried or hidden: %+v %v", result, err)
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableRPCConstructorAndCloseFailuresKeepOwnership(t *testing.T) {
+	for _, mode := range []string{"constructor", "close"} {
+		t.Run(mode, func(t *testing.T) {
+			d := freshOfflineDisableFixture(t)
+			d.expectQuarantine = true
+			if mode == "constructor" {
+				d.stats.Set("constructThrow", true)
+			} else {
+				d.stats.Set("closeFail", true)
+			}
+			result, err := d.fresh(context.Background())
+			if !errors.Is(err, ErrOfflineUnknown) || result.disableAcknowledged || d.unregisters != 0 || offlineRealmInUse == nil || offlineRealmInUse.pending != 1 || d.x.removed != 0 {
+				t.Fatalf("partial RPC setup/cleanup escaped ownership: %+v %v", result, err)
+			}
+			if len(offlineRealmInUse.disableReplies) != 1 || d.stats.Get("closed").Int() != 0 {
+				t.Fatal("partial port failure claimed a physical close")
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableFirstValidReentrantReceiptWins(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	previous := d.x.f.worker.Get("postMessage")
+	d.x.f.worker.Set("postMessage", d.x.f.fn(func(this js.Value, args []js.Value) any {
+		if args[0].Get("command").String() != "disable-recovered" {
+			return previous.Call("call", this, args[0], args[1])
+		}
+		raw := js.Global().Get("JSON").Call("stringify", args[0]).String()
+		var request offlineRequest
+		if err := json.Unmarshal([]byte(raw), &request); err != nil {
+			t.Error(err)
+			return nil
+		}
+		d.x.f.commands = append(d.x.f.commands, request)
+		reply, _ := json.Marshal(d.x.f.respond(request))
+		inner := js.Global().Get("JSON").Call("parse", string(reply))
+		outer := js.Global().Get("JSON").Call("parse", string(reply))
+		port := args[1].Index(0)
+		getter := js.Global().Get("Function").New("port", "inner", "let fired=false;return function(){if(!fired){fired=true;port.emit(inner);}return 'outer-refusal'}").Invoke(port, inner)
+		js.Global().Get("Object").Call("defineProperty", outer, "error", map[string]any{"get": getter, "enumerable": true, "configurable": true})
+		port.Call("emit", outer)
+		return nil
+	}))
+	result, err := d.fresh(context.Background())
+	if err != nil || !result.disableAcknowledged || !result.verifiedRegistryAbsent || d.unregisters != 1 || d.stats.Get("closed").Int() != 4 {
+		t.Fatalf("outer reentry overwrote the first valid receipt: %+v %v", result, err)
+	}
+}

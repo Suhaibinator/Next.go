@@ -1,0 +1,142 @@
+//go:build js && wasm && nextgo_native_browser && !nextgo_module
+
+package client
+
+import (
+ "syscall/js"
+ "testing"
+)
+
+// SOURCE ONLY. This explicit future native-browser profile is UNADMITTED and
+// UNRUN. Native capture and a controlled stock browser are mandatory profile
+// preconditions; their absence fails rather than silently skips qualification.
+func TestOfflineNativeActualClaimCannotBeConsumedTwice(t *testing.T) {
+ if !offlineNativeReady() {t.Fatal("native-browser precondition: actual static startup claim missing")}
+ if !checkedJSGet(js.Global(),"__nextgoOfflineNativeClaimV1").IsUndefined() {t.Fatal("claim slot survived actual package-init claim")}
+ if claimOfflineNativeCapability().valid {t.Fatal("duplicate claim returned a second capability")}
+ if !offlineNativeReady() {t.Fatal("missing duplicate claim changed held capability")}
+}
+
+func TestOfflineNativeCreateFrameBypassesActualDocumentOwnGetter(t *testing.T) {
+ if !offlineNativeReady() {t.Fatal("native-browser precondition: actual startup native capture missing")}
+ parentDocument:=checkedJSGet(js.Global(),"document")
+ getterCalls:=0
+ getter:=js.FuncOf(func(js.Value,[]js.Value)any{getterCalls++;return js.Undefined()})
+ defer getter.Release()
+ descriptor:=checkedJSObject(map[string]any{"get":getter,"configurable":true})
+ checkedJSInvoke(checkedJSReflection.defineProperty,parentDocument,"createElement",descriptor)
+ defer checkedJSInvoke(checkedJSGet(checkedJSGet(js.Global(),"Reflect"),"deleteProperty"),parentDocument,"createElement")
+ frame,err:=offlineNativeCreateFrame(parentDocument,"https://example.invalid/native-capture-helper")
+ if err!=nil {t.Fatalf("native create failed: %v",err)}
+ if getterCalls!=0 {t.Fatal("authored document createElement getter ran")}
+ if checkedJSGet(frame,"nodeName").String()!="IFRAME" || !checkedJSGet(frame,"parentNode").IsNull() {t.Fatal("native preparation did not return an unused iframe")}
+ if checkedJSGet(frame,"src").String()!="https://example.invalid/native-capture-helper" {t.Fatal("fixed native source was not prepared")}
+}
+
+func TestOfflineNativeFinalParentQueryBypassesActualOwnProperties(t *testing.T) {
+ if !offlineNativeReady() {t.Fatal("native-browser precondition: actual startup native capture missing")}
+ g:=js.Global();document:=checkedJSGet(g,"document")
+ parent,err:=offlineNativeCaptureParent(g,document)
+ if err!=nil {t.Fatal("native-browser precondition: actual controlled native parent missing")}
+ // Get expected text from the native prototype getter before installing the
+ // own shadow. The call being tested must bypass BOTH own property overrides.
+ swPrototype:=checkedJSGet(checkedJSGet(g,"ServiceWorker"),"prototype")
+ descriptor:=checkedJSInvoke(checkedJSGet(checkedJSGet(g,"Object"),"getOwnPropertyDescriptor"),swPrototype,"scriptURL")
+ nativeURL:=checkedJSApply(checkedJSGet(descriptor,"get"),parent.Controller,checkedJSArray(nil)).String()
+ calls:=0
+ shadow:=js.FuncOf(func(js.Value,[]js.Value)any{calls++;return "https://invalid.example/forged"})
+ defer shadow.Release()
+ own:=checkedJSObject(map[string]any{"get":shadow,"configurable":true})
+ checkedJSInvoke(checkedJSReflection.defineProperty,parent.Controller,"scriptURL",own)
+ checkedJSInvoke(checkedJSReflection.defineProperty,parent.Container,"getRegistrations",own)
+ deleteProperty:=checkedJSGet(checkedJSGet(g,"Reflect"),"deleteProperty")
+ defer checkedJSInvoke(deleteProperty,parent.Controller,"scriptURL")
+ defer checkedJSInvoke(deleteProperty,parent.Container,"getRegistrations")
+ authorizations:=0
+ var call *offlineNativeCall
+ authorize:=js.FuncOf(func(_ js.Value,args []js.Value)any{
+  authorizations++
+  return call!=nil && len(args)==3 && args[0].String()=="native-parent-property-negative" && args[1].Int()==int(offlineNativeParentListRetired) && args[2].Equal(call.ReceiptIdentity())
+ })
+ defer authorize.Release()
+ input:=offlineNativeInput{Operation:offlineNativeParentListRetired,Nonce:"native-parent-property-negative",Authorize:authorize,
+  Refs:offlineNativeRefs{ParentWindow:parent.Window,ParentDocument:parent.Document,ParentNavigator:parent.Navigator,ParentContainer:parent.Container,ParentController:parent.Controller,ParentLocation:parent.Location},
+  Policy:offlineNativePolicy{Origin:parent.Origin,HelperURL:parent.Origin+"/_native-test-helper",WorkerURL:nativeURL,Scope:parent.Origin+"/"},
+ }
+ call,err=offlineNativePrepare(input);if err!=nil {t.Fatalf("prepare: %v",err)}
+ receipt,err:=call.Invoke(authorize)
+ if err!=nil || receipt.Reason!=offlineNativeReasonNone || !receipt.Entered || !receipt.Issued || !receipt.Returned {t.Fatalf("native query receipt: %+v, %v",receipt,err)}
+ if calls!=0 || authorizations!=1 {t.Fatal("own getter ran or authorize was not exactly once")}
+ if _,err:=call.Invoke(authorize);err==nil {t.Fatal("same native call replayed")}
+ if authorizations!=1 || calls!=0 {t.Fatal("replay invoked a callback or getter")}
+ // Native then acceptance and complete native inventory remain required.
+ // Delivery from inside a callback is NOT an actual JS-wrapper-return receipt.
+ // syscall/js permits Release while running, but that weaker guarantee cannot
+ // establish this profile's stricter physical callback/native-reaction join.
+ // TESTONLY quarantine uses one existing production cell layout, without linking
+ // it to a realm or granting it any authority. No new pool/observer/ACK exists.
+ // The callback registry roots closures which retain this cell, and the cell
+ // retains both Func handles plus the actual Promise. No Release/unlink occurs.
+ observer:=&offlineDisableNativeCell{promise:receipt.Value,charged:true,quarantined:true}
+ delivered:=make(chan bool,1)
+ observer.resolved=js.FuncOf(func(_ js.Value,args []js.Value)any{
+  valid:=false
+  if len(args)==1 {
+   observer.value=args[0]
+   _,inspectErr:=offlineNativeInspectInventory(args[0]);valid=inspectErr==nil
+  }
+  observer.terminal=true
+  delivered<-valid;return nil
+ });observer.resolvedOwned=true
+ observer.rejected=js.FuncOf(func(js.Value,[]js.Value)any{
+  observer.rejectedValue,observer.terminal=true,true
+  delivered<-false;return nil
+ });observer.rejectedOwned=true
+ if err:=offlineNativePromiseThen(observer.promise,observer.resolved,observer.rejected);err!=nil {
+  t.Fatal("HELD: native Promise observation unknown; quarantined observer cell retains both callbacks")
+ }
+ if valid:=<-delivered;!valid {
+  t.Fatal("native Promise did not deliver a complete valid native inventory; observer cell remains quarantined")
+ }
+ // Do not retire from delivered, callbacks==0, or a Go done signal. None proves
+ // the outer callback returned to JavaScript. Until the same-production path
+ // supplies an actual return receipt, this future profile must fail as HELD.
+ t.Fatal("HELD: complete native inventory delivered, but actual callback-wrapper return is unobserved; observer cell remains charged/quarantined")
+}
+
+func TestOfflineNativeUnusedFrameRejectsNativeRetargetAndIgnoresOwnSource(t *testing.T) {
+ if !offlineNativeReady() {t.Fatal("native-browser precondition: actual startup native capture missing")}
+ g:=js.Global()
+ parent,err:=offlineNativeCaptureParent(g,checkedJSGet(g,"document"))
+ if err!=nil {t.Fatal("native-browser precondition: actual controlled native parent missing")}
+ object:=checkedJSGet(g,"Object")
+ getterDescriptor:=checkedJSInvoke(checkedJSGet(object,"getOwnPropertyDescriptor"),checkedJSGet(checkedJSGet(g,"ServiceWorker"),"prototype"),"scriptURL")
+ workerURL:=checkedJSApply(checkedJSGet(getterDescriptor,"get"),parent.Controller,checkedJSArray(nil)).String()
+ helperURL:=parent.Origin+"/_native-unused-helper"
+ for _,retarget:=range []bool{false,true} {t.Run(map[bool]string{false:"known unused",true:"native retarget"}[retarget],func(t *testing.T){
+  frame,err:=offlineNativeCreateFrame(parent.Document,helperURL);if err!=nil {t.Fatal(err)}
+  getterCalls:=0
+  source:=js.FuncOf(func(js.Value,[]js.Value)any{getterCalls++;return helperURL})
+  defer source.Release()
+  checkedJSInvoke(checkedJSReflection.defineProperty,frame,"src",checkedJSObject(map[string]any{"get":source,"configurable":true}))
+  defer checkedJSInvoke(checkedJSGet(checkedJSGet(g,"Reflect"),"deleteProperty"),frame,"src")
+  authCalls:=0
+  var call *offlineNativeCall
+  authorize:=js.FuncOf(func(_ js.Value,args []js.Value)any{authCalls++;return call!=nil && len(args)==3 && args[2].Equal(call.ReceiptIdentity())})
+  defer authorize.Release()
+  input:=offlineNativeInput{Operation:offlineNativeRetireNeverConnected,Nonce:"native-unused-src",Authorize:authorize,
+   Refs:offlineNativeRefs{ParentWindow:parent.Window,ParentDocument:parent.Document,ParentNavigator:parent.Navigator,ParentContainer:parent.Container,ParentController:parent.Controller,ParentLocation:parent.Location,Frame:frame,Host:parent.Root},
+   Policy:offlineNativePolicy{Origin:parent.Origin,HelperURL:helperURL,WorkerURL:workerURL,Scope:parent.Origin+"/"},
+  }
+  call,err=offlineNativePrepare(input);if err!=nil {t.Fatal(err)}
+  if retarget {
+   setDescriptor:=checkedJSInvoke(checkedJSGet(object,"getOwnPropertyDescriptor"),checkedJSGet(checkedJSGet(g,"Element"),"prototype"),"setAttribute")
+   checkedJSApply(checkedJSGet(setDescriptor,"value"),frame,checkedJSArray([]any{"src",parent.Origin+"/_native-retargeted"}))
+  }
+  receipt,err:=call.Invoke(authorize)
+  if err!=nil || !receipt.Entered || receipt.Issued || authCalls!=1 || getterCalls!=0 {t.Fatalf("physical native proof: %+v %v",receipt,err)}
+  if retarget {
+   if receipt.Reason!=offlineNativeReasonFrameRefused || receipt.Returned {t.Fatal("native source mismatch was accepted")}
+  } else if receipt.Reason!=offlineNativeReasonNone || !receipt.Returned {t.Fatal("known unused node incorrectly required child/native removal")}
+ })}
+}

@@ -1,0 +1,96 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import fs from 'node:fs';
+import {createHash, webcrypto} from 'node:crypto';
+
+// This tests the generated bridge's boundary with deterministic event fixtures.
+// It is not native-browser proof of isTrusted, Client IDs or incumbent callers.
+const artifact = fs.readFileSync(process.argv[2], 'utf8');
+const marker = 'const ScriptTemplate = `';
+let script = artifact.slice(artifact.indexOf(marker) + marker.length, artifact.lastIndexOf('`'));
+const hash = value => createHash('sha256').update(value).digest('hex');
+const origin = 'https://example.test', docURL = origin + '/guide', body = 'worker';
+const assetURL = docURL + '/_nextgo/' + 'a'.repeat(20) + '/worker-' + hash(body) + '.wasm';
+const catalog = {
+  Config: {Origin: origin, BasePath: '/guide', Budget: {InFlight: 4, Queue: 4}},
+  Assets: [{URL: assetURL, Kind: 'worker-wasm', SHA256: hash(body), DecodedBytes: body.length, ContentType: 'application/wasm'}],
+  Documents: [{Path: '/'}],
+};
+const catalogJSON = JSON.stringify(catalog);
+const descriptor = {
+  namespace: 'nextgo-offline-v1-' + 'a'.repeat(64), generation: 'b'.repeat(64), catalogJSON, catalogSHA256: hash(catalogJSON),
+  client: {scope: docURL, workerURL: docURL + '/_nextgo/offline/sw.js', catalogURL: docURL + '/_nextgo/offline/catalog'},
+};
+script = script.replace('__NEXTGO_OFFLINE_SHIM__', '').replace('__NEXTGO_OFFLINE_DESCRIPTOR__', JSON.stringify(descriptor));
+const handlers = new Map(), dispatches = [], resumes = [], clientReads = [];
+let context, boots = 0;
+const self = {
+  location: {href: descriptor.client.workerURL}, registration: {active: null},
+  clients: {async matchAll(options) {
+    clientReads.push({...options});
+    return options.includeUncontrolled ? [{id: 'parent'}, {id: 'helper'}, {id: 'uncontrolled'}] : [{id: 'parent'}, {id: 'helper'}];
+  }},
+  addEventListener(name, callback) { handlers.set(name, callback); },
+};
+class Go {
+  constructor() { boots++; this.env = {}; this.importObject = {}; }
+  run() {
+    context.__nextgoOfflineBridge.register((kind, token, payload, source) => {
+      dispatches.push({kind, payload: JSON.parse(payload), source});
+      Promise.resolve().then(() => context.__nextgoOfflineBridge.finish(token, '{"fixture":true}'));
+      return true;
+    }, (...args) => resumes.push(args));
+    return new Promise(() => {});
+  }
+}
+context = vm.createContext({
+  self, navigator: {locks: {async request(_name, _options, callback) { return callback(); }}},
+  caches: {async keys() { return [descriptor.namespace + '-g-' + descriptor.generation]; }, async open() { return {async match(url) { return url === assetURL ? new Response(body, {headers: {'Content-Type': 'application/wasm'}}) : undefined; }}; }},
+  crypto: webcrypto, Go, WebAssembly: {async instantiate() { return {instance: {}}; }},
+  Request, Response, Headers, ReadableStream, TextEncoder, TextDecoder, AbortController, MessageChannel, setTimeout, clearTimeout,
+  async fetch() { throw Error('cached fixture must not fetch'); },
+});
+vm.runInContext(script, context);
+function event(overrides = {}) {
+  const port = {messages: [], closes: 0, postMessage(value) { this.messages.push(value); }, close() { this.closes++; }};
+  const jobs = [];
+  const value = {isTrusted: true, data: {version: 1, command: 'disable-recovered', requestID: 'request-1'}, source: {type: 'window', url: docURL, id: 'parent'}, ports: [port], waitUntil(promise) { jobs.push(promise); }, ...overrides};
+  return {value, jobs, port};
+}
+for (const overrides of [
+  {isTrusted: false}, {isTrusted: undefined},
+  {source: {type: 'window', url: docURL}},
+  {source: {type: 'window', url: docURL, id: ''}},
+  {source: {type: 'window', url: docURL, id: 'bad id'}},
+  {source: {type: 'window', url: docURL, id: 'x'.repeat(65)}},
+  {source: {type: 'serviceworker', url: docURL, id: 'parent'}},
+  {source: {type: 'window', url: docURL + '/' + 'é'.repeat(1024), id: 'parent'}},
+]) {
+  const current = event(overrides);
+  handlers.get('message')(current.value);
+  assert.equal(current.jobs.length, 0, 'invalid recovery source must refuse before event admission/boot');
+}
+assert.equal(boots, 0); assert.equal(dispatches.length, 0);
+const native = event(); handlers.get('message')(native.value);
+assert.equal(native.jobs.length, 1); await Promise.all(native.jobs);
+assert.equal(boots, 1); assert.equal(native.port.closes, 1); assert.equal(native.port.messages.length, 1);
+assert.equal(dispatches[0].kind, 'message-disable-recovered');
+assert.deepEqual(JSON.parse(dispatches[0].source), {url: docURL, id: 'parent'});
+assert.equal('id' in dispatches[0].payload, false, 'native ID must stay outside authored command');
+// A forged payload cannot replace the native context. The Go closed Command
+// decoder separately rejects this extra clientID field (native Go test).
+const forged = event({data: {version: 1, command: 'disable-recovered', requestID: 'request-2', clientID: 'forged'}});
+handlers.get('message')(forged.value); await Promise.all(forged.jobs);
+assert.equal(JSON.parse(dispatches[1].source).id, 'parent'); assert.equal(dispatches[1].payload.clientID, 'forged');
+// Existing status/enable/disable use their unchanged URL-only source contract.
+for (const command of ['status', 'enable', 'disable']) {
+  const legacy = event({isTrusted: undefined, source: {type: 'window', url: docURL}, data: {version: 1, command}});
+  handlers.get('message')(legacy.value); await Promise.all(legacy.jobs);
+  assert.equal(dispatches.at(-1).kind, 'message'); assert.equal(dispatches.at(-1).source, docURL);
+}
+context.__nextgoOfflineBridge.perform('clients-pair', 'clients', '{}');
+for (let i = 0; i < 100 && !resumes.length; i++) await new Promise(resolve => setTimeout(resolve, 1));
+assert.equal(resumes.length, 1); assert.equal(resumes[0][0], 'clients-pair'); assert.equal(resumes[0][2], true);
+assert.deepEqual(clientReads, [{type: 'window', includeUncontrolled: false}, {type: 'window', includeUncontrolled: true}]);
+assert.deepEqual(JSON.parse(resumes[0][1]), {controlled: 2, clientIDs: ['parent', 'helper'], visibleIDs: ['parent', 'helper', 'uncontrolled']});
+console.log('recovered native-context dispatch and unchanged sequential clients pair verified');

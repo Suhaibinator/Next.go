@@ -1,0 +1,62 @@
+package worker
+
+import "github.com/Suhaibinator/Next.go/internal/offlinejson"
+
+const recoveredDisableCommand = "disable-recovered"
+const recoveredDisableEvent = "message-disable-recovered"
+const maxRecoveredSourceBytes = 2048
+
+// This is native adapter context, not a field in the authored command. Only
+// the private browser dispatch kind can reach the recovered entry point.
+type recoveredDisableSource struct {
+	URL string `json:"url"`
+	ID  string `json:"id"`
+}
+
+func decodeRecoveredDisableSource(raw string) (recoveredDisableSource, error) {
+	var source recoveredDisableSource
+	if len(raw) == 0 || len(raw) > maxRecoveredSourceBytes || offlinejson.Decode([]byte(raw), &source) != nil || source.URL == "" || !validClientID(source.ID) {
+		return recoveredDisableSource{}, offlinejson.ErrInvalid
+	}
+	return source, nil
+}
+
+func (e *Engine) recoveredDisable(command Command, rawSource string) Status {
+	source, err := decodeRecoveredDisableSource(rawSource)
+	if err != nil {
+		result := e.baseStatus(command.RequestID)
+		result.Error = "invalid-message"
+		return result
+	}
+	return e.message(command, source.URL, &source)
+}
+
+// matchAll(false) and matchAll(true) are sequential native reads. Require a
+// self-consistent complete pair and refuse a racing/incomplete pair rather than
+// pretending they form an atomic browser snapshot.
+func recoveredDisableClients(clients ioReply, sender string) string {
+	if !validClientID(sender) || clients.Controlled < 0 || clients.Controlled != len(clients.ClientIDs) || len(clients.VisibleIDs) > 256 {
+		return "clients-unavailable"
+	}
+	if clients.Controlled > 4 {
+		return "client-capacity"
+	}
+	visible := make(map[string]bool, len(clients.VisibleIDs))
+	for _, id := range clients.VisibleIDs {
+		if !validClientID(id) || visible[id] {
+			return "clients-unavailable"
+		}
+		visible[id] = true
+	}
+	controlled := make(map[string]bool, len(clients.ClientIDs))
+	for _, id := range clients.ClientIDs {
+		if !validClientID(id) || controlled[id] || !visible[id] {
+			return "clients-unavailable"
+		}
+		controlled[id] = true
+	}
+	if !controlled[sender] || !visible[sender] {
+		return "sender-uncontrolled"
+	}
+	return ""
+}

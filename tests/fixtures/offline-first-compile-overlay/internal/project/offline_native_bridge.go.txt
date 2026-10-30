@@ -1,0 +1,267 @@
+package project
+
+// offlineNativeBootstrap is static source in the existing content-addressed
+// boot asset. It runs before the first bootstrap await and Go/application init.
+// This is an optional capability: every startup failure stays inside this IIFE.
+// Native platform semantics and the matching Go shim are continuing assumptions;
+// descriptor shape does not authenticate a previously compromised startup realm.
+const offlineNativeBootstrap = `(() => {
+  try {
+    const G = globalThis, O = Object, R = Reflect, AP = Array.prototype;
+    const A = R.apply, D = O.getOwnPropertyDescriptor, DP = O.defineProperty;
+    const C = O.create, F = O.freeze, GP = O.getPrototypeOf, AI = Array.isArray;
+    const AC = Array, RC = R.construct, DEL = R.deleteProperty, SI = Symbol.iterator, NI = Number.isInteger;
+    const OWN = O.getOwnPropertyNames, SYMS = O.getOwnPropertySymbols;
+    const valueOf = D(O.prototype, 'valueOf').value;
+    const bind = D(Function.prototype, 'bind').value;
+    const values = D(AP, 'values').value;
+    const iteratorNext = D(GP(A(values, [], [])), 'next').value;
+    const slot = '__nextgoOfflineNativeClaimV1';
+    const data = (o, k, v) => DP(o, k, {value:v, writable:true, enumerable:true, configurable:true});
+    const record = () => C(null);
+    const dense = list => {
+      const a = new AC(list.length);
+      for (let i=0; i<list.length; i++) data(a, i, list[i]);
+      return a;
+    };
+    const getter = (o, k) => {
+      const d = D(o, k);
+      if (!d || typeof d.get !== 'function') throw 0;
+      return d.get;
+    };
+    const method = (o, k) => {
+      const d = D(o, k);
+      if (!d || !('value' in d) || typeof d.value !== 'function') throw 0;
+      return d.value;
+    };
+    // Only private Go builders call this after claim. Descriptor checks reject
+    // holes/accessors; ownership provenance, not shape, excludes caller Proxies.
+    const copy = (a, n) => {
+      if (!AI(a)) throw 0;
+      const ld = D(a, 'length');
+      if (!ld || !('value' in ld) || ld.value !== n) throw 0;
+      const out = new AC(n);
+      for (let i=0; i<n; i++) {
+        const d = D(a, ''+i);
+        if (!d || !('value' in d)) throw 0;
+        data(out, i, d.value);
+      }
+      return out;
+    };
+    let cap = record();
+    data(cap, 'version', 1); data(cap, 'supported', false);
+    try {
+      if (G.isSecureContext !== true) throw 0;
+      const NP=G.Node.prototype, DO=G.Document.prototype, EP=G.Element.prototype;
+      const IP=G.HTMLIFrameElement.prototype, NV=G.Navigator.prototype;
+      const CP=G.ServiceWorkerContainer.prototype, RP=G.ServiceWorkerRegistration.prototype;
+      const WP=G.ServiceWorker.prototype, ET=G.EventTarget.prototype, MP=G.MessagePort.prototype;
+      const MC=G.MessageChannel, MCP=MC.prototype, PP=G.Promise.prototype;
+      const e=dense([]), initialLocation=G.location;
+      // EXACT 33 final natives: 29 primary getters/methods + list/lookup/append/remove.
+      const nConnected=getter(NP,'isConnected'), nOwner=getter(NP,'ownerDocument');
+      const nParent=getter(NP,'parentNode'), nChildren=method(NP,'hasChildNodes');
+      const dURL=getter(DO,'URL'), dView=getter(DO,'defaultView'), dReady=getter(DO,'readyState');
+      const dRoot=getter(DO,'documentElement'), dHead=getter(DO,'head'), dBody=getter(DO,'body');
+      const attribute=method(EP,'getAttribute'), fSrc=getter(IP,'src');
+      const fDoc=getter(IP,'contentDocument'), fWindow=getter(IP,'contentWindow');
+      const nServiceWorker=getter(NV,'serviceWorker'), cController=getter(CP,'controller');
+      const rScope=getter(RP,'scope'), rActive=getter(RP,'active'), rWaiting=getter(RP,'waiting');
+      const rInstalling=getter(RP,'installing'), unregister=method(RP,'unregister'), update=method(RP,'update');
+      const scriptURL=getter(WP,'scriptURL'), post=method(WP,'postMessage');
+      const wDocument=getter(G,'document'), wNavigator=getter(G,'navigator');
+      const wClosed=getter(G,'closed'), wOrigin=getter(G,'origin'), lOrigin=getter(initialLocation,'origin');
+      const lookup=method(CP,'getRegistration'), list=method(CP,'getRegistrations');
+      const append=method(NP,'appendChild'), remove=method(NP,'removeChild');
+      // Additional PREPARATION primitives, never invoked after authorization.
+      const createElement=method(DO,'createElement'), setAttribute=method(EP,'setAttribute');
+      const add=method(ET,'addEventListener'), drop=method(ET,'removeEventListener');
+      const start=method(MP,'start'), close=method(MP,'close'), then=method(PP,'then');
+      const port1=getter(MCP,'port1'), port2=getter(MCP,'port2');
+      if (typeof MC !== 'function' || typeof iteratorNext !== 'function') throw 0;
+      const marker=dense(['data-nextgo-offline-helper']);
+      const object = x => x !== null && typeof x === 'object';
+      const absent = x => x === undefined;
+      const text = (x,n) => typeof x === 'string' && x.length > 0 && x.length <= n;
+      const prepare = (operation,nonce,refs,nodes,policy,payload,port) => {
+        const rv=copy(refs,15), nv=copy(nodes,5), pv=copy(policy,4);
+        // Transport lists are copied into the exact finite reference/node/policy
+        // records. No input aggregate or mutable alias survives preparation.
+        const r=record(),n=record(),p=record();
+        const rk=dense(['parentWindow','parentDocument','parentNavigator','parentContainer','parentController','parentLocation','frame','host','childWindow','childDocument','childNavigator','childContainer','childController','candidate','active']);
+        const nk=dense(['root','head','body','waiting','installing']),pk=dense(['origin','helperURL','workerURL','scope']);
+        for(let i=0;i<15;i++)data(r,rk[i],rv[i]);
+        for(let i=0;i<5;i++)data(n,nk[i],nv[i]);
+        for(let i=0;i<4;i++)data(p,pk[i],pv[i]);
+        F(r);F(n);F(p);
+        const pw=r.parentWindow,pd=r.parentDocument,pn=r.parentNavigator,pc=r.parentContainer,pt=r.parentController,pl=r.parentLocation;
+        const frame=r.frame,host=r.host,cw=r.childWindow,cd=r.childDocument,cn=r.childNavigator,cc=r.childContainer,ct=r.childController,candidate=r.candidate,active=r.active;
+        const root=n.root,head=n.head,body=n.body,waiting=n.waiting,installing=n.installing;
+        const origin=p.origin,helperURL=p.helperURL,workerURL=p.workerURL,scope=p.scope;
+        if (!NI(operation) || operation<1 || operation>12 || !text(nonce,128)) throw 0;
+        for (let i=0;i<6;i++) if (!object(rv[i])) throw 0;
+        for (let i=0;i<4;i++) if (!text(pv[i],8192)) throw 0;
+        const parentOnly=operation===12;
+        const unopened=operation===1 || operation===10 || operation===11;
+        const needsCandidate=operation>=5 && operation<=8;
+        if (parentOnly) {
+          for(let i=6;i<15;i++) if(!absent(rv[i])) throw 0;
+          for(let i=0;i<5;i++) if(!absent(nv[i])) throw 0;
+        } else {
+          if(!object(frame)||!object(host)) throw 0;
+          if(unopened) {
+            for(let i=8;i<15;i++) if(!absent(rv[i])) throw 0;
+            for(let i=0;i<5;i++) if(!absent(nv[i])) throw 0;
+          } else {
+            for(let i=8;i<12;i++) if(!object(rv[i])) throw 0;
+            if(ct!==null&&!object(ct)) throw 0;
+            if(!object(root)||!object(head)||!object(body)) throw 0;
+            if(needsCandidate) {
+              if(!object(candidate)||(active!==null&&!object(active))||(waiting!==null&&!object(waiting))||(installing!==null&&!object(installing))) throw 0;
+              if(operation!==7 && !object(active)) throw 0;
+              if(operation===7 && active===null && waiting===null && installing===null) throw 0;
+            } else if(!absent(candidate)||!absent(active)||!absent(waiting)||!absent(installing)) throw 0;
+          }
+        }
+        const frameArgs=dense([frame]), lookupArgs=dense([scope]);
+        let dispatch=e;
+        if(operation===5||operation===6) {
+          const q=copy(payload,6);
+          if(q[0]!==1||q[1]!== (operation===5?'status':'disable-recovered')) throw 0;
+          for(let i=2;i<6;i++) if(!text(q[i],256)) throw 0;
+          if(!object(port)) throw 0;
+          const message=record();
+          data(message,'version',q[0]);data(message,'command',q[1]);data(message,'ownerPolicyID',q[2]);
+          data(message,'runtimeID',q[3]);data(message,'configurationID',q[4]);data(message,'requestID',q[5]);
+          const backing=dense([port]), iterator=A(values,backing,e);
+          data(iterator,'next',iteratorNext);data(iterator,'return',undefined);
+          const transfer=record();data(transfer,SI,A(bind,valueOf,dense([iterator])));
+          dispatch=dense([message,transfer]);
+        } else if(payload!==undefined||port!==undefined) throw 0;
+        const receipt=record();
+        data(receipt,'version',1);data(receipt,'nonce',nonce);data(receipt,'operation',operation);
+        data(receipt,'entered',false);data(receipt,'reason',0);data(receipt,'issued',false);
+        data(receipt,'returned',false);data(receipt,'value',undefined);
+        const authArgs=dense([nonce,operation,receipt]);
+        let used=false, dispatching=false;
+        const run = authorize => {
+          // All aggregate creation, copying and callbacks precede final facts.
+          if(used)return undefined; used=true;
+          try {
+            if(typeof authorize!=='function'||A(authorize,undefined,authArgs)!==true){receipt.reason=1;return receipt;}
+          } catch (_) {receipt.reason=1;return receipt;}
+          receipt.entered=true;
+          // PROTECTED SEGMENT. Only exact captured natives on prepared refs;
+          // no helpers/builders/Go callbacks/target methods/observers/await.
+          try {
+            if(A(wDocument,pw,e)!==pd || A(dView,pd,e)!==pw || A(lOrigin,pl,e)!==origin ||
+               A(wNavigator,pw,e)!==pn || A(nServiceWorker,pn,e)!==pc ||
+               A(cController,pc,e)!==pt || A(scriptURL,pt,e)!==workerURL){receipt.reason=3;return receipt;}
+            if(operation!==12){
+              if(A(nOwner,host,e)!==pd || A(nConnected,host,e)!==true || A(nOwner,frame,e)!==pd || A(fSrc,frame,e)!==helperURL){receipt.reason=4;return receipt;}
+              if(operation===1 || operation===11){
+                if(A(nConnected,frame,e)!==false || A(nParent,frame,e)!==null){receipt.reason=4;return receipt;}
+              } else {
+                if(A(nConnected,frame,e)!==true || A(nParent,frame,e)!==host){receipt.reason=4;return receipt;}
+              }
+              if(operation!==1 && operation!==10 && operation!==11){
+                // Earlier frame failure returns before any child read.
+                if(A(fWindow,frame,e)!==cw || A(fDoc,frame,e)!==cd){receipt.reason=4;return receipt;}
+                if(A(wDocument,cw,e)!==cd || A(dView,cd,e)!==cw){receipt.reason=5;return receipt;}
+                if(A(dURL,cd,e)!==helperURL || A(dReady,cd,e)!=='complete' ||
+                   A(dRoot,cd,e)!==root || A(dHead,cd,e)!==head || A(dBody,cd,e)!==body ||
+                   A(attribute,root,marker)!=='1' || A(nChildren,head,e)!==false || A(nChildren,body,e)!==false ||
+                   A(wClosed,cw,e)!==false || A(wOrigin,cw,e)!==origin ||
+                   A(wNavigator,cw,e)!==cn || A(nServiceWorker,cn,e)!==cc || A(cController,cc,e)!==ct ||
+                   (ct!==null && A(scriptURL,ct,e)!==workerURL)){receipt.reason=5;return receipt;}
+              }
+            }
+            if(operation>=5 && operation<=8){
+              if(A(rScope,candidate,e)!==scope || A(rActive,candidate,e)!==active ||
+                 A(rWaiting,candidate,e)!==waiting || A(rInstalling,candidate,e)!==installing ||
+                 (active!==null && A(scriptURL,active,e)!==workerURL) ||
+                 (waiting!==null && A(scriptURL,waiting,e)!==workerURL) ||
+                 (installing!==null && A(scriptURL,installing,e)!==workerURL)){receipt.reason=6;return receipt;}
+            }
+            if(operation===11){receipt.returned=true;return receipt;}
+            receipt.issued=true;dispatching=true;
+            switch(operation){
+              case 1:receipt.value=A(append,host,frameArgs);break;
+              case 2:case 12:receipt.value=A(list,pc,e);break;
+              case 3:receipt.value=A(list,cc,e);break;
+              case 4:receipt.value=A(lookup,cc,lookupArgs);break;
+              case 5:case 6:receipt.value=A(post,active,dispatch);break;
+              case 7:receipt.value=A(update,candidate,e);break;
+              case 8:receipt.value=A(unregister,candidate,e);break;
+              case 9:case 10:receipt.value=A(remove,host,frameArgs);break;
+            }
+            dispatching=false;receipt.returned=true;
+            if(operation===9 || operation===10){
+              // No child reference is touched after removeChild returns.
+              if(receipt.value!==frame || A(nConnected,frame,e)!==false || A(nParent,frame,e)!==null){receipt.reason=4;}
+            }
+            return receipt;
+          } catch (_) {receipt.reason=dispatching?8:7;return receipt;}
+        };
+        const read=()=>{
+          const names=OWN(receipt);if(names.length!==8||SYMS(receipt).length!==0)throw 0;
+          const keys=dense(['version','nonce','operation','entered','reason','issued','returned','value']);
+          const result=new AC(8);
+          for(let i=0;i<8;i++){const d=D(receipt,keys[i]);if(!d||!('value' in d))throw 0;data(result,i,d.value);}
+          return result;
+        };
+        const prepared=record();data(prepared,'run',run);data(prepared,'receipt',receipt);data(prepared,'read',read);
+        return F(prepared);
+      };
+      const parent = (window,document) => {
+        if(window!==G||A(wDocument,window,e)!==document||A(dView,document,e)!==window) throw 0;
+        const navigator=A(wNavigator,window,e),container=A(nServiceWorker,navigator,e);
+        return dense([window,document,navigator,container,A(cController,container,e),initialLocation,A(lOrigin,initialLocation,e),A(dRoot,document,e)]);
+      };
+      const child = frame => {
+        const window=A(fWindow,frame,e),document=A(fDoc,frame,e);
+        if(!object(window)||!object(document)||A(wDocument,window,e)!==document||A(dView,document,e)!==window) throw 0;
+        const navigator=A(wNavigator,window,e),container=A(nServiceWorker,navigator,e);
+        return dense([window,document,navigator,container,A(cController,container,e),A(dRoot,document,e),A(dHead,document,e),A(dBody,document,e)]);
+      };
+      const inspect = inventory => {
+        if(!AI(inventory)) throw 0;
+        const length=D(inventory,'length');
+        if(!length||!('value' in length)||!NI(length.value)||length.value<0||length.value>64) throw 0;
+        const out=new AC(length.value);
+        for(let i=0;i<length.value;i++){
+          const d=D(inventory,''+i);if(!d||!('value' in d)||!object(d.value)) throw 0;
+          const registration=d.value,scope=A(rScope,registration,e),active=A(rActive,registration,e);
+          const waiting=A(rWaiting,registration,e),installing=A(rInstalling,registration,e);
+          if(!text(scope,8192)||(active!==null&&!object(active))||(waiting!==null&&!object(waiting))||(installing!==null&&!object(installing))) throw 0;
+          const au=active===null?'':A(scriptURL,active,e),wu=waiting===null?'':A(scriptURL,waiting,e),iu=installing===null?'':A(scriptURL,installing,e);
+          if((active!==null&&!text(au,8192))||(waiting!==null&&!text(wu,8192))||(installing!==null&&!text(iu,8192))) throw 0;
+          data(out,i,dense([registration,scope,active,waiting,installing,au,wu,iu]));
+        }
+        return out;
+      };
+      data(cap,'supported',true);data(cap,'prepare',prepare);data(cap,'parent',parent);data(cap,'child',child);data(cap,'inspect',inspect);
+      data(cap,'frame',(document,url)=>{
+        if(typeof url!=='string'||!text(url,8192)) throw 0;
+        const frame=A(createElement,document,dense(['iframe']));
+        A(setAttribute,frame,dense(['src',url]));A(setAttribute,frame,dense(['hidden','']));
+        A(setAttribute,frame,dense(['aria-hidden','true']));A(setAttribute,frame,dense(['tabindex','-1']));
+        A(setAttribute,frame,dense(['inert','']));A(setAttribute,frame,dense(['loading','eager']));
+        A(setAttribute,frame,dense(['referrerpolicy','no-referrer']));return frame;
+      });
+      data(cap,'channel',()=>{const channel=RC(MC,e);return dense([channel,A(port1,channel,e),A(port2,channel,e)]);});
+      data(cap,'listen',(target,event,callback)=>A(add,target,dense([event,callback,false])));
+      data(cap,'remove',(target,event,callback)=>A(drop,target,dense([event,callback,false])));
+      data(cap,'start',port=>A(start,port,e));data(cap,'close',port=>A(close,port,e));
+      // Promise species/constructor hooks are OUTSIDE protected segments.
+      data(cap,'then',(promise,resolved,rejected)=>A(then,promise,dense([resolved,rejected])));
+    } catch (_) {
+      cap=record();data(cap,'version',1);data(cap,'supported',false);
+    }
+    F(cap);let claimed=false;
+    const claim=()=>{if(claimed)return undefined;claimed=true;DEL(G,slot);return cap;};
+    // A failed claim installation is optional-offline unavailable, not boot failure.
+    DP(G,slot,{value:claim,writable:false,enumerable:false,configurable:true});
+  } catch (_) {}
+})();
+`

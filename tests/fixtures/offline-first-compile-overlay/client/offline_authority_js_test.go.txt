@@ -1,0 +1,232 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+	"context"
+	"strings"
+	"syscall/js"
+	"testing"
+
+	"github.com/Suhaibinator/Next.go/offline"
+)
+
+// These source-only tests exercise Go ownership transitions separately from
+// native browser evidence. They are authored but not executed in this change.
+func offlineAuthorityFixture(t *testing.T) *offlineController {
+	t.Helper()
+	c := &offlineController{
+		descriptor:offline.ClientDescriptor{Version:1,Scope:"https://reader.test/reader",WorkerURL:"https://reader.test/reader/_nextgo/offline/sw.js",CatalogURL:"https://reader.test/reader/_nextgo/offline/catalog",OwnerPolicyID:"reader",RuntimeID:strings.Repeat("a",20),ConfigurationID:strings.Repeat("b",64)},
+		state:OfflineState{Configured:true,Supported:true,Phase:"ready",Enabled:true},
+	}
+	offlineAuthorityMu.Lock()
+	oldController, oldRealm, oldDocument, oldWindow := documentOffline, offlineRealmInUse, doc, win
+	documentOffline, offlineRealmInUse = c, nil
+	offlineAuthorityMu.Unlock()
+	t.Cleanup(func() {
+		offlineAuthorityMu.Lock()
+		documentOffline, offlineRealmInUse, doc, win = oldController, oldRealm, oldDocument, oldWindow
+		offlineAuthorityMu.Unlock()
+	})
+	return c
+}
+
+func TestOfflineAuthorityConcurrentAdmissionHasOneWinner(t *testing.T) {
+	c := offlineAuthorityFixture(t)
+	c.diag.DiagnosticRevision = 41
+	c.lastDisable.unregisterResolvedTrue = true
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	const attempts = 32
+	start := make(chan struct{})
+	results := make(chan error, attempts)
+	for i := 0; i < attempts; i++ {
+		go func() { <-start; _, err := offlineAdmitOperation(ctx,"disable"); results <- err }()
+	}
+	close(start)
+	winners, refused := 0, 0
+	for i := 0; i < attempts; i++ {
+		switch err := <-results; err {
+		case nil: winners++
+		case ErrOfflineBusy: refused++
+		default: t.Fatalf("unexpected admission result: %v",err)
+		}
+	}
+	offlineAuthorityMu.Lock()
+	busy, phase, receipt, diagnostic := c.busy, c.state.Phase, c.lastDisable, c.diag
+	offlineAuthorityMu.Unlock()
+	if winners != 1 || refused != attempts-1 || !busy || phase != "disabling" {
+		t.Fatalf("admission lost serialization: winners=%d refused=%d busy=%v phase=%q",winners,refused,busy,phase)
+	}
+	if receipt != (offlineDisableReceipt{}) || diagnostic.DiagnosticRevision != 42 || diagnostic.Operation != OfflineDiagnosticDisable || !diagnostic.Available {
+		t.Fatalf("winner did not atomically reset receipt/begin exactly one diagnostic: receipt=%+v diagnostic=%+v",receipt,diagnostic)
+	}
+}
+
+func TestOfflineAuthorityGlobalRealmBlocksReplacementAdmission(t *testing.T) {
+	c := offlineAuthorityFixture(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	offlineAuthorityMu.Lock()
+	offlineRealmInUse = &offlineProofRealm{parent:offlineRealmParent{c:&offlineController{}}}
+	c.lastDisable.unregisterResolvedTrue = true
+	c.diag.DiagnosticRevision = 9
+	offlineAuthorityMu.Unlock()
+	_, err := offlineAdmitOperation(ctx,"disable")
+	offlineAuthorityMu.Lock()
+	busy, receipt, revision := c.busy,c.lastDisable,c.diag.DiagnosticRevision
+	offlineAuthorityMu.Unlock()
+	if err != ErrOfflineBusy || busy || !receipt.unregisterResolvedTrue || revision != 9 {
+		t.Fatalf("replacement bypassed physical realm ownership: err=%v busy=%v receipt=%+v revision=%d",err,busy,receipt,revision)
+	}
+}
+
+func TestOfflineAuthorityInitializerCannotConfigureReplacement(t *testing.T) {
+	old := offlineAuthorityFixture(t)
+	descriptor := old.descriptor
+	offlineAuthorityMu.Lock()
+	old.state = OfflineState{Phase:"unavailable"}
+	offlineAuthorityMu.Unlock()
+	published := make(chan struct{})
+	replacementCommitted := make(chan struct{})
+	result := make(chan bool,1)
+	replacement := &offlineController{state:OfflineState{Phase:"unavailable"}}
+	go func() {
+		close(published)
+		<-replacementCommitted
+		offlineAuthorityMu.Lock()
+		committed := offlineCommitConfigurationLocked(old,descriptor,true)
+		offlineAuthorityMu.Unlock()
+		result <- committed
+	}()
+	<-published
+	offlineAuthorityMu.Lock()
+	documentOffline = replacement
+	currentCommit := offlineCommitConfigurationLocked(replacement,descriptor,false)
+	offlineAuthorityMu.Unlock()
+	close(replacementCommitted)
+	staleCommit := <-result
+	snapshot := OfflineStatus()
+	offlineAuthorityMu.Lock()
+	oldConfigured, currentDescriptor := old.state.Configured,replacement.descriptor
+	offlineAuthorityMu.Unlock()
+	if staleCommit || !currentCommit || oldConfigured || !snapshot.Configured || snapshot.Supported || currentDescriptor != descriptor || snapshot.Scope != descriptor.Scope || snapshot.OwnerPolicyID != descriptor.OwnerPolicyID {
+		t.Fatalf("initializer replacement lost atomic configuration: stale=%v current=%v oldConfigured=%v snapshot=%+v",staleCommit,currentCommit,oldConfigured,snapshot)
+	}
+}
+
+func TestOfflineAuthorityCanceledAdmissionKeepsFactsAndRevision(t *testing.T) {
+	c := offlineAuthorityFixture(t)
+	c.lastDisable.unregisterResolvedTrue = true
+	c.diag.DiagnosticRevision = 8
+	ctx,cancel := context.WithCancel(context.Background())
+	cancel()
+	_,err := offlineAdmitOperation(ctx,"disable")
+	offlineAuthorityMu.Lock()
+	busy,receipt,revision,phase := c.busy,c.lastDisable,c.diag.DiagnosticRevision,c.state.Phase
+	offlineAuthorityMu.Unlock()
+	if err != ErrOfflineUnknown || busy || !receipt.unregisterResolvedTrue || revision != 8 || phase != "ready" {
+		t.Fatalf("canceled non-admission changed attempt state: err=%v busy=%v receipt=%+v revision=%d phase=%q",err,busy,receipt,revision,phase)
+	}
+}
+
+func TestOfflineAuthorityPublicationUsesWholeDescriptorAndRealm(t *testing.T) {
+	for _, changed := range []string{"configuration","controller","document","window","canceled","support"} {
+		t.Run(changed,func(t *testing.T) {
+			c := offlineAuthorityFixture(t)
+			ctx,cancel := context.WithCancel(context.Background())
+			defer cancel()
+			a,err := offlineAdmitOperation(ctx,"disable")
+			if err != nil { t.Fatal(err) }
+			if changed == "canceled" { cancel() }
+			offlineAuthorityMu.Lock()
+			switch changed {
+			case "configuration": c.descriptor.ConfigurationID = strings.Repeat("c",64)
+			case "controller": documentOffline = &offlineController{}
+			case "document": if doc.IsNull() { doc = js.Undefined() } else { doc = js.Null() }
+			case "window": if win.IsNull() { win = js.Undefined() } else { win = js.Null() }
+			case "support": c.state.Supported = false
+			}
+			before := c.state
+			offlineAuthorityMu.Unlock()
+			applied := a.apply(ctx,offlineReply{Supported:true,State:"disabled"})
+			offlineAuthorityMu.Lock()
+			after,confirmed := c.state,c.confirmedDisabled
+			offlineAuthorityMu.Unlock()
+			if applied || after != before || confirmed { t.Fatalf("revoked %s published state: applied=%v before=%+v after=%+v confirmed=%v",changed,applied,before,after,confirmed) }
+		})
+	}
+}
+
+func TestOfflineAuthorityRequestReservationIsAtomicAndBounded(t *testing.T) {
+	c := offlineAuthorityFixture(t)
+	const count = 32
+	reserved := make(chan uint64,count)
+	errors := make(chan error,count)
+	for i := 0; i < count; i++ { go func() { sequence,owner,err := c.reserveOfflineRequest(); if owner != "reader" && err == nil { err = ErrOfflineProtocol }; reserved <- sequence; errors <- err }() }
+	seen := make(map[uint64]bool,count)
+	for i := 0; i < count; i++ {
+		sequence,err := <-reserved,<-errors
+		if err != nil || sequence == 0 || sequence > count || seen[sequence] { t.Fatalf("invalid duplicate reservation: sequence=%d err=%v",sequence,err) }
+		seen[sequence] = true
+	}
+	offlineAuthorityMu.Lock()
+	c.request = ^uint64(0)
+	offlineAuthorityMu.Unlock()
+	sequence,owner,err := c.reserveOfflineRequest()
+	offlineAuthorityMu.Lock()
+	final := c.request
+	offlineAuthorityMu.Unlock()
+	if err != ErrOfflineProtocol || sequence != 0 || owner != "" || final != ^uint64(0) { t.Fatal("request overflow wrapped or changed owner authority") }
+}
+
+func TestOfflineAuthorityLatePrivateFactsMergeWithoutPublicApply(t *testing.T) {
+	c := offlineAuthorityFixture(t)
+	before := OfflineStatus()
+	results := []offlineFreshDisableResult{
+		{unregisterAttempted:true},
+		{unregisterResolvedTrue:true},
+		{verifiedRegistryAbsent:true},
+		{},
+	}
+	done := make(chan error,len(results))
+	for _,result := range results {
+		go func(value offlineFreshDisableResult) { done <- c.completeFreshDisable(context.Background(),value,ErrOfflineUnknown) }(result)
+	}
+	for range results { if err := <-done; err != ErrOfflineUnknown { t.Fatalf("late private completion changed its error: %v",err) } }
+	offlineAuthorityMu.Lock()
+	receipt,after,confirmed := c.lastDisable,c.state,c.confirmedDisabled
+	offlineAuthorityMu.Unlock()
+	if !receipt.unregisterAttempted || !receipt.unregisterResolvedTrue || !receipt.verifiedRegistryAbsent || receipt.disableAcknowledged || after != before || confirmed {
+		t.Fatalf("late facts were lost or published: receipt=%+v before=%+v after=%+v confirmed=%v",receipt,before,after,confirmed)
+	}
+}
+
+func TestOfflineAuthorityOptionalSupportFailuresRemainUnsupported(t *testing.T) {
+	for _, mode := range []string{"missing","insecure","throwing"} {
+		t.Run(mode,func(t *testing.T) {
+			c := offlineAuthorityFixture(t)
+			window := js.ValueOf(map[string]any{})
+			if mode == "insecure" { window.Set("isSecureContext",false) }
+			if mode == "throwing" {
+				window = js.Global().Get("Function").New("const w={};Object.defineProperty(w,'isSecureContext',{get(){throw new Error('private capture')}});return w").Invoke()
+			}
+			offlineAuthorityMu.Lock()
+			win = window
+			offlineAuthorityMu.Unlock()
+			supported := browserOfflineSupport() && offlineNativeReady()
+			offlineAuthorityMu.Lock()
+			committed := offlineCommitConfigurationLocked(c,c.descriptor,supported)
+			c.diag.DiagnosticRevision = 17
+			offlineAuthorityMu.Unlock()
+			ctx,cancel := context.WithCancel(context.Background())
+			defer cancel()
+			_,err := offlineAdmitOperation(ctx,"disable")
+			snapshot := OfflineStatus()
+			offlineAuthorityMu.Lock()
+			revision,busy := c.diag.DiagnosticRevision,c.busy
+			offlineAuthorityMu.Unlock()
+			if !committed || supported || snapshot.Supported || !snapshot.Configured || err != ErrOfflineUnsupported || revision != 17 || busy { t.Fatalf("optional %s support failure escaped unsupported state: support=%v snapshot=%+v err=%v revision=%d busy=%v",mode,supported,snapshot,err,revision,busy) }
+		})
+	}
+}

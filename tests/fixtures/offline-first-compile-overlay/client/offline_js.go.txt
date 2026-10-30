@@ -1,0 +1,1072 @@
+//go:build js && wasm
+
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"syscall/js"
+	"time"
+
+	"github.com/Suhaibinator/Next.go/internal/offlinejson"
+	"github.com/Suhaibinator/Next.go/offline"
+)
+
+type offlineObserver struct {
+	scope    *Scope
+	callback func(OfflineState)
+}
+
+type offlineController struct {
+	descriptor        offline.ClientDescriptor
+	state             OfflineState
+	busy              bool
+	request           uint64
+	confirmedDisabled bool
+	nativeMode        bool
+	conflictReason    string
+	lastDisable       offlineDisableReceipt
+	diag              OfflineRecoveryDiagnostic
+}
+
+var documentOffline *offlineController
+var offlineObservers = map[*offlineObserver]struct{}{}
+
+// OfflineStatus returns the most recently confirmed worker state. A saved page
+// always describes public snapshot data; ordinary network actions are never
+// queued or replayed by these APIs. This first control API is eager-core only.
+func OfflineStatus() OfflineState {
+	if moduleMode {
+		return OfflineState{Phase: "unavailable", LastError: ErrOfflineUnsupported.Error()}
+	}
+	offlineAuthorityMu.Lock()
+	defer offlineAuthorityMu.Unlock()
+	if documentOffline == nil {
+		return OfflineState{Phase: "unavailable"}
+	}
+	return documentOffline.state
+}
+
+// RefreshOfflineStatus performs one explicit serialized status operation for
+// the owned active and waiting workers, as applicable, and publishes a fresh
+// snapshot. Unlike OfflineStatus, this is asynchronous: call
+// from Scope.Go, never a JS event callback. It shares the single-operation
+// admission/cancellation rules and never registers, updates or repairs a worker.
+// An unconfirmed result is not automatically retried.
+func RefreshOfflineStatus(ctx context.Context) error { return offlineOperation(ctx, "status") }
+
+// SubscribeOffline immediately delivers a snapshot, including on unconfigured
+// or unsupported documents. The callback must return promptly. Its subscription
+// is removed with scope cleanup. Lazy-module controls are explicitly unsupported.
+func SubscribeOffline(scope *Scope, callback func(OfflineState)) error {
+	if moduleMode {
+		return ErrOfflineUnsupported
+	}
+	if scope == nil || !scope.active() || callback == nil {
+		return fmt.Errorf("nextgo: offline subscription needs an active scope and callback")
+	}
+	observer := &offlineObserver{scope: scope, callback: callback}
+	offlineAuthorityMu.Lock()
+	if len(offlineObservers) >= 128 {
+		offlineAuthorityMu.Unlock()
+		return ErrOfflineBusy
+	}
+	offlineObservers[observer] = struct{}{}
+	offlineAuthorityMu.Unlock()
+	scope.Cleanup(func() {
+		offlineAuthorityMu.Lock()
+		delete(offlineObservers, observer)
+		observer.callback, observer.scope = nil, nil
+		offlineAuthorityMu.Unlock()
+	})
+	deliverOffline(observer, OfflineStatus())
+	return nil
+}
+
+func deliverOffline(observer *offlineObserver, state OfflineState) {
+	offlineAuthorityMu.Lock()
+	_, present := offlineObservers[observer]
+	callback, scope := observer.callback, observer.scope
+	offlineAuthorityMu.Unlock()
+	if !present || callback == nil || scope == nil || !scope.active() {
+		return
+	}
+	defer func() {
+		if recover() != nil {
+			offlineQuiet(func() { report("offline status callback failed") })
+		}
+	}()
+	callback(state)
+}
+func (c *offlineController) notify() {
+	// Host reads can synchronously reenter. They happen before a protected
+	// current-controller commit, and no observer runs with the mutex held.
+	offlineAuthorityMu.Lock()
+	if documentOffline != c { offlineAuthorityMu.Unlock(); return }
+	descriptor, document, window := c.descriptor, doc, win
+	offlineAuthorityMu.Unlock()
+	controlling := c.controlling()
+	offlineAuthorityMu.Lock()
+	if documentOffline != c || c.descriptor != descriptor || !doc.Equal(document) || !win.Equal(window) { offlineAuthorityMu.Unlock(); return }
+	mode := c.state.Configured && (c.state.SavedDocument || controlling && (c.state.Enabled || !c.confirmedDisabled))
+	changed := mode != c.nativeMode
+	c.nativeMode, c.state.Controlling = mode, controlling
+	state := c.state
+	list := make([]*offlineObserver, 0, len(offlineObservers))
+	for observer := range offlineObservers { list = append(list, observer) }
+	offlineAuthorityMu.Unlock()
+	if changed {
+		if mode && currentURL != "" {
+			cancelPendingNavigation()
+			invalidateCache()
+		}
+		if !mode && viewportPrefetch != nil {
+			viewportPrefetch.requestScan()
+		}
+	}
+	for _, observer := range list {
+		deliverOffline(observer, state)
+	}
+}
+
+// EnableOffline explicitly requests saving only native-approved anonymous public
+// pages. Call from Scope.Go or another goroutine, never a JS event callback.
+func EnableOffline(ctx context.Context) error { return offlineOperation(ctx, "enable") }
+
+// CheckOfflineUpdate asks the browser to check the owned registration. A waiting
+// worker stays waiting: this API never calls skipWaiting or clients.claim, and
+// never asks an old worker to install a new deployment under its old runtime.
+func CheckOfflineUpdate(ctx context.Context) error { return offlineOperation(ctx, "update") }
+
+// DisableOffline stops saved-document serving and unregisters the exact owner.
+// Controlled pages can retain charged public payloads: CleanupPending reports
+// that state. Later explicit reconciliation after those pages close is needed;
+// unregistering is not a guaranteed background purge or private-data erase API.
+func DisableOffline(ctx context.Context) error { return offlineOperation(ctx, "disable") }
+
+func browserOfflineSupport() (supported bool) {
+	defer func() {
+		if recover() != nil {
+			supported = false
+		}
+	}()
+	secure := offlineJSGet(win, "isSecureContext")
+	if secure.Type() != js.TypeBoolean || !secure.Bool() {
+		return false
+	}
+	navigator := offlineJSGet(win, "navigator")
+	if navigator.Type() != js.TypeObject || navigator.IsNull() {
+		return false
+	}
+	sw, locks := offlineJSGet(navigator, "serviceWorker"), offlineJSGet(navigator, "locks")
+	return sw.Type() == js.TypeObject && !sw.IsNull() && offlineJSGet(sw, "register").Type() == js.TypeFunction && offlineJSGet(sw, "getRegistrations").Type() == js.TypeFunction && locks.Type() == js.TypeObject && !locks.IsNull() && offlineJSGet(locks, "request").Type() == js.TypeFunction && offlineJSGet(win, "MessageChannel").Type() == js.TypeFunction
+}
+
+// initializeOfflineDocument runs only after normal deployment/configuration and
+// document validation. Unconfigured pages perform no service-worker inspection.
+func initializeOfflineDocument() (saved bool, err error) {
+	var c *offlineController
+	defer func() {
+		if recover() != nil {
+			err = ErrOfflineProtocol
+			if c != nil {
+				message := err.Error()
+				offlineAuthorityMu.Lock()
+				c.state.LastError = message
+				c.state.Phase = "error"
+				offlineAuthorityMu.Unlock()
+			}
+		}
+	}()
+	if moduleMode {
+		return false, ErrOfflineUnsupported
+	}
+	body := offlineJSGet(doc, "body")
+	raw := offlineJSCall(body, "getAttribute", offline.ClientDescriptorAttribute)
+	marker := offlineJSCall(body, "getAttribute", "data-nextgo-offline-saved")
+	if raw.IsNull() && marker.IsNull() {
+		return false, nil
+	}
+	saved = !marker.IsNull()
+	c = &offlineController{state: OfflineState{Phase: "unavailable", SavedDocument: saved}}
+	offlineAuthorityMu.Lock()
+	documentOffline = c
+	offlineAuthorityMu.Unlock()
+	if raw.IsNull() || raw.Type() != js.TypeString || len(raw.String()) > offline.MaxClientDescriptorBytes || saved && marker.String() != "1" {
+		return saved, ErrOfflineProtocol
+	}
+	var descriptor offline.ClientDescriptor
+	if offlinejson.Decode([]byte(raw.String()), &descriptor) != nil || offline.ValidateClientDescriptor(descriptor, offlineJSGet(offlineJSGet(win, "location"), "origin").String(), deployment.BasePath, offlineJSCall(body, "getAttribute", "data-nextgo-build").String(), offlineJSCall(body, "getAttribute", "data-nextgo-configuration").String()) != nil {
+		return saved, ErrOfflineProtocol
+	}
+	supported := !routeManifest.Development && browserOfflineSupport() && offlineNativeReady()
+	unsupportedMessage := ErrOfflineUnsupported.Error()
+	offlineAuthorityMu.Lock()
+	committed := offlineCommitConfigurationLocked(c, descriptor, supported)
+	if committed && !supported { c.state.LastError = unsupportedMessage }
+	offlineAuthorityMu.Unlock()
+	if !committed || !supported {
+		return saved, nil
+	}
+	go func() { _ = offlineOperation(context.Background(), "status") }()
+	return saved, nil
+}
+
+func offlineOperation(parent context.Context, command string) (err error) {
+	if moduleMode {
+		return ErrOfflineUnsupported
+	}
+	if parent == nil {
+		return fmt.Errorf("nextgo: offline operation needs a context")
+	}
+	if parent.Err() != nil {
+		return context.Cause(parent)
+	}
+	limit := 120 * time.Second
+	if command == "status" { limit = 5 * time.Second }
+	ctx, cancel := context.WithTimeout(parent, limit)
+	defer cancel()
+	authority, err := offlineAdmitOperation(ctx, command)
+	if err != nil { return err }
+	c := authority.c
+	// This defer is installed immediately after admission, before notification
+	// or any operation that may invoke a host/user callback.
+	defer func() {
+		if failure := recover(); failure != nil {
+			err = fmt.Errorf("nextgo: offline browser operation failed")
+		}
+		message := ""
+		if err != nil { message = offlineErrorText(err) }
+		if err == ErrOfflineConflict {
+			offlineAuthorityMu.Lock()
+			reason := c.conflictReason
+			offlineAuthorityMu.Unlock()
+			if reason != "" { message += " [" + reason + "]" }
+		}
+		offlineAuthorityMu.Lock()
+		c.busy = false
+		if err != nil {
+			c.state.Phase = "error"
+			c.state.LastError = message
+		}
+		// A replaced document controller owns the current observer set. Retain
+		// this operation's cleanup/error locally without publishing stale state.
+		current := documentOffline == c
+		// Physical cleanup knowledge is published by the realm owner only.
+		offlineDiagnosticFinishLocked(&c.diag, c.diag.CleanupKnown)
+		offlineAuthorityMu.Unlock()
+		if current { c.notify() }
+	}()
+	c.notify()
+	use := offlineRegistrationMutation
+	if command == "status" {
+		use = offlineRegistrationStatus
+	} else if command == "update" {
+		use = offlineRegistrationUpdate
+	} else if command == "disable" {
+		use = offlineRegistrationDisable
+	}
+	selection, err := c.registrationForOperation(ctx, use)
+	if err != nil {
+		return err
+	}
+	if selection.emptyUpdate {
+		result, e := c.updateInFreshRealm(ctx, selection.container, selection.parentController)
+		if e != nil {
+			return e
+		}
+		if e = result.parent.fence(ctx); e != nil {
+			return e
+		}
+		offlineAuthorityMu.Lock()
+		if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+		c.applyLocked(result.status)
+		c.state.WaitingGeneration = result.waiting
+		if result.waiting != "" {
+			c.state.Phase = "waiting"
+		}
+		offlineAuthorityMu.Unlock()
+		return nil
+	}
+	if selection.emptyDisable {
+		result, e := c.disableInFreshRealm(ctx, selection.container, selection.parentController)
+		return c.completeFreshDisable(ctx, result, e)
+	}
+	registration := selection.registration
+	controllerOwned := c.controlling()
+	if (command == "enable" || command == "disable" && !controllerOwned) && !registration.Truthy() {
+		sw := offlineJSGet(offlineJSGet(win, "navigator"), "serviceWorker")
+		registration, err = c.promise(ctx, offlineJSCall(sw, "register", c.descriptor.WorkerURL, offlineJSObject(map[string]any{"scope": c.descriptor.Scope, "updateViaCache": "none", "type": "classic"})))
+		if err != nil {
+			return err
+		}
+		if err = c.validateRegistration(registration); err != nil {
+			return err
+		}
+	}
+	if command == "update" {
+		if !registration.Truthy() {
+			return ErrOfflineUnavailable
+		}
+		if selection.recovered {
+			if err = c.recoveredRegistrationFence(ctx, selection, js.Undefined(), false, "registration-proof-empty-update"); err != nil {
+				return err
+			}
+		}
+		if _, err = c.promise(ctx, offlineJSCall(registration, "update")); err != nil {
+			return err
+		}
+		if err = c.waitInstallation(ctx, registration); err != nil {
+			return err
+		}
+	}
+	worker := selection.statusWorker
+	if registration.Truthy() {
+		worker = offlineJSGet(registration, "active")
+		if !worker.Truthy() && (command == "enable" || command == "disable") {
+			if err = c.waitActivation(ctx, registration); err != nil {
+				return err
+			}
+			worker = offlineJSGet(registration, "active")
+		}
+	}
+	if !worker.Truthy() {
+		controller := offlineJSGet(offlineJSGet(offlineJSGet(win, "navigator"), "serviceWorker"), "controller")
+		if c.ownedWorker(controller) {
+			worker = controller
+		}
+	}
+	if worker.Truthy() {
+		status, e := c.message(ctx, worker, "status", c.descriptor.RuntimeID, c.descriptor.ConfigurationID)
+		if e != nil {
+			return e
+		}
+		if command == "disable" {
+			offlineAuthorityMu.Lock()
+			current := authority.currentLocked(ctx)
+			if current && offlineDisableReplyConfirmed(status) { c.applyLocked(status) }
+			offlineAuthorityMu.Unlock()
+			if !current { return ErrOfflineUnknown }
+		} else {
+			if !authority.apply(ctx, status) { return ErrOfflineUnknown }
+		}
+		if !status.Supported {
+			return ErrOfflineUnsupported
+		}
+		if command == "enable" || command == "disable" {
+			if registration.Truthy() && offlineJSGet(registration, "active").Truthy() && !offlineJSGet(registration, "active").Equal(worker) {
+				return c.ownershipConflict("active-worker-changed")
+			}
+			if command == "enable" {
+				offlineAuthorityMu.Lock()
+				if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+				c.confirmedDisabled = false
+				offlineAuthorityMu.Unlock()
+				c.notify()
+			}
+			if selection.recovered {
+				if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-message"); err != nil {
+					return err
+				}
+			}
+			result, e := c.message(ctx, worker, command, status.RuntimeID, status.ConfigurationID)
+			if e != nil {
+				return e
+			}
+			if command == "disable" {
+				offlineAuthorityMu.Lock()
+				// Preserve authentic late facts before testing public authority.
+				c.lastDisable.disableAcknowledged = c.lastDisable.disableAcknowledged || offlineDisableAcknowledged(result)
+				current := authority.currentLocked(ctx)
+				offlineAuthorityMu.Unlock()
+				if !current { return ErrOfflineUnknown }
+				if !result.Supported {
+					return ErrOfflineUnsupported
+				}
+			} else {
+				if !authority.apply(ctx, result) { return ErrOfflineUnknown }
+			}
+			if result.Error != "" {
+				return fmt.Errorf("nextgo: offline worker refused operation (%s)", result.Error)
+			}
+			if command == "enable" && (!result.Enabled || result.ActiveGeneration == "") {
+				return ErrOfflineProtocol
+			}
+			if command == "disable" {
+				if !offlineDisableAcknowledged(result) {
+					return ErrOfflineProtocol
+				}
+				offlineAuthorityMu.Lock()
+				c.lastDisable.disableAcknowledged = true
+				if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+				c.applyLocked(result)
+				offlineAuthorityMu.Unlock()
+			}
+		}
+	} else {
+		offlineAuthorityMu.Lock()
+		if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+		c.state.Enabled = false
+		c.confirmedDisabled = true
+		c.state.ActiveGeneration = ""
+		c.state.Phase = "disabled"
+		offlineAuthorityMu.Unlock()
+		if command == "enable" {
+			return ErrOfflineUnknown
+		}
+	}
+	if command == "disable" && registration.Truthy() {
+		if selection.recovered {
+			if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-unregister"); err != nil {
+				return err
+			}
+		}
+		offlineAuthorityMu.Lock()
+		c.lastDisable.unregisterAttempted = true
+		offlineAuthorityMu.Unlock()
+		unregistered, unregisterErr := c.promise(ctx, offlineJSCall(registration, "unregister"))
+		if unregisterErr != nil {
+			return unregisterErr
+		}
+		if unregistered.Type() != js.TypeBoolean || !unregistered.Bool() {
+			return ErrOfflineUnknown
+		}
+		offlineAuthorityMu.Lock()
+		c.lastDisable.unregisterResolvedTrue = true
+		if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+		c.state.Enabled = false
+		if !c.state.CleanupPending {
+			c.state.ActiveGeneration = ""
+		}
+		c.state.WaitingGeneration = ""
+		c.state.Phase = "disabled"
+		offlineAuthorityMu.Unlock()
+	}
+	if command != "disable" && registration.Truthy() {
+		waiting := offlineJSGet(registration, "waiting")
+		if waiting.Truthy() {
+			result, e := c.message(ctx, waiting, "status", c.descriptor.RuntimeID, c.descriptor.ConfigurationID)
+			if e != nil {
+				return e
+			}
+			offlineAuthorityMu.Lock()
+			if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+			c.state.WaitingGeneration = result.Generation
+			if c.state.WaitingGeneration != "" {
+				c.state.Phase = "waiting"
+			}
+			offlineAuthorityMu.Unlock()
+		} else {
+			offlineAuthorityMu.Lock()
+			if !authority.currentLocked(ctx) { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+			c.state.WaitingGeneration = ""
+			offlineAuthorityMu.Unlock()
+		}
+	}
+	return nil
+}
+
+// Native receipts are historical knowledge even if logical authority was
+// revoked. Current authority is required before either newly confirmed status
+// or the later Disable acknowledgement can replace public state. A valid status
+// remains the newest confirmed knowledge if control subsequently refuses.
+func (c *offlineController) completeFreshDisable(ctx context.Context, result offlineFreshDisableResult, operationErr error) error {
+	// The current attempt reset this receipt before admission. Its owned native
+	// callbacks may already have recorded late settlement after an unknown host
+	// return, so completion can add facts but cannot erase them. The global realm
+	// lease prevents another operation from sharing this attempt's callback owner.
+	offlineAuthorityMu.Lock()
+	c.lastDisable.disableAcknowledged = c.lastDisable.disableAcknowledged || result.disableAcknowledged && offlineDisableAcknowledged(result.status)
+	c.lastDisable.unregisterAttempted = c.lastDisable.unregisterAttempted || result.unregisterAttempted
+	c.lastDisable.unregisterResolvedTrue = c.lastDisable.unregisterResolvedTrue || result.unregisterResolvedTrue
+	c.lastDisable.verifiedRegistryAbsent = c.lastDisable.verifiedRegistryAbsent || result.verifiedRegistryAbsent
+	offlineAuthorityMu.Unlock()
+	if result.hasConfirmedStatus || result.disableAcknowledged {
+		if authorityErr := result.parent.fence(ctx); authorityErr != nil {
+			return authorityErr
+		}
+		if result.hasConfirmedStatus && !offlineDisableReplyConfirmed(result.confirmedStatus) || result.disableAcknowledged && !offlineDisableAcknowledged(result.status) {
+			return ErrOfflineProtocol
+		}
+		offlineAuthorityMu.Lock()
+		if !offlineCurrentAuthorityLocked(c,result.parent.descriptor,result.parent.document,result.parent.window) || ctx.Err() != nil {
+			offlineAuthorityMu.Unlock()
+			return ErrOfflineUnknown
+		}
+		if result.hasConfirmedStatus {
+			c.applyLocked(result.confirmedStatus)
+		}
+		if result.disableAcknowledged {
+			c.applyLocked(result.status)
+		}
+		offlineAuthorityMu.Unlock()
+	}
+	if operationErr != nil {
+		return operationErr
+	}
+	if !result.disableAcknowledged || !result.unregisterResolvedTrue || !result.verifiedRegistryAbsent {
+		return ErrOfflineUnknown
+	}
+	offlineAuthorityMu.Lock()
+	if !offlineCurrentAuthorityLocked(c,result.parent.descriptor,result.parent.document,result.parent.window) || ctx.Err() != nil {
+		offlineAuthorityMu.Unlock()
+		return ErrOfflineUnknown
+	}
+	c.state.WaitingGeneration = ""
+	c.state.Phase = "disabled"
+	offlineAuthorityMu.Unlock()
+	return nil
+}
+
+// Registration/update promises cannot be aborted. Retain the single operation
+// and its callbacks until physical settlement, even if its caller cancels. The
+// worker separately retains its storage lease after a message port is closed.
+func (c *offlineController) promise(ctx context.Context, promise js.Value) (js.Value, error) {
+	controller := offlineJSNew(offlineJSGet(js.Global(), "AbortController"))
+	value, err := awaitPhysicalBrowserPromise(ctx, promise, controller)
+	if ctx.Err() != nil {
+		return js.Undefined(), ErrOfflineUnknown
+	}
+	return value, err
+}
+
+// ownershipConflict records only a fixed diagnostic category. Keep returning
+// the exact sentinel: ownership decisions and callers' error identity stay intact.
+func (c *offlineController) ownershipConflict(reason string) error {
+	offlineAuthorityMu.Lock()
+	c.conflictReason = reason
+	offlineAuthorityMu.Unlock()
+	return ErrOfflineConflict
+}
+
+func (c *offlineController) ownedWorker(worker js.Value) bool {
+	return worker.Type() == js.TypeObject && !worker.IsNull() && offlineJSGet(worker, "scriptURL").Type() == js.TypeString && offlineJSGet(worker, "scriptURL").String() == c.descriptor.WorkerURL
+}
+func (c *offlineController) controlling() (owned bool) {
+	defer func() {
+		if recover() != nil {
+			owned = false
+		}
+	}()
+	return c.ownedWorker(offlineJSGet(offlineJSGet(offlineJSGet(win, "navigator"), "serviceWorker"), "controller"))
+}
+
+// A record with the exact scope but no worker slots does not prove ownership.
+// Status may instead query an independently validated controller; mutations must
+// still establish ownership from the registration itself.
+type offlineRegistrationOwnership uint8
+
+const (
+	offlineRegistrationUnproven offlineRegistrationOwnership = iota
+	offlineRegistrationOwned
+)
+
+func (c *offlineController) registrationOwnership(registration js.Value) (offlineRegistrationOwnership, error) {
+	if registration.Type() != js.TypeObject || registration.IsNull() || offlineJSGet(registration, "scope").Type() != js.TypeString || offlineJSGet(registration, "scope").String() != c.descriptor.Scope {
+		return offlineRegistrationUnproven, c.ownershipConflict("registration-scope")
+	}
+	provedWorker := false
+	for _, key := range []string{"active", "waiting", "installing"} {
+		worker := offlineJSGet(registration, key)
+		if worker.Truthy() {
+			provedWorker = true
+		}
+		if worker.Truthy() && !c.ownedWorker(worker) {
+			return offlineRegistrationUnproven, c.ownershipConflict("registration-" + key + "-worker")
+		}
+	}
+	if !provedWorker {
+		return offlineRegistrationUnproven, nil
+	}
+	return offlineRegistrationOwned, nil
+}
+
+func (c *offlineController) validateRegistration(registration js.Value) error {
+	ownership, err := c.registrationOwnership(registration)
+	if err != nil {
+		return err
+	}
+	if ownership == offlineRegistrationUnproven {
+		return c.ownershipConflict("registration-empty")
+	}
+	return nil
+}
+
+// statusWorker is read-only controller authority. A recovered registration has
+// independent inventory/worker proof and uses synchronous pre-mutation fences.
+type offlineRegistrationSelection struct {
+	registration js.Value
+	statusWorker js.Value
+	container    js.Value
+	recovered    bool
+	// These indications are distinct needs for fresh proof, not registration
+	// authority. Neither may be consumed by Enable or strict selection.
+	emptyUpdate      bool
+	emptyDisable     bool
+	parentController js.Value
+}
+
+type offlineRegistrationUse uint8
+
+const (
+	offlineRegistrationStrict offlineRegistrationUse = iota
+	offlineRegistrationStatus
+	offlineRegistrationMutation
+	offlineRegistrationUpdate
+	offlineRegistrationDisable
+)
+
+type offlineRegistrationInventory struct {
+	exact    js.Value
+	unproven bool
+}
+
+func (c *offlineController) registration(ctx context.Context) (js.Value, error) {
+	selection, err := c.registrationForOperation(ctx, offlineRegistrationStrict)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	return selection.registration, nil
+}
+
+// Inspect every entry before permitting recovery. An empty exact record still
+// counts as an overlap, so it cannot hide a later foreign owner or duplicate.
+func (c *offlineController) inspectRegistrationInventory(registrations js.Value) (offlineRegistrationInventory, error) {
+	inventory := offlineRegistrationInventory{exact: js.Undefined()}
+	if registrations.Type() != js.TypeObject || registrations.IsNull() || offlineJSLength(registrations) > 64 {
+		return inventory, c.ownershipConflict("registration-list")
+	}
+	for i := 0; i < offlineJSLength(registrations); i++ {
+		registration := offlineJSIndex(registrations, i)
+		scope := offlineJSGet(registration, "scope")
+		if scope.Type() != js.TypeString {
+			return inventory, c.ownershipConflict("registration-scope-type")
+		}
+		// Native scope matching is literal prefix matching, including reader2.
+		if strings.HasPrefix(scope.String(), c.descriptor.Scope) || strings.HasPrefix(c.descriptor.Scope, scope.String()) {
+			ownership, err := c.registrationOwnership(registration)
+			if err != nil {
+				return inventory, err
+			}
+			if inventory.exact.Truthy() {
+				return inventory, c.ownershipConflict("registration-duplicate")
+			}
+			inventory.exact = registration
+			inventory.unproven = ownership == offlineRegistrationUnproven
+		}
+	}
+	return inventory, nil
+}
+
+func (c *offlineController) registrationController(sw js.Value) (js.Value, error) {
+	controller := offlineJSGet(sw, "controller")
+	if controller.Truthy() && !c.ownedWorker(controller) {
+		return js.Undefined(), c.ownershipConflict("controller-worker")
+	}
+	return controller, nil
+}
+
+func (c *offlineController) registrationForOperation(ctx context.Context, use offlineRegistrationUse) (offlineRegistrationSelection, error) {
+	sw := offlineJSGet(offlineJSGet(win, "navigator"), "serviceWorker")
+	registrations, err := c.promise(ctx, offlineJSCall(sw, "getRegistrations"))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	inventory, err := c.inspectRegistrationInventory(registrations)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	controller, err := c.registrationController(sw)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if inventory.unproven {
+		switch use {
+		case offlineRegistrationStatus:
+			if !controller.Truthy() {
+				return offlineRegistrationSelection{}, ErrOfflineUnavailable
+			}
+			return offlineRegistrationSelection{registration: js.Undefined(), statusWorker: controller}, nil
+		case offlineRegistrationMutation:
+			return c.reacquireRegistration(ctx, sw)
+		case offlineRegistrationUpdate, offlineRegistrationDisable:
+			return c.reacquireRegistrationForUse(ctx, sw, use, controller)
+		default:
+			return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty-selection")
+		}
+	}
+	return offlineRegistrationSelection{registration: inventory.exact, statusWorker: js.Undefined()}, nil
+}
+
+func (c *offlineController) requireRegistrationProof(registration js.Value, emptyReason string) error {
+	ownership, err := c.registrationOwnership(registration)
+	if err != nil {
+		return err
+	}
+	if ownership != offlineRegistrationOwned {
+		return c.ownershipConflict(emptyReason)
+	}
+	return nil
+}
+
+// One acquisition transaction: initial inventory, one exact-scope lookup, one
+// final inventory. The same-environment native object map binds the lookup to
+// the latest entry; no equality with the initial record or UA repair is assumed.
+func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Value) (offlineRegistrationSelection, error) {
+	return c.reacquireRegistrationForUse(ctx, sw, offlineRegistrationMutation, js.Undefined())
+}
+
+func (c *offlineController) reacquireRegistrationForUse(ctx context.Context, sw js.Value, use offlineRegistrationUse, parentController js.Value) (offlineRegistrationSelection, error) {
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	if offlineJSGet(sw, "getRegistration").Type() != js.TypeFunction {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-unavailable")
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	candidate, err := c.promise(ctx, offlineJSCall(sw, "getRegistration", c.descriptor.Scope))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if !candidate.Truthy() {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
+	}
+	ownership, err := c.registrationOwnership(candidate)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if ownership == offlineRegistrationUnproven {
+		if use == offlineRegistrationUpdate && parentController.Truthy() && c.ownedWorker(parentController) {
+			return offlineRegistrationSelection{container: sw, parentController: parentController, emptyUpdate: true}, nil
+		}
+		if use == offlineRegistrationDisable && parentController.Truthy() && c.ownedWorker(parentController) {
+			// Empty fields never grant mutation authority. Check the full final
+			// parent inventory and same-environment target identity before
+			// selecting the separate child-native proof transaction.
+			registrations, readErr := c.promise(ctx, offlineJSCall(sw, "getRegistrations"))
+			if readErr != nil {
+				return offlineRegistrationSelection{}, readErr
+			}
+			inventory, inspectErr := c.inspectRegistrationInventory(registrations)
+			if inspectErr != nil {
+				return offlineRegistrationSelection{}, inspectErr
+			}
+			current, controllerErr := c.registrationController(sw)
+			if controllerErr != nil {
+				return offlineRegistrationSelection{}, controllerErr
+			}
+			if !current.Truthy() || !current.Equal(parentController) {
+				return offlineRegistrationSelection{}, c.ownershipConflict("parent-controller-changed")
+			}
+			if !inventory.exact.Truthy() || !candidate.Equal(inventory.exact) {
+				return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-changed")
+			}
+			if ctx.Err() != nil {
+				return offlineRegistrationSelection{}, context.Cause(ctx)
+			}
+			return offlineRegistrationSelection{container: sw, parentController: parentController, emptyDisable: true}, nil
+		}
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-empty-lookup")
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	registrations, err := c.promise(ctx, offlineJSCall(sw, "getRegistrations"))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	inventory, err := c.inspectRegistrationInventory(registrations)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if _, err = c.registrationController(sw); err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if !inventory.exact.Truthy() {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
+	}
+	if !candidate.Equal(inventory.exact) {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-changed")
+	}
+	// Re-read strict fields AFTER the last awaited read and controller check.
+	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-final-inventory"); err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	return offlineRegistrationSelection{registration: candidate, statusWorker: js.Undefined(), container: sw, recovered: true}, nil
+}
+
+// These synchronous fences protect the next recovered-path dispatch after an
+// awaited message. They are not an atomic registry lock against other writers,
+// nor a rollback of a worker message which has already completed.
+func (c *offlineController) recoveredRegistrationFence(ctx context.Context, selection offlineRegistrationSelection, worker js.Value, requireActive bool, emptyReason string) error {
+	if ctx.Err() != nil {
+		return context.Cause(ctx)
+	}
+	if _, err := c.registrationController(selection.container); err != nil {
+		return err
+	}
+	if err := c.requireRegistrationProof(selection.registration, emptyReason); err != nil {
+		return err
+	}
+	if requireActive {
+		active := offlineJSGet(selection.registration, "active")
+		if !active.Truthy() || !active.Equal(worker) {
+			return c.ownershipConflict("active-worker-changed")
+		}
+	}
+	return context.Cause(ctx)
+}
+
+func (c *offlineController) waitInstallation(ctx context.Context, registration js.Value) error {
+	worker := offlineJSGet(registration, "installing")
+	if !worker.Truthy() {
+		return c.validateRegistration(registration)
+	}
+	return c.waitWorker(ctx, worker, func(state string) bool { return state == "installed" || state == "activated" })
+}
+
+func (c *offlineController) waitActivation(ctx context.Context, registration js.Value) error {
+	if active := offlineJSGet(registration, "active"); active.Truthy() {
+		return c.validateRegistration(registration)
+	}
+	worker := offlineJSGet(registration, "installing")
+	if !worker.Truthy() {
+		return ErrOfflineUnavailable
+	}
+	if err := c.waitWorker(ctx, worker, func(state string) bool { return state == "activated" }); err != nil {
+		return err
+	}
+	if !offlineJSGet(registration, "active").Truthy() {
+		return ErrOfflineUnavailable
+	}
+	return c.validateRegistration(registration)
+}
+
+func (c *offlineController) waitWorker(ctx context.Context, worker js.Value, complete func(string) bool) error {
+	if !c.ownedWorker(worker) {
+		return c.ownershipConflict("worker-state-target")
+	}
+	done := make(chan struct{}, 1)
+	callback := js.FuncOf(func(js.Value, []js.Value) any {
+		select {
+		case done <- struct{}{}:
+		default:
+		}
+		return nil
+	})
+	listening := false
+	defer func() {
+		if listening {
+			offlineQuiet(func() { offlineJSCall(worker, "removeEventListener", "statechange", callback) })
+		}
+		callback.Release()
+	}()
+	offlineJSCall(worker, "addEventListener", "statechange", callback)
+	listening = true
+	for {
+		state := offlineJSGet(worker, "state").String()
+		if state == "redundant" {
+			return ErrOfflineProtocol
+		}
+		if complete(state) {
+			return nil
+		}
+		select {
+		case <-done:
+		case <-ctx.Done():
+			return ErrOfflineUnknown
+		}
+	}
+}
+
+func offlineQuiet(fn func()) { defer func() { _ = recover() }(); fn() }
+
+// Caller-supplied cancellation causes may implement Error with application
+// code. Formatting happens outside the authority mutex and cannot skip cleanup.
+func offlineErrorText(err error) (message string) {
+	message = "nextgo: offline browser operation failed"
+	defer func() { _ = recover() }()
+	if err != nil { message = err.Error() }
+	return message
+}
+
+func (c *offlineController) apply(reply offlineReply) {
+	offlineAuthorityMu.Lock()
+	c.applyLocked(reply)
+	offlineAuthorityMu.Unlock()
+}
+
+// Caller holds offlineAuthorityMu. Reply validation and host authority probes
+// precede entry; this is only a portable confirmed-state assignment.
+func (c *offlineController) applyLocked(reply offlineReply) {
+	c.confirmedDisabled = reply.State == "disabled" && !reply.Enabled
+	c.state.CleanupPending = reply.DeferredCleanup
+	c.state.Supported = reply.Supported
+	c.state.Enabled = reply.Enabled
+	c.state.ActiveGeneration = reply.ActiveGeneration
+	c.state.WaitingGeneration = reply.StagingGeneration
+	switch reply.State {
+	case "staged":
+		c.state.Phase = "waiting"
+	case "failed":
+		c.state.Phase = "error"
+	case "busy":
+		c.state.Phase = "busy"
+	default:
+		c.state.Phase = reply.State
+	}
+	if reply.Error != "" {
+		c.state.LastError = reply.Error
+	}
+}
+
+func (c *offlineController) message(ctx context.Context, worker js.Value, command, runtime, configuration string) (reply offlineReply, err error) {
+	if ctx.Err() != nil {
+		return reply, context.Cause(ctx)
+	}
+	if !c.ownedWorker(worker) {
+		return reply, c.ownershipConflict("message-worker")
+	}
+	sequence, owner, reserveErr := c.reserveOfflineRequest()
+	if reserveErr != nil { return reply, reserveErr }
+	request := offlineRequest{Version: offlineMessageVersion, Command: command, OwnerPolicyID: owner, RuntimeID: runtime, ConfigurationID: configuration, RequestID: "offline-" + strconv.FormatUint(sequence, 36)}
+	channel := offlineJSNew(offlineJSGet(win, "MessageChannel"))
+	port := offlineJSGet(channel, "port1")
+	other := offlineJSGet(channel, "port2")
+	type result struct {
+		reply offlineReply
+		err   error
+	}
+	received := make(chan result, 1)
+	callback := js.FuncOf(func(_ js.Value, args []js.Value) any {
+		value := result{err: ErrOfflineProtocol}
+		value.reply, value.err = decodeOfflineEvent(args, request)
+		select {
+		case received <- value:
+		default:
+		}
+		return nil
+	})
+	listening := false
+	defer func() {
+		if listening {
+			offlineQuiet(func() { offlineJSCall(port, "removeEventListener", "message", callback) })
+		}
+		offlineQuiet(func() { offlineJSCall(port, "close") })
+		offlineQuiet(func() { offlineJSCall(other, "close") })
+		callback.Release()
+	}()
+	offlineJSCall(port, "addEventListener", "message", callback, offlineJSObject(map[string]any{"once": true}))
+	listening = true
+	offlineJSCall(port, "start")
+	offlineJSCall(worker, "postMessage", offlineJSRequest(request), offlineJSArray([]any{other}))
+	select {
+	case value := <-received:
+		return value.reply, value.err
+	case <-ctx.Done():
+		return reply, ErrOfflineUnknown
+	}
+}
+
+// Inspect the fixed scalar shape before copying strings or marshaling. The
+// transferred private port is dedicated to one bounded status/control reply.
+func decodeOfflineMessage(value js.Value, request offlineRequest) (reply offlineReply, err error) {
+	defer func() {
+		if recover() != nil {
+			reply, err = offlineReply{}, ErrOfflineProtocol
+		}
+	}()
+	if value.Type() != js.TypeObject || value.IsNull() || offlineJSLength(offlineJSCall(offlineJSGet(js.Global(), "Object"), "keys", value)) != 16 {
+		return offlineReply{}, ErrOfflineProtocol
+	}
+	object := map[string]any{}
+	for _, key := range []string{"requestID", "ownerPolicyID", "runtimeID", "configurationID", "generation", "activeGeneration", "previousGeneration", "stagingGeneration", "state", "error"} {
+		v := offlineJSGet(value, key)
+		if v.Type() != js.TypeString || offlineJSGet(offlineJSInvoke(offlineJSGet(js.Global(), "Object"), v), "length").Int() > 64 {
+			return offlineReply{}, ErrOfflineProtocol
+		}
+		object[key] = v.String()
+	}
+	for _, key := range []string{"enabled", "supported", "deferredCleanup"} {
+		v := offlineJSGet(value, key)
+		if v.Type() != js.TypeBoolean {
+			return offlineReply{}, ErrOfflineProtocol
+		}
+		object[key] = v.Bool()
+	}
+	for _, key := range []string{"version", "savedAtUnix", "highestObservedUnix"} {
+		v := offlineJSGet(value, key)
+		if v.Type() != js.TypeNumber {
+			return offlineReply{}, ErrOfflineProtocol
+		}
+		n := v.Float()
+		if n < 0 || n > 1<<53-1 || n != float64(int64(n)) {
+			return offlineReply{}, ErrOfflineProtocol
+		}
+		object[key] = int64(n)
+	}
+	raw, err := json.Marshal(object)
+	if err != nil {
+		return offlineReply{}, ErrOfflineProtocol
+	}
+	return decodeOfflineReply(raw, request)
+}
+
+func savedOfflineHydrate() {
+	// currentURL deliberately remains unset. Core/module Navigate, Refresh and
+	// Prefetch therefore cannot fetch or commit a JSON navigation envelope.
+	// Native anchors, history and forms remain browser/service-worker documents.
+	installMotionPreference()
+	hydrate()
+}
+
+// A saved document stays native even after Disable until a new document loads.
+// A normal document with an owned controller is conservative until an owned
+// status confirms Disabled; opt-out/uncontrolled documents retain their router.
+func offlineNativeNavigation() bool {
+	offlineAuthorityMu.Lock()
+	c := documentOffline
+	if c == nil || !c.state.Configured {
+		offlineAuthorityMu.Unlock()
+		return false
+	}
+	if c.state.SavedDocument {
+		offlineAuthorityMu.Unlock()
+		return true
+	}
+	descriptor, document, window := c.descriptor, doc, win
+	offlineAuthorityMu.Unlock()
+	controlling := c.controlling()
+	offlineAuthorityMu.Lock()
+	current := documentOffline == c && c.state.Configured && c.descriptor == descriptor && doc.Equal(document) && win.Equal(window)
+	mode := current && (c.state.SavedDocument || controlling && (c.state.Enabled || !c.confirmedDisabled))
+	offlineAuthorityMu.Unlock()
+	return mode
+}
+
+func offlineNavigate(target string, replace bool) (err error) {
+	defer func() {
+		if recover() != nil {
+			err = fmt.Errorf("nextgo: invalid native document navigation")
+		}
+	}()
+	u := offlineJSNew(offlineJSGet(win, "URL"), target, offlineJSGet(doc, "baseURI"))
+	if !eligibleURL(u) {
+		return fmt.Errorf("navigation requires a same-origin page URL without credentials")
+	}
+	cancelPendingNavigation()
+	if replace {
+		offlineJSCall(offlineJSGet(win, "location"), "replace", offlineJSGet(u, "href").String())
+	} else {
+		offlineJSCall(offlineJSGet(win, "location"), "assign", offlineJSGet(u, "href").String())
+	}
+	return nil
+}

@@ -1,0 +1,329 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"syscall/js"
+	"testing"
+	"time"
+
+	"github.com/Suhaibinator/Next.go/offline"
+)
+
+// These are source-only derivative tests. The JS Function bodies model actual
+// host exceptions, rather than a panic inside a Go syscall/js callback. The
+// native-shaped fixture events below are unit fakes, not browser attestation.
+func offlineInteropAssertContinuation(t *testing.T) {
+	t.Helper()
+	if got := js.Global().Get("Function").New("return 37").Invoke().Int(); got != 37 {
+		t.Fatal("JavaScript execution did not continue after host exception")
+	}
+	ran := make(chan struct{}, 1)
+	go func() { ran <- struct{}{} }()
+	select {
+	case <-ran:
+	case <-time.After(time.Second):
+		t.Fatal("Go WASM execution did not continue after host exception")
+	}
+}
+
+// V3 derivative: the pure-Go fence invokes no worker getter. Explicit setup
+// revocation replaces the old fourth-getter seam; parent-tail uses a real owned
+// model realm and revokes in preparation before its single entry callback.
+func TestOfflineParentFenceFinalGetterRevocationBlocksTailAndPublication(t *testing.T) {
+ for _,operation:=range []string{"fence","parent-tail","publication"}{for _,revoke:=range []string{"controller","descriptor","document","window"}{t.Run(operation+"/"+revoke,func(t *testing.T){
+  x:=freshOfflineRealmFixture(t);f:=x.f
+  f.c.state.Enabled,f.c.state.CleanupPending=true,true;f.c.state.ActiveGeneration="previous"
+  od,ow,descriptor:=doc,win,f.c.descriptor
+  defer func(){doc,win,documentOffline,f.c.descriptor=od,ow,f.c,descriptor;f.c.busy=false}()
+  f.c.busy=true;f.c.diag=offlineDiagnosticBeginLocked(f.c.diag,OfflineDiagnosticDisable,descriptor.RuntimeID,descriptor.ConfigurationID)
+  p:=offlineRealmParent{c:f.c,descriptor:descriptor,document:doc,window:win,container:f.sw,controller:f.worker,origin:"https://reader.test"}
+  reads:=0
+  getter:=f.fn(func(js.Value,[]js.Value)any{reads++;return descriptor.WorkerURL})
+  js.Global().Get("Object").Call("defineProperty",f.worker,"scriptURL",map[string]any{"get":getter,"configurable":true})
+  revoked:=false
+  change:=func(){revoked=true;switch revoke{case "controller":documentOffline=&offlineController{};case "descriptor":f.c.descriptor.RuntimeID="revoked";case "document":doc=js.Global().Get("Object").New();case "window":win=js.Global().Get("Object").New()}}
+  var err error
+  switch operation{
+  case "fence":change();err=p.fence(context.Background())
+  case "parent-tail":
+   r,e:=f.c.newProofRealm(context.Background(),f.sw,f.worker);if e!=nil{t.Fatal("owned model tail setup",e)}
+   r.retired=true
+   calls:=0;f.sw.Set("getRegistrations",f.fn(func(js.Value,[]js.Value)any{calls++;return f.resolve(reacquireArray(nil))}))
+   f.native.before(f.fn(func(_ js.Value,args []js.Value)any{if args[0].Int()==int(offlineNativeParentListRetired){change()};return nil}).Value)
+   settled,failure:=r.nativeInvoke(r.nativeInput(offlineNativeParentListRetired,offlineNativeRegistration{}),true);err=failure
+   if calls!=0||settled.invoked||r.pending!=0||len(r.disableNative)!=0{t.Fatal("revoked parent tail invoked work or retained nonissued cell")}
+   if e=r.close();e!=nil||offlineRealmInUse!=nil{t.Fatal("nonissued parent tail did not release original custody",e)}
+  case "publication":
+   change();ack:=f.respond(offlineRequest{Command:"disable"});if !offlineDisableAcknowledged(ack){t.Fatal("successful fixture receipt missing")}
+   result:=offlineFreshDisableResult{parent:p,status:ack,disableAcknowledged:true,unregisterAttempted:true,unregisterResolvedTrue:true,verifiedRegistryAbsent:true}
+   err=f.c.completeFreshDisable(context.Background(),result,nil)
+   if !f.c.state.Enabled||!f.c.state.CleanupPending||f.c.state.ActiveGeneration!="previous"||f.c.confirmedDisabled{t.Fatal("revoked authority published stale Disable state")}
+   if !f.c.lastDisable.disableAcknowledged||!f.c.lastDisable.unregisterResolvedTrue||!f.c.lastDisable.verifiedRegistryAbsent{t.Fatal("revocation erased historical private terminal facts")}
+  }
+  if !errors.Is(err,ErrOfflineUnknown)||!revoked||reads!=0{t.Fatalf("pure authority fence invoked getter or missed revocation: getters=%d error=%v",reads,err)}
+ })}}
+}
+
+func offlineInteropAssertStaticError(t *testing.T, operation func()) {
+	t.Helper()
+	var caught any
+	func() {
+		defer func() { caught = recover() }()
+		operation()
+	}()
+	if _, ok := caught.(checkedJSFailure); !ok {
+		t.Fatalf("host exception did not reach Go recover as the fixed safe error: %T", caught)
+	}
+	if caught.(checkedJSFailure).Error() != "nextgo: native operation failed" { t.Fatal("native failure exposed foreign error text") }
+	offlineInteropAssertContinuation(t)
+}
+
+func TestOfflineCheckedInteropRecoversActualPropertyExceptionsAndContinues(t *testing.T) {
+	for _, mode := range []string{"get", "set", "index", "length", "method-getter", "method-body"} {
+		t.Run(mode, func(t *testing.T) {
+			factory := js.Global().Get("Function").New("mode", `
+const value={};
+const throwing=()=>{throw new Error('offline checked '+mode)};
+if(mode==='get')Object.defineProperty(value,'value',{get:throwing});
+if(mode==='set')Object.defineProperty(value,'value',{set:throwing});
+if(mode==='index')Object.defineProperty(value,'0',{get:throwing});
+if(mode==='length')Object.defineProperty(value,'length',{get:throwing});
+if(mode==='method-getter')Object.defineProperty(value,'run',{get:throwing});
+if(mode==='method-body')value.run=throwing;
+return value;
+`)
+			value := factory.Invoke(mode)
+			offlineInteropAssertStaticError(t, func() {
+				switch mode {
+				case "get":
+					offlineJSGet(value, "value")
+				case "set":
+					offlineJSSet(value, "value", 1)
+				case "index":
+					offlineJSIndex(value, 0)
+				case "length":
+					offlineJSLength(value)
+				default:
+					offlineJSCall(value, "run")
+				}
+			})
+		})
+	}
+}
+
+func TestOfflineCheckedCallReadsMethodOnceOnSuccessAndThrow(t *testing.T) {
+	for _, throws := range []bool{false, true} {
+		name := "success"
+		if throws {
+			name = "throw"
+		}
+		t.Run(name, func(t *testing.T) {
+			state := js.ValueOf(map[string]any{"reads": 0, "calls": 0, "receiver": false})
+			value := js.Global().Get("Function").New("state", "throws", `
+const value={};
+Object.defineProperty(value,'run',{get(){
+ state.reads++;
+ if(state.reads!==1)throw new Error('method getter was read again');
+ return function(a,b){state.calls++;state.receiver=this===value;
+  if(throws)throw new Error('method body failed');
+  return a+b;
+ };
+}});
+return value;
+`).Invoke(state, throws)
+			if throws {
+				offlineInteropAssertStaticError(t, func() { offlineJSCall(value, "run", 4, 7) })
+			} else if got := offlineJSCall(value, "run", 4, 7).Int(); got != 11 {
+				t.Fatal("checked call lost its arguments or result", got)
+			}
+			if state.Get("reads").Int() != 1 || state.Get("calls").Int() != 1 || !state.Get("receiver").Bool() {
+				t.Fatal("checked call reread the method or lost its exact receiver")
+			}
+		})
+	}
+}
+
+func TestOfflineCheckedPropertyAccessPreservesReceiversAndIndexLength(t *testing.T) {
+	state := js.ValueOf(map[string]any{"getReceiver": false, "setReceiver": false, "next": 0})
+	value := js.Global().Get("Function").New("state", `
+const value={0:'first',length:1};
+Object.defineProperty(value,'value',{
+ get(){state.getReceiver=this===value;return 23},
+ set(next){state.setReceiver=this===value;state.next=next}
+});
+return value;
+`).Invoke(state)
+	if offlineJSGet(value, "value").Int() != 23 || offlineJSIndex(value, 0).String() != "first" || offlineJSLength(value) != 1 {
+		t.Fatal("checked property access changed ordinary results")
+	}
+	offlineJSSet(value, "value", 29)
+	if !state.Get("getReceiver").Bool() || !state.Get("setReceiver").Bool() || state.Get("next").Int() != 29 {
+		t.Fatal("checked property access lost accessor receiver or assigned value")
+	}
+}
+
+func TestOfflineFreshDisableThrowingUnregisterGetterKeepsPrechargedCell(t *testing.T) {
+ d:=freshOfflineDisableFixture(t)
+ reads,observedCharge:=0,false
+ getter:=d.x.f.fn(func(js.Value,[]js.Value)any{reads++;return js.Undefined()})
+ throwing:=js.Global().Get("Function").New("observe","return function(){observe();throw new Error('authored unregister getter')}").Invoke(getter)
+ js.Global().Get("Object").Call("defineProperty",d.x.candidate,"unregister",map[string]any{"get":throwing,"configurable":true})
+ d.x.f.native.before(d.x.f.fn(func(_ js.Value,args []js.Value)any{
+  if args[0].Int()==int(offlineNativeUnregisterRegistration){r:=offlineRealmInUse;observedCharge=r!=nil&&r.pending==1&&len(r.disableNative)==1&&r.disableNative[0].charged&&d.x.removed==0};return nil
+ }).Value)
+ result,err:=d.fresh(context.Background())
+ if err!=nil||reads!=0||!observedCharge||!result.disableAcknowledged||!result.unregisterAttempted||!result.unregisterResolvedTrue||!result.verifiedRegistryAbsent||d.unregisters!=1||offlineRealmInUse!=nil||d.x.removed!=1{t.Fatalf("captured model unregister consulted authored getter or lost precharge: reads=%d result=%+v error=%v",reads,result,err)}
+ offlineInteropAssertContinuation(t)
+}
+
+func TestOfflineFreshDisableThrowingACKGettersRetainListenerUntilValidReply(t *testing.T) {
+	d := freshOfflineDisableFixture(t)
+	d.stats.Set("hold", true)
+	started := make(chan struct{}, 1)
+	d.onRequest = func(request offlineRequest) {
+		if request.Command == "status" {
+			started <- struct{}{}
+		}
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	type outcome struct {
+		result offlineFreshDisableResult
+		err    error
+	}
+	done := make(chan outcome, 1)
+	joined := false
+	defer func() {
+		cancel()
+		if !joined {
+			d.stats.Set("hold", false)
+			if d.stats.Get("last").Truthy() {
+				d.stats.Get("last").Call("emit", d.stats.Get("data"))
+			}
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+				t.Error("ACK getter fixture could not join its owned reply")
+			}
+		}
+	}()
+	go func() { result, err := d.fresh(ctx); done <- outcome{result, err} }()
+	offlineDisableWait(t, started, "status reply was not dispatched")
+	r := offlineRealmInUse
+	if r == nil || len(r.disableReplies) != 1 {
+		t.Fatal("status did not retain its owned listener")
+	}
+	cell := r.disableReplies[0]
+	valid := d.stats.Get("data")
+	for _, mode := range []string{"event-data", "reply-requestID"} {
+		event := js.Global().Get("Function").New("mode", "port", "valid", `
+const throwing=()=>{throw new Error('bad ACK '+mode)};
+const event={isTrusted:true,target:port};
+if(mode==='event-data')Object.defineProperty(event,'data',{get:throwing});
+else {
+ const data=JSON.parse(JSON.stringify(valid));
+ Object.defineProperty(data,'requestID',{get:throwing,enumerable:true});
+ event.data=data;
+}
+return event;
+`).Invoke(mode, cell.port, valid)
+		cell.listener.Invoke(event)
+		if cell.terminal || !cell.charged || !cell.installed || cell.callbacks != 0 || r.pending != 1 || offlineRealmInUse != r || d.x.removed != 0 || d.stats.Get("listeners").Int() != 1 || d.stats.Get("closed").Int() != 0 {
+			t.Fatal("throwing ACK consumed the listener or released physical ownership", mode)
+		}
+		select {
+		case <-done:
+			joined = true
+			t.Fatal("throwing ACK completed Disable", mode)
+		default:
+		}
+		offlineInteropAssertContinuation(t)
+	}
+	d.stats.Set("hold", false)
+	d.stats.Get("last").Call("emit", valid)
+	select {
+	case got := <-done:
+		joined = true
+		if got.err != nil || !got.result.disableAcknowledged || !got.result.unregisterResolvedTrue || !got.result.verifiedRegistryAbsent || d.unregisters != 1 {
+			t.Fatalf("valid native-shaped ACK could not complete after getter failures: %+v %v", got.result, got.err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("valid native-shaped ACK did not join")
+	}
+	if offlineRealmInUse != nil || d.x.created != 1 || d.x.removed != 1 || d.stats.Get("listeners").Int() != 0 || d.stats.Get("closed").Int() != 4 {
+		t.Fatal("valid reply did not permit checked listener and frame retirement")
+	}
+}
+
+func TestOfflineFreshDisableThrowingRealmPropertiesFailClosed(t *testing.T) {
+ for _,property:=range []string{"contentWindow","location","parentNode"}{for _,mode:=range []string{"own-getter-bypass","native-read-refusal"}{t.Run(property+"/"+mode,func(t *testing.T){
+  d:=freshOfflineDisableFixture(t);d.expectQuarantine=mode=="native-read-refusal"
+  target:=d.x.frame;if property=="location"{target=d.x.childWin}
+  reads:=0;observe:=d.x.f.fn(func(js.Value,[]js.Value)any{reads++;return nil})
+  getter:=js.Global().Get("Function").New("observe","return function(){observe();throw new Error('authored realm property')}").Invoke(observe)
+  d.x.beforeAppend=func(){js.Global().Get("Object").Call("defineProperty",target,property,map[string]any{"get":getter,"configurable":true})}
+  if mode=="native-read-refusal"{d.x.f.native.model.Set("failOperation",int(offlineNativeChildList));d.x.f.native.model.Set("failReason",int(offlineNativeReasonReadThrow))}
+  result,err:=d.fresh(context.Background())
+  if reads!=0{t.Fatal("native field model consulted authored realm property",property)}
+  if mode=="own-getter-bypass"{
+   if err!=nil||!result.disableAcknowledged||!result.unregisterResolvedTrue||!result.verifiedRegistryAbsent||d.unregisters!=1||d.x.removed!=1||offlineRealmInUse!=nil{t.Fatalf("own getter bypass lost exact native control: %+v %v",result,err)}
+  }else{
+   r:=offlineRealmInUse
+   if !errors.Is(err,ErrOfflineUnknown)||result.disableAcknowledged||result.unregisterAttempted||d.unregisters!=0||d.x.childReads!=0||d.x.updates!=0||len(d.x.f.commands)!=0||d.x.created!=1||r==nil||!r.quarantined||d.x.removed!=0{t.Fatalf("native read refusal gained authority or remove-as-abort: %+v %v",result,err)}
+   if _,next:=d.fresh(context.Background());!errors.Is(next,ErrOfflineBusy)||d.x.created!=1{t.Fatal("native read refusal admitted another frame",next)}
+   if !errors.Is(r.close(),ErrOfflineUnknown){t.Fatal("native read refusal allowed normal retirement")}
+  }
+  offlineInteropAssertContinuation(t)
+ })}}
+}
+
+func TestOfflineInitializationRecoversFirstBodyGetterThrowAndContinues(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	win.Get("navigator").Set("locks", js.Null())
+	previous := documentOffline
+	state := js.ValueOf(map[string]any{"reads": 0})
+	getter := js.Global().Get("Function").New("state", "return function(){state.reads++;throw new Error('initial body getter failed')}").Invoke(state)
+	js.Global().Get("Object").Call("defineProperty", doc, "body", map[string]any{"get": getter, "configurable": true})
+	saved, err := initializeOfflineDocument()
+	if saved || !errors.Is(err, ErrOfflineProtocol) || state.Get("reads").Int() != 1 || documentOffline != previous {
+		t.Fatal("first body getter failure escaped initialization recovery or installed partial state", saved, err)
+	}
+	if len(f.commands) != 0 || f.registers != 0 || f.channels.Get("created").Int() != 0 {
+		t.Fatal("initial body getter failure reached a worker or channel")
+	}
+	offlineInteropAssertContinuation(t)
+}
+
+func TestOfflineInitializationReusesCapturedBodyForConfiguration(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	raw, err := json.Marshal(f.c.descriptor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.attrs[offline.ClientDescriptorAttribute] = string(raw)
+	// Capability refusal keeps successful initialization synchronous and avoids
+	// an automatic background status operation in this bounded unit fixture.
+	win.Get("navigator").Set("locks", js.Null())
+	body := offlineJSGet(doc, "body")
+	state := js.ValueOf(map[string]any{"reads": 0})
+	getter := js.Global().Get("Function").New("body", "state", `return function(){
+state.reads++;
+if(state.reads!==1)throw new Error('initialization reread document.body');
+return body;
+}`).Invoke(body, state)
+	js.Global().Get("Object").Call("defineProperty", doc, "body", map[string]any{"get": getter, "configurable": true})
+	saved, err := initializeOfflineDocument()
+	if saved || err != nil || state.Get("reads").Int() != 1 {
+		t.Fatal("initialization reread body instead of using its captured configuration accessor", saved, err)
+	}
+	if documentOffline == nil || documentOffline == f.c || !documentOffline.state.Configured || documentOffline.state.Supported || documentOffline.descriptor != f.c.descriptor || documentOffline.state.LastError != ErrOfflineUnsupported.Error() {
+		t.Fatal("valid captured-body attributes did not initialize configured unsupported state")
+	}
+	if len(f.commands) != 0 || f.registers != 0 || f.channels.Get("created").Int() != 0 {
+		t.Fatal("unsupported initialization started a worker or channel operation")
+	}
+	offlineInteropAssertContinuation(t)
+}
