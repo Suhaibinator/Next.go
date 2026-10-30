@@ -14,6 +14,8 @@ type Route struct {
 }
 
 type Manifest struct {
+	// MergeVersion negotiates the independent buffered client-island extension.
+	MergeVersion int `json:"mergeVersion,omitempty"`
 	// RetainRoutes opts into bounded document-local UI ownership, not HTTP reuse.
 	RetainRoutes bool `json:"retainRoutes,omitempty"`
 	// Development suppresses automatic viewport speculation, not navigation.

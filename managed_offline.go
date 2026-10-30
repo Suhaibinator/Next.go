@@ -3,6 +3,7 @@
 package nextgo
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/sha256"
@@ -10,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -122,6 +124,9 @@ func (a *App) initManagedOffline() error {
 		}
 		if _, ok := match(route.Pattern, offline.WorkerScriptPath); ok {
 			return fmt.Errorf("nextgo: offline service conflicts with a route")
+		}
+		if _, ok := match(route.Pattern, offline.RegistrationHelperPath); ok {
+			return fmt.Errorf("nextgo: offline helper conflicts with a route")
 		}
 	}
 	for path := range a.config.Handlers {
@@ -352,12 +357,17 @@ func (a *App) PrepareOfflineBundle(ctx context.Context) error {
 }
 
 // Reserved offline services and frozen runtime inventory bypass page middleware.
+// The exact privately bound registration helper is the exception: it must pass
+// through normal application headers/middleware before its inert final handler.
 // Prepared bytes have a dedicated source URL, never a header-selected variant of
 // a normal page URL. Delivery is no-store; explicit policy/native approval plus
 // the exact catalog digest governs the worker's separate manual persistence.
 func (a *App) serveManagedOffline(w http.ResponseWriter, r *http.Request) bool {
 	state := a.managedOffline
 	if state == nil || offlineCaptureFor(r) != nil {
+		return false
+	}
+	if helper, _ := r.Context().Value(offlineRegistrationHelperKey{}).(*offlineRegistrationHelperRequest); helper != nil && helper.app == a {
 		return false
 	}
 	local, inside := localRequest(r, a.paths.BasePath)
@@ -466,4 +476,197 @@ func offlineHeaderPresent(header http.Header, name string) bool {
 		}
 	}
 	return false
+}
+
+// The helper has no page/cache/SSR identity. Bind its original exact request
+// before service dispatch so middleware cannot rewrite it into a PageLoader.
+type offlineRegistrationHelperKey struct{}
+type offlineRegistrationHelperRequest struct {
+	app       *App
+	method    string
+	valid     bool
+	workerURL string
+}
+
+const offlineRegistrationHelperHTML = "<!doctype html><html data-nextgo-offline-helper=\"1\"><head></head><body></body></html>"
+
+func (a *App) offlineRegistrationHelperRequestValid(r *http.Request) bool {
+	if a.managedOffline == nil || r.URL == nil {
+		return false
+	}
+	config := a.managedOffline.policy.Config()
+	origin, err := url.Parse(config.Origin)
+	if err != nil || r.Host != origin.Host || r.URL.Host != "" && r.URL.Host != origin.Host || r.URL.Scheme != "" && r.URL.Scheme != origin.Scheme {
+		return false
+	}
+	if r.URL.RawPath != "" && r.URL.RawPath != r.URL.Path || r.URL.RawQuery != "" || r.URL.ForceQuery || r.URL.User != nil || r.URL.Opaque != "" || r.URL.Fragment != "" || r.URL.RawFragment != "" || r.Body != nil && r.Body != http.NoBody || r.ContentLength != 0 || len(r.TransferEncoding) != 0 || len(r.Trailer) != 0 {
+		return false
+	}
+	for _, name := range []string{"Range", "If-Range", "X-Nextgo-Navigate", navigation.StreamHeader, navigation.PurposeHeader, "X-Nextgo-Offline-Prepare", offlineGenerationHeader, offlineAdmissionHeader, offlineDocumentHeader} {
+		if offlineHeaderPresent(r.Header, name) {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *App) bindOfflineRegistrationHelper(r *http.Request, w http.ResponseWriter) (*http.Request, http.ResponseWriter) {
+	if a.managedOffline == nil || offlineCaptureFor(r) != nil {
+		return r, w
+	}
+	local, inside := localRequest(r, a.paths.BasePath)
+	if !inside || local.URL.EscapedPath() != offline.RegistrationHelperPath {
+		return r, w
+	}
+	binding := &offlineRegistrationHelperRequest{app: a, method: r.Method, valid: a.offlineRegistrationHelperRequestValid(r)}
+	if descriptor, err := a.offlineClientDescriptor(); err == nil {
+		if _, err = offline.RegistrationHelperURL(descriptor.WorkerURL); err == nil {
+			binding.workerURL = descriptor.WorkerURL
+		}
+	}
+	r = r.WithContext(context.WithValue(r.Context(), offlineRegistrationHelperKey{}, binding))
+	return r, wrapOfflineRegistrationHelperWriter(w, binding.workerURL)
+}
+
+func (a *App) serveOfflineRegistrationHelper(w http.ResponseWriter, r *http.Request) bool {
+	binding, _ := r.Context().Value(offlineRegistrationHelperKey{}).(*offlineRegistrationHelperRequest)
+	if binding == nil {
+		// A middleware rewrite may not acquire the helper through a different URL.
+		if a.managedOffline == nil || r.URL.EscapedPath() != offline.RegistrationHelperPath {
+			return false
+		}
+		w.Header().Set("Cache-Control", "no-store, no-transform")
+		http.NotFound(w, r)
+		return true
+	}
+	if binding.app != a || !binding.valid || binding.method != r.Method || r.URL.EscapedPath() != offline.RegistrationHelperPath || !a.offlineRegistrationHelperRequestValid(r) {
+		http.Error(w, "Offline helper request refused", http.StatusBadRequest)
+		return true
+	}
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "Offline helper requires GET or HEAD", http.StatusMethodNotAllowed)
+		return true
+	}
+	if binding.workerURL == "" {
+		http.Error(w, "Offline helper unavailable", http.StatusServiceUnavailable)
+		return true
+	}
+	if a.managedOffline.published.Load() == nil {
+		http.Error(w, "Offline bundle is not ready", http.StatusServiceUnavailable)
+		return true
+	}
+	// This handler originates no cookie. Trusted middleware's session refresh
+	// must survive; discarding it could rotate server state without the client.
+	for _, name := range []string{"ETag", "Last-Modified", "Content-Encoding", "Content-Range", "Refresh", "Location", "Content-Disposition"} {
+		w.Header().Del(name)
+	}
+	w.Header().Set("Cache-Control", "no-store, no-transform")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Length", fmt.Sprint(len(offlineRegistrationHelperHTML)))
+	w.WriteHeader(http.StatusOK)
+	if r.Method != http.MethodHead {
+		_, _ = io.WriteString(w, offlineRegistrationHelperHTML)
+	}
+	return true
+}
+
+// HeaderRules can install a final private-response writer which rewrites the
+// cache policy. This helper-only outer writer preserves no-transform even then,
+// and appends (rather than replaces) the restrictive document CSP at final write.
+// It cannot attest socket closure, a worker client disappearing, or hostile
+// middleware behavior. All ordinary route writer behavior remains untouched.
+type offlineRegistrationHelperWriter struct {
+	http.ResponseWriter
+	workerURL string
+	wrote     bool
+}
+
+func (w *offlineRegistrationHelperWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+func (w *offlineRegistrationHelperWriter) WriteHeader(status int) {
+	if w.wrote {
+		return
+	}
+	if status >= 200 || status == http.StatusSwitchingProtocols {
+		w.wrote = true
+		h := w.Header()
+		h.Set("Cache-Control", "no-store, no-transform")
+		h.Set("X-Content-Type-Options", "nosniff")
+		h.Set("Referrer-Policy", "no-referrer")
+		worker := "'none'"
+		if w.workerURL != "" {
+			worker = w.workerURL
+		}
+		h.Add("Content-Security-Policy", "default-src 'none'; script-src 'none'; worker-src "+worker+"; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'; frame-ancestors 'self'")
+		if h.Get("X-Frame-Options") == "" {
+			h.Set("X-Frame-Options", "SAMEORIGIN")
+		}
+	}
+	w.ResponseWriter.WriteHeader(status)
+}
+func (w *offlineRegistrationHelperWriter) Write(body []byte) (int, error) {
+	if !w.wrote {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(body)
+}
+
+type offlineRegistrationHelperFlushWriter struct {
+	*offlineRegistrationHelperWriter
+}
+
+func (w offlineRegistrationHelperFlushWriter) Flush() {
+	if !w.wrote {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.ResponseWriter.(http.Flusher).Flush()
+}
+
+type offlineRegistrationHelperHijackWriter struct {
+	*offlineRegistrationHelperWriter
+}
+
+func (w offlineRegistrationHelperHijackWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.ResponseWriter.(http.Hijacker).Hijack()
+}
+
+type offlineRegistrationHelperFlushHijackWriter struct {
+	*offlineRegistrationHelperWriter
+}
+
+func (w offlineRegistrationHelperFlushHijackWriter) Flush() {
+	offlineRegistrationHelperFlushWriter{w.offlineRegistrationHelperWriter}.Flush()
+}
+func (w offlineRegistrationHelperFlushHijackWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return offlineRegistrationHelperHijackWriter{w.offlineRegistrationHelperWriter}.Hijack()
+}
+func wrapOfflineRegistrationHelperWriter(w http.ResponseWriter, workerURL string) http.ResponseWriter {
+	wrapped := &offlineRegistrationHelperWriter{ResponseWriter: w, workerURL: workerURL}
+	_, flush := w.(http.Flusher)
+	_, hijack := w.(http.Hijacker)
+	if flush && hijack {
+		return offlineRegistrationHelperFlushHijackWriter{wrapped}
+	}
+	if flush {
+		return offlineRegistrationHelperFlushWriter{wrapped}
+	}
+	if hijack {
+		return offlineRegistrationHelperHijackWriter{wrapped}
+	}
+	return wrapped
+}
+
+// Bound helper requests use no content transformation, including a middleware
+// denial. Normal requests keep the existing compression/capture dispatcher.
+func (a *App) offlineRegistrationHelperHandler(plain, normal http.Handler) http.Handler {
+	if a.managedOffline == nil {
+		return normal
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if binding, _ := r.Context().Value(offlineRegistrationHelperKey{}).(*offlineRegistrationHelperRequest); binding != nil && binding.app == a {
+			plain.ServeHTTP(w, r)
+			return
+		}
+		normal.ServeHTTP(w, r)
+	})
 }

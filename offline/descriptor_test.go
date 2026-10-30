@@ -162,3 +162,38 @@ func TestWorkerDescriptorBindsExactCatalogBytesAndStableOwnerNamespace(t *testin
 		})
 	}
 }
+
+func TestRegistrationHelperURLKeepsExactWorkerGeometryAndSafePolicySyntax(t *testing.T) {
+	for _, root := range []string{"https://example.test", "https://example.test/guide", "http://localhost:8080/a-b_2.~", "http://127.0.0.1:8080/reader"} {
+		value, err := RegistrationHelperURL(root + WorkerScriptPath)
+		if err != nil || value != root+RegistrationHelperPath {
+			t.Fatal(root, value, err)
+		}
+	}
+	for _, worker := range []string{
+		"", "/_nextgo/offline/sw.js", "https://example.test/nextgo-sw.js", "https://example.test//_nextgo/offline/sw.js",
+		"https://example.test/guide/../_nextgo/offline/sw.js", "https://example.test/guide%2Fa" + WorkerScriptPath,
+		"https://example.test/guide;worker-src *" + WorkerScriptPath, "https://example.test/'" + WorkerScriptPath,
+		"https://example.test/\"" + WorkerScriptPath, "https://example.test/guide," + WorkerScriptPath,
+		"https://example.test/guide\n" + WorkerScriptPath, "https://example.test/guide\t" + WorkerScriptPath,
+		"https://example.test/guide\\" + WorkerScriptPath, "https://example.test/guide?x=1" + WorkerScriptPath,
+		"https://example.test/guide#x" + WorkerScriptPath, "https://user@example.test" + WorkerScriptPath,
+		"https://EXAMPLE.test" + WorkerScriptPath, "https://example.test:443" + WorkerScriptPath,
+		"http://example.test" + WorkerScriptPath, "https://*.example.test" + WorkerScriptPath,
+		"http://[::1]:8080/reader" + WorkerScriptPath, "http://127.0.0.2:8080/reader" + WorkerScriptPath,
+		"https://example.test/é" + WorkerScriptPath, "https://example.test/" + strings.Repeat("a", MaxURLBytes) + WorkerScriptPath,
+	} {
+		if value, err := RegistrationHelperURL(worker); err == nil || value != "" {
+			t.Fatal("unsafe helper/policy URL admitted", worker, value, err)
+		}
+	}
+	// The helper suffix is longer than the script suffix: both outputs remain
+	// bounded even when the original worker URL itself fits its existing cap.
+	root := "https://example.test/" + strings.Repeat("a", MaxURLBytes-len("https://example.test/")-len(WorkerScriptPath))
+	if len(root+WorkerScriptPath) != MaxURLBytes {
+		t.Fatal("boundary fixture")
+	}
+	if _, err := RegistrationHelperURL(root + WorkerScriptPath); err == nil {
+		t.Fatal("oversized derived helper admitted")
+	}
+}

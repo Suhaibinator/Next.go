@@ -1,0 +1,72 @@
+package worker
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/Suhaibinator/Next.go/internal/offlinejson"
+)
+
+func TestRecoveredDisableNativeContextClosedAndBounded(t *testing.T) {
+	valid := `{"url":"https://example.test/guide","id":"parent-1"}`
+	source, err := decodeRecoveredDisableSource(valid)
+	if err != nil || source.URL != "https://example.test/guide" || source.ID != "parent-1" {
+		t.Fatalf("valid native context refused: %+v %v", source, err)
+	}
+	for _, raw := range []string{
+		``, `null`, `{}`, `[]`,
+		`{"url":"https://example.test/guide"}`,
+		`{"url":"https://example.test/guide","id":null}`,
+		`{"URL":"https://example.test/guide","id":"parent-1"}`,
+		`{"url":"https://example.test/guide","id":"parent-1","clientID":"forged"}`,
+		`{"url":"https://example.test/guide","id":"parent-1","id":"forged"}`,
+		`{"url":"https://example.test/guide","id":"parent-1"} {}`,
+		`{"url":"https://example.test/guide","id":"bad id"}`,
+		`{"url":"https://example.test/guide","id":"` + strings.Repeat("x", 65) + `"}`,
+		`{"url":"https://example.test/` + strings.Repeat("x", 2048) + `","id":"parent-1"}`,
+	} {
+		if _, err := decodeRecoveredDisableSource(raw); err == nil {
+			t.Errorf("accepted invalid native context %q", raw)
+		}
+	}
+	var command Command
+	if err := offlinejson.Decode([]byte(`{"version":1,"command":"disable-recovered","ownerPolicyID":"guide","runtimeID":"runtime","configurationID":"configuration","requestID":"request-1","clientID":"forged"}`), &command); err == nil {
+		t.Fatal("authored command accepted a forged native sender ID")
+	}
+}
+
+func TestRecoveredDisableSnapshotValidation(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		pair   ioReply
+		sender string
+		want   string
+	}{
+		{"parent-and-real-helper", ioReply{Controlled: 2, ClientIDs: []string{"parent", "helper"}, VisibleIDs: []string{"parent", "helper", "uncontrolled"}}, "parent", ""},
+		{"native-null-helper-not-reported-controlled", ioReply{Controlled: 1, ClientIDs: []string{"parent"}, VisibleIDs: []string{"parent", "helper"}}, "parent", ""},
+		{"four-total", ioReply{Controlled: 4, ClientIDs: []string{"parent", "helper", "a", "b"}, VisibleIDs: []string{"parent", "helper", "a", "b"}}, "parent", ""},
+		{"five-total", ioReply{Controlled: 5, ClientIDs: []string{"parent", "helper", "a", "b", "c"}, VisibleIDs: []string{"parent", "helper", "a", "b", "c"}}, "parent", "client-capacity"},
+		{"other-worker-parent", ioReply{Controlled: 1, ClientIDs: []string{"other"}, VisibleIDs: []string{"parent", "other"}}, "parent", "sender-uncontrolled"},
+		{"controlled-absent-from-visible", ioReply{Controlled: 2, ClientIDs: []string{"parent", "helper"}, VisibleIDs: []string{"parent"}}, "parent", "clients-unavailable"},
+		{"duplicate-controlled", ioReply{Controlled: 2, ClientIDs: []string{"parent", "parent"}, VisibleIDs: []string{"parent"}}, "parent", "clients-unavailable"},
+		{"duplicate-visible", ioReply{Controlled: 1, ClientIDs: []string{"parent"}, VisibleIDs: []string{"parent", "parent"}}, "parent", "clients-unavailable"},
+		{"count-mismatch", ioReply{Controlled: 2, ClientIDs: []string{"parent"}, VisibleIDs: []string{"parent"}}, "parent", "clients-unavailable"},
+		{"negative-count", ioReply{Controlled: -1}, "parent", "clients-unavailable"},
+		{"invalid-controlled", ioReply{Controlled: 2, ClientIDs: []string{"parent", "bad id"}, VisibleIDs: []string{"parent", "bad id"}}, "parent", "clients-unavailable"},
+		{"invalid-visible", ioReply{Controlled: 1, ClientIDs: []string{"parent"}, VisibleIDs: []string{"parent", "bad id"}}, "parent", "clients-unavailable"},
+		{"invalid-sender", ioReply{Controlled: 1, ClientIDs: []string{"parent"}, VisibleIDs: []string{"parent"}}, "bad id", "clients-unavailable"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := recoveredDisableClients(test.pair, test.sender); got != test.want {
+				t.Fatalf("snapshot result %q, want %q", got, test.want)
+			}
+		})
+	}
+	visible := []string{"parent"}
+	for i := 0; i < 256; i++ {
+		visible = append(visible, "client-"+strings.Repeat("x", i%60))
+	}
+	if code := recoveredDisableClients(ioReply{Controlled: 1, ClientIDs: []string{"parent"}, VisibleIDs: visible}, "parent"); code != "clients-unavailable" {
+		t.Fatalf("oversized visible inventory accepted: %q", code)
+	}
+}

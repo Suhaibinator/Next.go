@@ -1,0 +1,146 @@
+# Private native Disable recovery qualification
+
+This is an unformatted, uncompiled private source candidate. It is not an admitted
+CI profile, production release, runtime result, full Next.js replacement, or a
+claim that the framework is production mature. Native browser qualification and
+all79 capabilities/11 release gates remain open. Both local Go caches are held,
+preview3011 is protected, and AWS remains NO.
+
+## Implemented source and authority
+
+A single static platform bridge is prepended to the existing boot.js before Go
+starts. Application state, routing and worker policy remain in Go. The bridge
+captures33 DOM/SW native getter/method functions and finite preparation primitives
+under trusted startup and continuing normal-platform semantics. It performs one
+synchronous native ownership snapshot and exact native dispatch after the owned
+Go authorization callback has linearized the exact cell/owner/operation/nonce.
+There is no authored getter, Go/app callback, constructor, Promise observer or
+await between final native facts and native dispatch. Only the initial parent
+query fault is authored; every fresh first/final/child/retired-parent inventory
+uses captured native methods and complete bounded native-field snapshots.
+
+The exact parent record may still have empty worker slots. That is read-only
+corroboration, never parent registration mutation authority. The parent native
+controller must be exact, nonnull and owned. Child native registration inventory,
+all slots/URLs and operation target must prove ownership; foreign overlaps,
+duplicates, missing/partial/brand failures refuse. Successful native worker ACK
+and native sender inclusion in the same controlled/visible pair couple the
+actual parent to the actual target engine. Equal scope/script text does not
+prove cross-partition object identity. Engine cap4 remains unchanged; the helper
+is a real client with no exemption.
+
+Fresh Disable status/control state is published only after a successful known
+reply. Errored default false does not become confirmed Disabled. Native calls,
+ports and callbacks are linked/charged before potential delivery; cancellation
+cannot retry a destructive command or manufacture settlement. Actual native
+unregister true/false/rejection and earlier successful Disable ACK remain distinct
+partial outcomes. Success requires child native absence and a fresh parent-only
+absence query after checked frame retirement. Native registry jobs are not CAS;
+frame removal does not prove worker death, global job quiescence or client-ID
+removal. Public serialized props/diagnostics remain browser-visible data.
+
+Business entry and cleanup use different Go gates. Current authority/context is
+needed for new business work. Original physical custody permits cleanup after
+cancellation/controller replacement without granting new worker mutation or state
+publication. Loaded helper cleanup, trusted-terminal unopened/CSP-denied cleanup,
+and proved never-connected private node cleanup are separate modes. Retargeted,
+moved, unknown-delivery or invalid native-identity state retains one quarantine;
+no remove-as-abort or second helper attempt is allowed.
+
+Missing DOM/SW/secure-context APIs or a failed capture/claim disable only offline
+support. The bootstrap catches that optional failure locally; package init and
+ordinary SSR/WASM/counter/navigation/core/module imports continue. No production
+facet setter or map fallback exists. Unit map facets are explicitly TESTONLY.
+
+## Continuing execution assumptions and current limits
+
+The matched Go shim, native Promise/FrozenArray resolution and intrinsic transfer
+semantics must remain ordinary during an operation. Hostile replacement of
+Array.prototype.then/Object.prototype.then can alter native asynchronous query
+resolution and is unsupported. No global freeze, prototype sandbox or pre/post
+continuity proof is claimed. Instance/own worker.scriptURL getters removing or
+retargeting a helper are still required reentry cases; final native reads bypass
+them. Native WindowProxy/borrowed cross-realm getter acceptance must be measured
+in actual supported browsers; missing/throwing native capability refuses.
+
+Current callback counters prove Go handler-body completion, not return of the
+outer JavaScript wrapper/native Promise reaction. Official Go permits releasing
+a Func while it is running, so this is not by itself an unsafe Release claim.
+No post-decrement child-native/property read was found in the current callback
+tails. The stronger native-return/child-quiescence contract remains unqualified.
+A separate parent-native callback-return prototype is being reviewed before
+production integration; no default unit or compilation result may be relabeled
+as that proof. The four specially tagged native Go witnesses remain explicitly
+HELD and retain unresolved observer ownership rather than falsely claiming join.
+
+Fresh UPDATE uses captured native queries and native update dispatch, preserving
+the original normal query trace and allowing an owned waiting/installing slot
+when active is null. Its old waiting/parent-status RPC physical seam remains
+unqualified. Diagnostics preserve the real per-native UPDATE result while whole
+coverage stays UNKNOWN; cleanupKnown is false once a legacy RPC is reached.
+Actual frame listener/removal evidence remains mandatory. A denied helper before
+any legacy RPC may report checked unopened cleanup separately.
+
+## Same-production observations and browser cases
+
+Read-only Go diagnostics copy one current-attempt scalar record from actual
+bridge/cell/realm receipts. Unknown evidence is null/UNKNOWN, not zero. No native
+refs, callbacks, nonce/requestID, capability, setter, ring, observer or extra
+resource pool is exposed. The sample publishes a bounded envelope after the
+public action returns, correlating an actual diagnostic admission revision with
+its own completed-action revision. No advancement means unavailable rather than
+reusing a prior attempt. Diagnostics do not replace confirmed business state.
+
+Startup-native capture bypasses old post-startup prototype/channel/listener spies.
+The reviewed fixture derivative therefore replaces that observation channel with
+actual same-production receipts and independent real DOM/load/registry/cache
+observations. It preserves16 declaration titles/intended outcomes, retry policy,
+timeouts and worker/native boolean assertions; old immutable case bodies remain
+archived. The first eight bodies, passive HTTP policy probe and raw native
+cross-worker declaration remain byte-exact. UPDATE cases9/10 and private Disable
+observation helpers are explicit derivatives, not silently identical witnesses.
+One test document capture-load listener replaces old frame-own load observation;
+it is cleaned on setup error and retirement. It is absent from production.
+
+The prospective CORE profile selects all10 historical declarations plus five
+current-generation declarations:60 cases across four existing projects. Genuine
+legacy4 and helper-response-CSP4 are separate unadmitted profiles, never deleted,
+skipped or marked passed by selection. Source configuration is not collection or
+execution evidence. The ebb Firefox HTTP-policy test-probe failure remains a historical alternate
+FAIL. Root's fresh3d core result is17PASS/1FirefoxFAIL/22UNRUN: the explicit
+Disable page still rendered enabled=true with operation-error=conflict before
+the Firefox policy case, which was unrun. Go source is identical across those
+published revisions; no regression cause or private-source runtime fix is
+inferred. The passive diagnostic and this unrun candidate supply no causal
+production claim.
+
+Private added cases exercise parent-empty native Disable, native parent frame-CSP
+denial, actual three-user-document client cap success, over-four refusal without
+false state, same-script uncontrolled target refusal, and genuine previous-worker
+unsupported recovery without legacy replay. Native sender IDs, actual ACK/error,
+unregister boolean, final registry, retained index/cache data and DOM/counter
+identity remain real required observations. Persisted retained counts come from
+the worker's actual snapshot; no helper subtraction or frame0-to-clientID claim.
+
+## Deferred and unadmitted checks
+
+Default Node-compatible JS unit roots and four future native-browser-tagged Go
+roots have separate inventories. The native tag is
+js && wasm && nextgo_native_browser && !nextgo_module; it is not selected or
+qualified by default compilation. Missing native preconditions fail its future
+profile; unresolved callback return deliberately keeps it HELD. Source fake
+facets prove state-machine behavior only. No new browser declaration/case count
+or source cap is admitted here. A bounded hosted Go1.24/1.27 first-compile/default
+unit plan must use exact final pins, filters and root arrays under separate Root
+review, without waiting for the held native profile to reveal compilation errors.
+
+Genuine legacy qualification requires genuine immutable pre-recovery artifacts.
+The unchanged optional body still uses the old strict two-binary index until a
+separate reviewed A-only loader is deliberately composed. One A build cannot
+satisfy two-index input. The dedicated genuine A-only producer/loader proposal is
+separate and still held on finite timeout, whole-job disk, cold IO and transport
+configuration gates. No fake old worker or unapproved AWS/network work is used.
+
+Broader parity and maturity conclusions remain subject to their existing
+implementation and qualification records. This private native recovery increment
+does not close those release gates by itself.

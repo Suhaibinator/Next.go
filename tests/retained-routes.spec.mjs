@@ -1,6 +1,7 @@
 import {test as base,expect} from '@playwright/test';
 import {startRetainedServer} from './retained-routes-fixture.mjs';
 import {holdRequests,holdPage} from './link-status-gates.mjs';
+import {armRetainedScrollProbe,collectRetainedScrollProbe} from './retained-scroll-diagnostics.mjs';
 
 const test=base.extend({native:async({page},use,info)=>{
   const startup=new AbortController();const closed=()=>startup.abort(Error('Owned page closed during startup'));page.once('close',closed);
@@ -25,6 +26,66 @@ async function status(page){return (await page.request.get('/api/health')).json(
 async function control(page,value){const response=await page.request.post('/api/control',{data:value});expect(response.status()).toBe(200);}
 async function saveA(page){await page.evaluate(()=>{globalThis.retainedDocument=document;const root=[...document.querySelectorAll('[data-retained-panel]')].find(node=>node.getAttribute('data-retained-panel')==='A');globalThis.retainedA={owner:root.closest("main"),root,count:root.querySelector('[data-retained-count]'),text:root.querySelector('[data-retained-count]').firstChild,draft:root.querySelector('[data-retained-draft]'),details:root.querySelector('[data-retained-details]')};});}
 async function backA(page){await page.goBack();await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','A');}
+
+// Test-only observations AFTER the original owner-scroll assertion outcome.
+// These diagnostic frames are separate from the runtime settlement frames.
+async function collectOwnerScrollAftermath(page){
+  return page.evaluate(()=>new Promise(resolve=>{
+    const phases={frame1:{requested:false,delivered:false,sample:null},frame2:{requested:false,delivered:false,sample:null},endpoint:{requested:false,delivered:false,sample:null}};
+    const cleanup={frameCancelAttempted:false,frameCancelFailed:false,timerCancelAttempted:false,timerCancelFailed:false,listenerRemoveAttempted:false,listenerRemoveFailed:false};
+    let closed=false,frame=null,timer=null,listening=false,sequence=0;
+    const number=value=>Number.isFinite(value)&&Math.abs(value)<=10_000_000?{present:true,value}:{present:false,value:null};
+    const started=(()=>{try{return performance.now();}catch{return null;}})();
+    const elapsed=()=>{try{return started===null?{present:false,value:null}:number(performance.now()-started);}catch{return {present:false,value:null};}};
+    function sample(){
+      try{
+        const owner=globalThis.retainedOwner,draft=owner?.querySelector('[data-retained-draft]');
+        if(!owner||!draft||document!==globalThis.ownerDocument)return {complete:false};
+        return {complete:true,ownerY:number(owner.scrollTop),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyY:number(history.state?.nextgoY),selectionStart:number(draft.selectionStart),selectionEnd:number(draft.selectionEnd),selectionForward:draft.selectionDirection==='forward',selectionBackward:draft.selectionDirection==='backward',selectionNone:draft.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:true,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),hydrationReady:document.body?.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app')?.hasAttribute('aria-busy')===true,visible:document.visibilityState==='visible'};
+      }catch{return {complete:false};}
+    }
+    function finish(reason){
+      if(closed)return;
+      closed=true;
+      try{
+        // Promise reactions run after this synchronous cleanup. Late callbacks
+        // observe closed and cannot read or schedule more work.
+        resolve({version:1,diagnosticOnly:true,reason,requestedDelayMS:250,phases,cleanup});
+      }finally{
+        if(frame!==null){cleanup.frameCancelAttempted=true;try{cancelAnimationFrame(frame);}catch{cleanup.frameCancelFailed=true;}frame=null;}
+        if(timer!==null){cleanup.timerCancelAttempted=true;try{clearTimeout(timer);}catch{cleanup.timerCancelFailed=true;}timer=null;}
+        if(listening){cleanup.listenerRemoveAttempted=true;try{document.removeEventListener('visibilitychange',visibility);}catch{cleanup.listenerRemoveFailed=true;}listening=false;}
+      }
+    }
+    function capture(name){
+      if(closed)return;
+      phases[name].delivered=true;phases[name].sequence=++sequence;phases[name].elapsedMS=elapsed();phases[name].sample=sample();
+    }
+    function second(){
+      if(closed)return;
+      frame=null;capture('frame2');
+    }
+    function first(){
+      if(closed)return;
+      frame=null;capture('frame1');
+      try{frame=requestAnimationFrame(second);phases.frame2.requested=true;}catch{finish('second-frame-registration-failed');}
+    }
+    function endpoint(){
+      if(closed)return;
+      timer=null;capture('endpoint');finish('timer-endpoint');
+    }
+    function visibility(){
+      if(closed)return;
+      finish('visibility-change');
+    }
+    try{
+      if(document.visibilityState!=='visible'){finish('hidden-at-setup');return;}
+      document.addEventListener('visibilitychange',visibility,{once:true});listening=true;
+      timer=setTimeout(endpoint,250);phases.endpoint.requested=true;
+      frame=requestAnimationFrame(first);phases.frame1.requested=true;
+    }catch{finish('setup-failed');}
+  }));
+}
 
 test('meaningful SSR and hydration precede exact retained counter draft and details identity',async({page,native})=>{
   const core=await holdRequests(page,'**/app.wasm',()=>true);
@@ -60,7 +121,7 @@ test('hidden effects stop and a real owned HTTP read is canceled without replay'
 });
 
 test('history restores focus and real window and nested scroll without reloading the document',async({page,native},info)=>{
-  let saved,outgoing,afterBack;
+  let saved,outgoing,afterBack,phaseProbe,phaseArmAttempted=false,originalAssertionAttempted=false;
   try{
   await page.goto(native.origin+'/a');await ready(page);await saveA(page);await part(page,'draft').fill('Focused draft');await part(page,'draft').focus();
   await page.evaluate(()=>{window.scrollTo(0,500);document.querySelector('[data-retained-scroll]').scrollTop=160;});
@@ -77,6 +138,11 @@ test('history restores focus and real window and nested scroll without reloading
     };
     const before=read();document.querySelector('nav a[href="/b"]').click();return {before,after:read()};
   });await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
+  // Source-admitted diagnostic: arm only on B, immediately before expected back.
+  // Native wrappers and selection IDL probes may change scheduling; a pass is not
+  // a bug-fix result. Setup/collection failure must preserve the original test.
+  phaseArmAttempted=true;
+  try{phaseProbe=await armRetainedScrollProbe(page);}catch{}
   await backA(page);await expect(part(page,'draft')).toBeFocused();
   const restored=await page.evaluate(()=>{
     // Sample the original assertion's exact fields FIRST, before diagnostics.
@@ -89,12 +155,18 @@ test('history restores focus and real window and nested scroll without reloading
     return {actual,observation};
   });
   afterBack=restored.observation;
+  originalAssertionAttempted=true;
   expect(restored.actual).toEqual({...saved,same:true});
   // This fixture has no application status styles: loading must not move it.
   expect(outgoing.before.complete && outgoing.after.complete).toBe(true);
   expect(outgoing.after.windowY).toEqual(outgoing.before.windowY);
   expect(outgoing.after.documentY).toEqual(outgoing.before.documentY);
   }finally{
+    // Collect only after the original assertion attempt (or an earlier original
+    // failure). No geometry reads, extra focus/scroll calls, waits, or retries occur.
+    let phase;
+    try{phase=await collectRetainedScrollProbe(page,phaseProbe,phaseArmAttempted);}
+    catch{phase={version:1,observed:false,sameDocument:null,cleanup:{attempted:null},collectionFailed:true};}
     // Attachment happens after the original assertion attempt. Missing values
     // stay unknown; a later historyY is not the popstate event's saved value.
     try{
@@ -103,6 +175,12 @@ test('history restores focus and real window and nested scroll without reloading
       if(body.length<=4096)await info.attach('retained-scroll-observations',{body,contentType:'application/json'});
       else console.warn('Retained scroll diagnostics incomplete: attachment byte cap');
     }catch{console.warn('Retained scroll diagnostics incomplete: attachment failed');}
+    try{
+      const proof={version:1,phaseArmAttempted,originalAssertionAttempted,phase};
+      const body=Buffer.from(JSON.stringify(proof));
+      if(body.length<=8192)await info.attach('retained-scroll-phase-observations',{body,contentType:'application/json'});
+      else console.warn('Retained scroll phase diagnostics incomplete: attachment byte cap');
+    }catch{console.warn('Retained scroll phase diagnostics incomplete: attachment failed');}
   }
 });
 
@@ -158,18 +236,25 @@ test('a sole eager island owner retains its own identity state and scroll contai
   try{
   await page.goto(native.origin+'/owner');await ready(page);
   await expect(page.locator('#nextgo-app > [data-nextgo-island="retentionpanel"]')).toHaveAttribute('data-nextgo-hydrated','true');
-  await part(page,'increment').click();await part(page,'draft').fill('Owner island draft');
+  await part(page,'increment').click();
   const sampled=await page.evaluate(()=>{
-    const owner=document.querySelector('#nextgo-app > [data-nextgo-island]');globalThis.retainedOwner=owner;globalThis.ownerDocument=document;owner.scrollTop=200;
+    const owner=document.querySelector('#nextgo-app > [data-nextgo-island]'),draft=owner.querySelector('[data-retained-draft]');
+    globalThis.retainedOwner=owner;globalThis.ownerDocument=document;
+    // Establish native draft/focus/scroll state without an earlier fill action's
+    // caret-reveal work. Capture and dispatch the eligible anchor in this same
+    // synchronous task, so observation and native dispatch cannot drift between tasks.
+    draft.value='Owner island draft';draft.focus({preventScroll:true});owner.scrollTop=200;
     // Sample the original actual scroll field before any diagnostic reads.
     const actual=owner.scrollTop;
     const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
-    return {actual,observation:read()};
-  });const scroll=sampled.actual;savedActual=scroll;savedObservation=sampled.observation;expect(scroll).toBeGreaterThan(0);
-  outgoingObservation=await page.evaluate(()=>{
-    const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
-    const before=read();retainedOwner.querySelector('a[href="/b"]').click();return {before,after:read()};
-  });await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
+    const before=read();owner.querySelector('a[href="/b"]').click();
+    return {actual,observation:before,outgoing:{before,after:read()}};
+  });const scroll=sampled.actual;savedActual=scroll;savedObservation=sampled.observation;outgoingObservation=sampled.outgoing;
+  expect(scroll).toBe(200);expect(savedObservation.focusedDraft).toBe(true);
+  expect(outgoingObservation.before.complete&&outgoingObservation.after.complete).toBe(true);
+  expect(outgoingObservation.before.ownerY).toEqual({present:true,value:200});
+  expect(outgoingObservation.after.ownerY).toEqual(outgoingObservation.before.ownerY);
+  await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
   await page.goBack();await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','OWNER');
   expect(await page.evaluate(()=>retainedOwner===document.querySelector('#nextgo-app > [data-nextgo-view-active]')&&document===ownerDocument)).toBe(true);
   const restored=await page.evaluate(()=>{
@@ -178,7 +263,7 @@ test('a sole eager island owner retains its own identity state and scroll contai
     const read=()=>{try{const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),owner=retainedOwner,draft=owner.querySelector('[data-retained-draft]');return {complete:true,ownerX:number(owner.scrollLeft),ownerY:number(owner.scrollTop),windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),selectionStart:number(draft?.selectionStart),selectionEnd:number(draft?.selectionEnd),selectionForward:draft?.selectionDirection==='forward',selectionBackward:draft?.selectionDirection==='backward',selectionNone:draft?.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:document===ownerDocument,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),pathOwner:location.pathname==='/owner',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy')};}catch{return {complete:false};}};
     return {actual,observation:read()};
   });afterBackActual=restored.actual;afterBackObservation=restored.observation;
-  expect(restored.actual).toBe(scroll);await expect(part(page,'count')).toHaveText('3');await expect(part(page,'draft')).toHaveValue('Owner island draft');
+  expect(restored.actual).toBe(scroll);expect(afterBackObservation.focusedDraft).toBe(true);await expect(part(page,'count')).toHaveText('3');await expect(part(page,'draft')).toHaveValue('Owner island draft');
   }finally{
     // Fixed scalar observations do not reveal component text, props or URLs.
     // Outgoing commit-time capture is unobserved; these are click/back samples.
@@ -188,6 +273,14 @@ test('a sole eager island owner retains its own identity state and scroll contai
       if(body.length<=4096)await info.attach('retained-owner-scroll-observations',{body,contentType:'application/json'});
       else console.warn('Retained owner scroll diagnostics incomplete: attachment byte cap');
     }catch{console.warn('Retained owner scroll diagnostics incomplete: attachment failed');}
+    // Run only after the original assertion outcome; these observations cannot
+    // turn an immediate scroll failure into a later passing assertion.
+    if(Number.isFinite(savedActual)&&Number.isFinite(afterBackActual)&&afterBackActual!==savedActual)try{
+      const aftermath=await collectOwnerScrollAftermath(page);
+      const body=Buffer.from(JSON.stringify(aftermath));
+      if(body.length<=8192)await info.attach('retained-owner-scroll-aftermath',{body,contentType:'application/json'});
+      else console.warn('Retained owner aftermath incomplete: attachment byte cap');
+    }catch{try{console.warn('Retained owner aftermath incomplete: observation failed');}catch{}}
   }
 });
 

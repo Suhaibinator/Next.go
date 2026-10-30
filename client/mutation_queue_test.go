@@ -183,7 +183,7 @@ func TestMutationQueueCanceledOrFrozenGrantPassesSlotWithoutDispatch(t *testing.
 			defer cancel(nil)
 			// Stage the exact handoff window: grant has been signaled, but
 			// acquire has not yet returned its lease to a transport owner.
-			w := &mutationDispatchWaiter{ready: make(chan struct{}), state: mutationGranted}
+			w := &mutationDispatchWaiter{done: ctx.Done(), ready: make(chan struct{}), state: mutationGranted}
 			q.active = w
 			cause := errors.New("canceled during grant")
 			if frozen {
@@ -213,7 +213,7 @@ func TestMutationQueueReopenCannotResurrectSignaledUnacceptedGrant(t *testing.T)
 	}
 	// Hold acquire immediately after its FIFO grant signal, before accept
 	// transfers ownership to a transport. No scheduler timing is involved.
-	w := &mutationDispatchWaiter{ctx: context.Background(), ready: make(chan struct{})}
+	w := &mutationDispatchWaiter{ready: make(chan struct{})}
 	q.mu.Lock()
 	q.waiting = append(q.waiting, w)
 	q.mu.Unlock()
@@ -292,5 +292,237 @@ func TestMutationQueueConcurrentHandoffsStayExclusive(t *testing.T) {
 	defer q.mu.Unlock()
 	if q.active != nil || len(q.waiting) != 0 {
 		t.Fatal("queue retained completed owners")
+	}
+}
+
+// Context methods are application code even when Value forwards a valid
+// framework task. Hooks deliberately reenter this queue; no watcher is added.
+type mutationReentrantContext struct {
+	base                                              context.Context
+	errHook, valueHook, doneHook, afterHook, stopHook func()
+	errCalls, valueCalls, doneCalls, deadlineCalls    atomic.Int32
+	afterCalls, stopCalls                             atomic.Int32
+}
+
+func (c *mutationReentrantContext) Deadline() (time.Time, bool) {
+	c.deadlineCalls.Add(1)
+	return c.base.Deadline()
+}
+func (c *mutationReentrantContext) Done() <-chan struct{} {
+	c.doneCalls.Add(1)
+	if c.doneHook != nil {
+		c.doneHook()
+	}
+	return c.base.Done()
+}
+func (c *mutationReentrantContext) Err() error {
+	c.errCalls.Add(1)
+	if c.errHook != nil {
+		c.errHook()
+	}
+	return c.base.Err()
+}
+func (c *mutationReentrantContext) Value(key any) any {
+	c.valueCalls.Add(1)
+	if c.valueHook != nil {
+		c.valueHook()
+	}
+	return c.base.Value(key)
+}
+func (c *mutationReentrantContext) AfterFunc(func()) func() bool {
+	c.afterCalls.Add(1)
+	if c.afterHook != nil {
+		c.afterHook()
+	}
+	return func() bool {
+		c.stopCalls.Add(1)
+		if c.stopHook != nil {
+			c.stopHook()
+		}
+		return true
+	}
+}
+
+func TestMutationQueueContextErrCanReenterAcquireBeforeAdmission(t *testing.T) {
+	q := newMutationDispatchQueue(0)
+	var once sync.Once
+	var nestedErr error
+	ctx := &mutationReentrantContext{base: context.Background()}
+	ctx.errHook = func() {
+		once.Do(func() {
+			release, err := q.acquire(context.Background())
+			nestedErr = err
+			if release != nil {
+				release()
+			}
+		})
+	}
+	results := make(chan mutationQueueResult, 1)
+	go func() { release, err := q.acquire(ctx); results <- mutationQueueResult{release: release, err: err} }()
+	result := mutationQueueReceive(t, results)
+	if result.err != nil || nestedErr != nil || result.release == nil {
+		t.Fatal("context Err reentry failed", result.err, nestedErr)
+	}
+	defer result.release()
+	if ctx.errCalls.Load() == 0 || ctx.doneCalls.Load() != 1 {
+		t.Fatal("initial observation or cached Done missing", ctx.errCalls.Load(), ctx.doneCalls.Load())
+	}
+}
+
+func TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission(t *testing.T) {
+	q := newMutationDispatchQueue(0)
+	ctx := &mutationReentrantContext{base: context.Background(), doneHook: q.freeze}
+	results := make(chan mutationQueueResult, 1)
+	go func() { release, err := q.acquire(ctx); results <- mutationQueueResult{release: release, err: err} }()
+	result := mutationQueueReceive(t, results)
+	if result.release != nil || !errors.Is(result.err, ErrMutationQueueFrozen) {
+		t.Fatal("Done reentry freeze was missed", result.err)
+	}
+	q.reopen()
+	release, err := q.acquire(context.Background())
+	if err != nil {
+		t.Fatal("queue stayed poisoned", err)
+	}
+	release()
+}
+
+func TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender(t *testing.T) {
+	q := newMutationDispatchQueue(0)
+	base, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	cause := errors.New("source task canceled at handoff")
+	ctx := &mutationReentrantContext{base: base}
+	w := &mutationDispatchWaiter{done: base.Done(), ready: make(chan struct{}), state: mutationGranted}
+	q.active = w
+	var newOwner func()
+	var nestedErr error
+	ctx.valueHook = func() {
+		// Reopen plus new admission during Cause lookup must not resurrect or
+		// release the old canceled ticket, nor run while q.mu is held.
+		q.freeze()
+		q.reopen()
+		newOwner, nestedErr = q.acquire(context.Background())
+	}
+	cancel(cause)
+	results := make(chan mutationQueueResult, 1)
+	go func() { release, err := q.accept(ctx, w); results <- mutationQueueResult{release: release, err: err} }()
+	result := mutationQueueReceive(t, results)
+	if result.release != nil || !errors.Is(result.err, cause) || nestedErr != nil || newOwner == nil {
+		t.Fatal("cause lookup retained canceled grant", result.err, nestedErr)
+	}
+	defer newOwner()
+	q.mu.Lock()
+	stillOwned := q.active != nil && q.active != w && q.active.accepted && w.state == mutationFinished
+	q.mu.Unlock()
+	if !stillOwned || ctx.valueCalls.Load() != 1 {
+		t.Fatal("old result changed new owner or lost Cause probe")
+	}
+}
+
+func TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks(t *testing.T) {
+	q := newMutationDispatchQueue(0)
+	q.freeze()
+	base, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	cause := errors.New("already canceled")
+	cancel(cause)
+	ctx := &mutationReentrantContext{base: base, valueHook: q.freeze}
+	results := make(chan mutationQueueResult, 1)
+	go func() { release, err := q.acquire(ctx); results <- mutationQueueResult{release: release, err: err} }()
+	result := mutationQueueReceive(t, results)
+	if result.release != nil || !errors.Is(result.err, cause) || ctx.valueCalls.Load() != 1 || ctx.doneCalls.Load() != 0 {
+		t.Fatal("cancellation precedence changed", result.err)
+	}
+}
+
+func TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe(t *testing.T) {
+	q := newMutationDispatchQueue(2)
+	active, err := q.acquire(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer active()
+	base, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	cause := errors.New("head canceled")
+	ctx := &mutationReentrantContext{base: base}
+	canceled := &mutationDispatchWaiter{done: base.Done(), ready: make(chan struct{})}
+	live := &mutationDispatchWaiter{ready: make(chan struct{})}
+	q.mu.Lock()
+	q.waiting = append(q.waiting, canceled, live)
+	q.mu.Unlock()
+	cancel(cause)
+	active()
+	if ctx.errCalls.Load()+ctx.valueCalls.Load()+ctx.doneCalls.Load() != 0 {
+		t.Fatal("release invoked authored context")
+	}
+	select {
+	case <-canceled.ready:
+	default:
+		t.Fatal("canceled head was not woken")
+	}
+	select {
+	case <-live.ready:
+	default:
+		t.Fatal("live successor was not granted")
+	}
+	if release, err := q.accept(ctx, canceled); release != nil || !errors.Is(err, cause) {
+		t.Fatal("canceled head lost cause", err)
+	}
+	release, err := q.accept(context.Background(), live)
+	if err != nil {
+		t.Fatal("live successor lost grant", err)
+	}
+	release()
+}
+
+func TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop(t *testing.T) {
+	q := newMutationDispatchQueue(1)
+	active, err := q.acquire(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer active()
+	base, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+	ctx := &mutationReentrantContext{base: base, afterHook: q.freeze, stopHook: q.reopen}
+	results := make(chan mutationQueueResult, 1)
+	go func() { release, err := q.acquire(ctx); results <- mutationQueueResult{release: release, err: err} }()
+	mutationQueueWaiting(t, q, 1)
+	cause := errors.New("cancel cached channel")
+	cancel(cause)
+	result := mutationQueueReceive(t, results)
+	if result.release != nil || !errors.Is(result.err, cause) {
+		t.Fatal("cached cancellation failed", result.err)
+	}
+	if ctx.doneCalls.Load() != 1 || ctx.afterCalls.Load() != 0 || ctx.stopCalls.Load() != 0 || ctx.deadlineCalls.Load() != 0 {
+		t.Fatal("new hook/watcher or repeated Done", ctx.doneCalls.Load(), ctx.afterCalls.Load(), ctx.stopCalls.Load(), ctx.deadlineCalls.Load())
+	}
+	active()
+}
+
+func TestMutationQueueDuplicateAcceptCannotCreateTwoOwners(t *testing.T) {
+	q := newMutationDispatchQueue(0)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	w := &mutationDispatchWaiter{done: ctx.Done(), ready: make(chan struct{}), state: mutationGranted}
+	q.active = w
+	first, err := q.accept(ctx, w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer first()
+	if release, err := q.accept(ctx, w); release != nil || err == nil {
+		t.Fatal("same grant accepted twice")
+	}
+	cancel()
+	if release, err := q.accept(ctx, w); release != nil || err == nil {
+		t.Fatal("canceled duplicate accept surrendered owned transport")
+	}
+	q.mu.Lock()
+	stillOwned := q.active == w && w.accepted && w.state == mutationGranted
+	q.mu.Unlock()
+	if !stillOwned {
+		t.Fatal("duplicate accept changed exact active owner")
 	}
 }

@@ -47,6 +47,13 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 	if nodes["count"].Value.Get("textContent").String() != strconv.FormatInt(props.Count, 10) || nodes["revision"].Value.Get("textContent").String() != strconv.FormatInt(props.Revision, 10) {
 		return fmt.Errorf("action view state does not match server props")
 	}
+	// This public code comes only from the typed mutation decoder. Keep it
+	// alongside the displayed status so observers never need a second body read.
+	setStatus := func(message, publicErrorCode string) {
+		nodes["status"].Attribute("data-av-error-code", publicErrorCode)
+		nodes["status"].Text(message)
+	}
+	nodes["status"].Attribute("data-av-error-code", "")
 	ctx, cancel := context.WithCancel(context.Background())
 	closed := false
 	scope.Cleanup(cancel)
@@ -69,7 +76,7 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 		} else if receipt.ViewError || !receipt.Applied {
 			message = "Saved; refreshed view could not finish. Refresh without repeating the action."
 		}
-		nodes["status"].Text(message)
+		setStatus(message, "")
 	}))
 	// A lazy Go executable has its own package globals. Its bounded public
 	// receipt crosses the document bridge as data, then joins this eager state.
@@ -101,6 +108,7 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 		if mode == "only" && ordinaryBusy || mode != "only" && combinedBusy {
 			return
 		}
+		nodes["status"].Attribute("data-av-error-code", "")
 		amount, err := strconv.ParseInt(nodes["amount"].Value.Get("value").String(), 10, 64)
 		if err != nil {
 			nodes["error"].Text("Enter a whole number from 1 to 5.")
@@ -116,7 +124,7 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 			combinedBusy = true
 		}
 		nodes["error"].Text("")
-		nodes["status"].Text("Saving; waiting for confirmed data and the view…")
+		setStatus("Saving; waiting for confirmed data and the view…", "")
 		setBusy()
 		go func() {
 			var receipt Receipt
@@ -159,12 +167,14 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 			setBusy()
 			if callErr != nil {
 				message := "Save outcome is unknown. Refresh to reconcile before retrying."
+				publicErrorCode := ""
 				var public *mutation.Error
 				if errors.As(callErr, &public) {
 					message = public.Message
+					publicErrorCode = public.Code
 					nodes["error"].Text(public.Fields["amount"])
 				}
-				nodes["status"].Text(message)
+				setStatus(message, publicErrorCode)
 			}
 		}()
 	}

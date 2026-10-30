@@ -9,13 +9,16 @@ use the existing rebuild and full-document reload path.
 This is a bounded experimental development feature with the scoped qualification
 recorded below. It does not provide full Fast Refresh, React/Next.js source
 compatibility, arbitrary Go heap migration, or production hot swapping. The
-normal production module entrypoint and navigation-v3/module-ABI5 contracts
-remain separate from the version-1 development extension. ABI 5 adds
-[per-anchor link-status forwarding](LINK_STATUS.md) alongside resource epochs.
+normal production module entrypoint and navigation-v3/module-ABI6 contracts
+remain separate from the version-1 development extension. ABI 6 adds document-
+authority revocation before module observer dispatch, retaining resource epochs
+and the [per-anchor link-status forwarding](LINK_STATUS.md) introduced by ABI 5.
 Rebuild the eager core, every lazy module and the development entries together
-from the same framework revision and selected Go SDK. Mixed ABI 4/5 artifacts
+from the same framework revision and selected Go SDK. Mixed ABI 5/6 artifacts
 are rejected; reusing an older core, module or development entry is unsupported.
-Historical ABI 3/4 checkpoint evidence below does not qualify the ABI 5 increment.
+Historical ABI 3/4/5 checkpoint evidence below does not qualify ABI 6. The paired
+ABI-6 and query/Refresh merge increment is source-only and unqualified; it adds
+no development state-transfer contract for Props, ClientView or arbitrary scopes.
 Development gating controls activation; shared Go library paths can still be
 linked into production WASM. This does not claim zero production payload cost
 or that all development implementation code is absent from those binaries.

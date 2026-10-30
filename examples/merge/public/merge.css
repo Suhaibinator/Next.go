@@ -1,0 +1,4 @@
+#nextgo-app > header, #nextgo-app > section, #nextgo-app > aside, #nextgo-app > footer { max-width: 52rem; margin: 1rem auto; padding: .75rem; }
+#nextgo-app > .merge-carrier { --merge-direct-child: yes; }
+.merge-carrier { border: 1px solid #888; }
+[data-merge-panel] { display: grid; gap: .5rem; }

@@ -17,6 +17,7 @@ type clientViewTransaction struct {
 	root, view, fallback, parent js.Value
 	focus                        keyedFocus
 	ready                        bool
+	child                        *Scope
 }
 
 // ClientView replaces the fallback of an explicit ui.ClientIsland. Call it once
@@ -89,6 +90,7 @@ func (s *Scope) ClientView(node ui.Node) (*Scope, error) {
 	if err != nil {
 		return nil, err
 	}
+	tx.child = child
 	tx.ready = true
 	return child, nil
 }

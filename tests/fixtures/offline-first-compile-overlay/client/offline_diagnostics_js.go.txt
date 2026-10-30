@@ -1,0 +1,154 @@
+//go:build js && wasm
+
+package client
+
+// OfflineRecoveryObservation returns one value copy. It performs no JS work,
+// accepts no revision input, and never changes authority or confirmed state.
+func OfflineRecoveryObservation() OfflineRecoveryDiagnostic {
+	offlineAuthorityMu.Lock()
+	var snapshot OfflineRecoveryDiagnostic
+	if documentOffline != nil { snapshot = documentOffline.diag }
+	offlineAuthorityMu.Unlock()
+	return snapshot.sanitized()
+}
+
+type OfflineDiagnosticMethod uint8
+const (
+	OfflineDiagnosticMethodUpdate OfflineDiagnosticMethod = iota + 1
+	OfflineDiagnosticMethodUnregister
+	OfflineDiagnosticMethodRegister
+)
+type OfflineDiagnosticRPC uint8
+const (
+	OfflineDiagnosticRPCStatus OfflineDiagnosticRPC = iota + 1
+	OfflineDiagnosticRPCDisableRecovered
+)
+type OfflineDiagnosticRPCEvent uint8
+const (
+	OfflineDiagnosticChannelCreated OfflineDiagnosticRPCEvent = iota + 1
+	OfflineDiagnosticListenerAdded
+	OfflineDiagnosticListenerRemoved
+	OfflineDiagnosticPortStarted
+	OfflineDiagnosticPort1Closed
+	OfflineDiagnosticPort2Closed
+	OfflineDiagnosticTrustedEvent
+)
+type OfflineDiagnosticRegistryPhase uint8
+const (
+	OfflineDiagnosticRegistryInitial OfflineDiagnosticRegistryPhase = iota + 1
+	OfflineDiagnosticRegistryFinal
+	OfflineDiagnosticRegistryParentRetired
+)
+
+// All helpers below require offlineAuthorityMu held. They only copy Go scalar
+// facts already observed by the existing owner; they make no host calls.
+func offlineDiagnosticBeginLocked(previous OfflineRecoveryDiagnostic, op OfflineDiagnosticOperation, runtimeID, configurationID string) OfflineRecoveryDiagnostic {
+	d := OfflineRecoveryDiagnostic{Version:1,DiagnosticRevision:previous.DiagnosticRevision+1,Operation:op,RuntimeID:runtimeID,ConfigurationID:configurationID,Available:true}
+	if op == OfflineDiagnosticOperationUnknown || op > OfflineDiagnosticDisable || !offlineDiagnosticHex(runtimeID,20) || !offlineDiagnosticHex(configurationID,64) { d.Available = false }
+	return d
+}
+func offlineDiagnosticFinishLocked(d *OfflineRecoveryDiagnostic, cleanupKnown bool) {
+	d.LogicalReturned = true
+	d.CleanupKnown = cleanupKnown && !d.uncertain && !d.Overflow
+}
+func offlineDiagnosticFreshDisableCoverageLocked(d *OfflineRecoveryDiagnostic) {
+	// Call only at the audited typed fresh-Disable branch, which
+	// cannot fall through parent register or legacy disable dispatch.
+	if d.Operation != OfflineDiagnosticDisable || !d.Available || d.Overflow || d.uncertain { return }
+	d.Coverage = OfflineDiagnosticCoverageComplete
+	d.Update.Covered, d.Unregister.Covered, d.Register.Covered = true, true, true
+	d.Status.Covered, d.DisableRecovered.Covered = true, true
+}
+func offlineDiagnosticNativeLocked(d *OfflineRecoveryDiagnostic, method OfflineDiagnosticMethod) *OfflineDiagnosticNative {
+	switch method { case OfflineDiagnosticMethodUpdate: return &d.Update; case OfflineDiagnosticMethodUnregister: return &d.Unregister; case OfflineDiagnosticMethodRegister: return &d.Register }
+	offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused)
+	return nil
+}
+func offlineDiagnosticRPCLocked(d *OfflineRecoveryDiagnostic, rpc OfflineDiagnosticRPC) *OfflineDiagnosticRPCObservation {
+	switch rpc { case OfflineDiagnosticRPCStatus: return &d.Status; case OfflineDiagnosticRPCDisableRecovered: return &d.DisableRecovered }
+	offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused)
+	return nil
+}
+func offlineDiagnosticBumpLocked(d *OfflineRecoveryDiagnostic, count *uint8, maximum uint8) {
+	if *count >= maximum { *count = maximum; d.Overflow = true; d.Available = false; d.Coverage = OfflineDiagnosticCoverageUnknown; return }
+	*count = *count + 1
+}
+func offlineDiagnosticUnknownLocked(d *OfflineRecoveryDiagnostic, reason OfflineDiagnosticReason) {
+	d.uncertain = true
+	d.Coverage = OfflineDiagnosticCoverageUnknown
+	d.Update.Covered, d.Unregister.Covered, d.Register.Covered = false, false, false
+	d.Status.Covered, d.DisableRecovered.Covered = false, false
+	if reason <= OfflineDiagnosticNativeDispatchThrow { d.Failure = reason } else { d.Failure = OfflineDiagnosticInputRefused }
+}
+func offlineDiagnosticNativeCoverageLocked(d *OfflineRecoveryDiagnostic, method OfflineDiagnosticMethod, known bool) {
+	if native := offlineDiagnosticNativeLocked(d,method); native != nil { native.Covered = known && !d.uncertain }
+}
+func offlineDiagnosticNativeReceiptLocked(d *OfflineRecoveryDiagnostic, method OfflineDiagnosticMethod, receiptKnown, issued, returned, exactReceiver bool, reason OfflineDiagnosticReason) {
+	native := offlineDiagnosticNativeLocked(d,method)
+	if native == nil { return }
+	if !receiptKnown || returned && !issued { offlineDiagnosticUnknownLocked(d,reason); return }
+	if reason != OfflineDiagnosticNone { d.Failure = reason }
+	if issued {
+		if native.Issued == 0 { native.ExactReceiver = exactReceiver } else { native.ExactReceiver = native.ExactReceiver && exactReceiver }
+		offlineDiagnosticBumpLocked(d,&native.Issued,2)
+	}
+	if returned { offlineDiagnosticBumpLocked(d,&native.Returned,2) }
+	if issued && !returned { offlineDiagnosticUnknownLocked(d,reason) }
+}
+func offlineDiagnosticNativeTerminalLocked(d *OfflineRecoveryDiagnostic, method OfflineDiagnosticMethod, outcome OfflineDiagnosticOutcome) {
+	native := offlineDiagnosticNativeLocked(d,method)
+	if native == nil { return }
+	if outcome == OfflineDiagnosticOutcomeUnknown || outcome > OfflineDiagnosticRejected || native.Terminal >= native.Returned { offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused); return }
+	offlineDiagnosticBumpLocked(d,&native.Terminal,2)
+	native.Outcome = outcome
+}
+func offlineDiagnosticRPCReceiptLocked(d *OfflineRecoveryDiagnostic, rpc OfflineDiagnosticRPC, receiptKnown, issued, returned, workerURLExact bool, reason OfflineDiagnosticReason) {
+	value := offlineDiagnosticRPCLocked(d,rpc)
+	if value == nil { return }
+	if !receiptKnown || returned && !issued { offlineDiagnosticUnknownLocked(d,reason); return }
+	if value.Issued && issued { d.Overflow = true; d.Available = false; d.Coverage = OfflineDiagnosticCoverageUnknown; return }
+	value.Issued, value.Returned = issued, returned
+	if issued { value.WorkerURLExact = workerURLExact }
+	if reason != OfflineDiagnosticNone { d.Failure = reason }
+	if issued && !returned { offlineDiagnosticUnknownLocked(d,reason) }
+}
+func offlineDiagnosticRPCEventLocked(d *OfflineRecoveryDiagnostic, rpc OfflineDiagnosticRPC, event OfflineDiagnosticRPCEvent) {
+	value := offlineDiagnosticRPCLocked(d,rpc)
+	if value == nil { return }
+	switch event {
+	case OfflineDiagnosticChannelCreated: offlineDiagnosticBumpLocked(d,&value.ChannelsCreated,8)
+	case OfflineDiagnosticListenerAdded: offlineDiagnosticBumpLocked(d,&value.ListenerAdds,8)
+	case OfflineDiagnosticListenerRemoved: offlineDiagnosticBumpLocked(d,&value.ListenerRemoves,8)
+	case OfflineDiagnosticPortStarted: value.StartKnown, value.StartReturned = true, true
+	case OfflineDiagnosticPort1Closed: value.Port1CloseReturned = true
+	case OfflineDiagnosticPort2Closed: value.Port2CloseReturned = true
+	case OfflineDiagnosticTrustedEvent: offlineDiagnosticBumpLocked(d,&value.TrustedEvents,8)
+	default: offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused)
+	}
+}
+func offlineDiagnosticRPCStartContractLocked(d *OfflineRecoveryDiagnostic, rpc OfflineDiagnosticRPC, called bool) {
+	if value := offlineDiagnosticRPCLocked(d,rpc); value != nil { value.StartKnown = true; if !called { value.StartReturned = false } }
+}
+func offlineDiagnosticRPCValidReplyLocked(d *OfflineRecoveryDiagnostic, rpc OfflineDiagnosticRPC, ack OfflineDiagnosticACK) {
+	value := offlineDiagnosticRPCLocked(d,rpc)
+	if value == nil { return }
+	if !offlineDiagnosticACKValid(ack) { offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused); return }
+	if value.Terminal {
+		offlineDiagnosticBumpLocked(d,&value.DuplicateTerminals,1)
+		return
+	}
+	value.BindingExact, value.Terminal, value.ACK = true, true, ack
+}
+func offlineDiagnosticFrameEventLocked(d *OfflineRecoveryDiagnostic, added, known bool) {
+	if !known { d.frameUncertain = true; d.Frame.BalanceKnown = false; d.CleanupKnown = false; offlineDiagnosticUnknownLocked(d,OfflineDiagnosticNativeDispatchThrow); return }
+	d.Frame.BalanceKnown = !d.frameUncertain
+	if added { offlineDiagnosticBumpLocked(d,&d.Frame.ListenerAdds,8) } else { offlineDiagnosticBumpLocked(d,&d.Frame.ListenerRemoves,8) }
+}
+func offlineDiagnosticRegistryLocked(d *OfflineRecoveryDiagnostic, phase OfflineDiagnosticRegistryPhase, known, absent bool) {
+	switch phase {
+	case OfflineDiagnosticRegistryInitial: d.Registry.InitialInventoryKnown = known
+	case OfflineDiagnosticRegistryFinal: d.Registry.FinalInventoryKnown, d.Registry.FinalAbsent = known, known && absent
+	case OfflineDiagnosticRegistryParentRetired: d.Registry.ParentPostRetirementInventoryKnown, d.Registry.ParentPostRetirementAbsent = known, known && absent
+	default: offlineDiagnosticUnknownLocked(d,OfflineDiagnosticInputRefused)
+	}
+}

@@ -1,0 +1,680 @@
+# PRIVATE WORKFLOW V2: immutable pins + bounded same-repo PR trigger; no admission granted.
+# Exactly one 90-minute job covers BOTH SDKs serially; no matrix or retry.
+name: Offline default first compile (Gate A debug only)
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/offline-first-compile.yml'
+      - 'tests/offline-first-compile.py'
+      - 'tests/offline-first-compile-source.json'
+      - 'tests/fixtures/offline-first-compile-overlay/**'
+      - 'tests/test_offline_first_compile.py'
+permissions:
+  contents: read
+concurrency:
+  group: offline-default-first-compile-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  compile-only:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    container:
+      image: mcr.microsoft.com/playwright@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --init --cpus 2 --memory 4g --memory-swap 4g --pids-limit 768 --shm-size 512m
+    defaults:
+      run:
+        shell: bash
+    env:
+      GOTOOLCHAIN: local
+      GOENV: 'off'
+      GOWORK: 'off'
+      GOFLAGS: '-p=1 -buildvcs=false'
+      GOMAXPROCS: '1'
+      GOMEMLIMIT: 384MiB
+      CGO_ENABLED: '0'
+      GOTELEMETRY: 'off'
+      GOPROXY: 'off'
+      GOSUMDB: 'off'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      NEXTGO_FIRST_COMPILE_RUNNER_SHA256: '5dae862c1efed4dc687422fa67cf9b0f382989fa72aea0bee849b3475ef631ff'
+      NEXTGO_FIRST_COMPILE_CONTRACT_SHA256: '34f1aca9b0199534b7a8f4d32755d8d997e287a995eaf01d35403cdd4f76dc67'
+      NEXTGO_FIRST_COMPILE_WORKFLOW_REF: ${{ github.workflow_ref }}
+      NEXTGO_FIRST_COMPILE_WORKFLOW_SHA: ${{ github.workflow_sha }}
+      NEXTGO_FIRST_COMPILE_EVENT_NAME: ${{ github.event_name }}
+      NEXTGO_FIRST_COMPILE_CANDIDATE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXTGO_FIRST_COMPILE_EVENT_MERGE_SHA: ${{ github.sha }}
+      NEXTGO_FIRST_COMPILE_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      NEXTGO_FIRST_COMPILE_SAME_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Start aggregate deadline and record honest provisioning identity
+        timeout-minutes: 1
+        env:
+          NEXTGO_FIRST_COMPILE_CONTAINER_ID: ${{ job.container.id }}
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_START'
+          import hashlib, json, os, re, stat, sys, tempfile, time
+          from pathlib import Path
+          started = time.time()
+          python = Path("/usr/bin/python3").resolve(strict=True)
+          info = python.stat()
+          if not stat.S_ISREG(info.st_mode) or info.st_size > 134217728:
+              raise SystemExit("Python interpreter identity bound")
+          with python.open("rb") as stream:
+              digest = hashlib.file_digest(stream, "sha256").hexdigest()
+          record = {
+              "version": 1, "purpose": "first-compile-gatea-provisioning-debug-only",
+              "jobStarted": started, "workflowRef": os.environ.get("NEXTGO_FIRST_COMPILE_WORKFLOW_REF"),
+              "workflowSHA": os.environ.get("NEXTGO_FIRST_COMPILE_WORKFLOW_SHA"),
+              "eventKind": os.environ.get("NEXTGO_FIRST_COMPILE_EVENT_NAME"),
+              "candidateHeadSHA": os.environ.get("NEXTGO_FIRST_COMPILE_CANDIDATE_HEAD_SHA"),
+              "eventMergeOrDispatchSHA": os.environ.get("NEXTGO_FIRST_COMPILE_EVENT_MERGE_SHA"),
+              "headRepository": os.environ.get("NEXTGO_FIRST_COMPILE_HEAD_REPOSITORY"),
+              "sameRepositoryEventFact": os.environ.get("NEXTGO_FIRST_COMPILE_SAME_REPOSITORY"),
+              "candidateIdentityMeaning": "Event-derived exact requested checkout SHA; PR head is distinct from event merge/workflow source SHA; not an independent post-checkout Git measurement",
+              "repository": os.environ.get("GITHUB_REPOSITORY"), "run": os.environ.get("GITHUB_RUN_ID"),
+              "attempt": os.environ.get("GITHUB_RUN_ATTEMPT"), "job": os.environ.get("GITHUB_JOB"),
+              "python": {"path": str(python), "bytes": info.st_size, "sha256": digest, "version": sys.version},
+              "requestedActions": ["actions/checkout@11d5960a326750d5838078e36cf38b85af677262", "actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff", "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"],
+              "pinnedActionCommits": {"actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
+                                      "actions/setup-go": "40f1582b2485089dde7abd97c1529aa768e1baff",
+                                      "actions/upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02"},
+              "historicalResolvedActionSHAs": {"actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
+                                               "actions/setup-go": "40f1582b2485089dde7abd97c1529aa768e1baff",
+                                               "actions/upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02"},
+              "historicalActionEvidence": {"log": "ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/job-123772321520.log",
+                                           "sha256": "48e6ed313246dc2ae38bc8fefc2784ce821eb341bbddf8bd4eb0b9736b5f13ff",
+                                           "lines": {"actions/checkout": 31, "actions/setup-go": 32, "actions/upload-artifact": 34}},
+              "freshRuntimeResolvedActionSHAs": None,
+              "actionIdentityMeaning": "Immutable requested commits and historical resolved observations; not fresh runtime measurements or production authenticity",
+              "requestedContainer": "mcr.microsoft.com/playwright@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea",
+              "pinnedImageDigest": "sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea",
+              "historicalContainerTag": "mcr.microsoft.com/playwright:v1.64.1-noble",
+              "historicallyObservedDockerPullDigest": "sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea",
+              "historicalImageEvidence": {"log": "ci-3d583dc7-pr8/metadata-pass-focus-publisher-v3/job-123772322256.log",
+                                          "sha256": "67f987d65eb7b06833fe81552a08b5225e9be4138fecffa5ca45f563f9313554",
+                                          "pullLine": 53, "digestLine": 83, "tagLines": [84, 85]},
+              "containerID": os.environ.get("NEXTGO_FIRST_COMPILE_CONTAINER_ID"),
+              "freshRuntimeObservedImageDigest": None,
+              "imageIdentityMeaning": "Content-addressed requested configuration plus historical pull receipt; fresh container ID is not a digest measurement",
+              "pinReceiptSHA256": "61c50d15f47d233b90439397e04b89f1bd253aaf1cc3fc77ad109be33ec4efed",
+              "SDKVersions": ["1.24.13", "1.27.3"], "originalSDKArchiveSHA256": None,
+              "SDKArchiveStatus": "UNKNOWN_UNQUALIFIED_ROOT_FIRST_DEBUG_INSTALLED_SDK_EXCEPTION_ONLY",
+              "sourceBaseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+              "materializedSourceTree": "ba24a854fab69ee810394bc193507ba22f2a953e",
+              "containerOptions": "--init --cpus 2 --memory 4g --memory-swap 4g --pids-limit 768 --shm-size 512m",
+              "network": "NOT_KERNEL_DENIED; ordinary hosted provisioning uses network",
+              "compilerTaskNetwork": "GOPROXY/GOSUMDB off; no kernel network-isolation claim",
+              "compiledOrExecutedTests": False, "profileAdmittedByThisRecord": False,
+          }
+          encoded = (json.dumps(record, sort_keys=True, indent=2) + "\n").encode()
+          if len(encoded) > 65536:
+              raise SystemExit("Provisioning receipt byte bound")
+          fd, name = tempfile.mkstemp(prefix="nextgo-first-compile-provisioning.", suffix=".json", dir=os.environ["RUNNER_TEMP"])
+          try:
+              os.fchmod(fd, 0o600)
+              with os.fdopen(fd, "wb") as stream:
+                  stream.write(encoded)
+          except BaseException:
+              os.unlink(name)
+              raise
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+              stream.write("NEXTGO_FIRST_COMPILE_JOB_STARTED=" + format(started, ".9f") + "\n")
+              stream.write("NEXTGO_FIRST_COMPILE_PROVISIONING_JSON=" + name + "\n")
+          print("Recorded immutable action/image pins and historical receipts; only original SDK archive provenance remains UNKNOWN.")
+          PY_START
+      - name: Candidate publication checkout only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: candidate
+          fetch-depth: 1
+          fetch-tags: false
+          persist-credentials: false
+          lfs: false
+          submodules: false
+          set-safe-directory: false
+          show-progress: false
+      - name: Exact immutable baseline checkout only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        timeout-minutes: 3
+        with:
+          ref: 3d583dc7ff784ac7502449730bde091ebf1f808c
+          path: frozen-base
+          fetch-depth: 1
+          fetch-tags: false
+          persist-credentials: false
+          lfs: false
+          submodules: false
+          set-safe-directory: false
+          show-progress: false
+      - name: Provision exact Go 1.24.13 (installation identity only)
+        id: setup_go_124
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        timeout-minutes: 10
+        with:
+          go-version: '1.24.13'
+          check-latest: false
+          cache: false
+      - name: 'Go 1.24.13: Verify pinned owner and create fresh source/cache/evidence roots'
+        id: init_124
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: init
+          NEXTGO_FIRST_COMPILE_SDK_REQUESTED: '1.24.13'
+          NEXTGO_FIRST_COMPILE_SETUP_GO_VERSION: ${{ steps.setup_go_124.outputs.go-version }}
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: 'Go 1.24.13: Compile only: 25 outputs and 13 metadata commands'
+        id: run_124
+        timeout-minutes: 70
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: run
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: 'Go 1.24.13: Collect closed bounded evidence'
+        id: collect_124
+        if: always() && steps.init_124.outcome != 'skipped' && env.NEXTGO_FIRST_COMPILE_ROOT != '' && env.NEXTGO_FIRST_COMPILE_EVIDENCE != ''
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: collect
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: Upload only the verified Go 1.24.13 evidence stage
+        id: upload_124
+        if: always() && steps.collect_124.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        timeout-minutes: 3
+        with:
+          name: offline-gatea-debug-go1.24.13-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.NEXTGO_FIRST_COMPILE_EVIDENCE }}
+          include-hidden-files: false
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 7
+      - name: 'Go 1.24.13: Clean only uploaded marker-owned task output'
+        id: cleanup_124
+        if: always() && steps.collect_124.outcome == 'success' && steps.upload_124.outcome == 'success'
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: cleanup
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      # A failure in this SDK leaves the job failed; normal success-gated
+      # provisioning/init/run for the next SDK does not start. Collection and
+      # cleanup remain bounded by the SAME aggregate job deadline.
+      - name: Provision exact Go 1.27.3 (installation identity only)
+        id: setup_go_127
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        timeout-minutes: 10
+        with:
+          go-version: '1.27.3'
+          check-latest: false
+          cache: false
+      - name: 'Go 1.27.3: Verify pinned owner and create fresh source/cache/evidence roots'
+        id: init_127
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: init
+          NEXTGO_FIRST_COMPILE_SDK_REQUESTED: '1.27.3'
+          NEXTGO_FIRST_COMPILE_SETUP_GO_VERSION: ${{ steps.setup_go_127.outputs.go-version }}
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: 'Go 1.27.3: Compile only: 25 outputs and 13 metadata commands'
+        id: run_127
+        timeout-minutes: 70
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: run
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: 'Go 1.27.3: Collect closed bounded evidence'
+        id: collect_127
+        if: always() && steps.init_127.outcome != 'skipped' && env.NEXTGO_FIRST_COMPILE_ROOT != '' && env.NEXTGO_FIRST_COMPILE_EVIDENCE != ''
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: collect
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      - name: Upload only the verified Go 1.27.3 evidence stage
+        id: upload_127
+        if: always() && steps.collect_127.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        timeout-minutes: 3
+        with:
+          name: offline-gatea-debug-go1.27.3-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.NEXTGO_FIRST_COMPILE_EVIDENCE }}
+          include-hidden-files: false
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 7
+      - name: 'Go 1.27.3: Clean only uploaded marker-owned task output'
+        id: cleanup_127
+        if: always() && steps.collect_127.outcome == 'success' && steps.upload_127.outcome == 'success'
+        timeout-minutes: 3
+        env:
+          NEXTGO_FIRST_COMPILE_MODE: cleanup
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -I -B - <<'PY_PINNED'
+          import hashlib, os, re, stat, sys
+          from pathlib import Path
+          # Clear stale prior-SDK custody before any potentially failing init work.
+          if os.environ["NEXTGO_FIRST_COMPILE_MODE"] == "init":
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+                  stream.write("NEXTGO_FIRST_COMPILE_ROOT=\nNEXTGO_FIRST_COMPILE_EVIDENCE=\n")
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]) / "candidate"
+          items = [(checkout / "tests/offline-first-compile.py", os.environ["NEXTGO_FIRST_COMPILE_RUNNER_SHA256"]),
+                   (checkout / "tests/offline-first-compile-source.json", os.environ["NEXTGO_FIRST_COMPILE_CONTRACT_SHA256"])]
+          for path, expected in items:
+              if not re.fullmatch(r"[0-9a-f]{64}", expected):
+                  raise SystemExit("Unfrozen reviewed source pin")
+              before = path.lstat()
+              if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_size > 1048576:
+                  raise SystemExit("Unsafe or oversized runner/contract")
+              fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+              try:
+                  opened = os.fstat(fd)
+                  if (opened.st_dev, opened.st_ino, opened.st_size) != (before.st_dev, before.st_ino, before.st_size):
+                      raise SystemExit("Runner/contract changed before read")
+                  data = bytearray()
+                  while len(data) <= 1048576:
+                      part = os.read(fd, min(65536, 1048577 - len(data)))
+                      if not part:
+                          break
+                      data.extend(part)
+                  after = os.fstat(fd)
+                  named = path.lstat()
+                  if len(data) != before.st_size or (after.st_size, after.st_mtime_ns, after.st_ctime_ns) != (opened.st_size, opened.st_mtime_ns, opened.st_ctime_ns):
+                      raise SystemExit("Runner/contract changed during read")
+                  if (named.st_dev, named.st_ino) != (opened.st_dev, opened.st_ino):
+                      raise SystemExit("Runner/contract name changed")
+                  if hashlib.sha256(data).hexdigest() != expected:
+                      raise SystemExit("Runner/contract differs from reviewed pin")
+              finally:
+                  os.close(fd)
+          mode = os.environ["NEXTGO_FIRST_COMPILE_MODE"]
+          contract = str(items[1][0])
+          args = ["/usr/bin/python3", "-I", "-B", str(items[0][0]), mode, "--contract", contract]
+          if mode == "init":
+              args += ["--base-repo", str(Path(os.environ["GITHUB_WORKSPACE"]) / "frozen-base"),
+                       "--checkout", str(checkout), "--sdk", os.environ["NEXTGO_FIRST_COMPILE_SDK_REQUESTED"],
+                       "--job-start", os.environ["NEXTGO_FIRST_COMPILE_JOB_STARTED"]]
+          elif mode in ("run", "collect", "cleanup"):
+              args += ["--root", os.environ["NEXTGO_FIRST_COMPILE_ROOT"]]
+              if mode == "cleanup":
+                  args.append("--uploaded")
+          else:
+              raise SystemExit("Gate A workflow mode refused")
+          os.execv(args[0], args)
+          PY_PINNED
+      # A failure in this SDK leaves the job failed; normal success-gated
+      # provisioning/init/run for the next SDK does not start. Collection and
+      # cleanup remain bounded by the SAME aggregate job deadline.

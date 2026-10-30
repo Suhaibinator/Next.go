@@ -8,6 +8,7 @@ import (
 const (
 	WorkerScriptPath          = "/_nextgo/offline/sw.js"
 	CatalogPath               = "/_nextgo/offline/catalog"
+	RegistrationHelperPath    = "/_nextgo/offline/registration-helper-v1"
 	PreparedDocumentsPath     = "/_nextgo/offline/documents/"
 	StorageNamespacePrefix    = "nextgo-offline-v1-"
 	MaxClientDescriptorBytes  = 16 << 10
@@ -145,5 +146,52 @@ func NormalizeWorkerDescriptor(value WorkerDescriptor, policy *Policy, runtimeID
 	value.Client = client
 	value.Generation, value.CatalogJSON = strings.Clone(value.Generation), strings.Clone(value.CatalogJSON)
 	value.CatalogSHA256, value.Namespace = strings.Clone(value.CatalogSHA256), strings.Clone(value.Namespace)
+	return value, nil
+}
+
+// RegistrationHelperURL derives the one inert document URL from a canonical
+// worker URL. It validates URL/CSP-source syntax, not registration authority:
+// callers must still bind the descriptor to their trusted origin and policy.
+func RegistrationHelperURL(workerURL string) (string, error) {
+	if len(workerURL) == 0 || len(workerURL) > MaxURLBytes || !strings.HasSuffix(workerURL, WorkerScriptPath) {
+		return "", ErrInvalid
+	}
+	// The result is also used next to the exact worker URL in a CSP policy.
+	// Reject separators, quoting, wildcard/query/fragment and percent aliases
+	// explicitly rather than treating an arbitrary descriptor as a policy token.
+	for _, c := range workerURL {
+		if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || strings.ContainsRune(":/.-_~", c)) {
+			return "", ErrInvalid
+		}
+	}
+	root := strings.TrimSuffix(workerURL, WorkerScriptPath)
+	scheme := strings.Index(root, "://")
+	if scheme < 0 {
+		return "", ErrInvalid
+	}
+	origin, base := root, ""
+	if offset := strings.IndexByte(root[scheme+3:], '/'); offset >= 0 {
+		offset += scheme + 3
+		origin, base = root[:offset], root[offset:]
+	}
+	if !literalOrigin(origin) || !basePath(base) || workerURL != origin+base+WorkerScriptPath {
+		return "", ErrInvalid
+	}
+	// A CSP host-source is narrower than a URL authority: bracket IPv6 was
+	// rejected above, and only the explicitly supported loopback IP source is
+	// admitted. Other canonical offline origins retain their ordinary APIs but
+	// fail closed on this optional helper instead of emitting a nonmatching CSP.
+	host, _, _ := strings.Cut(origin[scheme+3:], ":")
+	numeric := true
+	for _, c := range host {
+		numeric = numeric && (c >= '0' && c <= '9' || c == '.')
+	}
+	if numeric && host != "127.0.0.1" {
+		return "", ErrInvalid
+	}
+	value := origin + base + RegistrationHelperPath
+	if len(value) > MaxURLBytes {
+		return "", ErrInvalid
+	}
 	return value, nil
 }

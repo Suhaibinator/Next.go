@@ -1,0 +1,30 @@
+package client
+
+import "testing"
+
+func TestOfflineDisableTruthRequiresSuccessfulKnownReply(t *testing.T) {
+	for _, test := range []struct {
+		name                 string
+		reply                offlineReply
+		status, acknowledged bool
+	}{
+		{"disabled", offlineReply{Supported: true, State: "disabled"}, true, true},
+		{"ready", offlineReply{Supported: true, State: "ready", Enabled: true}, true, false},
+		{"staged", offlineReply{Supported: true, State: "staged"}, true, false},
+		{"capacity-default-false", offlineReply{Supported: true, State: "disabled", Error: "client-capacity"}, false, false},
+		{"storage-default-false", offlineReply{Supported: true, State: "disabled", Error: "storage-failed"}, false, false},
+		{"corrupt-storage", offlineReply{Supported: true, State: "failed", Error: "corrupt-storage"}, false, false},
+		{"failed-without-error", offlineReply{Supported: true, State: "failed"}, false, false},
+		{"busy-without-error", offlineReply{Supported: true, State: "busy"}, false, false},
+		{"unsupported-default-false", offlineReply{State: "disabled"}, false, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := offlineDisableReplyConfirmed(test.reply); got != test.status {
+				t.Fatalf("confirmed status=%t, want %t", got, test.status)
+			}
+			if got := offlineDisableAcknowledged(test.reply); got != test.acknowledged {
+				t.Fatalf("acknowledged=%t, want %t", got, test.acknowledged)
+			}
+		})
+	}
+}

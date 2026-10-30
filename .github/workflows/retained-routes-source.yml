@@ -61,7 +61,7 @@ jobs:
           set -euo pipefail
           task_goroot=$(go env GOROOT)
           task_runner="$task_goroot/lib/wasm/go_js_wasm_exec"
-          task_module_filter='^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL|TestRetainedLifetime|TestRetainedResume|TestRetention)'
+          task_module_filter='^(TestModuleTarget|TestModuleLinkStatus|TestMetadata|TestClientView|TestClientFallback|TestRefresh|TestFormFieldValidation|TestFormValidationStatus|TestFieldValidation|TestOptionalChoice|TestOffline|TestSavedAssetURL|TestRetainedLifetime|TestRetainedResume|TestRetention|TestProps|TestMerge|TestModuleHostRegistrationPreservesDocumentModuleOwnership$)'
           GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -exec="$task_runner" ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./ui | tee "$RETAINED_SOURCE_EVIDENCE/core.json"
           GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./client -run "$task_module_filter" | tee "$RETAINED_SOURCE_EVIDENCE/module.json"
           GOOS=js GOARCH=wasm go test -count=1 -timeout=10m -json -tags=nextgo_module -exec="$task_runner" ./ui | tee "$RETAINED_SOURCE_EVIDENCE/module-ui.json"
@@ -72,14 +72,15 @@ jobs:
           GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client ./ui
           GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation ./ui
           GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client ./ui
-      - name: Build the real CLI and retained example production bundle
+      - name: Build the real CLI and both example production bundles
         shell: bash
         run: |
           set -euo pipefail
           go build -trimpath -o "$RETAINED_SOURCE_EVIDENCE/nextgo" ./cmd/nextgo
           "$RETAINED_SOURCE_EVIDENCE/nextgo" build -out "$RETAINED_SOURCE_EVIDENCE/retained" ./examples/retained
-          sha256sum "$RETAINED_SOURCE_EVIDENCE/nextgo" "$RETAINED_SOURCE_EVIDENCE/retained/server" > "$RETAINED_SOURCE_EVIDENCE/artifact-checksums.txt"
-          go version -m "$RETAINED_SOURCE_EVIDENCE/retained/server" > "$RETAINED_SOURCE_EVIDENCE/binary-version.txt"
+          "$RETAINED_SOURCE_EVIDENCE/nextgo" build -out "$RETAINED_SOURCE_EVIDENCE/merge" ./examples/merge
+          sha256sum "$RETAINED_SOURCE_EVIDENCE/nextgo" "$RETAINED_SOURCE_EVIDENCE/retained/server" "$RETAINED_SOURCE_EVIDENCE/merge/server" > "$RETAINED_SOURCE_EVIDENCE/artifact-checksums.txt"
+          go version -m "$RETAINED_SOURCE_EVIDENCE/retained/server" "$RETAINED_SOURCE_EVIDENCE/merge/server" > "$RETAINED_SOURCE_EVIDENCE/binary-version.txt"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

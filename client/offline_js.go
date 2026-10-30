@@ -200,7 +200,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 	if parent.Err() != nil {
 		return context.Cause(parent)
 	}
-	if c.busy {
+	if c.busy || offlineRealmInUse != nil {
 		return ErrOfflineBusy
 	}
 	c.busy = true
@@ -225,7 +225,11 @@ func offlineOperation(parent context.Context, command string) (err error) {
 				c.state.LastError += " [" + c.conflictReason + "]"
 			}
 		}
-		c.notify()
+		// A replaced document controller owns the current observer set. Retain
+		// this operation's cleanup/error locally without publishing stale state.
+		if documentOffline == c {
+			c.notify()
+		}
 	}()
 	limit := 120 * time.Second
 	if command == "status" {
@@ -236,10 +240,27 @@ func offlineOperation(parent context.Context, command string) (err error) {
 	use := offlineRegistrationMutation
 	if command == "status" {
 		use = offlineRegistrationStatus
+	} else if command == "update" {
+		use = offlineRegistrationUpdate
 	}
 	selection, err := c.registrationForOperation(ctx, use)
 	if err != nil {
 		return err
+	}
+	if selection.emptyUpdate {
+		result, e := c.updateInFreshRealm(ctx, selection.container, selection.parentController)
+		if e != nil {
+			return e
+		}
+		if e = result.parent.fence(ctx); e != nil {
+			return e
+		}
+		c.apply(result.status)
+		c.state.WaitingGeneration = result.waiting
+		if result.waiting != "" {
+			c.state.Phase = "waiting"
+		}
+		return nil
 	}
 	registration := selection.registration
 	controllerOwned := c.controlling()
@@ -444,6 +465,10 @@ type offlineRegistrationSelection struct {
 	statusWorker js.Value
 	container    js.Value
 	recovered    bool
+	// Only update may consume this typed empty-lookup indication. It carries
+	// no registration authority and cannot reach enable/disable/unregister.
+	emptyUpdate      bool
+	parentController js.Value
 }
 
 type offlineRegistrationUse uint8
@@ -452,6 +477,7 @@ const (
 	offlineRegistrationStrict offlineRegistrationUse = iota
 	offlineRegistrationStatus
 	offlineRegistrationMutation
+	offlineRegistrationUpdate
 )
 
 type offlineRegistrationInventory struct {
@@ -527,6 +553,8 @@ func (c *offlineController) registrationForOperation(ctx context.Context, use of
 			return offlineRegistrationSelection{registration: js.Undefined(), statusWorker: controller}, nil
 		case offlineRegistrationMutation:
 			return c.reacquireRegistration(ctx, sw)
+		case offlineRegistrationUpdate:
+			return c.reacquireRegistrationForUse(ctx, sw, use, controller)
 		default:
 			return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty-selection")
 		}
@@ -549,6 +577,10 @@ func (c *offlineController) requireRegistrationProof(registration js.Value, empt
 // final inventory. The same-environment native object map binds the lookup to
 // the latest entry; no equality with the initial record or UA repair is assumed.
 func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Value) (offlineRegistrationSelection, error) {
+	return c.reacquireRegistrationForUse(ctx, sw, offlineRegistrationMutation, js.Undefined())
+}
+
+func (c *offlineController) reacquireRegistrationForUse(ctx context.Context, sw js.Value, use offlineRegistrationUse, parentController js.Value) (offlineRegistrationSelection, error) {
 	if ctx.Err() != nil {
 		return offlineRegistrationSelection{}, context.Cause(ctx)
 	}
@@ -565,8 +597,15 @@ func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Val
 	if !candidate.Truthy() {
 		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
 	}
-	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-lookup"); err != nil {
+	ownership, err := c.registrationOwnership(candidate)
+	if err != nil {
 		return offlineRegistrationSelection{}, err
+	}
+	if ownership == offlineRegistrationUnproven {
+		if use == offlineRegistrationUpdate && parentController.Truthy() && c.ownedWorker(parentController) {
+			return offlineRegistrationSelection{container: sw, parentController: parentController, emptyUpdate: true}, nil
+		}
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-empty-lookup")
 	}
 	if ctx.Err() != nil {
 		return offlineRegistrationSelection{}, context.Cause(ctx)

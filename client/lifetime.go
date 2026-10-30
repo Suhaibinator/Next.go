@@ -15,16 +15,19 @@ var errLifetimeActivityChanged = errors.New("nextgo: retained component activity
 // Lifetime owns explicit effects, contexts and composed component resources.
 // Use it on one event loop. It is not a concurrent store or a request context.
 type Lifetime struct {
-	parent    *Lifetime
-	children  []*Lifetime
-	effects   []*Effect
-	resources []*Resource
-	values    map[any]any
-	depth     int
-	closed    bool
-	paused    bool
-	activity  uint64
-	onError   func(error)
+	parent        *Lifetime
+	children      []*Lifetime
+	effects       []*Effect
+	resources     []*Resource
+	values        map[any]any
+	depth         int
+	closed        bool
+	revoked       bool
+	publication   *effectPublicationBatch
+	callbackGuard func(func()) error
+	paused        bool
+	activity      uint64
+	onError       func(error)
 }
 type LifetimeOptions struct{ OnError func(error) }
 
@@ -48,7 +51,12 @@ func (l *Lifetime) Child() (*Lifetime, error) {
 	if len(l.children) >= 2048 || l.depth >= 32 {
 		return nil, fmt.Errorf("nextgo: component lifetime nesting/child limit exceeded")
 	}
-	child := &Lifetime{parent: l, depth: l.depth + 1, onError: l.onError}
+	child := &Lifetime{parent: l, depth: l.depth + 1, onError: l.onError, callbackGuard: l.callbackGuard}
+	if batch := l.publicationBatch(); batch != nil {
+		if err := batch.addOwner(child); err != nil {
+			return nil, err
+		}
+	}
 	l.children = append(l.children, child)
 	return child, nil
 }
@@ -58,11 +66,26 @@ func (l *Lifetime) active() bool {
 		return false
 	}
 	for owner := l; owner != nil; owner = owner.parent {
-		if owner.closed {
+		if owner.closed || owner.revoked {
 			return false
 		}
 	}
 	return true
+}
+func (l *Lifetime) authorityRevoked() bool {
+	for owner := l; owner != nil; owner = owner.parent {
+		if owner.revoked {
+			return true
+		}
+	}
+	return false
+}
+
+func (l *Lifetime) guardCallback(fn func()) error {
+	if l.callbackGuard != nil {
+		return l.callbackGuard(fn)
+	}
+	return lifetimeGuard(fn)
 }
 func (l *Lifetime) report(err error) {
 	if err == nil {
@@ -72,7 +95,7 @@ func (l *Lifetime) report(err error) {
 		log.Print(err)
 		return
 	}
-	if failure := lifetimeGuard(func() { l.onError(err) }); failure != nil {
+	if failure := l.guardCallback(func() { l.onError(err) }); failure != nil {
 		log.Print(failure)
 	}
 }
@@ -135,6 +158,11 @@ func (l *Lifetime) Defer(cleanup func()) (*Resource, error) {
 		return nil, fmt.Errorf("nextgo: invalid cleanup or component resource limit exceeded")
 	}
 	resource := &Resource{owner: l, cleanup: cleanup}
+	if batch := l.publicationBatch(); batch != nil {
+		if err := batch.addResource(resource); err != nil {
+			return nil, err
+		}
+	}
 	l.resources = append(l.resources, resource)
 	return resource, nil
 }
@@ -143,10 +171,13 @@ func (r *Resource) Close() {
 		return
 	}
 	owner, cleanup := r.owner, r.cleanup
+	if batch := owner.publicationBatch(); batch != nil {
+		delete(batch.resources, r)
+	}
 	r.owner = nil
 	r.cleanup = nil
 	owner.resources = removeOwned(owner.resources, r)
-	if err := lifetimeGuard(cleanup); err != nil {
+	if err := owner.guardCallback(cleanup); err != nil {
 		owner.report(err)
 	}
 }
@@ -215,6 +246,13 @@ func (l *Lifetime) Effect(run func() (func(), error), dependencies ...Dependency
 	}
 	effect := &Effect{owner: l, run: run}
 	l.effects = append(l.effects, effect)
+	batch := l.publicationBatch()
+	if batch != nil {
+		if err := batch.enroll(effect); err != nil {
+			effect.Close()
+			return nil, err
+		}
+	}
 	seen := map[Dependency]bool{}
 	for _, dependency := range dependencies {
 		if dependency == nil || !reflect.TypeOf(dependency).Comparable() {
@@ -246,6 +284,11 @@ func (l *Lifetime) Effect(run func() (func(), error), dependencies ...Dependency
 	if err := effect.Invalidate(); err != nil {
 		return nil, err
 	}
+	if batch != nil && batch.draining {
+		if err := batch.runOne(effect); err != nil {
+			return nil, err
+		}
+	}
 	return effect, nil
 }
 func (e *Effect) Err() error {
@@ -262,7 +305,9 @@ func (e *Effect) Invalidate() error {
 		return ErrEffectClosed
 	}
 	if !e.owner.active() {
-		e.Close()
+		if !e.owner.authorityRevoked() {
+			e.Close()
+		}
 		return ErrEffectClosed
 	}
 	e.pending = true
@@ -280,12 +325,15 @@ func (e *Effect) drainPending(one bool) (err error) {
 		return ErrEffectClosed
 	}
 	if !e.owner.active() {
-		e.Close()
+		if !e.owner.authorityRevoked() {
+			e.Close()
+		}
 		return ErrEffectClosed
 	}
 	if !e.pending || !e.owner.visible() {
 		return nil
 	}
+	owner := e.owner
 	if e.busy {
 		return nil
 	}
@@ -305,7 +353,7 @@ func (e *Effect) drainPending(one bool) (err error) {
 		cleanup := e.cleanup
 		e.cleanup = nil
 		if cleanup != nil {
-			if err := lifetimeGuard(cleanup); err != nil {
+			if err := owner.guardCallback(cleanup); err != nil {
 				return err
 			}
 		}
@@ -314,17 +362,25 @@ func (e *Effect) drainPending(one bool) (err error) {
 		}
 		var next func()
 		var failure error
-		if err := lifetimeGuard(func() { next, failure = e.run() }); err != nil {
+		if err := owner.guardCallback(func() {
+			if owner.callbackGuard != nil && (e.closed || !owner.visible()) {
+				return
+			}
+			next, failure = e.run()
+		}); err != nil {
 			return err
 		}
 		if e.closed || !e.owner.visible() {
 			if next != nil {
-				if err := lifetimeGuard(next); err != nil {
+				if err := owner.guardCallback(next); err != nil {
 					return err
 				}
 			}
 			if !e.closed {
 				e.pending = true
+			}
+			if failure != nil && owner.callbackGuard != nil {
+				return failure
 			}
 			break
 		}
@@ -356,7 +412,7 @@ func (e *Effect) Close() {
 	cleanup := e.cleanup
 	e.cleanup = nil
 	if cleanup != nil {
-		if err := lifetimeGuard(cleanup); err != nil {
+		if err := owner.guardCallback(cleanup); err != nil {
 			owner.report(err)
 		}
 	}
@@ -447,7 +503,7 @@ func (l *Lifetime) suspend() error {
 			cleanup := effect.cleanup
 			effect.cleanup = nil
 			if cleanup != nil {
-				if failure := lifetimeGuard(cleanup); failure != nil {
+				if failure := entry.owner.guardCallback(cleanup); failure != nil {
 					effect.err = failure
 					effect.Close()
 					entry.owner.report(failure)

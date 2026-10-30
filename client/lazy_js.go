@@ -50,7 +50,7 @@ var lazyRetryScope *Scope
 
 var lazySlots = make(chan struct{}, 2)
 
-const moduleABI = 5
+const moduleABI = 6
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
@@ -62,59 +62,151 @@ func RegisterLazy(name string, module LazyModule) {
 	// leaving installation at Run's original point rather than during registration.
 	registeredModuleHostInstaller = installModuleHost
 }
-func lazyHydrate(scope *Scope, name string) {
+
+// lazyHydrate registers the core proxy before appending it or scheduling any
+// module work. Its completion joins this waiter, not the shared module runtime.
+func lazyHydrate(scope *Scope, name string) (<-chan struct{}, error) {
+	done := make(chan struct{})
+	started := false
+	err := withMergeApplicationMount(scope, func() error {
+		if scope == nil || !scope.propsLive() || lazyModules[name] == nil {
+			return errPropsClosed
+		}
+		token := mergeApplicationToken()
+		mounted = append(mounted, scope)
+		started = true
+		beginLazyHydration(scope, name, token, done)
+		return nil
+	})
+	if err != nil {
+		scope.dispose()
+		mergeRetainMounted([]*Scope{scope})
+		if !started {
+			close(done)
+		}
+	}
+	return done, err
+}
+func lazyScopeCurrent(scope *Scope, token *mergeApplicationIdentity) bool {
+	if scope == nil || !scope.propsLive() || !mergeApplicationCurrent(token) || !scope.Root.Value.Get("isConnected").Bool() {
+		return false
+	}
+	if mergeApplication == nil {
+		return true
+	}
+	app := doc.Call("getElementById", "nextgo-app")
+	return app.Equal(mergeApplication.root) && app.Get("isConnected").Bool() && app.Call("contains", scope.Root.Value).Bool()
+}
+func beginLazyHydration(scope *Scope, name string, token *mergeApplicationIdentity, done chan struct{}) {
 	root := scope.Root.Value
 	opener := navigationOpener
 	state := lazyModules[name]
 	root.Call("setAttribute", "data-nextgo-hydrated", "loading")
-	if !state.loading && state.ready == nil {
+	ready := state.ready
+	if !state.loading && ready == nil {
 		state.loading = true
-		state.ready = make(chan struct{})
-		go func() {
-			defer close(state.ready)
-			defer func() {
-				state.loading = false
-				if failure := recover(); failure != nil {
-					state.err = fmt.Errorf("module startup failed: %v", failure)
-				}
-			}()
-			state.err = loadLazyModule(name, state)
-		}()
+		ready = make(chan struct{})
+		state.ready = ready
+		go runLazyLoad(state, ready, func() error { return loadLazyModule(name, state) })
 	}
-	go func() {
-		defer func() {
-			if failure := recover(); failure != nil && !scope.closed && root.Get("isConnected").Bool() {
-				root.Call("setAttribute", "data-nextgo-hydrated", "error")
-				report(fmt.Sprintf("Component hydration failed: %v", failure))
-			}
-		}()
-		<-state.ready
-		if scope.closed || !root.Get("isConnected").Bool() {
-			return
+	// A retry may replace state.ready before this goroutine is scheduled.
+	// Every admitted waiter and loader closes/awaits its exact generation.
+	go finishLazyHydration(scope, token, state, ready, root, opener, done)
+}
+func runLazyLoad(state *lazyState, ready chan struct{}, load func() error) {
+	defer close(ready)
+	var loadErr error
+	defer func() {
+		if failure := recover(); failure != nil {
+			loadErr = fmt.Errorf("module startup failed: %v", failure)
 		}
-		if state.err != nil {
-			root.Call("setAttribute", "data-nextgo-hydrated", "error")
-			showLazyError(root)
-			hydrate()
-			return
+		if state.ready == ready {
+			state.loading = false
+			state.err = loadErr
 		}
-		props := root.Call("getAttribute", "data-nextgo-props").String()
-		exports := state.exports
-		result := exports.Call("mount", root, props, opener)
-		if failure := result.Get("error"); failure.Type() == js.TypeString && failure.String() != "" {
-			root.Call("setAttribute", "data-nextgo-hydrated", "error")
-			report("Component hydration failed: " + failure.String())
-			hydrate()
-			return
-		}
-		handle := result.Get("id").Int()
-		trackLazyMount(state, scope, root, props, opener, exports, handle)
-		root.Call("setAttribute", "data-nextgo-hydrated", "true")
-		hydrate()
 	}()
+	loadErr = load()
+}
+func finishLazyHydration(scope *Scope, token *mergeApplicationIdentity, state *lazyState, ready <-chan struct{}, root, opener js.Value, done chan struct{}) {
+	defer close(done)
+	handle, owned, tracked := 0, false, false
+	exports := js.Undefined()
+	disposed := false
+	dispose := func() {
+		if disposed {
+			return
+		}
+		disposed = true
+		exports.Call("dispose", handle)
+	}
+	defer func() {
+		failure := recover()
+		// A returned module handle is owned exactly once even when authority was
+		// revoked during its actual Mount. Do not adopt it or stamp late DOM.
+		if owned && !tracked {
+			func() {
+				defer func() {
+					if v := recover(); v != nil {
+						win.Get("console").Call("error", "Next.go late module cleanup failed")
+					}
+				}()
+				dispose()
+			}()
+		}
+		if failure != nil && lazyScopeCurrent(scope, token) {
+			root.Call("setAttribute", "data-nextgo-hydrated", "error")
+			report(fmt.Sprintf("Component hydration failed: %v", failure))
+		}
+	}()
+	<-ready
+	if state.ready != ready {
+		return
+	}
+	if !lazyScopeCurrent(scope, token) {
+		return
+	}
+	if state.err != nil {
+		root.Call("setAttribute", "data-nextgo-hydrated", "error")
+		showLazyError(root)
+		if lazyScopeCurrent(scope, token) {
+			hydrate()
+		}
+		return
+	}
+	props := root.Call("getAttribute", "data-nextgo-props").String()
+	exports = state.exports
+	result := exports.Call("mount", root, props, opener)
+	if id := result.Get("id"); id.Type() == js.TypeNumber && id.Int() > 0 {
+		handle = id.Int()
+		owned = true
+	}
+	if !lazyScopeCurrent(scope, token) {
+		scope.dispose()
+		return
+	}
+	if failure := result.Get("error"); failure.Type() == js.TypeString && failure.String() != "" {
+		root.Call("setAttribute", "data-nextgo-hydrated", "error")
+		report("Component hydration failed: " + failure.String())
+		hydrate()
+		return
+	}
+	if !owned {
+		panic("module returned no owned scope")
+	}
+	trackLazyMountWithCleanup(state, scope, root, props, opener, exports, handle, dispose)
+	tracked = true
+	if !lazyScopeCurrent(scope, token) {
+		scope.dispose()
+		return
+	}
+	root.Call("setAttribute", "data-nextgo-hydrated", "true")
+	hydrate()
 }
 
 func trackLazyMount(state *lazyState, scope *Scope, root js.Value, props string, opener, exports js.Value, handle int) {
+	trackLazyMountWithCleanup(state, scope, root, props, opener, exports, handle, func() { exports.Call("dispose", handle) })
+}
+func trackLazyMountWithCleanup(state *lazyState, scope *Scope, root js.Value, props string, opener, exports js.Value, handle int, dispose func()) {
 	if state.mounts == nil {
 		state.mounts = map[*Scope]*lazyMount{}
 	}
@@ -124,59 +216,96 @@ func trackLazyMount(state *lazyState, scope *Scope, root js.Value, props string,
 		delete(state.mounts, scope)
 		// The old cleanup must never call a successor runtime's mutable exports.
 		if !devRefreshBuild || !state.expectedStop {
-			exports.Call("dispose", handle)
+			dispose()
 		}
 	}
 	// This is internal proxy ownership, including during a fenced replacement.
 	// Public Scope.Cleanup deliberately refuses application work while frozen.
-	if scope.closed {
+	if !scope.propsLive() {
 		cleanup()
 	} else {
 		scope.cleanup = append(scope.cleanup, cleanup)
 	}
 }
 func showLazyError(root js.Value) {
-	if lazyRetryScope != nil {
+	if lazyRetryScope != nil || mergeApplicationRevoked() {
 		return
 	}
-	report("A Go component could not load. Reload or retry its download.")
-	status := doc.Call("getElementById", "nextgo-status")
-	button := doc.Call("createElement", "button")
-	button.Set("type", "button")
-	button.Set("textContent", "Retry component")
-	button.Call("setAttribute", "data-nextgo-lazy-retry", "")
-	status.Call("appendChild", button)
 	retry := &Scope{Root: Element{root}}
-	lazyRetryScope = retry
-	retry.Cleanup(func() {
-		button.Call("remove")
-		if lazyRetryScope == retry {
-			lazyRetryScope = nil
-		}
+	err := withMergeApplicationMount(retry, func() error {
+		report("A Go component could not load. Reload or retry its download.")
+		status := doc.Call("getElementById", "nextgo-status")
+		button := doc.Call("createElement", "button")
+		button.Set("type", "button")
+		button.Set("textContent", "Retry component")
+		button.Call("setAttribute", "data-nextgo-lazy-retry", "")
+		status.Call("appendChild", button)
+		lazyRetryScope = retry
+		retry.Cleanup(func() {
+			button.Call("remove")
+			if lazyRetryScope == retry {
+				lazyRetryScope = nil
+			}
+		})
+		token := mergeApplicationToken()
+		retry.On(Element{button}, "click", func(Event) {
+			if !mergeApplicationCurrent(token) {
+				return
+			}
+			retry.dispose()
+			status.Set("hidden", true)
+			status.Set("textContent", "")
+			if resetLazyFailures(token) {
+				hydrate()
+			}
+		})
+		mounted = append(mounted, retry)
+		return nil
 	})
-	retry.On(Element{button}, "click", func(Event) {
+	if err != nil {
 		retry.dispose()
-		status.Set("hidden", true)
-		status.Set("textContent", "")
-		for _, state := range lazyModules {
-			if state.err != nil && !state.exports.Truthy() {
-				state.err = nil
-				state.ready = nil
-			}
-		}
-		nodes := doc.Call("querySelectorAll", "[data-nextgo-island]")
-		for i := 0; i < nodes.Length(); i++ {
-			node := nodes.Index(i)
-			state := lazyModules[node.Call("getAttribute", "data-nextgo-island").String()]
-			if state != nil && state.ready == nil && node.Call("getAttribute", "data-nextgo-hydrated").String() == "error" {
-				disposeWithin(node)
-				node.Call("removeAttribute", "data-nextgo-hydrated")
-			}
-		}
-		hydrate()
-	})
-	mounted = append(mounted, retry)
+	}
 }
+
+// Reset every owned root of a completed failed generation, including a proxy
+// whose waiter has not yet published its error. Skipping loading roots would
+// strand them after the old waiter correctly declines the replacement channel.
+func resetLazyFailures(token *mergeApplicationIdentity) bool {
+	if !mergeApplicationCurrent(token) {
+		return false
+	}
+	for _, state := range lazyModules {
+		if state.err != nil && !state.loading && !state.exports.Truthy() {
+			state.err = nil
+			state.ready = nil
+		}
+	}
+	nodes := doc.Call("getElementById", "nextgo-app").Call("querySelectorAll", "[data-nextgo-island]")
+	for i := 0; i < nodes.Length(); i++ {
+		if !mergeApplicationCurrent(token) {
+			return false
+		}
+		node := nodes.Index(i)
+		state := lazyModules[node.Call("getAttribute", "data-nextgo-island").String()]
+		phase := node.Call("getAttribute", "data-nextgo-hydrated").String()
+		if state != nil && state.ready == nil && (phase == "error" || phase == "loading") {
+			disposeWithin(node)
+			if !mergeApplicationCurrent(token) {
+				return false
+			}
+			if mergeApplication != nil {
+				for scope := range mergeApplication.scopes {
+					if scope.closed && node.Call("contains", scope.Root.Value).Bool() {
+						delete(mergeApplication.scopes, scope)
+					}
+				}
+			}
+			node.Call("removeAttribute", "data-nextgo-hydrated")
+		}
+	}
+	return mergeApplicationCurrent(token)
+}
+
 func loadLazyModule(name string, state *lazyState) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -255,7 +384,9 @@ func instantiateLazyModule(ctx context.Context, name string, state *lazyState, b
 			state.err = fmt.Errorf("module runtime exited")
 			if failed {
 				state.err = state.runError
-				report("A Go component runtime stopped. Reload the page.")
+				if !mergeApplicationRevoked() {
+					report("A Go component runtime stopped. Reload the page.")
+				}
 			}
 		}
 		if devRefreshBuild && managed {
@@ -265,7 +396,7 @@ func instantiateLazyModule(ctx context.Context, name string, state *lazyState, b
 			success.Release()
 			failure.Release()
 		}
-		if devRefreshBuild && managed && !state.expectedStop {
+		if devRefreshBuild && managed && !state.expectedStop && !mergeApplicationRevoked() {
 			devRefresh.reload()
 		}
 	}
@@ -291,7 +422,7 @@ func syncLazyModules() {
 	}
 }
 func moduleSnapshot() string {
-	encoded, _ := json.Marshal(moduleState{ResourceEpoch: resourceEpoch, Paths: deployment, Public: routeManifest.Public, Location: committedLocation, Selections: selections, Frozen: draftFrozen, Ready: currentURL != "", Configuration: documentConfiguration()})
+	encoded, _ := json.Marshal(moduleState{ResourceEpoch: resourceEpoch, Paths: deployment, Public: routeManifest.Public, Location: committedLocation, Selections: selections, Frozen: draftFrozen, Ready: currentURL != "", Revoked: mergeApplicationRevoked() || (mergeCurrent != nil && mergeCurrent.revoked), Configuration: documentConfiguration()})
 	return string(encoded)
 }
 func installModuleHost() {
@@ -307,6 +438,9 @@ func installModuleHost() {
 					result = fmt.Sprintf("module bridge: %v", failure)
 				}
 			}()
+			if mergeApplicationRevoked() && name != "register" && name != "state" && name != "refreshEnabled" && name != "unobserveLinkStatus" {
+				return errPropsClosed.Error()
+			}
 			if refreshFrozen() && name != "register" && name != "state" && name != "refreshEnabled" && name != "unobserveLinkStatus" {
 				return errRefreshFrozen.Error()
 			}

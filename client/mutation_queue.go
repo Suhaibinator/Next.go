@@ -22,7 +22,8 @@ const (
 )
 
 type mutationDispatchWaiter struct {
-	ctx   context.Context
+	// Done is captured once before admission; queue locks never invoke Context.
+	done  <-chan struct{}
 	ready chan struct{}
 	state mutationWaiterState
 	err   error
@@ -49,6 +50,9 @@ func newMutationDispatchQueue(maxWaiting int) *mutationDispatchQueue {
 	return &mutationDispatchQueue{maxWaiting: maxWaiting}
 }
 
+// Context methods may be authored Go code. Call ONLY outside the queue lock.
+// Keep the existing cause-first cancellation precedence; Cause itself may
+// call a custom Value or Err method and must not be treated as inert.
 func mutationContextError(ctx context.Context) error {
 	if cause := context.Cause(ctx); cause != nil {
 		return cause
@@ -56,20 +60,44 @@ func mutationContextError(ctx context.Context) error {
 	return ctx.Err()
 }
 
+// Receiving from the cached channel invokes no Context method or callback.
+// Context guarantees successive Done calls return the same channel and a
+// closed Done accompanies a stable non-nil Err. Cache it before admission.
+func mutationDoneClosed(done <-chan struct{}) bool {
+	select {
+	case <-done:
+		return true
+	default:
+		return false
+	}
+}
+
+func mutationCanceledError(ctx context.Context) error {
+	if err := mutationContextError(ctx); err != nil {
+		return err
+	}
+	// Defensive refusal for a Context that violates the Done/Err contract.
+	return context.Canceled
+}
+
 func (q *mutationDispatchQueue) acquire(ctx context.Context) (func(), error) {
 	if ctx == nil {
 		return nil, errors.New("nextgo: mutation dispatch requires a context")
 	}
-	q.mu.Lock()
 	if err := mutationContextError(ctx); err != nil {
-		q.mu.Unlock()
 		return nil, err
+	}
+	done := ctx.Done()
+	q.mu.Lock()
+	if mutationDoneClosed(done) {
+		q.mu.Unlock()
+		return nil, mutationCanceledError(ctx)
 	}
 	if q.frozen {
 		q.mu.Unlock()
 		return nil, ErrMutationQueueFrozen
 	}
-	w := &mutationDispatchWaiter{ready: make(chan struct{})}
+	w := &mutationDispatchWaiter{done: done, ready: make(chan struct{})}
 	if q.active == nil {
 		w.state = mutationGranted
 		q.active = w
@@ -80,12 +108,11 @@ func (q *mutationDispatchQueue) acquire(ctx context.Context) (func(), error) {
 		q.mu.Unlock()
 		return nil, ErrMutationQueueFull
 	}
-	w.ctx = ctx
 	q.waiting = append(q.waiting, w)
 	q.mu.Unlock()
 	select {
 	case <-w.ready:
-	case <-ctx.Done():
+	case <-done:
 	}
 	return q.accept(ctx, w)
 }
@@ -94,7 +121,13 @@ func (q *mutationDispatchQueue) acquire(ctx context.Context) (func(), error) {
 // A canceled request that was just granted immediately passes its slot onward.
 func (q *mutationDispatchQueue) accept(ctx context.Context, w *mutationDispatchWaiter) (func(), error) {
 	q.mu.Lock()
-	if err := mutationContextError(ctx); err != nil {
+	if w.accepted {
+		// Admission is a one-way handoff. A duplicate accept, even with a
+		// canceled context, cannot surrender a physically owned transport.
+		q.mu.Unlock()
+		return nil, errors.New("nextgo: mutation admission was not granted")
+	}
+	if mutationDoneClosed(w.done) {
 		switch w.state {
 		case mutationWaiting:
 			for i, item := range q.waiting {
@@ -105,7 +138,7 @@ func (q *mutationDispatchQueue) accept(ctx context.Context, w *mutationDispatchW
 					break
 				}
 			}
-			w.state, w.ctx = mutationFinished, nil
+			w.state = mutationFinished
 		case mutationGranted:
 			if q.active == w {
 				q.active = nil
@@ -114,7 +147,9 @@ func (q *mutationDispatchQueue) accept(ctx context.Context, w *mutationDispatchW
 			}
 		}
 		q.mu.Unlock()
-		return nil, err
+		// The exact canceled ticket has surrendered its slot before authored
+		// Cause/Err/Value can reenter. Preserve its cancellation cause.
+		return nil, mutationCanceledError(ctx)
 	}
 	if w.err != nil {
 		err := w.err
@@ -143,7 +178,7 @@ func (q *mutationDispatchQueue) release(w *mutationDispatchWaiter) {
 	if q.active != w {
 		return
 	}
-	w.state = mutationFinished
+	w.state, w.done = mutationFinished, nil
 	q.active = nil
 	q.grantNextLocked()
 }
@@ -156,10 +191,10 @@ func (q *mutationDispatchQueue) grantNextLocked() {
 		w := q.waiting[0]
 		q.waiting[0] = nil
 		q.waiting = q.waiting[1:]
-		err := mutationContextError(w.ctx)
-		w.ctx = nil
-		if err != nil {
-			w.state, w.err = mutationFinished, err
+		if mutationDoneClosed(w.done) {
+			// Only the owning acquire observes the authored cause, outside
+			// q.mu. Wake it without retaining its Context in the FIFO.
+			w.state = mutationFinished
 			close(w.ready)
 			continue
 		}
@@ -178,11 +213,11 @@ func (q *mutationDispatchQueue) freeze() {
 		// A grant wakeup is not yet a dispatched/owned transport. Remember
 		// its rejection on the waiter itself so reopen cannot resurrect it.
 		// Its ready channel may already be closed by grantNextLocked.
-		w.state, w.err, w.ctx = mutationFinished, ErrMutationQueueFrozen, nil
+		w.state, w.err = mutationFinished, ErrMutationQueueFrozen
 		q.active = nil
 	}
 	for i, w := range q.waiting {
-		w.state, w.err, w.ctx = mutationFinished, ErrMutationQueueFrozen, nil
+		w.state, w.err = mutationFinished, ErrMutationQueueFrozen
 		close(w.ready)
 		q.waiting[i] = nil
 	}

@@ -29,8 +29,11 @@ func (s *Scope) Lifetime() (*Lifetime, error) {
 	} else {
 		life = NewLifetime(LifetimeOptions{OnError: func(err error) { reportScopeError(s, err.Error()) }})
 	}
+	if guard := s.mergeCallbackGuard(); guard != nil {
+		life.callbackGuard = guard
+	}
 	s.lifetime = life
-	s.Cleanup(life.Close)
+	s.cleanupFramework(life.Close)
 	return life, nil
 }
 
@@ -64,14 +67,14 @@ func (s *Scope) Subscope(root Element) (*Scope, func(), error) {
 		return nil, nil, err
 	}
 	child := &Scope{parent: s, owner: s.islandRoot(), Root: root, lifetime: life, keyedDepth: s.keyedDepth}
-	child.Cleanup(life.Close)
+	child.cleanupFramework(life.Close)
 	if s.children == nil {
 		s.children = map[*Scope]struct{}{}
 	}
 	s.children[child] = struct{}{}
 	if !s.childCleanup {
 		s.childCleanup = true
-		s.Cleanup(func() {
+		s.cleanupFramework(func() {
 			for child := range s.children {
 				child.dispose()
 			}

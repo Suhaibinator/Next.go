@@ -1,0 +1,219 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+ "syscall/js"
+ "testing"
+)
+
+// TESTONLY map-platform model. It is compiled only into package tests and never
+// supplies a production claim. Own data fields stand for mutable native slots;
+// authored accessor overrides read the separately saved initial slot instead.
+// This models policy and custody only, not native brands, cross-realm support,
+// structured-clone behavior, or the atomicity of the static production bridge.
+type offlineTestNativeFacet struct { model js.Value }
+
+func installOfflineTestNativeFacet(t *testing.T, f *offlineTestFixture) *offlineTestNativeFacet {
+ t.Helper()
+ old := offlineNativeFacet
+ model := js.Global().Get("Function").New(offlineTestNativeFacetSource).Invoke()
+ cap := model.Get("cap")
+ offlineNativeFacet = offlineNativeCapability{valid:true,
+  prepare:cap.Get("prepare"),parent:cap.Get("parent"),child:cap.Get("child"),inspect:cap.Get("inspect"),
+  frame:cap.Get("frame"),channel:cap.Get("channel"),listen:cap.Get("listen"),remove:cap.Get("remove"),
+  start:cap.Get("start"),close:cap.Get("close"),then:cap.Get("then"),
+ }
+ next := &offlineTestNativeFacet{model:model}
+ // This cleanup runs before the base fixture releases its original JS funcs.
+ // stop revokes every modeled delivery wrapper, including queued reactions.
+ t.Cleanup(func(){ model.Call("stop"); offlineNativeFacet=old })
+ model.Call("bind",win,doc,f.channels)
+ next.remember(win,doc,f.worker,f.registration,f.sw)
+ return next
+}
+func (m *offlineTestNativeFacet) remember(values ...js.Value) {
+ for _, value := range values { m.model.Call("remember",value) }
+}
+func (m *offlineTestNativeFacet) before(callback js.Value) { m.model.Set("before",callback) }
+func (m *offlineTestNativeFacet) observerState(state js.Value) { m.model.Set("observerState",state) }
+func (m *offlineTestNativeFacet) native(value js.Value, property string) js.Value { return m.model.Call("native",value,property) }
+func (m *offlineTestNativeFacet) set(value js.Value, property string, next any) { m.model.Call("setNative",value,property,next) }
+func (m *offlineTestNativeFacet) stop() { m.model.Call("stop") }
+
+// Fixture containment supplies an explicit synthetic platform terminal only
+// AFTER assertions. Delivery wrappers are revoked first, so no future fake event
+// or Promise reaction can enter a Go callback after its release. This is absent
+// from production and does not teach production cleanup to forget unknown work.
+func (m *offlineTestNativeFacet) contain(t *testing.T, r *offlineProofRealm) {
+ t.Helper()
+ m.stop()
+ offlineAuthorityMu.Lock()
+ running:=r.parent.c!=nil && r.parent.c.busy
+ offlineAuthorityMu.Unlock()
+ if running {t.Error("test model operation still running; callback ownership retained");return}
+ for _, cell := range r.disableReplies {
+  if cell.callbacks!=0 { t.Error("test model still has an active reply callback"); return }
+  if cell.installed && cell.port.Truthy() { _=offlineNativeRemove(cell.port,"message",cell.listener);cell.installed=false }
+  cell.terminal=true // Stopped-model terminal precedes every fake callback release.
+  if cell.listenerOwned { cell.listener.Release();cell.listenerOwned=false }
+  if cell.port.Truthy() { _=offlineNativeClose(cell.port) }
+  if cell.other.Truthy() { _=offlineNativeClose(cell.other) }
+  cell.terminal,cell.charged=true,false
+ }
+ r.disableReplies=nil
+ for _, cell := range r.disableNative {
+  if cell.callbacks!=0 { t.Error("test model still has an active native callback"); return }
+  // Only the stopped model establishes this terminal; not a native receipt.
+  cell.terminal=true
+  if cell.authorizeOwned {cell.authorize.Release();cell.authorizeOwned=false}
+  if cell.resolvedOwned {cell.resolved.Release();cell.resolvedOwned=false}
+  if cell.rejectedOwned {cell.rejected.Release();cell.rejectedOwned=false}
+  cell.charged=false
+ }
+ r.disableNative=nil
+ for _, l:=range r.listeners {
+  if l.callbacks!=0 {t.Error("test model still has an active listener callback");return}
+  if l.installed {_=offlineNativeRemove(l.target,l.event,l.callback);l.installed=false}
+  l.retiring=true
+  if l.owned {l.callback.Release();l.owned=false}
+ }
+ r.listeners=nil
+ for _,port:=range r.ports {_=offlineNativeClose(port)}
+ // Explicitly discard only a stopped synthetic platform. Native removal is not
+// replayed on a quarantined original frame, and no physical receipt is invented.
+ r.pending=0;r.navigationPending=false;r.navigationCallbacks=0;r.creationPending=false
+ r.frame,r.host,r.window,r.document,r.container,r.controller=js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined()
+ r.child=offlineNativeChild{};r.ports=nil;r.childEstablished=false;r.retired=true
+ r.frameRetiring=false;r.quarantined=false
+ if err:=r.close();err!=nil {t.Error("stopped test model containment failed",err)}
+}
+
+const offlineTestNativeFacetSource = `
+// TESTONLY. No browser-native brand or production fallback is represented here.
+const O=Object,A=Reflect.apply,D=O.getOwnPropertyDescriptor,DP=O.defineProperty;
+const saved=new WeakMap(), guards=new WeakMap(), state={alive:true};
+let parentWindow,parentDocument,stats;
+const model={before:undefined,observerState:undefined,failOperation:0,failReason:7};
+const own=(o,k,v)=>DP(o,k,{value:v,writable:true,enumerable:true,configurable:true});
+const object=v=>v!==null&&typeof v==='object';
+const remember=o=>{
+ if(!object(o)&&typeof o!=='function')return;
+ let row=saved.get(o);if(!row){row=O.create(null);saved.set(o,row);}
+ for(const k of O.getOwnPropertyNames(o)){const d=D(o,k);if(d&&'value'in d)own(row,k,d.value);}
+};
+const native=(o,k)=>{
+ if(!object(o)&&typeof o!=='function')throw Error('TESTONLY model receiver');
+ const d=D(o,k);
+ if(d&&'value'in d){if(!saved.has(o))remember(o);const row=saved.get(o);if(!D(row,k))own(row,k,d.value);return d.value;}
+ const row=saved.get(o), prior=row&&D(row,k);
+ if(prior&&'value'in prior)return prior.value;
+ if(!d&&['active','waiting','installing'].includes(k)&&D(o,'scope'))return null;
+ return undefined;
+};
+const invoke=(o,k,args=[])=>{const f=native(o,k);if(typeof f!=='function')throw Error('TESTONLY model method');return A(f,o,args);};
+const dense=(v,n)=>{
+ if(!Array.isArray(v)||v.length!==n)throw Error('TESTONLY model record');
+ const out=[];for(let i=0;i<n;i++){const d=D(v,''+i);if(!d||!('value'in d))throw Error('TESTONLY model hole/accessor');own(out,i,d.value);}return out;
+};
+const url=w=>w===null?'':native(w,'scriptURL');
+const inspect=items=>{
+ if(!Array.isArray(items)||items.length>64)throw Error('TESTONLY inventory');
+ const out=[];for(let i=0;i<items.length;i++){
+  const d=D(items,''+i);if(!d||!('value'in d)||!object(d.value))throw Error('TESTONLY inventory entry');
+  const r=d.value,s=native(r,'scope'),a=native(r,'active'),w=native(r,'waiting'),n=native(r,'installing');
+  if(typeof s!=='string'||!s||s.length>8192||[a,w,n].some(x=>x!==null&&!object(x)))throw Error('TESTONLY inventory slot');
+  const row=[r,s,a,w,n,url(a),url(w),url(n)];
+  for(const k of [5,6,7])if(typeof row[k]!=='string'||row[k].length>8192)throw Error('TESTONLY inventory URL');
+  out.push(row);
+ }return out;
+};
+const parent=(w,d)=>{
+ if(w!==parentWindow||d!==parentDocument||native(w,'document')!==d||native(d,'defaultView')!==w)throw Error('TESTONLY parent association');
+ const n=native(w,'navigator'),c=native(n,'serviceWorker'),l=native(w,'location');
+ return [w,d,n,c,native(c,'controller'),l,native(l,'origin'),native(d,'documentElement')];
+};
+const child=frame=>{
+ const w=native(frame,'contentWindow'),d=native(frame,'contentDocument');
+ if(!object(w)||!object(d)||native(w,'document')!==d||native(d,'defaultView')!==w)throw Error('TESTONLY child association');
+ const n=native(w,'navigator'),c=native(n,'serviceWorker');
+ return [w,d,n,c,native(c,'controller'),native(d,'documentElement'),native(d,'head'),native(d,'body')];
+};
+const empty=n=>{const a=native(n,'childNodes');return Array.isArray(a)&&a.length===0;};
+const prepare=(operation,nonce,refs,nodes,policy,payload,port)=>{
+ if(!state.alive)throw Error('TESTONLY stopped platform');
+ const r=dense(refs,15),n=dense(nodes,5),p=dense(policy,4);
+ if(!Number.isInteger(operation)||operation<1||operation>12||typeof nonce!=='string'||!nonce||nonce.length>128)throw Error('TESTONLY operation');
+ if(r.slice(0,6).some(v=>!object(v))||p.some(v=>typeof v!=='string'||!v||v.length>8192))throw Error('TESTONLY parent input');
+ const parentOnly=operation===12,unopened=[1,10,11].includes(operation),candidate=operation>=5&&operation<=8;
+ if(parentOnly){if(r.slice(6).some(v=>v!==undefined)||n.some(v=>v!==undefined))throw Error('TESTONLY parent-only input');}
+ else{
+  if(!object(r[6])||!object(r[7]))throw Error('TESTONLY frame input');
+  if(unopened){if(r.slice(8).some(v=>v!==undefined)||n.some(v=>v!==undefined))throw Error('TESTONLY unopened input');}
+  else{
+   if(r.slice(8,12).some(v=>!object(v))||(r[12]!==null&&!object(r[12]))||n.slice(0,3).some(v=>!object(v)))throw Error('TESTONLY child input');
+   if(candidate){if(!object(r[13])||[r[14],n[3],n[4]].some(v=>v!==null&&!object(v))||(operation!==7&&!object(r[14]))||(operation===7&&r[14]===null&&n[3]===null&&n[4]===null))throw Error('TESTONLY candidate input');}
+   else if([r[13],r[14],n[3],n[4]].some(v=>v!==undefined))throw Error('TESTONLY unused candidate');
+  }
+ }
+ let dispatch=[];
+ if(operation===5||operation===6){const q=dense(payload,6);if(q[0]!==1||q[1]!== (operation===5?'status':'disable-recovered')||q.slice(2).some(v=>typeof v!=='string'||!v||v.length>256)||!object(port))throw Error('TESTONLY payload');dispatch=[{version:q[0],command:q[1],ownerPolicyID:q[2],runtimeID:q[3],configurationID:q[4],requestID:q[5]},[port]];}
+ else if(payload!==undefined||port!==undefined)throw Error('TESTONLY unused payload');
+ const receipt=O.assign(O.create(null),{version:1,nonce,operation,entered:false,reason:0,issued:false,returned:false,value:undefined});
+ let used=false;
+ // Explicit test preparation hook. This can reenter Go BEFORE authorize/facts;
+ // unlike production it is a fixture seam and proves no all-native segment.
+ if(typeof model.before==='function')A(model.before,undefined,[operation,nonce]);
+ const run=authorize=>{
+  if(!state.alive||used)return undefined;used=true;
+  try{if(A(authorize,undefined,[nonce,operation,receipt])!==true){receipt.reason=1;return receipt;}}catch(_){receipt.reason=1;return receipt;}
+  receipt.entered=true;let dispatching=false;
+  if(model.failOperation===operation){receipt.reason=model.failReason;model.failOperation=0;return receipt;}
+  try{
+   if(native(r[0],'document')!==r[1]||native(r[1],'defaultView')!==r[0]||native(r[5],'origin')!==p[0]||native(r[0],'navigator')!==r[2]||native(r[2],'serviceWorker')!==r[3]||native(r[3],'controller')!==r[4]||url(r[4])!==p[2]){receipt.reason=3;return receipt;}
+   if(!parentOnly){
+    if(native(r[7],'ownerDocument')!==r[1]||native(r[7],'isConnected')!==true||native(r[6],'ownerDocument')!==r[1]||native(r[6],'src')!==p[1]){receipt.reason=4;return receipt;}
+    if(unopened&&operation!==10){if(native(r[6],'isConnected')!==false||native(r[6],'parentNode')!==null){receipt.reason=4;return receipt;}}
+    else if(native(r[6],'isConnected')!==true||native(r[6],'parentNode')!==r[7]){receipt.reason=4;return receipt;}
+    if(!unopened){
+     if(native(r[6],'contentWindow')!==r[8]||native(r[6],'contentDocument')!==r[9]){receipt.reason=4;return receipt;}
+     if(native(r[8],'document')!==r[9]||native(r[9],'defaultView')!==r[8]||native(r[9],'URL')!==p[1]||native(r[9],'readyState')!=='complete'||native(r[9],'documentElement')!==n[0]||native(r[9],'head')!==n[1]||native(r[9],'body')!==n[2]||native(n[0],'protocol')!=='1'||!empty(n[1])||!empty(n[2])||native(r[8],'closed')!==false||native(r[8],'origin')!==p[0]||native(r[8],'navigator')!==r[10]||native(r[10],'serviceWorker')!==r[11]||native(r[11],'controller')!==r[12]||(r[12]!==null&&url(r[12])!==p[2])){receipt.reason=5;return receipt;}
+    }
+   }
+   if(candidate&&(native(r[13],'scope')!==p[3]||native(r[13],'active')!==r[14]||native(r[13],'waiting')!==n[3]||native(r[13],'installing')!==n[4]||[r[14],n[3],n[4]].some(v=>v!==null&&url(v)!==p[2]))){receipt.reason=6;return receipt;}
+   if(operation===11){receipt.returned=true;return receipt;}
+   receipt.issued=true;dispatching=true;
+   switch(operation){
+    case 1:receipt.value=invoke(r[7],'appendChild',[r[6]]);break;
+    case 2:case 12:receipt.value=invoke(r[3],'getRegistrations');break;
+    case 3:receipt.value=invoke(r[11],'getRegistrations');break;
+    case 4:receipt.value=invoke(r[11],'getRegistration',[p[3]]);break;
+    case 5:case 6:receipt.value=invoke(r[14],'postMessage',dispatch);break;
+    case 7:receipt.value=invoke(r[13],'update');break;
+    case 8:receipt.value=invoke(r[13],'unregister');break;
+    case 9:case 10:receipt.value=invoke(r[7],'removeChild',[r[6]]);break;
+   }
+   dispatching=false;receipt.returned=true;
+   if((operation===9||operation===10)&&(receipt.value!==r[6]||native(r[6],'isConnected')!==false||native(r[6],'parentNode')!==null))receipt.reason=4;
+   return receipt;
+  }catch(_){receipt.reason=dispatching?8:7;return receipt;}
+ };
+ const read=()=>{
+  if(O.getOwnPropertyNames(receipt).length!==8||O.getOwnPropertySymbols(receipt).length!==0)throw Error('TESTONLY receipt shape');
+  return ['version','nonce','operation','entered','reason','issued','returned','value'].map(k=>{const d=D(receipt,k);if(!d||!('value'in d))throw Error('TESTONLY receipt accessor');return d.value;});
+ };
+ return O.freeze({run,receipt,read});
+};
+const nativeThen=Promise.prototype.then;
+const cap={prepare,parent,child,inspect,
+ frame(d,url){const f=invoke(d,'createElement',['iframe']);for(const [k,v]of [['src',url],['hidden',true],['inert',true],['tabIndex',-1],['loading','eager'],['referrerPolicy','no-referrer']])model.setNative(f,k,v);remember(f);return f;},
+ channel(){const C=native(parentWindow,'MessageChannel'),c=new C();remember(c);const p1=native(c,'port1'),p2=native(c,'port2');remember(p1);remember(p2);return[c,p1,p2];},
+ listen(target,event,callback){let list=guards.get(target);if(!list){list=[];guards.set(target,list);}const wrapped=function(...args){if(state.alive)return A(callback,this,args);};list.push({event,callback,wrapped});return invoke(target,'addEventListener',[event,wrapped,false]);},
+ remove(target,event,callback){const list=guards.get(target)||[];const found=list.find(x=>x.event===event&&x.callback===callback);const result=invoke(target,'removeEventListener',[event,found?found.wrapped:callback,false]);if(found)list.splice(list.indexOf(found),1);return result;},
+ start(port){return invoke(port,'start');},close(port){return invoke(port,'close');},
+ then(promise,resolved,rejected){if(!state.alive)throw Error('TESTONLY stopped platform');const guard=f=>function(...args){if(state.alive)return A(f,this,args);};const next=A(nativeThen,promise,[guard(resolved),guard(rejected)]);if(typeof model.afterThen==='function')A(model.afterThen,undefined,[promise]);const s=model.observerState;if(s&&s.observerThrow)throw Error('TESTONLY observer after attachment');return next;}
+};
+model.setNative=(o,k,v)=>{if(!saved.has(o))remember(o);own(saved.get(o),k,v);const d=D(o,k);if(!d||'value'in d)own(o,k,v);};
+model.cap=cap;model.bind=(w,d,s)=>{parentWindow=w;parentDocument=d;stats=s;};model.remember=remember;model.native=native;model.stop=()=>{state.alive=false;};
+return model;
+`

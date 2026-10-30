@@ -116,10 +116,10 @@ func TestResourceModuleABIRejectsOldRegistrationBeforeMount(t *testing.T) {
 	lazyModules = map[string]*lazyState{"resourcepanel": {loading: true, descriptor: LazyModule{Epoch: epoch}, exports: js.Undefined()}}
 	installModuleHost()
 	host := win.Get(moduleBridgeName)
-	if host.Get("version").Int() != 5 {
-		t.Fatal("module ABI link-status contract not raised")
+	if host.Get("version").Int() != 6 {
+		t.Fatal("module ABI authority contract not raised")
 	}
-	for _, oldABI := range []int{4, 3} {
+	for _, oldABI := range []int{5, 4, 3} {
 		// Each legacy registration starts from fresh state, so rejection of one
 		// version cannot mask installation by the next attempt.
 		state := &lazyState{loading: true, descriptor: LazyModule{Epoch: epoch}, exports: js.Undefined()}

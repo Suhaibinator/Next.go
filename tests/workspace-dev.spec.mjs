@@ -30,7 +30,7 @@ test('broken module and workspace manifests recover after external fixes without
   for(const [file,original]of [[mod,originalMod],[work,originalWork]]){
    await page.evaluate(()=>window.workspaceLastGood=true);await writeFile(file,original+'\ninvalid manifest directive\n');await expect(page.locator('#nextgo-status')).toContainText('Build failed',{timeout:45_000});expect(await page.evaluate(()=>window.workspaceLastGood)).toBe(true);
    await page.locator('[data-workspace-increment]').click();await expect(page.locator('[data-workspace-count]')).toHaveText('2');
-   await writeFile(file,original);await expect.poll(()=>page.evaluate(()=>window.workspaceLastGood),{timeout:45_000}).toBe(undefined);await ready(page);await expect(page.locator('[data-workspace-count]')).toHaveText('0');
+   await writeFile(file,original);const restored=await page.waitForFunction(()=>window.workspaceLastGood===undefined,undefined,{timeout:45_000});await restored.dispose();await ready(page);await expect(page.locator('[data-workspace-count]')).toHaveText('0');
   }
  }finally{await writeFile(mod,originalMod);await writeFile(work,originalWork)}
 });
