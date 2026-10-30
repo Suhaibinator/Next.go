@@ -6,6 +6,59 @@ The target is an alternative implemented in Go, with Go/WASM browser behavior an
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
 
+## Standalone AD01 FIFO source increment
+
+This source-only increment starts from immutable native-controls commit
+`2a34c8ac11b753d75877faf9e0065afb62cb436f` (parent `b4efe93f`). Its queue change
+keeps caller-authored Context methods outside the queue mutex, caches Done once
+before admission, and surrenders a canceled ticket's exact slot before resolving
+its cancellation cause. Duplicate accept cannot surrender or duplicate an
+already accepted transport owner. The existing 64-waiting-plus-one-active bound,
+sticky freeze rejection and idempotent exact-owner release remain. It introduces
+no queue watcher goroutine, timer, AfterFunc or stop hook.
+
+The two formatted Go postimages have independent source review and Root's prior
+format/syntax-only receipt. No typecheck, native/WASM/race/browser test or runtime
+result exists for this increment. Of 1,287 ordinary Go files, 1,285 remain exact
+2a34; only `client/mutation_queue.go` and its existing test file change. Their
+combined full-Go source is 6,424,836 bytes, canonical SHA-256
+`0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17`. The existing expected-full-Go
+guard enforces those exact bytes before compilation; both modified Go files
+remain outside the unchanged 207 selected paths. Whole-source fingerprints remain
+controlled-publication provenance, not a producer-enforced whole-content guard.
+
+All original 600 mandatory names and skips remain unchanged. Seven new portable
+FIFO roots are separately mandatory in native, core and development-core:
+21 additional actual occurrences. A strict additive contract requires the exact
+seven roots in exactly those three phases. Each extra must emit one root RUN,
+one PASS and zero SKIP events in one package. Missing/subtest-only roots, even
+allowed skips, duplicate or foreign-package roots and failures cannot count.
+`requiredPasses` retains the baseline; `additionalRequiredPasses` and campaign
+counts report the 21 separately. Seven new evidence-auditor regressions are
+authored and unrun. No command, filter, resource limit, skip allowance, 207
+selected cap or 256 per-array cap is increased. Existing commands already select
+the new roots; source-workflow raw output audits must check 600 plus 21 explicitly.
+
+All 41 isolated native first-compile controls and their fixed 3d-to-ba24/1,311-Go
+fixture source remain byte-exact 2a34. They are not rebased onto this FIFO change,
+not promoted into ordinary framework source and not credited with a new compile
+or runtime result. All 24 ancestry elements remain literal-exact and one 2a34
+foundation is appended once as element 25; later publisher steps must not append
+it again. The native-profile and older discussions below are historical lineage
+whose relative current/private language applies to their stated foundations.
+
+The separately audited b4 checkpoint has Go 1.24 actual 600 checks and focus
+root+11 PASS; Go 1.27 fails its export fixture's nested build at 30.01s before
+WASM, with 89 mandatory native roots PASS and 511 later checks unreached. Streaming
+reports 280 PASS including action-view 60; offline reports 19 PASS, one Firefox
+HTTP-helper-policy failure and 20 unrun. These are parent observations only;
+their causes and this increment's results remain unqualified. The current FIFO
+source does not fix or inherit those fixture/browser outcomes.
+
+All 79 capability rows and 11 release gates remain open. The 432 retained cases,
+440 closures and 40 offline cases are unchanged. Cache aliases remain held,
+preview 3011 stays protected and AWS remains NO.
+
 ## Isolated native default first-compile debug profile
 
 Published foundation `b4efe93f0c760c93fdaba6868138d48033501899` retains the typed

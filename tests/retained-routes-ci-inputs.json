@@ -491,8 +491,8 @@
     },
     {
   "path": "docs/PARITY.md",
-  "sha256": "50a209dead73dc44a36fba54d568082b44a1c99ad5c76b4910688782e2cd6bf9",
-  "bytes": 208845,
+  "sha256": "efd0ee9a9803b4bba672d1a1972f31bab0e3a17586937063382fd259fe8b6ac4",
+  "bytes": 212393,
   "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
 },
     {
@@ -1043,14 +1043,14 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "05daa2f9a2c93e8532eb467fb4a5daa5472245caea521bc61dbb533cfe95959d",
-      "bytes": 67260,
+      "sha256": "cda00d0b0fe5afbd6c72136b8c1a96ec9d3e94b904c526a8f2dd5cf36abb2367",
+      "bytes": 70770,
       "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
-      "sha256": "df8492884565007cfc9c5e4bab5301346aec7868dfe962a4fae79c9312dae362",
-      "bytes": 37987,
+      "sha256": "f778f75ea4cde767d0ddfd4e7ff0e5c9781c5619273a92f1b3cce36a86cdfc95",
+      "bytes": 43138,
       "origin": "Private source-only a95 MIME/drain/workspace rebase; deliberate observer-aware overlap merge;193pin admission conflict"
     },
     {
@@ -2113,6 +2113,18 @@
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
       "ordinaryTypedErrorAndFullGoGuardPreserved": true
+    },
+    {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
     }
   ],
   "newNativeRegressionCount": 30,
@@ -2128,7 +2140,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "SOURCE COMPOSITION ONLY: existing207 selected paths and expected ordinary b4 fullGo1287/fa273 bindings; isolated debug41 controls with Root26 process-mocked Python PASS only. Root technical profile acceptance CONDITIONED on exact composition/independent peer/controlled publisher/publication; no workflow/Go/unit/browser/runtime execution or production maturity. All600 names/skips/cases432closures440/offline40 exact; all23 ancestry elements rawexact plus one publishedb4 foundation24, no later duplicate append. All79capabilities11gates OPEN.",
+  "readinessMeaning": "PRESERVED EXISTING HOSTED INIT ONLY after separate complete-source peer, Root full read, controlled publisher review/execution and topic publication: exact207 selected paths and enforced fullGo1287/0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17; old600 names/skips remain raw-exact plus separately mandatory21 AD01 occurrences. No new type/test/runtime/readiness result. Native41 controls and fixed3d isolated fixture remain byte-exact2a34 and unqualified here. All24 ancestry elements raw-exact plus one2a34 foundation25; later publisher must not append. All79capabilities11gates OPEN; AWS NO.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2265,54 +2277,55 @@
     ]
   },
   "combinedSourceInput": {
-  "status": "SOURCE_COMPOSITION_ONLY_ISOLATED_NATIVE_DEBUG_TECHNICAL_ACCEPTANCE_CONDITIONED_ON_PEER_PUBLISHER_AND_PUBLICATION",
-  "baseCommit": "b4efe93f0c760c93fdaba6868138d48033501899",
-  "baseTree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-  "publishedFoundation": {
-    "kind": "published-b4-typed-error-and-expected-full-Go-foundation-for-isolated-native-debug",
-    "commit": "b4efe93f0c760c93fdaba6868138d48033501899",
-    "tree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-    "inputPath": "tests/retained-routes-ci-inputs.json",
-    "inputBytes": 446406,
-    "inputSHA256": "e85ab2b5d7ce1f82f3b68b983aadb19d7b9d7f0f72acceb881cc8fdad65d37c3",
-    "historicalOnly": true,
-    "runtimeQualificationInherited": false,
-    "ordinaryTypedErrorAndFullGoGuardPreserved": true
+    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "publishedFoundation": {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    "currentQualification": "standaloneAD01FIFOQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "integrationBaseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "integrationBaseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "sourcePinCount": 207,
+    "sourcePinBytes": 2290165,
+    "sourcePinsTreeSHA256": "0684d439068c356e63614f50f07472345ac6296b82fa32d699e00bb412c7efb6",
+    "currentGoFiles": 1287,
+    "currentGoBytes": 6424836,
+    "currentGoContentTreeSHA256": "0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17",
+    "immediateModifiedProductionGoFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateAddedGoFiles": 0,
+    "otherImmediateBaseGoFilesUnchanged": 1285,
+    "selectedPathSetUnchanged": true,
+    "producerFullGoExpectedGuard": true,
+    "producerWholeSourceExpectedGuard": false,
+    "wholeTrackedPaths": 1784,
+    "native41ControlPathsPreserved": true,
+    "mandatoryBaselineOccurrences": 600,
+    "additionalMandatoryOccurrences": 21
   },
-  "currentQualification": "offlineNativeFirstCompileDebugQualification",
-  "sourcePins": 207,
-  "sourcePinCap": 207,
-  "ready": true,
-  "readyMeaning": "EXISTING207_EXPECTED_FULL_GO_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
-  "sourceReady": false,
-  "profileReady": false,
-  "runtimeExecuted": false,
-  "runtimeQualified": false,
-  "nativeCauseIdentified": false,
-  "browserFixQualified": false,
-  "measurementAdmitted": false,
-  "publisherExecutionAdmitted": false,
-  "publicationPerformed": false,
-  "currentRootTechnicalAcceptance": "CONDITIONED_ON_EXACT_SOURCE_COMPOSITION_INDEPENDENT_PEER_AND_CONTROLLED_PUBLISHER_REVIEW_PUBLICATION",
-  "integrationBaseCommit": "b4efe93f0c760c93fdaba6868138d48033501899",
-  "integrationBaseTree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-  "sourcePinCount": 207,
-  "sourcePinsTreeSHA256": "15870db027002b76fbf2f78e48bac40560346cef48a6812f737e140d9b931825",
-  "sourcePinBytes": 2277956,
-  "currentGoFiles": 1287,
-  "currentGoBytes": 6415473,
-  "currentGoContentTreeSHA256": "fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895",
-  "immediateModifiedProductionGoFiles": 0,
-  "immediateModifiedExistingGoTestFiles": 0,
-  "immediateAddedGoFiles": 0,
-  "otherImmediateBaseGoFilesUnchanged": 1287,
-  "selectedPathSetUnchanged": true,
-  "producerFullGoExpectedGuard": true,
-  "producerWholeSourceExpectedGuard": false,
-  "wholeTrackedPaths": 1784,
-  "newControlPaths": 41,
-  "currentWholeSourceQualification": "Source composition only; complete41source peer passes, current docs/input composition and publisher peer pending; Root technical profile acceptance conditioned, no execution."
-},
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
     "manifestSHA256": "af37d88f59faa15c1621967c366fee7a76ea85e2f98a7b64c6087a299fb74e3a",
@@ -3009,51 +3022,53 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-  "status": "SOURCE_COMPOSITION_ONLY_ISOLATED_NATIVE_DEBUG_TECHNICAL_ACCEPTANCE_CONDITIONED_ON_PEER_PUBLISHER_AND_PUBLICATION",
-  "baseCommit": "b4efe93f0c760c93fdaba6868138d48033501899",
-  "baseTree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-  "publishedFoundation": {
-    "kind": "published-b4-typed-error-and-expected-full-Go-foundation-for-isolated-native-debug",
-    "commit": "b4efe93f0c760c93fdaba6868138d48033501899",
-    "tree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-    "inputPath": "tests/retained-routes-ci-inputs.json",
-    "inputBytes": 446406,
-    "inputSHA256": "e85ab2b5d7ce1f82f3b68b983aadb19d7b9d7f0f72acceb881cc8fdad65d37c3",
-    "historicalOnly": true,
-    "runtimeQualificationInherited": false,
-    "ordinaryTypedErrorAndFullGoGuardPreserved": true
+    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "publishedFoundation": {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    "currentQualification": "standaloneAD01FIFOQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "currentRequiredCounts": {
+      "native": 89,
+      "core": 202,
+      "devcore": 169,
+      "portable": 13,
+      "ui": 12,
+      "module": 44,
+      "devmodule": 46
+    },
+    "mandatoryBaselineOccurrences": 600,
+    "additionalMandatoryOccurrences": 21,
+    "allModesBrowserCases": 432,
+    "allModesWorkerClosures": 440,
+    "independentOfflineCases": 40,
+    "currentSourcePinTreeSHA256": "0684d439068c356e63614f50f07472345ac6296b82fa32d699e00bb412c7efb6",
+    "currentGoContentTreeSHA256": "0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17",
+    "newTypecheckPassed": false
   },
-  "currentQualification": "offlineNativeFirstCompileDebugQualification",
-  "sourcePins": 207,
-  "sourcePinCap": 207,
-  "ready": true,
-  "readyMeaning": "EXISTING207_EXPECTED_FULL_GO_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
-  "sourceReady": false,
-  "profileReady": false,
-  "runtimeExecuted": false,
-  "runtimeQualified": false,
-  "nativeCauseIdentified": false,
-  "browserFixQualified": false,
-  "measurementAdmitted": false,
-  "publisherExecutionAdmitted": false,
-  "publicationPerformed": false,
-  "currentRootTechnicalAcceptance": "CONDITIONED_ON_EXACT_SOURCE_COMPOSITION_INDEPENDENT_PEER_AND_CONTROLLED_PUBLISHER_REVIEW_PUBLICATION",
-  "currentRequiredCounts": {
-    "native": 89,
-    "core": 202,
-    "devcore": 169,
-    "portable": 13,
-    "ui": 12,
-    "module": 44,
-    "devmodule": 46
-  },
-  "allModesBrowserCases": 432,
-  "allModesWorkerClosures": 440,
-  "independentOfflineCases": 40,
-  "currentSourcePinTreeSHA256": "15870db027002b76fbf2f78e48bac40560346cef48a6812f737e140d9b931825",
-  "currentGoContentTreeSHA256": "fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895",
-  "newTypecheckPassed": false
-},
   "commandGroupCensus": {
     "status": "SOURCE_ONLY_UNEXECUTED_FAILURE_DIAGNOSTIC",
     "sourceManifestSHA256": "483c21de551bffa65ac39689bbff600d1dbb4606b87a0ad79f18681544a49f48",
@@ -3314,49 +3329,53 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exact publishedb4 successor:41 new non-Go controls +docs/input only; ordinary1287Go/6415473/fa273 byteexactb4, typed demo and fullGo producer/test guard preserved.207 selected paths/cap unchanged,206rows exact+docs rebound1; no41 controls added to full producer.600 names/skips unchanged. Isolated3d→ba24/1311Go exact fixture contract; no ordinary-source promotion.23ancestryrawprefix+oneb4foundation=24. WholeSource hash observational only; actualfullGo expectedguard remainsenforced. Root26Python protocolPASS cdcc only, source41peer e212; conditioned technical acceptance no new compile/Go-unit/runtime/CI/prod. CachealiasesHELD/preview3011protected/AWSNO/79and11OPEN.",
+  "sourceInputScope": "Exact2a34 successor: two formatted standalone AD01 FIFO Go postimages + producer/harness separate21 enforcement + docs/input only. Old600 arrays/skips/casevectors and native41 controls unchanged. Selected207 paths/cap unchanged:204rows raw-exact+3SHA/size rebound. FullGo1287/6424836/0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17 is enforced before compilation, including two modified unselected Go files; whole-source hash observational only. Source only, no parser/Go/Node/SDK/cache/browser/CI/deploy. Old24 ancestry prefix raw-exact plus one2a34foundation25. All79/11 OPEN; AWS NO.",
   "finalSourceReadinessReview": {
-  "status": "SOURCE_COMPOSITION_ONLY_ISOLATED_NATIVE_DEBUG_TECHNICAL_ACCEPTANCE_CONDITIONED_ON_PEER_PUBLISHER_AND_PUBLICATION",
-  "baseCommit": "b4efe93f0c760c93fdaba6868138d48033501899",
-  "baseTree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-  "publishedFoundation": {
-    "kind": "published-b4-typed-error-and-expected-full-Go-foundation-for-isolated-native-debug",
-    "commit": "b4efe93f0c760c93fdaba6868138d48033501899",
-    "tree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
-    "inputPath": "tests/retained-routes-ci-inputs.json",
-    "inputBytes": 446406,
-    "inputSHA256": "e85ab2b5d7ce1f82f3b68b983aadb19d7b9d7f0f72acceb881cc8fdad65d37c3",
-    "historicalOnly": true,
-    "runtimeQualificationInherited": false,
-    "ordinaryTypedErrorAndFullGoGuardPreserved": true
+    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "publishedFoundation": {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    "currentQualification": "standaloneAD01FIFOQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "wholeCompositionPeerRequired": true,
+    "formattedSourcePeer": {
+      "path": ".nextgo-test-results/recovery/lazy-mutation-fifo-ad01-formatted-source-review-v1/SOURCE_REVIEW.json",
+      "bytes": 7795,
+      "sha256": "e74e594e055a6cc3a71c15404cfebd30cae49885083bd97da17727e912b10374"
+    },
+    "producerSourcePeer": {
+      "path": ".nextgo-test-results/recovery/ad01-fifo-additional-requirements-producer-proposal-review-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 8916,
+      "sha256": "43a92c8bb3917a95335cc5c75a7f7af52c05d7be6f840cab99122398aeb9f903"
+    },
+    "newTypecheckPassed": false,
+    "newTestsExecuted": false,
+    "rootOwnFullReadPublicationAndExecutionRequired": true,
+    "all79Capabilities11GatesRemainOpen": true
   },
-  "currentQualification": "offlineNativeFirstCompileDebugQualification",
-  "sourcePins": 207,
-  "sourcePinCap": 207,
-  "ready": true,
-  "readyMeaning": "EXISTING207_EXPECTED_FULL_GO_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
-  "sourceReady": false,
-  "profileReady": false,
-  "runtimeExecuted": false,
-  "runtimeQualified": false,
-  "nativeCauseIdentified": false,
-  "browserFixQualified": false,
-  "measurementAdmitted": false,
-  "publisherExecutionAdmitted": false,
-  "publicationPerformed": false,
-  "currentRootTechnicalAcceptance": "CONDITIONED_ON_EXACT_SOURCE_COMPOSITION_INDEPENDENT_PEER_AND_CONTROLLED_PUBLISHER_REVIEW_PUBLICATION",
-  "wholeCompositionPeerRequired": true,
-  "complete41ControlSourcePeer": {
-    "path": ".nextgo-test-results/recovery/offline-native-gatea-whole-source-peer-v2/FINAL_WHOLE_SOURCE_REVIEW.json",
-    "bytes": 22326,
-    "sha256": "e2126f94b1e67a2351e4ea34b4ed6c6bc2f8d38a4ac01f03dd782bfe6be11bdb"
-  },
-  "actual26ProtocolModelsOnly": true,
-  "externalPublisherPeerRequired": true,
-  "rootOwnFullReadPublicationAndExecutionRequired": true,
-  "newTypecheckPassed": false,
-  "all79Capabilities11GatesRemainOpen": true
-},
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
     "sourceBaseCommit": "6ed42562576cd33de9e37b35e48c1ff29d1c7c0d",
@@ -8641,5 +8660,288 @@
     "independentCompositionPeerRequired": true,
     "controlledPublisherReviewRequired": true,
     "RootPublicationAndProfileExecutionDecisionsRequired": true
+  },
+  "standaloneAD01FIFORequirements": {
+    "version": 1,
+    "baselineRequiredOccurrences": 600,
+    "additionalRequiredOccurrences": 21,
+    "requiredByPhase": {
+      "native": [
+        "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+        "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+        "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+        "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+        "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+        "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+        "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+      ],
+      "core": [
+        "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+        "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+        "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+        "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+        "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+        "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+        "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+      ],
+      "devcore": [
+        "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+        "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+        "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+        "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+        "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+        "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+        "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+      ]
+    }
+  },
+  "standaloneAD01FIFOQualification": {
+    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "publishedFoundation": {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    "currentQualification": "standaloneAD01FIFOQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "changedPaths": [
+      "client/mutation_queue.go",
+      "client/mutation_queue_test.go",
+      "docs/PARITY.md",
+      "tests/retained-routes-ci-inputs.json",
+      "tests/retained-routes-ci.mjs",
+      "tests/retained-routes-ci.test.mjs"
+    ],
+    "componentProvenance": {
+      "formattedAD01Manifest": {
+        "path": ".nextgo-test-results/recovery/lazy-mutation-fifo-ad01-formatted-source-v1/MANIFEST.json",
+        "bytes": 6986,
+        "sha256": "0e04e35fa9ec1db1b832e2f914f70ddec46be26bd84519c528671fe8f3e16160"
+      },
+      "formattedAD01SourcePeer": {
+        "path": ".nextgo-test-results/recovery/lazy-mutation-fifo-ad01-formatted-source-review-v1/SOURCE_REVIEW.json",
+        "bytes": 7795,
+        "sha256": "e74e594e055a6cc3a71c15404cfebd30cae49885083bd97da17727e912b10374"
+      },
+      "producerProposalManifest": {
+        "path": ".nextgo-test-results/recovery/ad01-fifo-additional-requirements-producer-proposal-v1/MANIFEST.json",
+        "bytes": 7851,
+        "sha256": "63a972638b81a10c64ad53a6b2c519addef25e2edaafe31bff944e640c714af5"
+      },
+      "producerProposalSourcePeer": {
+        "path": ".nextgo-test-results/recovery/ad01-fifo-additional-requirements-producer-proposal-review-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 8916,
+        "sha256": "43a92c8bb3917a95335cc5c75a7f7af52c05d7be6f840cab99122398aeb9f903"
+      },
+      "b4CurrentCheckpoint": {
+        "path": ".nextgo-test-results/qualification/ci-b4efe93f-pr8/metadata-pass-focus-publisher-v2/FINAL_CHECKPOINT.json",
+        "bytes": 5721,
+        "sha256": "049a623dcecc98497f43199e56cc998743ef22c93cec35849631c6661ddcdefa"
+      },
+      "Go124Actual600AndFocus11": {
+        "path": ".nextgo-test-results/qualification/ci-b4efe93f-pr8/metadata-pass-focus-publisher-v2/go124-source-audit-v1/OUTPUT_AUDIT.json",
+        "bytes": 4758,
+        "sha256": "78dac54268cd5a5efd54727ec748359c5df3cc7955a0c4098768ae3ec736c3d0"
+      },
+      "Go127NativeFailureAndLaterUnreached": {
+        "path": ".nextgo-test-results/qualification/ci-b4efe93f-pr8/metadata-pass-focus-publisher-v2/go127-source-audit-v1/OUTPUT_AUDIT.json",
+        "bytes": 3932,
+        "sha256": "b7ff8e08a08454e3e051b761d99927f1bfb2eb078ccbafb4a4810ebb62f40065"
+      },
+      "b4BrowserFailureScope": {
+        "path": ".nextgo-test-results/qualification/ci-b4efe93f-pr8/metadata-pass-focus-publisher-v2/BROWSER_AND_FAILURE_OUTPUT_AUDIT.json",
+        "bytes": 6293,
+        "sha256": "6dc11fdb9713ed3747f535d55c6d7543f9f0bd1a9dc638ef1cb87388e56abd39"
+      },
+      "native43WholeControlSourcePeer": {
+        "path": ".nextgo-test-results/recovery/offline-native-gatea-whole-source-peer-v2/FINAL_WHOLE_SOURCE_REVIEW.json",
+        "bytes": 22326,
+        "sha256": "e2126f94b1e67a2351e4ea34b4ed6c6bc2f8d38a4ac01f03dd782bfe6be11bdb"
+      }
+    },
+    "GoSource": {
+      "files": 1287,
+      "bytes": 6424836,
+      "sha256": "0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "modifiedGoPaths": [
+        "client/mutation_queue.go",
+        "client/mutation_queue_test.go"
+      ],
+      "unchangedGoFiles": 1285,
+      "modifiedProductionGoFiles": 1,
+      "modifiedExistingGoTestFiles": 1,
+      "addedGoFiles": 0,
+      "producerExpectedFullGoGuardEnforced": true,
+      "guardExecutedForThisSource": false
+    },
+    "selectedSource": {
+      "files": 207,
+      "bytes": 2290165,
+      "sha256": "0684d439068c356e63614f50f07472345ac6296b82fa32d699e00bb412c7efb6",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "oldRows": 207,
+      "oldRowsRawExact": 204,
+      "reboundPaths": [
+        "docs/PARITY.md",
+        "tests/retained-routes-ci.mjs",
+        "tests/retained-routes-ci.test.mjs"
+      ],
+      "newOrDroppedPaths": [],
+      "preservedOriginsAreHistoricalLineageOnly": true,
+      "modifiedGoFilesUnselectedButFullGoEnforced": true
+    },
+    "wholeSourceContractExcludingInputSelf": {
+      "files": 1783,
+      "bytes": 11186576,
+      "sha256": "e6ea2acd694917ed558522da01d510a4f1941ada768abf7d630caeeb96567d28",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "expectedWholeSourceGuardEnforced": false,
+      "meaning": "Independent controlled-publication source provenance only; producer enforces selected207 plus exact fullGo1287."
+    },
+    "wholeTrackedPathsIncludingInputSelf": 1784,
+    "requiredCounts": {
+      "native": 89,
+      "core": 202,
+      "devcore": 169,
+      "portable": 13,
+      "ui": 12,
+      "module": 44,
+      "devmodule": 46
+    },
+    "mandatoryBaselineOccurrences": 600,
+    "additionalFIFORequirementContract": {
+      "version": 1,
+      "baselineRequiredOccurrences": 600,
+      "additionalRequiredOccurrences": 21,
+      "requiredByPhase": {
+        "native": [
+          "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+          "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+          "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+          "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+          "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+          "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+          "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+        ],
+        "core": [
+          "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+          "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+          "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+          "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+          "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+          "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+          "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+        ],
+        "devcore": [
+          "TestMutationQueueContextErrCanReenterAcquireBeforeAdmission",
+          "TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission",
+          "TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender",
+          "TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks",
+          "TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe",
+          "TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop",
+          "TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"
+        ]
+      }
+    },
+    "additionalMandatoryOccurrences": 21,
+    "allOld600ArraysNamesAndSkipsRawExact": true,
+    "browserCases": 432,
+    "browserClosures": 440,
+    "offlineCases": 40,
+    "sourceBehaviorScope": "Conforming Context methods outside mutex, cachedDone before admission, cancellation after exact slot surrender, accepted-owner duplicate protection; no new watcher/timer/AfterFunc/goroutine or ABI. One64-waiting plus1active remains. Type/tests/runtime unrun.",
+    "nativeControlsPreserved": {
+      "all41PathsByteExact": true,
+      "controlsOutsideSelected207": true,
+      "nativeQualificationJSONLiteralExact": true,
+      "debugSourceContractPath": "tests/offline-first-compile-source.json",
+      "ordinarySourceNotUsedToRebaseIsolatedDebugFixture": true,
+      "isolatedBaseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+      "isolatedTree": "ba24a854fab69ee810394bc193507ba22f2a953e",
+      "isolatedGoFiles": 1311,
+      "noNativeCompileOrRuntimeResultInherited": true
+    },
+    "historyPolicy": {
+      "allUntouchedOldTopLevelValuesRawExact": true,
+      "entireNative43QualificationRawExact": true,
+      "old24AncestryElementsRawExact": true,
+      "one2a34FoundationAppended": true,
+      "ancestryEntries": 25,
+      "laterPublisherMustNotAppendAgain": true
+    },
+    "originInterpretation": "Preserved selected-file origin strings are literal historical lineage, not current source/execution claims. Current SHA/size plus this qualification, formatted Go and producer source peers govern the exact current source.",
+    "newSyntheticProducerRegressions": 7,
+    "newSyntheticProducerRegressionsExecuted": false,
+    "newActual21Executed": false,
+    "historicalB4Only": {
+      "Go124": "Actual600 and focus root+11PASS on b4 only",
+      "Go127": "native89 required rootsPASS but commandFAIL on export fixture nested build30.01s/signal:killed;511 later requirements+focus12UNREACHED",
+      "streaming": "280PASS includingaction60; per-assertion coverage source/config inference from complete suite",
+      "offline": "19PASS/1Firefox policyFAIL/20UNRUN; exact native causeUNKNOWN",
+      "noParentRuntimeQualificationInherited": true
+    },
+    "all79Capabilities11GatesRemainOpen": true
+  },
+  "standaloneAD01FIFOCIWireTransition": {
+    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "publishedFoundation": {
+      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
+      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 464191,
+      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "all41NativeDebugControlsPreserved": true,
+      "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    "currentQualification": "standaloneAD01FIFOQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "sourcePostimagesExactToReviewedComponents": true,
+    "baseline600PreservedRawExact": true,
+    "additional21EnforcedFromActualGoJSON": true,
+    "all24AncestryRawExact": true,
+    "one2a34FoundationAlreadyAppended": true,
+    "ancestryEntries": 25,
+    "laterPublisherMustNotAppendAgain": true,
+    "nativeControlsUnmodified": true,
+    "newRuntimeOrProfileClaim": false,
+    "all79Capabilities11GatesRemainOpen": true
   }
 }

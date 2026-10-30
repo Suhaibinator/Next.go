@@ -7,7 +7,7 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {observeRetainedOwnerScroll} from './retained-owner-scroll-observation.mjs';
-import {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose} from './retained-routes-ci.mjs';
+import {standaloneAD01FIFOTests,validateStandaloneAD01Requirements,goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose} from './retained-routes-ci.mjs';
 
 import {nativeTarget,nativeToolPaths,assertNativeELF,assertNativeGoEnvironment,assertNativeBuildInfo} from './retained-routes-target.mjs';
 
@@ -35,6 +35,50 @@ test('an allowed module host-only skip never substitutes for its devcore counter
   assert.throws(()=>goResults(events([{Action:'pass',Package:pkg}]),[name]));
   assert.doesNotThrow(()=>goResults(events([{Action:'run',Package:pkg,Test:name},{Action:'pass',Package:pkg,Test:name},{Action:'pass',Package:pkg}]),[name]));
 });
+
+// Synthetic Go JSON below exercises rejection only; it is never campaign data.
+function additionalAD01Contract(){
+  const tests=Object.fromEntries(Object.entries({native:89,core:202,devcore:169,module:44,devmodule:46,portable:13,ui:12}).map(([phase,count])=>[phase,Array.from({length:count},(_,index)=>'TestInherited'+phase+index)]));
+  return {tests,standaloneAD01FIFORequirements:{version:1,baselineRequiredOccurrences:600,additionalRequiredOccurrences:21,requiredByPhase:Object.fromEntries(['native','core','devcore'].map(phase=>[phase,[...standaloneAD01FIFOTests]]))}};
+}
+function additionalAD01Events(){return [...passed.slice(0,-1),...standaloneAD01FIFOTests.flatMap(name=>[{Action:'run',Package:pkg,Test:name},{Action:'pass',Package:pkg,Test:name}]),passed.at(-1)];}
+test('standalone AD01 contract preserves inherited 600 and requires seven separate roots in exactly three phases',()=>{
+  const contract=additionalAD01Contract(),before=clone(contract.tests),requirements=validateStandaloneAD01Requirements(contract);
+  assert.deepEqual(contract.tests,before);assert.deepEqual(Object.keys(requirements).sort(),['core','devcore','native']);
+  assert.equal(Object.values(requirements).reduce((count,names)=>count+names.length,0),21);
+  assert.equal(before.native.length+before.core.length+before.devcore.length+before.module.length+before.devmodule.length+2*before.portable.length+2*before.ui.length,600);
+  for(const mutate of [value=>{delete value.standaloneAD01FIFORequirements;},value=>{value.standaloneAD01FIFORequirements.additionalRequiredOccurrences=20;},value=>{value.standaloneAD01FIFORequirements.baselineRequiredOccurrences=621;},value=>{value.standaloneAD01FIFORequirements.requiredByPhase.module=[...standaloneAD01FIFOTests];},value=>{delete value.standaloneAD01FIFORequirements.requiredByPhase.devcore;},value=>{value.standaloneAD01FIFORequirements.requiredByPhase.core.pop();},value=>{value.standaloneAD01FIFORequirements.requiredByPhase.native.reverse();},value=>{value.standaloneAD01FIFORequirements.requiredByPhase.native[1]=standaloneAD01FIFOTests[0];},value=>{value.tests.native[0]=standaloneAD01FIFOTests[0];},value=>{value.tests.devcore.pop();}]){
+    const value=clone(contract);mutate(value);assert.throws(()=>validateStandaloneAD01Requirements(value));
+  }
+});
+test('AD01 actual Go evidence preserves baseline credits and reports seven additional passes separately',()=>{
+  const value=additionalAD01Events(),proof=goResults(events(value),['TestRequired'],[],standaloneAD01FIFOTests);
+  assert.deepEqual(proof.requiredPasses,['TestRequired']);assert.deepEqual(proof.additionalRequiredPasses,standaloneAD01FIFOTests);
+  assert.equal(proof.additionalRequiredPasses.length,7);assert.equal(proof.tests.filter(item=>standaloneAD01FIFOTests.includes(item.name)&&item.run===1&&item.pass===1&&item.skip===0).length,7);
+  assert.deepEqual(goResults(events(passed),['TestRequired']).additionalRequiredPasses,[]);
+});
+test('AD01 missing roots and subtest-only substitutes cannot receive additional PASS credit',()=>{
+  for(const name of standaloneAD01FIFOTests){
+    const value=additionalAD01Events().filter(item=>item.Test!==name);assert.throws(()=>goResults(events(value),['TestRequired'],[],standaloneAD01FIFOTests));
+    const subtest=additionalAD01Events().map(item=>item.Test===name?{...item,Test:name+'/child'}:item);assert.throws(()=>goResults(events(subtest),['TestRequired'],[],standaloneAD01FIFOTests));
+  }
+});
+test('an explicitly allowed skip cannot substitute for any mandatory AD01 extra root',()=>{
+  for(const name of standaloneAD01FIFOTests){const value=additionalAD01Events().map(item=>item.Test===name&&item.Action==='pass'?{...item,Action:'skip'}:item);assert.throws(()=>goResults(events(value),['TestRequired'],[pkg+'|'+name],standaloneAD01FIFOTests));}
+});
+test('AD01 repeated roots and same-name foreign package roots are rejected',()=>{
+  for(const name of standaloneAD01FIFOTests){
+    const value=additionalAD01Events();assert.throws(()=>goResults(events([...value,{Action:'run',Package:pkg,Test:name},{Action:'pass',Package:pkg,Test:name}]),['TestRequired'],[],standaloneAD01FIFOTests));
+    assert.throws(()=>goResults(events([...value,{Action:'run',Package:pkg+'/foreign',Test:name},{Action:'pass',Package:pkg+'/foreign',Test:name},{Action:'pass',Package:pkg+'/foreign'}]),['TestRequired'],[],standaloneAD01FIFOTests));
+  }
+});
+test('AD01 failed extra roots cannot pass through a successful baseline or package completion',()=>{
+  for(const name of standaloneAD01FIFOTests){const value=additionalAD01Events().map(item=>item.Test===name&&item.Action==='pass'?{...item,Action:'fail'}:item);assert.throws(()=>goResults(events(value),['TestRequired'],[],standaloneAD01FIFOTests));}
+});
+test('additional Go requirements reject duplicate overlap malformed and oversized lists',()=>{
+  for(const names of [[standaloneAD01FIFOTests[0],standaloneAD01FIFOTests[0]],['TestRequired'],['bad/name'],[null],Array.from({length:257},(_,index)=>'TestExtra'+index)])assert.throws(()=>goResults(events(additionalAD01Events()),['TestRequired'],[],names));
+});
+
 function matrix(){return {errors:[],config:{version:'1.64.1',workers:1,maxFailures:1},stats:{expected:72,unexpected:0,flaky:0,skipped:0},suites:[{specs:Array.from({length:18},(_,index)=>({title:'case '+index,file:'tests/retained-routes.spec.mjs',tests:['chromium','firefox','webkit','webkit-touch'].map(profile=>({projectName:'retained-'+profile,expectedStatus:'passed',status:'expected',results:[{status:'passed',retry:0,attachments:[]}]}))}))}]};}
 test('browser audit requires exact72 unique one-attempt cases across all four profiles',()=>{
   assert.equal(browserCases(matrix(),true).length,72);

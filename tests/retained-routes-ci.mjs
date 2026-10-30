@@ -25,6 +25,7 @@ const apps=Object.freeze({
 const appOrder=Object.freeze(['retained','merge']);
 const lazyModuleTitle='actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes';
 const lazyModuleAttachment='merge-lazy-module-proof';
+const standaloneAD01FIFOTests=Object.freeze(["TestMutationQueueContextErrCanReenterAcquireBeforeAdmission","TestMutationQueueContextDoneFreezeIsObservedBeforeAdmission","TestMutationQueueCanceledGrantResolvesValueAfterExactSlotSurrender","TestMutationQueueInitialCanceledCausePrecedesFrozenWithoutLockHooks","TestMutationQueueGrantSkipsCanceledHeadWithoutAnyContextProbe","TestMutationQueueCachesDoneAndAddsNoAfterFuncOrStop","TestMutationQueueDuplicateAcceptCannotCreateTwoOwners"]);
 const generated=appOrder.flatMap(app=>['routes/nextgo_gen.go','actionrefs/nextgo_gen.go','actionrefs/nextgo_gen_js.go','actionrefs/nextgo_gen_server.go'].map(path=>'examples/'+app+'/'+path));
 const outside=(parent,path)=>{const value=relative(parent,path);return isAbsolute(value)||value==='..'||value.startsWith('..'+sep);};
 const hex=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
@@ -162,6 +163,20 @@ function validateQualificationRequirements(contract){
   for(const app of Object.values(apps))check(Array.isArray(contract[app.titles])&&contract[app.titles].length===app.perProfile&&new Set(contract[app.titles]).size===app.perProfile&&contract[app.titles].every(title=>typeof title==='string'&&title.length<=1024),'exact reviewed browser titles required: '+app.id);
   check(contract.mergeBrowserTitles.includes(lazyModuleTitle),'real generated lazy module case is mandatory');
 }
+// Keep the inherited 600 vectors separate from the standalone AD01 addition.
+// This schema is only a plan: goResults requires actual emitted RUN/PASS events.
+function validateStandaloneAD01Requirements(contract){
+  const value=contract.standaloneAD01FIFORequirements;
+  check(exactKeys(value,['version','baselineRequiredOccurrences','additionalRequiredOccurrences','requiredByPhase'])&&value.version===1&&value.baselineRequiredOccurrences===600&&value.additionalRequiredOccurrences===21,'separate AD01 additional requirement contract required');
+  check(exactKeys(value.requiredByPhase,['native','core','devcore']),'AD01 is required only in native/core/devcore');
+  for(const [phase,count]of Object.entries({native:89,core:202,devcore:169,module:44,devmodule:46,portable:13,ui:12}))check(Array.isArray(contract.tests?.[phase])&&contract.tests[phase].length===count,'inherited 600 vector length changed: '+phase);
+  for(const phase of ['native','core','devcore']){
+    const names=value.requiredByPhase[phase];
+    check(Array.isArray(names)&&names.length<=256&&JSON.stringify(names)===JSON.stringify(standaloneAD01FIFOTests),'exact seven additional AD01 roots required: '+phase);
+    check(names.every(name=>!contract.tests[phase].includes(name)),'additional AD01 roots must not replace inherited requirements: '+phase);
+  }
+  return value.requiredByPhase;
+}
 // Enforce the expected Go bytes before compilation, including Go outside the
 // finite selected-file list. Canonical encoding matches the controlled publisher.
 async function validateFullGoSource(source,before,expected){
@@ -200,6 +215,7 @@ async function init(){
   check(contract.ready===true,'reviewed corrected input rebind required before this workflow may execute');
   check(contract.version===1&&contract.scope==='Linux native HTTP only; explicit amd64 or arm64'&&JSON.stringify(contract.nativeArchitectures)===JSON.stringify(['amd64','arm64'])&&contract.baseCommit==='768bbb712e9a285b6b8252469c817b6a922739a5'&&Array.isArray(contract.files)&&contract.files.length>34&&contract.files.length<=207,'reviewed input contract required');
   validateQualificationRequirements(contract);
+  validateStandaloneAD01Requirements(contract);
   const seen=new Set();
   for(const file of contract.files){check(typeof file.path==='string'&&file.path.length<=512&&!isAbsolute(file.path)&&!/[\\\n\r]/.test(file.path)&&file.path.split('/').every(part=>part&&part!=='.'&&part!=='..')&&hex(file.sha256)&&!seen.has(file.path),'input path/hash contract');seen.add(file.path);check(sha(await readBounded(join(source,file.path),16<<20))===file.sha256,'source pin changed: '+file.path);}
   for(const path of ['tests/retained-routes.spec.mjs','tests/retained-owner-scroll-observation.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-fixture.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-process-group-census.mjs','tests/retained-process-group-census.test.mjs','tests/retained-command-group-drain.mjs','tests/retained-command-group-drain.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','tests/merge-config.mjs','tests/merge-fixture.mjs','tests/merge-spec.mjs','tests/retained-routes-assets.mjs','tests/retained-routes-assets.test.mjs','scripts/test-wasm.sh','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
@@ -286,17 +302,20 @@ async function testArtifact(path){
     return {bytes,sha256:hash.digest('hex'),header,dev:before.dev.toString(),inode:before.ino.toString()};
   }finally{await file.close();}
 }
-function goResults(bytes,required=[],allowedSkips=[]){
+function goResults(bytes,required=[],allowedSkips=[],additionalRequired=[]){
+  check(Array.isArray(additionalRequired)&&additionalRequired.length<=256&&new Set(additionalRequired).size===additionalRequired.length&&additionalRequired.every(name=>typeof name==='string'&&/^Test[A-Za-z0-9_]+$/.test(name)&&!required.includes(name)),'separate bounded additional Go requirements required');
   const packages=new Map(),tests=new Map(),skipped=[];let events=0;
   for(const line of bytes.toString('utf8').split('\n')){if(!line)continue;check(++events<=250000&&Buffer.byteLength(line)<=1<<20,'Go JSON event bound');const value=JSON.parse(line);check(typeof value.Package==='string'&&value.Package.length<=512,'Go package identity');if(value.Action==='fail')throw Error('Go failure: '+value.Package+'/'+(value.Test||''));if(value.Test){check(value.Test.length<=1024,'Go test name bound');const key=value.Package+'|'+value.Test;const item=tests.get(key)||{package:value.Package,name:value.Test,run:0,pass:0,skip:0};if(['run','pass','skip'].includes(value.Action))item[value.Action]++;tests.set(key,item);if(value.Action==='skip')skipped.push(key);}else if(['pass','skip'].includes(value.Action)){check(!packages.has(value.Package),'duplicate Go package completion');packages.set(value.Package,value.Action);}}
   check(packages.size>0,'no actual Go package completions');
   for(const item of tests.values())check(item.run===1&&item.pass+item.skip===1&&item.pass<=1&&item.skip<=1,'incomplete or repeated Go test result: '+item.package+'|'+item.name);
   for(const name of required){const found=[...tests.values()].filter(test=>test.name===name);check(found.length===1&&found[0].run===1&&found[0].pass===1&&found[0].skip===0,'required actual Go PASS missing: '+name);}
+  for(const name of additionalRequired){const found=[...tests.values()].filter(test=>test.name===name);check(found.length===1&&found[0].run===1&&found[0].pass===1&&found[0].skip===0,'additional actual Go PASS missing: '+name);}
   for(const name of skipped)check(allowedSkips.some(allowed=>name===allowed),'unexpected Go test skip: '+name);
-  return {events,packages:[...packages],tests:[...tests.values()],skipped,requiredPasses:required};
+  return {events,packages:[...packages],tests:[...tests.values()],skipped,requiredPasses:required,additionalRequiredPasses:additionalRequired};
 }
 async function units(){
   const {root,source}=await owned(),report=await json(join(root,'campaign.json'),8<<20),inputs=await json(join(root,'inputs.json'),1<<20);
+  const additionalRequirements=validateStandaloneAD01Requirements(inputs);
   check(report.status==='DEPENDENCIES_READY','dependency phase required');report.sdk=await sdk(root,source);await writeJSON(join(root,'campaign.json'),report,8<<20);
   const state={root,source,report},env=childEnv(root,source,{GOROOT:report.sdk.root,PATH:dirname(report.sdk.go)+delimiter+dirname(report.sdk.node.path)+delimiter+'/usr/bin:/bin',CGO_ENABLED:'1'});
   const cc=await executablePath('gcc'),compiler=await testArtifact(cc);assertNativeELF(Buffer.from(compiler.header,'hex'),selectedTarget());env.CC=cc;
@@ -314,7 +333,7 @@ async function units(){
   report.generated=[];for(const path of generated){const data=await readBounded(join(source,path),1<<20);check(data.toString('utf8').startsWith('// Code generated by nextgo'),'generated helper provenance');report.generated.push({path,bytes:data.length,sha256:sha(data)});}
   await writeJSON(join(root,'source-generated.json'),after,8<<20);for(const app of appOrder)await step(state,app==='retained'?'generate-check':'generate-check-'+app,cli,['generate','--check',apps[app].example],env,60000);await unchanged(source,after);
   const summaries={};
-  async function tests(name,args,extra,required,allowed=[]){const output=await step(state,name,report.sdk.go,['test','-count=1','-json','-timeout=10m','-exec='+wrapper,...args],{...env,...extra,NEXTGO_RETAINED_TEST_PHASE:name,NEXTGO_RETAINED_TEST_MODE:name==='native'?'native':'wasm'},name==='native'?45*60000:15*60000,32<<20);summaries[name]=goResults(output,required,allowed);await writeJSON(join(root,'go-summary.json'),summaries,16<<20);await unchanged(source,after);}
+  async function tests(name,args,extra,required,allowed=[]){const output=await step(state,name,report.sdk.go,['test','-count=1','-json','-timeout=10m','-exec='+wrapper,...args],{...env,...extra,NEXTGO_RETAINED_TEST_PHASE:name,NEXTGO_RETAINED_TEST_MODE:name==='native'?'native':'wasm'},name==='native'?45*60000:15*60000,32<<20);summaries[name]=goResults(output,required,allowed,additionalRequirements[name]||[]);await writeJSON(join(root,'go-summary.json'),summaries,16<<20);await unchanged(source,after);}
   // Native workspace/provenance regressions exercise Go's normal discovery and
   // VCS stamping. Keep the isolated build policy for every other phase.
   const nativeTestPolicy=Object.freeze({...inputs.nativeTestEnvironmentPolicy});
@@ -341,6 +360,12 @@ async function units(){
     await tests(name+'-retained',['-tags='+tags,'./client','-run','^(TestRetention|TestRetained)'],wasm,inputs.tests.portable);
     await tests(name+'-ui',['-tags='+tags,'./ui'],wasm,inputs.tests.ui);
   }
+  // Counts below are credits from goResults, which rejected missing, skipped,
+  // repeated or failed roots in each real phase. The old 600 label is retained.
+  const baselinePasses=Object.values(summaries).reduce((count,summary)=>count+summary.requiredPasses.length,0);
+  const additionalPasses=Object.values(summaries).reduce((count,summary)=>count+summary.additionalRequiredPasses.length,0);
+  check(Object.keys(summaries).length===9&&baselinePasses===600&&additionalPasses===21,'actual inherited 600 and additional21 occurrence totals required');
+  report.GoRequirementPasses={baseline:{requiredOccurrences:600,actualNamedPasses:baselinePasses},standaloneAD01FIFO:{requiredOccurrences:21,actualNamedPasses:additionalPasses,byPhase:Object.fromEntries(['native','core','devcore'].map(name=>[name,summaries[name].additionalRequiredPasses]))}};
   for(const [name,tags,packages]of [['core','',core],['devcore','nextgo_devrefresh',dev],['module','nextgo_module',['./client','./ui']],['devmodule','nextgo_module,nextgo_devrefresh',['./client','./ui']]])await step(state,'vet-'+name,report.sdk.go,['vet',...(tags?['-tags='+tags]:[]),...packages],{...env,...wasm},10*60000);
   const receipts=[];for(const name of await readdir(join(root,'exec'))){check(receipts.length<512,'test executable receipt bound');receipts.push(await json(join(root,'exec',name),64<<10));}
   for(const [phase,summary]of Object.entries(summaries)){
@@ -555,5 +580,5 @@ async function cleanup(){
   process.stdout.write('Marker-verified successful qualification root removed; incomplete roots are never silently removed.\n');
 }
 async function main(){const mode=process.argv[2];if(mode==='init')return init();if(mode==='dependencies')return dependencies();if(mode==='units')return units();if(mode==='install-browsers')return installBrowsers();if(mode==='production')return production();if(mode==='asset-probe')return assetProbe();if(mode==='browser')return browser();if(mode==='browser-versions')return browserVersions();if(mode==='collect')return collect();if(mode==='cleanup')return cleanup();if(mode==='test-exec')return testExec();throw Error('expected init/dependencies/units/production/asset-probe/browser/browser-versions/collect/cleanup/test-exec');}
-export {goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose};
+export {standaloneAD01FIFOTests,validateStandaloneAD01Requirements,goResults,browserCases,validateNativeProof,strictNativeProof,proofAttachment,apps,browserClosureTotals,validateQualificationRequirements,validateFullGoSource,validateLazyModuleProof,validateLazyModuleMatrix,lazyModuleTitle,owned,childEnv,unchanged,runChild,joinClosedCommandGroup,validateCommandCompletion,waitForCommandClose};
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(error=>{console.error(String(error.stack||error));process.exitCode=1;});
