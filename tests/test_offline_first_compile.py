@@ -27,6 +27,12 @@ if not RUNNER.is_file():
 CONTRACT = RUNNER.with_name("offline-first-compile-source.json")
 
 
+# Exact untruncated stdout from run40979960218/job123817277284 command2.
+# Saved data only; historical paths below are never opened or executed.
+ACTUAL_ENVIRONMENT_STDOUT = b'{\n\t"CC": "gcc",\n\t"CGO_ENABLED": "0",\n\t"GOARCH": "amd64",\n\t"GOCACHE": "/__w/_temp/nextgo-offline-first-compile.1.24.13.58e9eeb2425554c4baf842f63b2bd2cd/go-cache",\n\t"GOENV": "",\n\t"GOFLAGS": "-p=1 -buildvcs=false -toolexec=/__w/_temp/nextgo-offline-first-compile.1.24.13.58e9eeb2425554c4baf842f63b2bd2cd/toolexec",\n\t"GOHOSTARCH": "amd64",\n\t"GOHOSTOS": "linux",\n\t"GOMODCACHE": "/__w/_temp/nextgo-offline-first-compile.1.24.13.58e9eeb2425554c4baf842f63b2bd2cd/mod-cache",\n\t"GOOS": "linux",\n\t"GOROOT": "/__t/go/1.24.13/x64",\n\t"GOTMPDIR": "/__w/_temp/nextgo-offline-first-compile.1.24.13.58e9eeb2425554c4baf842f63b2bd2cd/tmp/gobuild",\n\t"GOTOOLCHAIN": "local",\n\t"GOVERSION": "go1.24.13",\n\t"GOWORK": "off"\n}\n'
+ACTUAL_ENVIRONMENT_STDOUT_SHA256 = "348fc32dfffdfd14459ab33f7f86281c037f74153ee0aad0ccb137c597cc6d99"
+
+
 def load_runner():
     spec = importlib.util.spec_from_file_location("private_gatea_runner_under_test", RUNNER)
     module = importlib.util.module_from_spec(spec)
@@ -176,7 +182,7 @@ class GateARunnerTests(unittest.TestCase):
                 stdout = ("go version go" + self.marker["sdk"] + " linux/amd64\n").encode()
             elif key == "go-environment":
                 stdout = self.r.encode({"CGO_ENABLED": "0", "GOTOOLCHAIN": "local", "GOENV": "",
-                    "GOWORK": "", "GOVERSION": "go" + self.marker["sdk"], "GOROOT": str(self.sdk),
+                    "GOWORK": "off", "GOVERSION": "go" + self.marker["sdk"], "GOROOT": str(self.sdk),
                     "GOCACHE": str(root / "go-cache"), "GOMODCACHE": str(root / "mod-cache"),
                     "GOOS": "linux", "GOARCH": "amd64", "GOHOSTOS": "linux", "GOHOSTARCH": "amd64",
                     "GOFLAGS": env["GOFLAGS"], "GOTMPDIR": str(root / "tmp/gobuild")})
@@ -207,6 +213,53 @@ class GateARunnerTests(unittest.TestCase):
             else:
                 failure = None
         return c, calls, tool_launches, failure, self.r.read_json(self.root / "summary.json")
+
+    def actual_environment_run(self, changes=None):
+        # Exercise the actual run guard with the saved report, not a mirrored predicate.
+        # Each scenario gets fresh owner/state/report paths; no replay is admitted.
+        root, marker = self.r.create_owner(self.parent, self.r.SDK_VERSIONS[0], time.time())
+        c = self.plan()
+        self.r.write_json(root / "state.json", {"sdkRoot": str(self.sdk),
+            "evidence": str(self.evidence), "runner": str(RUNNER),
+            "compileIDs": list(self.r.COMPILE_IDS), "commandIDs": list(self.r.COMMAND_IDS),
+            "runnerSHA256": self.r.digest_file(RUNNER)["sha256"],
+            "evidenceDev": self.evidence.stat().st_dev, "evidenceInode": self.evidence.stat().st_ino})
+        self.r.write_json(root / "meta/toolchain.json", {"installation": self.installation})
+        (root / "source").mkdir()
+        values = json.loads(ACTUAL_ENVIRONMENT_STDOUT)
+        calls = []
+        submitted = []
+        def fake_supervise(argv, cwd, env, owned_root, limits, deadline):
+            key = limits["id"]
+            calls.append(key)
+            self.assertEqual(owned_root, root)
+            self.assertEqual(cwd, root / "source")
+            proof = {"exitCode": 0, "joined": True, "error": None, "argv": list(argv)}
+            if key == "go-version":
+                return proof, ("go version go" + marker["sdk"] + " linux/amd64\n").encode(), b""
+            if key == "go-environment":
+                # Rebind only these five location-dependent saved fields to the owned model.
+                values.update({"GOROOT": str(self.sdk), "GOCACHE": str(root / "go-cache"),
+                    "GOMODCACHE": str(root / "mod-cache"), "GOTMPDIR": str(root / "tmp/gobuild"),
+                    "GOFLAGS": env["GOFLAGS"]})
+                values.update(changes or {})
+                data = self.r.encode(values)
+                submitted.append(data)
+                return proof, data, b""
+            self.assertEqual(key, "graph-native")
+            # Positive case must reach the next command, then stop before graph/compile work.
+            return {"exitCode": 1, "joined": True, "error": "stop after environment guard",
+                    "argv": list(argv)}, b"", b""
+        with mock.patch.object(self.r, "supervise", side_effect=fake_supervise), \
+             mock.patch.object(self.r, "verify_source", return_value=True):
+            with self.assertRaises(self.r.Refusal):
+                self.r.run(root, c)
+        self.denied[0].assert_not_called()
+        report = self.r.read_json(root / "summary.json")
+        self.assertEqual(report["status"], "INCOMPLETE")
+        self.assertEqual((report["artifactCount"], report["testsExecuted"]), (0, 0))
+        self.assertFalse(report["ready"] or report["sourceReady"] or report["runtimeQualified"] or report["nativeQualified"])
+        return root, calls, submitted[0], report
 
     def synthetic_source(self):
         base = {"pkg/g%04d.go" % i: ("100644", b"package fixture\n") for i in range(1287)}
@@ -629,6 +682,60 @@ class GateARunnerTests(unittest.TestCase):
         self.assertEqual(len(calls), 38)  # replay never re-enters fake supervisor.
         self.denied[0].assert_not_called()
 
+
+    def test_actual_environment_report_off_reaches_next_metadata_command(self):
+        self.assertEqual(len(ACTUAL_ENVIRONMENT_STDOUT), 699)
+        self.assertEqual(hashlib.sha256(ACTUAL_ENVIRONMENT_STDOUT).hexdigest(), ACTUAL_ENVIRONMENT_STDOUT_SHA256)
+        original = json.loads(ACTUAL_ENVIRONMENT_STDOUT)
+        self.assertEqual((original["GOWORK"], original["GOENV"]), ("off", ""))
+        root, calls, submitted, report = self.actual_environment_run()
+        self.assertEqual(calls, ["go-version", "go-environment", "graph-native"])
+        self.assertEqual(report["completedCommands"], 3)
+        self.assertEqual(report["error"], "failed/unknown command; bounded compiler output retained")
+        stored = self.r.read_json(root / "meta/environment.json")
+        self.assertEqual(stored, json.loads(submitted))
+        rebound = {"GOROOT", "GOCACHE", "GOMODCACHE", "GOTMPDIR", "GOFLAGS"}
+        self.assertEqual({key: value for key, value in stored.items() if key not in rebound},
+                         {key: value for key, value in original.items() if key not in rebound})
+        proofs = self.r.read_json(root / "meta/command-proofs.json")
+        self.assertEqual(proofs[2]["error"], "stop after environment guard")
+
+    def test_actual_environment_report_refuses_empty_or_path_gowork(self):
+        for value in ("", "/tmp/unexpected-workspace/go.work"):
+            with self.subTest(GOWORK=value):
+                root, calls, submitted, report = self.actual_environment_run({"GOWORK": value})
+                self.assertEqual(calls, ["go-version", "go-environment"])
+                self.assertEqual(report["completedCommands"], 2)
+                self.assertEqual(report["error"], "actual Go environment")
+                self.assertFalse((root / "meta/environment.json").exists())
+                proof = self.r.read_json(root / "meta/command-proofs.json")[1]
+                self.assertEqual(proof["stdout"]["sha256"], hashlib.sha256(submitted).hexdigest())
+                self.assertEqual(json.loads(proof["stdout"]["prefix"])["GOWORK"], value)
+
+    def test_actual_environment_report_goenv_still_requires_empty(self):
+        for value in ("off", "/tmp/unexpected-goenv"):
+            with self.subTest(GOENV=value):
+                root, calls, submitted, report = self.actual_environment_run({"GOENV": value})
+                self.assertEqual(calls, ["go-version", "go-environment"])
+                self.assertEqual(report["completedCommands"], 2)
+                self.assertEqual(report["error"], "actual Go environment")
+                self.assertFalse((root / "meta/environment.json").exists())
+                self.assertEqual(json.loads(submitted)["GOENV"], value)
+
+    def test_actual_environment_report_preserves_other_guard_rejections(self):
+        for key, value in (("CGO_ENABLED", "1"), ("GOTOOLCHAIN", "auto"),
+                           ("GOVERSION", "go0.0.0"), ("GOOS", "windows"),
+                           ("GOARCH", "arm64"), ("GOHOSTOS", "windows"),
+                           ("GOHOSTARCH", "arm64"), ("GOFLAGS", ""),
+                           ("GOROOT", "/tmp/unexpected-sdk"), ("GOCACHE", "/tmp/unexpected-cache"),
+                           ("GOMODCACHE", "/tmp/unexpected-modules"), ("GOTMPDIR", "/tmp/unexpected-tmp")):
+            with self.subTest(field=key):
+                root, calls, submitted, report = self.actual_environment_run({key: value})
+                self.assertEqual(calls, ["go-version", "go-environment"])
+                self.assertEqual(report["completedCommands"], 2)
+                self.assertEqual(report["error"], "actual Go environment")
+                self.assertFalse((root / "meta/environment.json").exists())
+                self.assertEqual(json.loads(submitted)[key], value)
 
 if __name__ == "__main__":
     unittest.main()

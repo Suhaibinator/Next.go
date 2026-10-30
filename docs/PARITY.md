@@ -6,6 +6,72 @@ The target is an alternative implemented in Go, with Go/WASM browser behavior an
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
 
+## Export fixture, native environment guard and passive policy observations
+
+This source-only successor starts from local FIFO commit
+`f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1`, tree
+`c4e288af32ae47508bc0ed59339f6924ac6a6d48`. It combines three independently
+reviewed, separate changes in one metadata rebind. No new Go, compiler or
+browser result qualifies this source.
+
+The export startup-purpose test reuses its already compiled native test binary
+instead of building a second tiny program. An exact private environment marker
+and strict `-static-export -addr 127.0.0.1:PORT` grammar select the helper; ordinary
+tests still call `m.Run`. The real exporter launch, HTTP 200/header assertion,
+30-second context, one-second HTTP timeout and production 10-second readiness/
+six-second stop grace remain. Seven focused marker/environment/argument/bind/
+listener/response regressions are added; the original real-child root remains.
+All eight roots are unrun and require an actual native JSON audit. They are not
+new producer requirements: existing native commands run the complete package.
+The prior 30.01-second failure is located at nested `go build` before serving;
+its killer and compiler substage remain unknown. This removes an incidental
+compiler dependency without asserting OOM or increasing a deadline.
+
+Separately, the first-compile profile stopped before graph/compile work because
+its metadata guard expected empty GOWORK while the exact 699-byte report says
+`GOWORK=off`. Exactly 13 predicates match in total, including GOENV, which reports empty.
+Only that expectation changes; requested child policy is still off. The workflow
+rebinds one runner hash, and model source preserves 26 old bodies plus four
+regressions using the exact saved report. Root ran the corrected 30 process-mocked
+models once: 30 PASS, 1.510 seconds, joined exit0, empty stdout and owned staging
+removed; no Go/Node/SDK/browser/network execution occurred. Receipt SHA-256 is
+`8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65`.
+This validates only those models. The refused profile produced no candidate
+compiler output and did not reach SDK 1.27; corrected compilation remains open.
+
+The timeout observation change prompted by the Firefox failure copies four existing bounded scalars into
+the existing timeout Error channel: trusted-load/policy booleans and two counters
+saturating at 32. It adds no query, event listener, timer, retry, DOM/worker read
+or actuation, and keeps the same 5-second timer, assertions and cleanup. Expected
+reachable message maximum is 168 ASCII bytes; the unconstrained scalar domain is
+conservatively 169. This passive snapshot precedes finally and grants no helper
+or cleanup authority. Historical b4 offline 19 PASS/1 FAIL/20 UNRUN is unchanged;
+no Firefox runtime fix or cause is claimed.
+
+Only one ordinary Go test file changes relative to f4; all production Go and
+other 1,286 Go files remain exact. Full-Go source has 1,287 files, 6,432,777 bytes
+and canonical SHA-256 `b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997`.
+The unchanged producer enforces this expected identity before compilation,
+including the unselected test file. Original 600 requirements and the separate
+AD01 seven-by-three 21 contract remain raw-exact. No command/filter/resource cap
+or skip allowance changes. Selected 207 keeps the same paths: 205 full rows remain
+exact and only documentation/offline-spec SHA/size fields rebind.
+
+Of the 41 native controls, three change explicitly (runner, models and workflow);
+38 remain byte-exact, including all 37 fixture images and their compile contract.
+The isolated 3d-to-ba24/1,311-Go source, 25 compile/13 metadata command contract,
+SDK order, resource limits and default-deny scope remain unchanged. These
+controls do not promote that fixture source into ordinary Go. Old native and
+AD01 qualification objects below remain literal historical lineage; current
+postimage hashes and this qualification govern current bytes. All 25 ancestry
+elements remain literal-exact and one f4 foundation is appended once as 26; no
+later publisher append is permitted.
+
+All 79 capabilities and 11 gates remain open; 432 retained cases/440 closures and
+40 offline cases remain. Source reviews and model results do not establish
+compiler, Go-unit, browser or production readiness. Cache aliases stay held,
+preview 3011 is protected and AWS remains NO.
+
 ## Standalone AD01 FIFO source increment
 
 This source-only increment starts from immutable native-controls commit

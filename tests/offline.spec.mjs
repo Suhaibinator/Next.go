@@ -690,7 +690,15 @@ async function httpHelperPolicy(page) {
             trustedPolicyEvents: passive.trustedPolicyEvents, policyObservations: passive.policyObservations});
           if (body.length <= 12288) console.warn('NEXTGO_OFFLINE_HTTP_HELPER_POLICY_TIMEOUT ' + body);
         } catch {} // Diagnostic failure cannot mask the original rejection.
-        reject(new Error('Native HTTP helper policy remains unknown; navigation still charged until trusted load'));
+        // Copy existing bounded observations into the Playwright-visible error.
+        // This snapshot precedes finally and grants no navigation/cleanup authority.
+        let failure = 'Native HTTP helper policy remains unknown';
+        try {
+          failure += ' [passive-timeout-v1: trustedNavigationLoad=' + trustedLoad +
+            ', policyViolationObserved=' + violation + ', accessibilityChecks=' + passive.accessibilityChecks +
+            ', inaccessibleChecks=' + passive.inaccessibleChecks + ']';
+        } catch {} // Formatting failure must still reach the existing rejection.
+        reject(new Error(failure));
       }, 5000);
     });
     const onLoad = event => {

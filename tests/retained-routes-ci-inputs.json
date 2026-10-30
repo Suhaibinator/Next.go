@@ -491,8 +491,8 @@
     },
     {
   "path": "docs/PARITY.md",
-  "sha256": "efd0ee9a9803b4bba672d1a1972f31bab0e3a17586937063382fd259fe8b6ac4",
-  "bytes": 212393,
+  "sha256": "732b732d2095c4a3ec4795e9116a4c2fc715d547f901edc32264e879b610392a",
+  "bytes": 216802,
   "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
 },
     {
@@ -995,8 +995,8 @@
     },
     {
       "path": "tests/offline.spec.mjs",
-      "sha256": "03e7f96123ef52266a720e65f612fbaed776a8323f6f237b0a958e5613c03623",
-      "bytes": 57639,
+      "sha256": "a3f9d262c192ddfa9f85f072f1674ccde1796e41097eaf7f2a7f1a2fab99c4a5",
+      "bytes": 58156,
       "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
@@ -2125,6 +2125,18 @@
       "runtimeQualificationInherited": false,
       "all41NativeDebugControlsPreserved": true,
       "isolatedFixtureFrameworkBaseRemains3d": true
+    },
+    {
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
     }
   ],
   "newNativeRegressionCount": 30,
@@ -2140,7 +2152,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "PRESERVED EXISTING HOSTED INIT ONLY after separate complete-source peer, Root full read, controlled publisher review/execution and topic publication: exact207 selected paths and enforced fullGo1287/0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17; old600 names/skips remain raw-exact plus separately mandatory21 AD01 occurrences. No new type/test/runtime/readiness result. Native41 controls and fixed3d isolated fixture remain byte-exact2a34 and unqualified here. All24 ancestry elements raw-exact plus one2a34 foundation25; later publisher must not append. All79capabilities11gates OPEN; AWS NO.",
+  "readinessMeaning": "PRESERVED EXISTING HOSTED INIT ONLY after separate complete-source peer, Root full read, controlled publisher and topic publication: exact207 selected paths and expected fullGo1287/b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997; old600+strictAD0121 remain raw-exact. Three separate corrections/observation scopes, actual30 process-mocked protocol PASS only, no Go compiler/Go-unit/browser/runtime qualification. Native37 fixtures+contract unchanged; three control postimages changed explicitly. All25 ancestry elements raw-exact plus oneactualf4foundation26, no later append. All79/11 OPEN; AWS NO.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2277,26 +2289,26 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
     "publishedFoundation": {
-      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
-      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 464191,
-      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "all41NativeDebugControlsPreserved": true,
-      "isolatedFixtureFrameworkBaseRemains3d": true
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
     },
-    "currentQualification": "standaloneAD01FIFOQualification",
+    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -2306,25 +2318,27 @@
     "measurementAdmitted": false,
     "publisherExecutionAdmitted": false,
     "publicationPerformed": false,
-    "integrationBaseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-    "integrationBaseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "integrationBaseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "integrationBaseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
     "sourcePinCount": 207,
-    "sourcePinBytes": 2290165,
-    "sourcePinsTreeSHA256": "0684d439068c356e63614f50f07472345ac6296b82fa32d699e00bb412c7efb6",
+    "sourcePinBytes": 2295091,
+    "sourcePinsTreeSHA256": "43bcba28cd1f7453c8920aafd112380d0e8f6110976aafda30da6ec441819033",
     "currentGoFiles": 1287,
-    "currentGoBytes": 6424836,
-    "currentGoContentTreeSHA256": "0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17",
-    "immediateModifiedProductionGoFiles": 1,
+    "currentGoBytes": 6432777,
+    "currentGoContentTreeSHA256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
+    "immediateModifiedProductionGoFiles": 0,
     "immediateModifiedExistingGoTestFiles": 1,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1285,
+    "otherImmediateBaseGoFilesUnchanged": 1286,
     "selectedPathSetUnchanged": true,
     "producerFullGoExpectedGuard": true,
     "producerWholeSourceExpectedGuard": false,
     "wholeTrackedPaths": 1784,
-    "native41ControlPathsPreserved": true,
+    "nativeControlsModified": 3,
+    "nativeControlsUnchanged": 38,
     "mandatoryBaselineOccurrences": 600,
-    "additionalMandatoryOccurrences": 21
+    "additionalAD01MandatoryOccurrences": 21,
+    "actual30ProtocolModelPassOnly": true
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -3022,26 +3036,26 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
     "publishedFoundation": {
-      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
-      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 464191,
-      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "all41NativeDebugControlsPreserved": true,
-      "isolatedFixtureFrameworkBaseRemains3d": true
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
     },
-    "currentQualification": "standaloneAD01FIFOQualification",
+    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -3061,12 +3075,12 @@
       "devmodule": 46
     },
     "mandatoryBaselineOccurrences": 600,
-    "additionalMandatoryOccurrences": 21,
+    "additionalAD01MandatoryOccurrences": 21,
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
     "independentOfflineCases": 40,
-    "currentSourcePinTreeSHA256": "0684d439068c356e63614f50f07472345ac6296b82fa32d699e00bb412c7efb6",
-    "currentGoContentTreeSHA256": "0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17",
+    "currentSourcePinTreeSHA256": "43bcba28cd1f7453c8920aafd112380d0e8f6110976aafda30da6ec441819033",
+    "currentGoContentTreeSHA256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
     "newTypecheckPassed": false
   },
   "commandGroupCensus": {
@@ -3329,28 +3343,28 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exact2a34 successor: two formatted standalone AD01 FIFO Go postimages + producer/harness separate21 enforcement + docs/input only. Old600 arrays/skips/casevectors and native41 controls unchanged. Selected207 paths/cap unchanged:204rows raw-exact+3SHA/size rebound. FullGo1287/6424836/0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17 is enforced before compilation, including two modified unselected Go files; whole-source hash observational only. Source only, no parser/Go/Node/SDK/cache/browser/CI/deploy. Old24 ancestry prefix raw-exact plus one2a34foundation25. All79/11 OPEN; AWS NO.",
+  "sourceInputScope": "Exact actualf4 seven-path successor: export helper test1 + nativeGOWORK runner/models/workflow3 + passiveFirefoxspec1 + docs/input2. All productionGo/other1286Go exact; expectedfullGo1287/6432777/b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997 enforces the unselected test. Selected207 paths/cap unchanged:205fullrows raw-exact+docs/spec SHA-size rebound2. Producer/harness, old600 names/skips and strictAD0121 unchanged. Native38 controls exact including37fixtures+contract;3controlpostimages independently reviewed. Root30process-mockedmodelsPASS only. No other source execution.25rawancestry+actualf4once26; wholeSource provenance only. No framework/native/browserfix or maturity claim; cachesHELD/preview3011protected/AWSNO/79and11OPEN.",
   "finalSourceReadinessReview": {
-    "status": "SOURCE_ONLY_STANDALONE_AD01_FIFO_PLUS_SEPARATE21_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-    "baseTree": "bf54ff65829c493455ace98815bbd02132ba3443",
+    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
     "publishedFoundation": {
-      "kind": "immutable-native43-foundation-for-standalone-ad01-fifo",
-      "commit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
-      "tree": "bf54ff65829c493455ace98815bbd02132ba3443",
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 464191,
-      "inputSHA256": "e2fca0d2f1b8c6c867651bf36a042b8515afe08fca23366e4cd2d0cf76f97148",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "all41NativeDebugControlsPreserved": true,
-      "isolatedFixtureFrameworkBaseRemains3d": true
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
     },
-    "currentQualification": "standaloneAD01FIFOQualification",
+    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_ONLY_FOR_EXACT207_FULL_GO_AND_SEPARATE21_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -3361,18 +3375,31 @@
     "publisherExecutionAdmitted": false,
     "publicationPerformed": false,
     "wholeCompositionPeerRequired": true,
-    "formattedSourcePeer": {
-      "path": ".nextgo-test-results/recovery/lazy-mutation-fifo-ad01-formatted-source-review-v1/SOURCE_REVIEW.json",
-      "bytes": 7795,
-      "sha256": "e74e594e055a6cc3a71c15404cfebd30cae49885083bd97da17727e912b10374"
+    "threeIndependentComponentPeers": [
+      {
+        "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-review-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 7521,
+        "sha256": "7452090e9a269da859d2ddc69df5924994a2afbae6bc7e0f300140cab8b88995"
+      },
+      {
+        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 8058,
+        "sha256": "1122d9f688e22cf415ef97991891833e63910c0793904b794783a48624bc91f2"
+      },
+      {
+        "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-independent-peer-v3/SOURCE_REVIEW.json",
+        "bytes": 7766,
+        "sha256": "d289d85b1c59c8d61d5c05c6819f43c3e4c8677b2e54705b072348415eebd6a7"
+      }
+    ],
+    "actual30ProtocolModelsOnly": {
+      "path": ".nextgo-test-results/recovery/offline-gatea-gowork-protocol-root-execution-v1/root-execution.json",
+      "bytes": 1127,
+      "sha256": "8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65"
     },
-    "producerSourcePeer": {
-      "path": ".nextgo-test-results/recovery/ad01-fifo-additional-requirements-producer-proposal-review-peer-v1/SOURCE_REVIEW.json",
-      "bytes": 8916,
-      "sha256": "43a92c8bb3917a95335cc5c75a7f7af52c05d7be6f840cab99122398aeb9f903"
-    },
+    "newGoTestsExecuted": false,
+    "newBrowserTestsExecuted": false,
     "newTypecheckPassed": false,
-    "newTestsExecuted": false,
     "rootOwnFullReadPublicationAndExecutionRequired": true,
     "all79Capabilities11GatesRemainOpen": true
   },
@@ -8942,6 +8969,376 @@
     "laterPublisherMustNotAppendAgain": true,
     "nativeControlsUnmodified": true,
     "newRuntimeOrProfileClaim": false,
+    "all79Capabilities11GatesRemainOpen": true
+  },
+  "fixtureEnvironmentAndPolicyObservationQualification": {
+    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "publishedFoundation": {
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+    },
+    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "changedPaths": [
+      ".github/workflows/offline-first-compile.yml",
+      "cmd/nextgo/export_phase_test.go",
+      "docs/PARITY.md",
+      "tests/offline-first-compile.py",
+      "tests/offline.spec.mjs",
+      "tests/retained-routes-ci-inputs.json",
+      "tests/test_offline_first_compile.py"
+    ],
+    "componentProvenance": {
+      "actualF4GitAudit": {
+        "path": ".nextgo-test-results/recovery/ad01-fifo-f4-actual-git-audit-v1/ACTUAL_GIT_REVIEW.json",
+        "bytes": 4856,
+        "sha256": "9768f725aee851b6963199535c631fd26db59563a6ca05a9b41ac356f5ef525f"
+      },
+      "exportHelperManifest": {
+        "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-v1/MANIFEST.json",
+        "bytes": 4287,
+        "sha256": "f56532bf508e35bb317d042842cfdd7a404b3fa8e2f526f8cca3443ba9625b7f"
+      },
+      "exportHelperSourcePeer": {
+        "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-review-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 7521,
+        "sha256": "7452090e9a269da859d2ddc69df5924994a2afbae6bc7e0f300140cab8b88995"
+      },
+      "guard3Manifest": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-v1/MANIFEST.json",
+        "bytes": 2195,
+        "sha256": "3a80d1b6707eb37fa8060118e81c5a2f2db5ac76c2b1a69b78a547ee13d98335"
+      },
+      "guard3SourcePeer": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 8058,
+        "sha256": "1122d9f688e22cf415ef97991891833e63910c0793904b794783a48624bc91f2"
+      },
+      "actualEnvironmentMismatchAudit": {
+        "path": ".nextgo-test-results/qualification/ci-2a34c8ac-pr8/actual-environment-mismatch-audit.json",
+        "bytes": 1950,
+        "sha256": "7b2b0baa136201b210b3656e1d271b1c44084f0cde861454ca45a116b9a8eba0"
+      },
+      "actual30ProtocolModelRootReceipt": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-protocol-root-execution-v1/root-execution.json",
+        "bytes": 1127,
+        "sha256": "8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65"
+      },
+      "actual30ProtocolModelOutputAudit": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-root-model-audit-v1/AUDIT.json",
+        "bytes": 4534,
+        "sha256": "fb2a83b7426a1aa7a25af0144b39a4a9e72e5d4c2064343ca3e99cf017706abb"
+      },
+      "passiveFirefoxV3Manifest": {
+        "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-v3/MANIFEST.json",
+        "bytes": 1459,
+        "sha256": "dd41e8b45a9179765bad28b5229a2c5e3b88ffda0f8311bc927e324c5a4181ad"
+      },
+      "passiveFirefoxV3SourcePeer": {
+        "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-independent-peer-v3/SOURCE_REVIEW.json",
+        "bytes": 7766,
+        "sha256": "d289d85b1c59c8d61d5c05c6819f43c3e4c8677b2e54705b072348415eebd6a7"
+      }
+    },
+    "threeSeparateScopes": {
+      "exportFixture": {
+        "sourceManifest": {
+          "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-v1/MANIFEST.json",
+          "bytes": 4287,
+          "sha256": "f56532bf508e35bb317d042842cfdd7a404b3fa8e2f526f8cca3443ba9625b7f"
+        },
+        "sourcePeer": {
+          "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-review-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 7521,
+          "sha256": "7452090e9a269da859d2ddc69df5924994a2afbae6bc7e0f300140cab8b88995"
+        },
+        "changedGoPath": "cmd/nextgo/export_phase_test.go",
+        "rootNamesForFutureActualNativeAudit": [
+          "TestExportServingChildUsesStaticPurpose",
+          "TestExportPhaseHelperEnvironmentGate",
+          "TestExportPhaseHelperChildEnvironmentIsOwnedCopy",
+          "TestExportPhaseHelperArgumentsAreExact",
+          "TestExportPhaseHelperRejectsBeforeListening",
+          "TestExportPhaseHelperBindFailureIsReturned",
+          "TestExportPhaseHelperListenerFailureIsReturned",
+          "TestExportPhaseHelperResponseContract"
+        ],
+        "allEightRootsUnrun": true,
+        "additionalProducerContractAdded": false,
+        "existingUnfilteredNativeCommandsSelectAllEight": true,
+        "realStartExportServerEnvPreserved": true,
+        "parentContextSeconds": 30,
+        "HTTPClientSeconds": 1,
+        "productionReadinessSeconds": 10,
+        "productionStopGraceSeconds": 6,
+        "historicalFailureStage": "nested go build CombinedOutput before serving",
+        "historicalKillerAndCompilerSubstage": "UNKNOWN",
+        "deadlineIncreased": false
+      },
+      "nativeEnvironmentGuard": {
+        "sourceManifest": {
+          "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-v1/MANIFEST.json",
+          "bytes": 2195,
+          "sha256": "3a80d1b6707eb37fa8060118e81c5a2f2db5ac76c2b1a69b78a547ee13d98335"
+        },
+        "sourcePeer": {
+          "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 8058,
+          "sha256": "1122d9f688e22cf415ef97991891833e63910c0793904b794783a48624bc91f2"
+        },
+        "actualEnvironmentAudit": {
+          "path": ".nextgo-test-results/qualification/ci-2a34c8ac-pr8/actual-environment-mismatch-audit.json",
+          "bytes": 1950,
+          "sha256": "7b2b0baa136201b210b3656e1d271b1c44084f0cde861454ca45a116b9a8eba0"
+        },
+        "metadataGuardMismatchIdentified": true,
+        "actualEnvironmentStdoutBytes": 699,
+        "actualEnvironmentStdoutSHA256": "348fc32dfffdfd14459ab33f7f86281c037f74153ee0aad0ccb137c597cc6d99",
+        "soleMismatch": {
+          "field": "GOWORK",
+          "priorExpected": "",
+          "actual": "off",
+          "correctedExpected": "off"
+        },
+        "GOENVStillExpectedEmpty": true,
+        "other13PredicatesPreserved": true,
+        "childPolicyUnchanged": true,
+        "compilerOutputsObserved": 0,
+        "SDK127WasUnreached": true,
+        "compilerFaultIdentified": false,
+        "currentControlPostimages": [
+          {
+            "path": ".github/workflows/offline-first-compile.yml",
+            "bytes": 40717,
+            "sha256": "5a889bbee9074d9ae7618f8f04fd23d99048c005cee2654f2bce8ab17bb21c3d",
+            "baseBytes": 40717,
+            "baseSHA256": "6480dc6f6c419e1d93300794d6548b240462baf3f1daef1eb819e988c1f7c25e"
+          },
+          {
+            "path": "tests/offline-first-compile.py",
+            "bytes": 44878,
+            "sha256": "ff1a0fd232595bbff93a77795dcfbbc2942d05bc58ee093745f71d2010b525df",
+            "baseBytes": 44875,
+            "baseSHA256": "3ef89ee00eee7c16ba78f9ca090dee5848f04712bc5fcfe2d78eded8b8b3d733"
+          },
+          {
+            "path": "tests/test_offline_first_compile.py",
+            "bytes": 42121,
+            "sha256": "265d8df22f5eea96b13f449b88406653549e38b55f1722d1fa837ec0376dac5e",
+            "baseBytes": 34418,
+            "baseSHA256": "b0773611820aaabe8549a653be2d3190ba67a760b11d00bdd4538d292075af7c"
+          }
+        ],
+        "unchangedControlPaths": 38,
+        "all37FixtureImagesAndContractByteExact": true,
+        "ordinaryControlsNotRebasedToNewGo": true,
+        "isolatedBase": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+        "isolatedTree": "ba24a854fab69ee810394bc193507ba22f2a953e",
+        "isolatedGoFiles": 1311,
+        "compileCommandsPerSDK": 25,
+        "metadataCommandsPerSDK": 13,
+        "resourceAndCustodyAndTriggerScopeUnchanged": true,
+        "actual30ProtocolModels": {
+          "rootReceipt": {
+            "path": ".nextgo-test-results/recovery/offline-gatea-gowork-protocol-root-execution-v1/root-execution.json",
+            "bytes": 1127,
+            "sha256": "8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65"
+          },
+          "independentDataAudit": {
+            "path": ".nextgo-test-results/recovery/offline-gatea-gowork-root-model-audit-v1/AUDIT.json",
+            "bytes": 4534,
+            "sha256": "fb2a83b7426a1aa7a25af0144b39a4a9e72e5d4c2064343ca3e99cf017706abb"
+          },
+          "roots": 30,
+          "pass": 30,
+          "fail": 0,
+          "unittestSeconds": 1.51,
+          "outerSeconds": 1.7194492920000002,
+          "joinedExitCode": 0,
+          "stdoutEmpty": true,
+          "ownedStagingFinallyRemoved": true,
+          "GoNodeSDKBrowserNetworkExecutions": 0,
+          "newModelsExecuted": true,
+          "compilerRuntimeQualification": false
+        },
+        "totalPredicateFields": 14,
+        "matchingPredicateFieldsTotal": 13,
+        "matchingPredicatesIncludeGOENV": true
+      },
+      "passiveFirefoxObservation": {
+        "sourceManifest": {
+          "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-v3/MANIFEST.json",
+          "bytes": 1459,
+          "sha256": "dd41e8b45a9179765bad28b5229a2c5e3b88ffda0f8311bc927e324c5a4181ad"
+        },
+        "sourcePeer": {
+          "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-independent-peer-v3/SOURCE_REVIEW.json",
+          "bytes": 7766,
+          "sha256": "d289d85b1c59c8d61d5c05c6819f43c3e4c8677b2e54705b072348415eebd6a7"
+        },
+        "changedPath": "tests/offline.spec.mjs",
+        "scope": "Existing timeout Error channel only; four existing scalars copied before finally; no new DOM/worker query, listener, timer, retry, native actuation or authority. Same five-second timeout, assertions and cleanup.",
+        "scalarFields": 4,
+        "countersSaturateAt": 32,
+        "expectedReachableASCIIBytes": 168,
+        "conservativeScalarDomainASCIIBytes": 169,
+        "sourceRuntimeExecuted": false,
+        "FirefoxFixQualified": false,
+        "historicalB4ResultUnchanged": "19PASS/1FAIL/20UNRUN",
+        "underlyingNativeCause": "UNKNOWN",
+        "sharedFunctionScope": "httpHelperPolicy is shared across configured browser profiles; this timeout observation change was prompted by the historical Firefox failure."
+      }
+    },
+    "GoSource": {
+      "files": 1287,
+      "bytes": 6432777,
+      "sha256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "modifiedGoPaths": [
+        "cmd/nextgo/export_phase_test.go"
+      ],
+      "unchangedGoFiles": 1286,
+      "modifiedProductionGoFiles": 0,
+      "modifiedExistingGoTestFiles": 1,
+      "addedGoFiles": 0,
+      "allProductionGoByteExactParent": true,
+      "producerExpectedFullGoGuardEnforced": true,
+      "guardExecutedForThisSource": false
+    },
+    "selectedSource": {
+      "files": 207,
+      "bytes": 2295091,
+      "sha256": "43bcba28cd1f7453c8920aafd112380d0e8f6110976aafda30da6ec441819033",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "oldRows": 207,
+      "oldRowsRawExact": 205,
+      "reboundPaths": [
+        "docs/PARITY.md",
+        "tests/offline.spec.mjs"
+      ],
+      "newOrDroppedPaths": [],
+      "modifiedGoUnselectedButFullGoEnforced": true
+    },
+    "wholeSourceContractExcludingInputSelf": {
+      "files": 1783,
+      "bytes": 11207149,
+      "sha256": "d5c38050fd1353bd6c05846b8fca9dc308d0626d887bb16ca9d72e67d64aa494",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "expectedWholeSourceGuardEnforced": false
+    },
+    "wholeTrackedPathsIncludingInputSelf": 1784,
+    "requiredCounts": {
+      "native": 89,
+      "core": 202,
+      "devcore": 169,
+      "portable": 13,
+      "ui": 12,
+      "module": 44,
+      "devmodule": 46
+    },
+    "mandatoryBaselineOccurrences": 600,
+    "additionalAD01MandatoryOccurrences": 21,
+    "standaloneAD01RequirementsLiteralPreserved": true,
+    "additionalNativeFixtureProducerContractAdded": false,
+    "nativeFixtureFutureActualAuditRoots": [
+      "TestExportServingChildUsesStaticPurpose",
+      "TestExportPhaseHelperEnvironmentGate",
+      "TestExportPhaseHelperChildEnvironmentIsOwnedCopy",
+      "TestExportPhaseHelperArgumentsAreExact",
+      "TestExportPhaseHelperRejectsBeforeListening",
+      "TestExportPhaseHelperBindFailureIsReturned",
+      "TestExportPhaseHelperListenerFailureIsReturned",
+      "TestExportPhaseHelperResponseContract"
+    ],
+    "browserCases": 432,
+    "browserClosures": 440,
+    "offlineCases": 40,
+    "sourceProducerHarnessByteExactParent": true,
+    "all37FixtureImagesAndCompileContractByteExact": true,
+    "nativeControlPathsModified": [
+      ".github/workflows/offline-first-compile.yml",
+      "tests/offline-first-compile.py",
+      "tests/test_offline_first_compile.py"
+    ],
+    "nativeControlPathsUnchanged": 38,
+    "historyPolicy": {
+      "allUntouchedOldTopLevelValuesRawExact": true,
+      "native43AndAD01QualificationObjectsRawExact": true,
+      "old25AncestryElementsRawExact": true,
+      "oneActualF4FoundationAppended": true,
+      "ancestryEntries": 26,
+      "laterPublisherMustNotAppendAgain": true
+    },
+    "originInterpretation": "All preserved selected row origins and prior qualification objects are literal historical lineage, not current source or execution claims. Exact current SHA/size and these three separately reviewed component scopes govern current bytes.30model PASS is control-plane only, not Go compiler/runtime proof.",
+    "all79Capabilities11GatesRemainOpen": true,
+    "RootModelResultOnlyDoesNotQualifyCompiler": true
+  },
+  "fixtureEnvironmentAndPolicyObservationCIWireTransition": {
+    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "publishedFoundation": {
+      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
+      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
+      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 478459,
+      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "AD01SourceAndSeparate21Preserved": true,
+      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+    },
+    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "sourcePostimagesExactToThreeReviewedComponents": true,
+    "baseline600AndAD0121RawExact": true,
+    "all25AncestryRawExact": true,
+    "oneActualF4FoundationAlreadyAppended": true,
+    "ancestryEntries": 26,
+    "laterPublisherMustNotAppendAgain": true,
+    "native38ControlsAnd37FixtureContractUnmodified": true,
+    "threeControlPostimagesExplicit": true,
+    "Root30ModelsPassOnly": {
+      "path": ".nextgo-test-results/recovery/offline-gatea-gowork-protocol-root-execution-v1/root-execution.json",
+      "bytes": 1127,
+      "sha256": "8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65"
+    },
+    "noNewGoBrowserOrCompilerEvidence": true,
     "all79Capabilities11GatesRemainOpen": true
   }
 }

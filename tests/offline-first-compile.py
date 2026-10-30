@@ -563,7 +563,7 @@ def run(root, c):
             elif key == "go-environment":
                 values = json.loads(stdout)
                 require(values["CGO_ENABLED"] == "0" and values["GOTOOLCHAIN"] == "local" and values["GOENV"] == ""
-                        and values["GOWORK"] == "" and values["GOVERSION"] == "go"+o["sdk"]
+                        and values["GOWORK"] == "off" and values["GOVERSION"] == "go"+o["sdk"]
                         and values["GOOS"] == "linux" and values["GOARCH"] == "amd64"
                         and values["GOHOSTOS"] == "linux" and values["GOHOSTARCH"] == "amd64"
                         and values["GOFLAGS"] == command_env["GOFLAGS"]
