@@ -239,6 +239,29 @@ island/error/scroll behavior, history/focus/scroll, fresh loaders, supersession,
 partition/denial reset, bounded eviction and unsupported native-group fallbacks.
 No synthetic application response substitutes for a real server fixture.
 
+The Go 1.24.13 Linux/amd64 retained matrix in
+[run 40979960084](https://github.com/Suhaibinator/Next.go/actions/runs/40979960084)
+(source `2a34c8ac`, tested merge `ab18e5c7`) recorded 48 passes, one desktop
+WebKit failure and 23 unrun cases. The eager-owner case expected scroll 200 and
+observed 1283 after Back. Its click-task samples were 200, but they do not measure
+the later asynchronous commit-time capture. Focus and selection observations do
+not establish which operation caused the change. Other matrix jobs' failure
+statuses do not establish the same detailed cause.
+
+The test source adds passive aftermath collection only when the original immediate
+owner-scroll assertion has already observed a finite mismatch. It keeps that
+assertion, all original steps, deadlines and retries unchanged, and adds no wait
+to passing cases. At most two diagnostic animation frames, one timer requesting
+250 ms and one visibility listener produce at most three fixed scalar samples
+and one 8 KiB attachment. Cleanup of owned pending handles/listeners is attempted;
+failures are recorded, and missing phases stay unknown. These frames do not identify the runtime's settlement frames.
+The requested timer delay is not a hard wall bound; an external test deadline or
+page closure can truncate collection. Read-only observations may perturb later
+scheduling. A later matching sample cannot convert the original failure into a
+pass, identify its cause or qualify a runtime fix. This diagnostic source remains
+unexecuted; planned browser cases, process closures and native requirements remain
+unchanged.
+
 The exact `44564f16` source/compiler checkpoint passed both SDKs' native race
 suites, existing core/module/development WASM personalities, vet and real CLI/
 retained-example builds in the source CI linked above. Declared skips and

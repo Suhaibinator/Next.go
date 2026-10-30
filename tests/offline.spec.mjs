@@ -360,40 +360,76 @@ test('a genuine new generation waits while the old client is open and activates 
 });
 
 test('explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation', async ({shelf}, info) => {
-  let page = await shelf.open(); await enable(shelf, page);
-  const before = await cachedEntries(page), owned = before.map(entry => entry.name), beforeAccounting = await ownedAccounting(page);
-  expect(owned.length).toBeGreaterThan(0);
-  await page.evaluate(() => caches.open('offline-fixture-unrelated-empty-cache'));
-  await page.locator('[data-offline-disable]').click();
-  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
-  await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'true');
-  await page.locator('[data-offline-status-button]').click();
-  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  const retained = await cachedEntries(page), retainedAccounting = await ownedAccounting(page);
-  expect(retainedAccounting.generations).toEqual(beforeAccounting.generations);
-  expect(retainedAccounting.generations.every(generation => generation.physicalBytes > 0)).toBe(true);
-  expect(retainedAccounting.index.disabled).toBe(true);
-  expect(retainedAccounting.index.active).toBe(beforeAccounting.index.active);
-  expect(retainedAccounting.index.retainedClients).toBeGreaterThan(0);
-  expect(retainedAccounting.index.retainedClients).toBeLessThanOrEqual(4);
-  expect(retained.filter(entry => owned.includes(entry.name))).toEqual(before);
-  expect(retained.some(entry => entry.name === 'offline-fixture-unrelated-empty-cache')).toBe(true);
-  // Unregister does not detach this live controller or claim physical erasure.
-  await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
-  await shelf.closeBrowser(); page = await shelf.open();
-  await page.goto(shelf.origin + '/'); await ready(page);
-  await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'false');
-  const prior = shelf.records.length;
-  await page.locator('[data-offline-disable]').click();
-  await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'false');
-  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
-  await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  const remaining = await cachedEntries(page), reconciledAccounting = await ownedAccounting(page);
-  expect(reconciledAccounting).toEqual({index: null, generations: []});
-  expect(remaining.map(entry => entry.name)).toContain('offline-fixture-unrelated-empty-cache');
-  expect(remaining.filter(entry => owned.includes(entry.name))).toEqual([]);
-  expect(shelf.records.slice(prior).filter(record => record.path.startsWith('/_nextgo/offline/documents/'))).toEqual([]);
-  await info.attach('explicit-disable-cache-accounting', {body: JSON.stringify({before, retained, remaining, beforeAccounting, retainedAccounting, reconciledAccounting}), contentType: 'application/json'});
+  let page, disableAttempted = false, completed = false;
+  try {
+    page = await shelf.open(); await enable(shelf, page);
+    const before = await cachedEntries(page), owned = before.map(entry => entry.name), beforeAccounting = await ownedAccounting(page);
+    expect(owned.length).toBeGreaterThan(0);
+    await page.evaluate(() => caches.open('offline-fixture-unrelated-empty-cache'));
+    disableAttempted = true;
+    await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+    await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'true');
+    await page.locator('[data-offline-status-button]').click();
+    expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+    const retained = await cachedEntries(page), retainedAccounting = await ownedAccounting(page);
+    expect(retainedAccounting.generations).toEqual(beforeAccounting.generations);
+    expect(retainedAccounting.generations.every(generation => generation.physicalBytes > 0)).toBe(true);
+    expect(retainedAccounting.index.disabled).toBe(true);
+    expect(retainedAccounting.index.active).toBe(beforeAccounting.index.active);
+    expect(retainedAccounting.index.retainedClients).toBeGreaterThan(0);
+    expect(retainedAccounting.index.retainedClients).toBeLessThanOrEqual(4);
+    expect(retained.filter(entry => owned.includes(entry.name))).toEqual(before);
+    expect(retained.some(entry => entry.name === 'offline-fixture-unrelated-empty-cache')).toBe(true);
+    // Unregister does not detach this live controller or claim physical erasure.
+    await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
+    await shelf.closeBrowser(); page = await shelf.open();
+    await page.goto(shelf.origin + '/'); await ready(page);
+    await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'false');
+    const prior = shelf.records.length;
+    await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'false');
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+    await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+    const remaining = await cachedEntries(page), reconciledAccounting = await ownedAccounting(page);
+    expect(reconciledAccounting).toEqual({index: null, generations: []});
+    expect(remaining.map(entry => entry.name)).toContain('offline-fixture-unrelated-empty-cache');
+    expect(remaining.filter(entry => owned.includes(entry.name))).toEqual([]);
+    expect(shelf.records.slice(prior).filter(record => record.path.startsWith('/_nextgo/offline/documents/'))).toEqual([]);
+    await info.attach('explicit-disable-cache-accounting', {body: JSON.stringify({before, retained, remaining, beforeAccounting, retainedAccounting, reconciledAccounting}), contentType: 'application/json'});
+    completed = true;
+  } finally {
+    // Observe only after the original outcome; no worker/registry reads or retry.
+    if (!completed && disableAttempted && page) try {
+      const observation = await page.evaluate(() => {
+        const root = document.querySelector('[data-offline-controls]');
+        if (!root) return {version: 1, diagnosticOnly: true, sampleComplete: false, controlsPresent: false};
+        const boolean = name => {const value = root.getAttribute(name); return value === 'true' ? true : value === 'false' ? false : null;};
+        const lastError = root.getAttribute('data-offline-last-error');
+        const prefix = 'nextgo: a conflicting service worker owns an overlapping scope';
+        // The producer exposes at most256 UTF8 bytes. Accept only bounded ASCII
+        // here and emit a fixed known reason, never the arbitrary error string.
+        const asciiWithin256Bytes = typeof lastError === 'string' && lastError.length <= 256 && /^[\x00-\x7f]*$/.test(lastError);
+        const suffix = asciiWithin256Bytes && lastError.startsWith(prefix + ' [') && lastError.endsWith(']') ? lastError.slice(prefix.length + 2, -1) : null;
+        const knownReasons = ['registration-scope', 'registration-active-worker', 'registration-waiting-worker', 'registration-installing-worker', 'registration-empty', 'registration-list', 'registration-scope-type', 'registration-duplicate', 'controller-worker', 'registration-empty-selection', 'registration-proof-unavailable', 'registration-proof-missing', 'registration-proof-empty-lookup', 'registration-proof-changed', 'registration-proof-empty-final-inventory', 'registration-proof-empty-update', 'registration-proof-empty-message', 'registration-proof-empty-unregister', 'active-worker-changed', 'worker-state-target', 'message-worker'];
+        const rawOperation = root.getAttribute('data-offline-operation-error');
+        const operationError = ['', 'busy', 'unavailable', 'unsupported', 'conflict', 'protocol', 'unknown', 'canceled', 'deadline', 'operation-failed'].includes(rawOperation) ? rawOperation : null;
+        const rawCompleted = root.getAttribute('data-offline-completed-operations');
+        const count = typeof rawCompleted === 'string' && /^[0-9]{1,10}$/.test(rawCompleted) ? Number(rawCompleted) : NaN;
+        return {version: 1, diagnosticOnly: true, sampleComplete: true, controlsPresent: true,
+          enabled: boolean('data-offline-enabled'), controlling: boolean('data-offline-controlling'),
+          cleanupPending: boolean('data-offline-cleanup-pending'), savedDocument: boolean('data-offline-saved-document'),
+          controlsReady: boolean('data-offline-controls-ready'), operationError,
+          completedOperations: Number.isInteger(count) && count >= 0 && count <= 0xffffffff ? count : null,
+          lastErrorPresent: typeof lastError === 'string' && lastError.length > 0, asciiWithin256Bytes,
+          conflictPrefixMatched: asciiWithin256Bytes && (lastError === prefix || suffix !== null),
+          conflictReason: knownReasons.includes(suffix) ? suffix : null};
+      });
+      const encoded = Buffer.from(JSON.stringify(observation));
+      if (encoded.length <= 2048) await info.attach('explicit-disable-failure-state', {body: encoded, contentType: 'application/json'});
+      else try {console.warn('Offline disable diagnostics incomplete: attachment byte cap');} catch {}
+    } catch {try {console.warn('Offline disable diagnostics incomplete: observation failed');} catch {}}
+  }
 });
 
 // Fault ONLY the parent realm's registration wrappers. The helper still uses

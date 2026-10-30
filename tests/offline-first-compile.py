@@ -443,7 +443,11 @@ def supervise(argv, cwd, env, root, limits, job_deadline):
                 last_sample = now
                 peak = max(peak, disk_usage(root))
                 require(time.monotonic() - last_sample <= 0.250, "disk inventory exceeded sample interval")
-            for key, _ in sel.select(0.05):
+            # Inventory work consumes the existing 100ms sampling target. Do not
+            # add an unconditional 50ms idle wait after an already-overdue walk.
+            # The separate 250ms inventory and interval refusal bounds still apply.
+            poll_wait = max(0.0, min(0.05, 0.10 - (time.monotonic() - last_sample)))
+            for key, _ in sel.select(poll_wait):
                 data = os.read(key.fileobj.fileno(), 65536)
                 if not data:
                     sel.unregister(key.fileobj)

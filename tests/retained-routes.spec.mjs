@@ -27,6 +27,66 @@ async function control(page,value){const response=await page.request.post('/api/
 async function saveA(page){await page.evaluate(()=>{globalThis.retainedDocument=document;const root=[...document.querySelectorAll('[data-retained-panel]')].find(node=>node.getAttribute('data-retained-panel')==='A');globalThis.retainedA={owner:root.closest("main"),root,count:root.querySelector('[data-retained-count]'),text:root.querySelector('[data-retained-count]').firstChild,draft:root.querySelector('[data-retained-draft]'),details:root.querySelector('[data-retained-details]')};});}
 async function backA(page){await page.goBack();await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','A');}
 
+// Test-only observations AFTER the original owner-scroll assertion outcome.
+// These diagnostic frames are separate from the runtime settlement frames.
+async function collectOwnerScrollAftermath(page){
+  return page.evaluate(()=>new Promise(resolve=>{
+    const phases={frame1:{requested:false,delivered:false,sample:null},frame2:{requested:false,delivered:false,sample:null},endpoint:{requested:false,delivered:false,sample:null}};
+    const cleanup={frameCancelAttempted:false,frameCancelFailed:false,timerCancelAttempted:false,timerCancelFailed:false,listenerRemoveAttempted:false,listenerRemoveFailed:false};
+    let closed=false,frame=null,timer=null,listening=false,sequence=0;
+    const number=value=>Number.isFinite(value)&&Math.abs(value)<=10_000_000?{present:true,value}:{present:false,value:null};
+    const started=(()=>{try{return performance.now();}catch{return null;}})();
+    const elapsed=()=>{try{return started===null?{present:false,value:null}:number(performance.now()-started);}catch{return {present:false,value:null};}};
+    function sample(){
+      try{
+        const owner=globalThis.retainedOwner,draft=owner?.querySelector('[data-retained-draft]');
+        if(!owner||!draft||document!==globalThis.ownerDocument)return {complete:false};
+        return {complete:true,ownerY:number(owner.scrollTop),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyY:number(history.state?.nextgoY),selectionStart:number(draft.selectionStart),selectionEnd:number(draft.selectionEnd),selectionForward:draft.selectionDirection==='forward',selectionBackward:draft.selectionDirection==='backward',selectionNone:draft.selectionDirection==='none',focusedDraft:document.activeElement===draft,sameDocument:true,ownerHidden:owner.hidden,ownerConnected:owner.isConnected,ownerActive:owner.hasAttribute('data-nextgo-view-active'),hydrationReady:document.body?.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app')?.hasAttribute('aria-busy')===true,visible:document.visibilityState==='visible'};
+      }catch{return {complete:false};}
+    }
+    function finish(reason){
+      if(closed)return;
+      closed=true;
+      try{
+        // Promise reactions run after this synchronous cleanup. Late callbacks
+        // observe closed and cannot read or schedule more work.
+        resolve({version:1,diagnosticOnly:true,reason,requestedDelayMS:250,phases,cleanup});
+      }finally{
+        if(frame!==null){cleanup.frameCancelAttempted=true;try{cancelAnimationFrame(frame);}catch{cleanup.frameCancelFailed=true;}frame=null;}
+        if(timer!==null){cleanup.timerCancelAttempted=true;try{clearTimeout(timer);}catch{cleanup.timerCancelFailed=true;}timer=null;}
+        if(listening){cleanup.listenerRemoveAttempted=true;try{document.removeEventListener('visibilitychange',visibility);}catch{cleanup.listenerRemoveFailed=true;}listening=false;}
+      }
+    }
+    function capture(name){
+      if(closed)return;
+      phases[name].delivered=true;phases[name].sequence=++sequence;phases[name].elapsedMS=elapsed();phases[name].sample=sample();
+    }
+    function second(){
+      if(closed)return;
+      frame=null;capture('frame2');
+    }
+    function first(){
+      if(closed)return;
+      frame=null;capture('frame1');
+      try{frame=requestAnimationFrame(second);phases.frame2.requested=true;}catch{finish('second-frame-registration-failed');}
+    }
+    function endpoint(){
+      if(closed)return;
+      timer=null;capture('endpoint');finish('timer-endpoint');
+    }
+    function visibility(){
+      if(closed)return;
+      finish('visibility-change');
+    }
+    try{
+      if(document.visibilityState!=='visible'){finish('hidden-at-setup');return;}
+      document.addEventListener('visibilitychange',visibility,{once:true});listening=true;
+      timer=setTimeout(endpoint,250);phases.endpoint.requested=true;
+      frame=requestAnimationFrame(first);phases.frame1.requested=true;
+    }catch{finish('setup-failed');}
+  }));
+}
+
 test('meaningful SSR and hydration precede exact retained counter draft and details identity',async({page,native})=>{
   const core=await holdRequests(page,'**/app.wasm',()=>true);
   try{
@@ -213,6 +273,14 @@ test('a sole eager island owner retains its own identity state and scroll contai
       if(body.length<=4096)await info.attach('retained-owner-scroll-observations',{body,contentType:'application/json'});
       else console.warn('Retained owner scroll diagnostics incomplete: attachment byte cap');
     }catch{console.warn('Retained owner scroll diagnostics incomplete: attachment failed');}
+    // Run only after the original assertion outcome; these observations cannot
+    // turn an immediate scroll failure into a later passing assertion.
+    if(Number.isFinite(savedActual)&&Number.isFinite(afterBackActual)&&afterBackActual!==savedActual)try{
+      const aftermath=await collectOwnerScrollAftermath(page);
+      const body=Buffer.from(JSON.stringify(aftermath));
+      if(body.length<=8192)await info.attach('retained-owner-scroll-aftermath',{body,contentType:'application/json'});
+      else console.warn('Retained owner aftermath incomplete: attachment byte cap');
+    }catch{try{console.warn('Retained owner aftermath incomplete: observation failed');}catch{}}
   }
 });
 

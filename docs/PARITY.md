@@ -6,6 +6,97 @@ The target is an alternative implemented in Go, with Go/WASM browser behavior an
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
 
+## Cadence-only compile supervisor and retained failure aftermath
+
+This source-only successor starts from pushed `8b8a2626417e9a00aa007759fb39217e7e2499a2`,
+whose ordinary Go tree remains byte-identical here: 1,287 files, 6,432,777 bytes,
+canonical SHA-256 `b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997`.
+The current source preserves all 600 baseline requirements, the separate 21 FIFO
+occurrences and the existing eight exporter-helper roots. Go 1.24.13 source
+evidence on the actual 8b8 PR merge matches 600+21+8 separately with exact
+RUN1/PASS1/SKIP0, 30,086 JSON events, 7,234 complete test rows and 306 package
+completions; two nonmandatory test skips remain explicit. Node was 22.23.3.
+This is source-test evidence only. Go 1.27 has API success, but its bounded console
+request returned Transport closed before payload; detailed counts remain unknown,
+with no retry or artifact fallback. Neither result qualifies the new control or
+browser diagnostic source.
+
+The isolated first-compile profile got beyond its corrected environment guard,
+then refused graph-native ordinal 3: joined exit -15, maximum integer sample
+interval 259ms, empty channels and no candidate compiler output. SDK 1.27 remained
+unreached. Saved observations do not separate inventory, selector, loop or OS
+scheduling time; 209+50=259ms is a constructed regression hazard, not a measured
+incident decomposition.
+
+Only the supervisor selector wait changes: it remains at most 50ms but is also
+capped by the remaining 100ms sampling target since last_sample, clamped to zero
+when overdue. It therefore avoids intentional idle after an expensive inventory.
+Both 250ms start-to-start and inventory-duration refusal checks remain exact, as
+do deadlines, ownership, termination/join, UNKNOWN outcomes and resource limits.
+A slow real walk or scheduling stall may still refuse. The workflow changes only
+its runner hash; models preserve all 30 old bodies and add five roots/seven
+scenarios that call the real supervisor with fake clock/process/selector/IO
+boundaries. Root executed all 35 models once: 35 PASS in 2.617 seconds, joined exit0,
+empty stdout and owned staging removed, with no Go/SDK/Node/browser/network work.
+Receipt SHA-256 is
+`5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c`.
+This is control-plane evidence; corrected native compilation remains open.
+
+Separately, a passive retained-test sampler runs only in finally after the
+original immediate owner-scroll assertion has already observed a finite
+mismatch. Original assertions, steps, titles, deadlines and retries remain. It
+requests at most two diagnostic animation frames, one 250ms timer and one
+visibility listener, producing at most three scalar samples and one 8KiB
+attachment. This requested timer is not a hard wall; external test deadlines or
+page closure may truncate collection. Cleanup is attempted with failure flags,
+missing phases stay unknown, and read-only observations may perturb later
+scheduling. These diagnostic frames are not the runtime settlement frames.
+No production hook, focus/scroll write, method wrapper or runtime change is added;
+a later matching sample cannot change the original failure or establish cause.
+
+The bound historical Go1.24 Linux/amd64 retained result is source 2a34, tested
+merge ab18: 48 PASS, one desktop WebKit failure and 23 unrun. The eager-owner case
+expected 200 and observed 1283 after Back. Click-task samples of 200 do not prove
+the later asynchronous commit-time capture; the failing stage remains unknown.
+Other jobs' failure statuses do not establish this cause. The new diagnostic is
+unexecuted. All 37 isolated fixture images and their compile contract, 25 compile/
+13 metadata commands, SDK/resource/custody scope, selected 207 paths/cap and 256
+per-array cap remain. Only three native controls change; 38 stay exact.
+
+The actual 8b8 Go1.27 offline console separately reports 17 PASS, one Firefox
+explicit-disable failure and 22 unrun: the first disable assertion expected
+`data-offline-enabled=false` but still observed true after its original 20 seconds,
+with public operation-error conflict. The rendered reason is truncated; its exact
+branch and native cause remain unknown. Firefox policy case 20 was unreached, so
+no new four-scalar policy error was observed. This is not the earlier policy
+failure or a retained-scroll cause.
+
+An additional test-only inner finally reads existing public DOM status after the
+original failed/incomplete disable body: at most one evaluation, one controls
+query, eight fixed attribute reads and one JSON attachment accepted at 2KiB. It
+returns only fixed booleans/codes, a bounded UI revision and one of 21 recognized
+conflict reasons; missing or unrecognized values remain null. The revision is not
+native worker-message, retry or join evidence. It emits no raw error text and adds
+no worker/registry/storage/network probe, timer, frame, listener, write or retry.
+Original assertions, outcomes, 20s expectations/90s test limit and passing behavior
+remain; existing four-scalar policy diagnostics stay byte-identical. Evaluation
+or attachment errors are caught, while external deadlines/page closure may still
+truncate finally work.
+
+The pre-existing outer-fixture registration observer is unchanged. Its gated
+attachment may already contain this occurrence's reason, but its payload, gate
+match and attachment success remain unread. The new inner DOM observation runs
+before that observer and adds post-failure task latency; neither observation
+establishes historical admission/native cause or quiescence. The current 44.3MB
+artifact was not admitted or downloaded. The new diagnostic remains unexecuted.
+
+All prior qualification objects and the 26-element ancestry prefix remain literal
+historical lineage. One actual 8b8 foundation is appended once as 27; no later
+publisher append. Current full-Go/selected-source admission remains enforced;
+whole-source identity is publication provenance, not a producer guard. All 79
+capabilities and 11 gates remain open; 432 retained cases/440 closures and 40 offline
+cases remain. Cache aliases stay held, preview 3011 protected and AWS remains NO.
+
 ## Export fixture, native environment guard and passive policy observations
 
 This source-only successor starts from local FIFO commit

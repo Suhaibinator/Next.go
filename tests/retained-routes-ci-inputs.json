@@ -491,14 +491,14 @@
     },
     {
   "path": "docs/PARITY.md",
-  "sha256": "732b732d2095c4a3ec4795e9116a4c2fc715d547f901edc32264e879b610392a",
-  "bytes": 216802,
+  "sha256": "b80bd8d9091290214bc6b232ff93e0a3790cb50c288c4a112d81db8ce3a919d4",
+  "bytes": 222973,
   "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
 },
     {
       "path": "docs/RETAINED_ROUTES.md",
-      "sha256": "2525b57c5e49b81c287c969964d445fc4d49ab8f22d3fa85ed8999350967ac02",
-      "bytes": 17366,
+      "sha256": "d38cdd03d3b2ad5001583d7af2f2bf94c31430aae94328157a6edf2c507d7a51",
+      "bytes": 18960,
       "origin": "exactImmutableRootb7e"
     },
     {
@@ -995,8 +995,8 @@
     },
     {
       "path": "tests/offline.spec.mjs",
-      "sha256": "a3f9d262c192ddfa9f85f072f1674ccde1796e41097eaf7f2a7f1a2fab99c4a5",
-      "bytes": 58156,
+      "sha256": "6a570dd438e7330220711ec9d3c41d0bd64e9f09abb11d9ba3d653f34d5d7214",
+      "bytes": 61815,
       "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
     },
     {
@@ -1175,8 +1175,8 @@
     },
     {
       "path": "tests/retained-routes.spec.mjs",
-      "sha256": "afb961b0494913886b380e1370e8d3dad9fcf56653d9b7f4b41bac36d96f3414",
-      "bytes": 28814,
+      "sha256": "86e6350ca922300cbbb3d903754b14a3be19f65e94bd687df4705b8deaa68545",
+      "bytes": 33489,
       "origin": "Exact reviewed dual-browser source composition; uninstrumented; uncompiled and unexecuted"
     },
     {
@@ -2137,6 +2137,17 @@
       "runtimeQualificationInherited": false,
       "AD01SourceAndSeparate21Preserved": true,
       "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+    },
+    {
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "allOrdinaryGoUnchanged": true
     }
   ],
   "newNativeRegressionCount": 30,
@@ -2152,7 +2163,7 @@
   "newDevcoreRegressionCount": 41,
   "existingDevcoreRequiredCounterpartCount": 2,
   "ready": true,
-  "readinessMeaning": "PRESERVED EXISTING HOSTED INIT ONLY after separate complete-source peer, Root full read, controlled publisher and topic publication: exact207 selected paths and expected fullGo1287/b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997; old600+strictAD0121 remain raw-exact. Three separate corrections/observation scopes, actual30 process-mocked protocol PASS only, no Go compiler/Go-unit/browser/runtime qualification. Native37 fixtures+contract unchanged; three control postimages changed explicitly. All25 ancestry elements raw-exact plus oneactualf4foundation26, no later append. All79/11 OPEN; AWS NO.",
+  "readinessMeaning": "PRESERVED EXISTING HOSTED STRUCTURAL INIT ONLY after exact whole-source peer, Root full read, controlled publisher and publication:207same selectedpaths, unchanged expected fullGo1287/b446 and strict600+AD0121. Cadence35control-plane modelsPASS only; currentretainedaftermathunrun/native37compileropen. ActualGo1248b8source600+21+8 separatePASS doesnotqualify newcontrols/browser; Go127APIonly/detailedTransportclosed. Old26rawancestry+actual8b8once27; no laterappend. All79/11OPEN/AWSNO. Eighth existing offline spec adds publicDOM failureobservation only; actual8b8Firefoxdisable17PASS1FAIL22UNRUN/policy20UNREACHED; unknownreason/nativecause; existingouterobserver timing explicit.",
   "formattingCorrection": {
     "baseCommit": "1ed87fb4ac09b914999de509430a61db31a1ead8",
     "kind": "gofmt-only baseline normalization plus bounded diagnostic filenames",
@@ -2289,26 +2300,25 @@
     ]
   },
   "combinedSourceInput": {
-    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "status": "SOURCE_ONLY_CADENCE_RETAINED_AND_OFFLINE_OBSERVATIONS_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "baseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
     "publishedFoundation": {
-      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
-      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 478459,
-      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "AD01SourceAndSeparate21Preserved": true,
-      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+      "allOrdinaryGoUnchanged": true
     },
-    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
+    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_STRUCTURAL_INIT_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -2318,18 +2328,18 @@
     "measurementAdmitted": false,
     "publisherExecutionAdmitted": false,
     "publicationPerformed": false,
-    "integrationBaseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-    "integrationBaseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "integrationBaseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "integrationBaseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
     "sourcePinCount": 207,
-    "sourcePinBytes": 2295091,
-    "sourcePinsTreeSHA256": "43bcba28cd1f7453c8920aafd112380d0e8f6110976aafda30da6ec441819033",
+    "sourcePinBytes": 2311190,
+    "sourcePinsTreeSHA256": "5986a15cd972885f278b09bff9cbe089313d366310c9eafdb10cc91d9bf4a1c4",
     "currentGoFiles": 1287,
     "currentGoBytes": 6432777,
     "currentGoContentTreeSHA256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
     "immediateModifiedProductionGoFiles": 0,
-    "immediateModifiedExistingGoTestFiles": 1,
+    "immediateModifiedExistingGoTestFiles": 0,
     "immediateAddedGoFiles": 0,
-    "otherImmediateBaseGoFilesUnchanged": 1286,
+    "otherImmediateBaseGoFilesUnchanged": 1287,
     "selectedPathSetUnchanged": true,
     "producerFullGoExpectedGuard": true,
     "producerWholeSourceExpectedGuard": false,
@@ -2338,7 +2348,8 @@
     "nativeControlsUnchanged": 38,
     "mandatoryBaselineOccurrences": 600,
     "additionalAD01MandatoryOccurrences": 21,
-    "actual30ProtocolModelPassOnly": true
+    "actual35ProtocolModelPassOnly": true,
+    "offlineDisableObservationIncluded": true
   },
   "nativeGoEnvironmentCorrection": {
     "source": "retained-native-goenv-515-v2",
@@ -3036,26 +3047,25 @@
     "actual lazy ordinary Go source revokes loaded and download-pending owners and recovers fresh same-document scopes"
   ],
   "queryRefreshQualification": {
-    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "status": "SOURCE_ONLY_CADENCE_RETAINED_AND_OFFLINE_OBSERVATIONS_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "baseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
     "publishedFoundation": {
-      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
-      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 478459,
-      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "AD01SourceAndSeparate21Preserved": true,
-      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+      "allOrdinaryGoUnchanged": true
     },
-    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
+    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_STRUCTURAL_INIT_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -3079,7 +3089,7 @@
     "allModesBrowserCases": 432,
     "allModesWorkerClosures": 440,
     "independentOfflineCases": 40,
-    "currentSourcePinTreeSHA256": "43bcba28cd1f7453c8920aafd112380d0e8f6110976aafda30da6ec441819033",
+    "currentSourcePinTreeSHA256": "5986a15cd972885f278b09bff9cbe089313d366310c9eafdb10cc91d9bf4a1c4",
     "currentGoContentTreeSHA256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
     "newTypecheckPassed": false
   },
@@ -3343,28 +3353,27 @@
     "nonmetadataProducerSourceChanged": false,
     "runtimeExecuted": false
   },
-  "sourceInputScope": "Exact actualf4 seven-path successor: export helper test1 + nativeGOWORK runner/models/workflow3 + passiveFirefoxspec1 + docs/input2. All productionGo/other1286Go exact; expectedfullGo1287/6432777/b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997 enforces the unselected test. Selected207 paths/cap unchanged:205fullrows raw-exact+docs/spec SHA-size rebound2. Producer/harness, old600 names/skips and strictAD0121 unchanged. Native38 controls exact including37fixtures+contract;3controlpostimages independently reviewed. Root30process-mockedmodelsPASS only. No other source execution.25rawancestry+actualf4once26; wholeSource provenance only. No framework/native/browserfix or maturity claim; cachesHELD/preview3011protected/AWSNO/79and11OPEN.",
+  "sourceInputScope": "Exact pushed8b8 eight-existing-path successor:cadence runner/models/workflow3 + accepted retainedspec/docs2 + offline explicit-disable observation1 + docsPARITY/input. All1287ordinaryGo/6432777/b446, producer/harness,600baseline+AD0121/207paths/256caps/native37fixtures+contract remainexact.208oldtopvalues rawexact;203selectedrows exact+4SHA/size rebounds preservingorigins.26rawancestry+8b8once27. Root35mockedmodelsPASS only, Go124600+21+8 evidence8b8only; no newcompiler/native/browserfix or metadata/runtimepromotion. cachealiasesHELD/preview3011protected/AWSNO. ExistingFourScalarPolicyError/outerfixtureobserver byteexact; newinnerDOMfinally adds postfailurelatency, no nativeprobes/cause/fix.",
   "finalSourceReadinessReview": {
-    "status": "SOURCE_ONLY_COHERENT_EXPORT_FIXTURE_GOWORK_GUARD_PASSIVE_POLICY_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
-    "baseCommit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-    "baseTree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+    "status": "SOURCE_ONLY_CADENCE_RETAINED_AND_OFFLINE_OBSERVATIONS_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "baseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
     "publishedFoundation": {
-      "kind": "immutable-local-ad01-f4-foundation-for-coherent-fixture-guard-observation-successor",
-      "commit": "f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1",
-      "tree": "c4e288af32ae47508bc0ed59339f6924ac6a6d48",
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
       "inputPath": "tests/retained-routes-ci-inputs.json",
-      "inputBytes": 478459,
-      "inputSHA256": "b94a9bf084682a2a4edb69b79e668a7d3c715621d5f1fc16147c004d1c97cd24",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
       "historicalOnly": true,
       "runtimeQualificationInherited": false,
-      "AD01SourceAndSeparate21Preserved": true,
-      "parentPublicationStatus": "Root-owned separate batch push; no remote publication performed by this composition"
+      "allOrdinaryGoUnchanged": true
     },
-    "currentQualification": "fixtureEnvironmentAndPolicyObservationQualification",
+    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
-    "readyMeaning": "PRESERVED_EXISTING_HOSTED_INIT_STRUCTURAL_BINDING_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_STRUCTURAL_INIT_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
     "sourceReady": false,
     "profileReady": false,
     "runtimeExecuted": false,
@@ -3375,33 +3384,45 @@
     "publisherExecutionAdmitted": false,
     "publicationPerformed": false,
     "wholeCompositionPeerRequired": true,
-    "threeIndependentComponentPeers": [
-      {
-        "path": ".nextgo-test-results/recovery/native43-export-static-purpose-helper-source-review-peer-v1/SOURCE_REVIEW.json",
-        "bytes": 7521,
-        "sha256": "7452090e9a269da859d2ddc69df5924994a2afbae6bc7e0f300140cab8b88995"
-      },
-      {
-        "path": ".nextgo-test-results/recovery/offline-gatea-gowork-report-2a34-peer-v1/SOURCE_REVIEW.json",
-        "bytes": 8058,
-        "sha256": "1122d9f688e22cf415ef97991891833e63910c0793904b794783a48624bc91f2"
-      },
-      {
-        "path": ".nextgo-test-results/recovery/offline-http-policy-error-observation-2a34-independent-peer-v3/SOURCE_REVIEW.json",
-        "bytes": 7766,
-        "sha256": "d289d85b1c59c8d61d5c05c6819f43c3e4c8677b2e54705b072348415eebd6a7"
-      }
-    ],
-    "actual30ProtocolModelsOnly": {
-      "path": ".nextgo-test-results/recovery/offline-gatea-gowork-protocol-root-execution-v1/root-execution.json",
-      "bytes": 1127,
-      "sha256": "8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65"
+    "cadenceSourcePeer": {
+      "path": ".nextgo-test-results/recovery/offline-gatea-cadence-8b8-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 9348,
+      "sha256": "5f830aa2c00ab0ef38b09f6d34a282e33eabcd686545f82762319f978c316638"
     },
-    "newGoTestsExecuted": false,
-    "newBrowserTestsExecuted": false,
-    "newTypecheckPassed": false,
+    "retainedExecutablePeer": {
+      "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 9481,
+      "sha256": "f30589444afa79e809471cbe19d5234737217115a0714812870f1502370264b3"
+    },
+    "retainedProvisionalMetadataPeer": {
+      "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-composition-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 7647,
+      "sha256": "0fc1327aae74f811c16fd94d45dd63b3d265849dfcbdaa17948323a901d1fa68"
+    },
+    "actual35ControlPlaneModelsOnly": {
+      "path": ".nextgo-test-results/recovery/offline-gatea-cadence-root-execution-v1/root-execution.json",
+      "bytes": 1218,
+      "sha256": "5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c"
+    },
+    "Go124ActualRequiredTestSetsOn8b8Only": {
+      "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/source-one-checkpoint-v1/AUDIT.json",
+      "bytes": 9353,
+      "sha256": "99c85908ad404d4f2ab694c9470ff18d3376f647c77854e15da608407b0ae2a5"
+    },
+    "newBrowserSourceExecuted": false,
+    "newNativeCompilerQualified": false,
     "rootOwnFullReadPublicationAndExecutionRequired": true,
-    "all79Capabilities11GatesRemainOpen": true
+    "all79Capabilities11GatesRemainOpen": true,
+    "sevenPathWholeFoundationPeer": {
+      "path": ".nextgo-test-results/recovery/8b8-cadence-retained-composition-review-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 18986,
+      "sha256": "04eff66403fac6fc5c3f4b50619415f28325de11002e33bd89e7109c29490594"
+    },
+    "offlineDisableSourcePeer": {
+      "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-peer-v1/SOURCE_REVIEW.json",
+      "bytes": 7020,
+      "sha256": "bcf991c4f3e282de7a7f2bb512e9e875cdad742b803bf89de4b248b4ef273a36"
+    }
   },
   "devRefreshFixtureIsolationCorrection": {
     "status": "SOURCE_ONLY_FORMAT_PARSED_RUNTIME_UNQUALIFIED",
@@ -9340,5 +9361,455 @@
     },
     "noNewGoBrowserOrCompilerEvidence": true,
     "all79Capabilities11GatesRemainOpen": true
+  },
+  "nativeCadenceAndRetainedAftermathQualification": {
+    "status": "SOURCE_ONLY_CADENCE_RETAINED_AND_OFFLINE_OBSERVATIONS_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "baseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
+    "publishedFoundation": {
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "allOrdinaryGoUnchanged": true
+    },
+    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_STRUCTURAL_INIT_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "changedPaths": [
+      ".github/workflows/offline-first-compile.yml",
+      "docs/PARITY.md",
+      "docs/RETAINED_ROUTES.md",
+      "tests/offline-first-compile.py",
+      "tests/offline.spec.mjs",
+      "tests/retained-routes-ci-inputs.json",
+      "tests/retained-routes.spec.mjs",
+      "tests/test_offline_first_compile.py"
+    ],
+    "componentProvenance": {
+      "cadenceManifest": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-cadence-8b8-v1/MANIFEST.json",
+        "bytes": 2171,
+        "sha256": "4805d7562d80def2bb337c990a0abf85a6f15c76bb398dea5c544471a74d526a"
+      },
+      "cadenceSourcePeer": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-cadence-8b8-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 9348,
+        "sha256": "5f830aa2c00ab0ef38b09f6d34a282e33eabcd686545f82762319f978c316638"
+      },
+      "cadence35RootReceipt": {
+        "path": ".nextgo-test-results/recovery/offline-gatea-cadence-root-execution-v1/root-execution.json",
+        "bytes": 1218,
+        "sha256": "5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c"
+      },
+      "cadence35OutputAudit": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/native-gatea-cadence-root-model-audit-v1/AUDIT.json",
+        "bytes": 4830,
+        "sha256": "7001596529a3301b8db735177d975668f44036ddaaaa8e9d59e90edc2169784b"
+      },
+      "cadenceActualRefusalAudit": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/actual-command-refusal-audit.json",
+        "bytes": 1774,
+        "sha256": "440c210fa3b854ee74a176a4b2d520416de4f7068cd31db1fc4095556135622f"
+      },
+      "retainedNormativeCorrectedManifest": {
+        "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-composition-v2/MANIFEST.corrected.json",
+        "bytes": 3485,
+        "sha256": "57a62a015b0bba28322d324aba79ab6271d10cda5b98923bbc81c5905f6e2a17"
+      },
+      "retainedExecutableSourcePeer": {
+        "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 9481,
+        "sha256": "f30589444afa79e809471cbe19d5234737217115a0714812870f1502370264b3"
+      },
+      "retainedProvisionalCompositionPeer": {
+        "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-composition-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 7647,
+        "sha256": "0fc1327aae74f811c16fd94d45dd63b3d265849dfcbdaa17948323a901d1fa68"
+      },
+      "retainedHistoricalDataAudit": {
+        "path": ".nextgo-test-results/recovery/retained-2a34-browser-data-audit-v1/DATA_AUDIT.json",
+        "bytes": 9739,
+        "sha256": "68e4b050018348b6ee68e115de3db7dee54f630791a32b07951f4a2948372c6e"
+      },
+      "Go124Actual600Plus21Plus8": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/source-one-checkpoint-v1/AUDIT.json",
+        "bytes": 9353,
+        "sha256": "99c85908ad404d4f2ab694c9470ff18d3376f647c77854e15da608407b0ae2a5"
+      },
+      "Go127DetailedUnavailable": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/source-go127-checkpoint-v1/AUDIT.json",
+        "bytes": 2223,
+        "sha256": "04ad1a24b3f9c769d9578f79c7cb8e5281c81c3e25ef0c8e350a51dd29f9da2f"
+      },
+      "sevenPathReviewedFoundation": {
+        "path": ".nextgo-test-results/recovery/8b8-cadence-retained-composition-v1/MANIFEST.json",
+        "bytes": 12166,
+        "sha256": "2c6b5d05bf3b542aa17abaf14c2feb915ead075d304c656e29668e85373dace9"
+      },
+      "sevenPathWholePeer": {
+        "path": ".nextgo-test-results/recovery/8b8-cadence-retained-composition-review-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 18986,
+        "sha256": "04eff66403fac6fc5c3f4b50619415f28325de11002e33bd89e7109c29490594"
+      },
+      "offlineDisableNormativeManifest": {
+        "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-v1/MANIFEST.final.json",
+        "bytes": 2409,
+        "sha256": "753f0a1821cc1098325a49bf974de8fbf1e551d40cb03e87e43399287bb7c8e5"
+      },
+      "offlineDisableSourcePeer": {
+        "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-peer-v1/SOURCE_REVIEW.json",
+        "bytes": 7020,
+        "sha256": "bcf991c4f3e282de7a7f2bb512e9e875cdad742b803bf89de4b248b4ef273a36"
+      },
+      "offlineDisableFinalProvenance": {
+        "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-v1/SOURCE_PROVENANCE.final.json",
+        "bytes": 2803,
+        "sha256": "0a63e21b19b6af8cd8c8a4ec9d4d07e75c1cc483cc28fb5bb64b801e6ad40363"
+      },
+      "offline8b8ActualAudit": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/offline-one-checkpoint-v1/AUDIT.json",
+        "bytes": 9107,
+        "sha256": "27dfcd64a994e42ec65ba518233b3e762d3fefceaec0996443a497075971c8f0"
+      },
+      "offline8b8SourceAnalysis": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/offline-one-checkpoint-v1/SOURCE_ANALYSIS.json",
+        "bytes": 7454,
+        "sha256": "5a99591b7d2f08c47a76de7f6e4a3b6fb54ca2653040a09c0ceb8b2cc962ea46"
+      }
+    },
+    "GoSource": {
+      "files": 1287,
+      "bytes": 6432777,
+      "sha256": "b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "all1287GoByteExactParent": true,
+      "allGoTestsByteExact": true,
+      "modifiedGoPaths": [],
+      "producerExpectedFullGoGuardEnforced": true,
+      "guardExecutedForThisNewSource": false
+    },
+    "selectedSource": {
+      "files": 207,
+      "bytes": 2311190,
+      "sha256": "5986a15cd972885f278b09bff9cbe089313d366310c9eafdb10cc91d9bf4a1c4",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "oldRows": 207,
+      "oldRowsRawExact": 203,
+      "reboundPaths": [
+        "docs/PARITY.md",
+        "docs/RETAINED_ROUTES.md",
+        "tests/offline.spec.mjs",
+        "tests/retained-routes.spec.mjs"
+      ],
+      "onlySHAAndSizeChanged": true,
+      "allOriginStringsLiteralHistoricalLineage": true,
+      "newOrDroppedPaths": []
+    },
+    "wholeSourceContractExcludingInputSelf": {
+      "files": 1783,
+      "bytes": 11230947,
+      "sha256": "4d35b86e2e3b66558fcd9401bfe196c464f4243e1e7fe921eada6496cf590554",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "expectedWholeSourceGuardEnforced": false
+    },
+    "wholeTrackedPathsIncludingInputSelf": 1784,
+    "requiredCounts": {
+      "native": 89,
+      "core": 202,
+      "devcore": 169,
+      "portable": 13,
+      "ui": 12,
+      "module": 44,
+      "devmodule": 46
+    },
+    "mandatoryBaselineOccurrences": 600,
+    "additionalAD01MandatoryOccurrences": 21,
+    "standaloneAD01RequirementsLiteralPreserved": true,
+    "exportHelperEightRootAuditContractUnchanged": true,
+    "browserCases": 432,
+    "browserClosures": 440,
+    "offlineCases": 40,
+    "producerAndHarnessByteExactParent": true,
+    "sourceScopes": {
+      "cadence": {
+        "sourceManifest": {
+          "path": ".nextgo-test-results/recovery/offline-gatea-cadence-8b8-v1/MANIFEST.json",
+          "bytes": 2171,
+          "sha256": "4805d7562d80def2bb337c990a0abf85a6f15c76bb398dea5c544471a74d526a"
+        },
+        "sourcePeer": {
+          "path": ".nextgo-test-results/recovery/offline-gatea-cadence-8b8-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 9348,
+          "sha256": "5f830aa2c00ab0ef38b09f6d34a282e33eabcd686545f82762319f978c316638"
+        },
+        "currentControlPostimages": [
+          {
+            "path": ".github/workflows/offline-first-compile.yml",
+            "baseBytes": 40717,
+            "baseSHA256": "5a889bbee9074d9ae7618f8f04fd23d99048c005cee2654f2bce8ab17bb21c3d",
+            "bytes": 40717,
+            "sha256": "cc63d652886893752bcb2dc171d30e67fbf21f4bf676cab8917882bdd129ff1f"
+          },
+          {
+            "path": "tests/offline-first-compile.py",
+            "baseBytes": 44878,
+            "baseSHA256": "ff1a0fd232595bbff93a77795dcfbbc2942d05bc58ee093745f71d2010b525df",
+            "bytes": 45214,
+            "sha256": "5dae862c1efed4dc687422fa67cf9b0f382989fa72aea0bee849b3475ef631ff"
+          },
+          {
+            "path": "tests/test_offline_first_compile.py",
+            "baseBytes": 42121,
+            "baseSHA256": "265d8df22f5eea96b13f449b88406653549e38b55f1722d1fa837ec0376dac5e",
+            "bytes": 49484,
+            "sha256": "51e89d1e4def391983f90bba1a515de67fbf2ce7d20e22a12bfa048cbe77e7c1"
+          }
+        ],
+        "superviseSelectorOnly": true,
+        "unchanged250msStartAndInventoryRefusals": true,
+        "selectorWaitMaximumSeconds": 0.05,
+        "samplingTargetSeconds": 0.1,
+        "clampOverdueWaitToZero": true,
+        "underlying259msWalkWaitLoopSchedulerSplit": "UNKNOWN",
+        "209Plus50ConstructedHazardNotIncidentDecomposition": true,
+        "actual35Models": {
+          "rootReceipt": {
+            "path": ".nextgo-test-results/recovery/offline-gatea-cadence-root-execution-v1/root-execution.json",
+            "bytes": 1218,
+            "sha256": "5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c"
+          },
+          "independentDataAudit": {
+            "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/native-gatea-cadence-root-model-audit-v1/AUDIT.json",
+            "bytes": 4830,
+            "sha256": "7001596529a3301b8db735177d975668f44036ddaaaa8e9d59e90edc2169784b"
+          },
+          "roots": 35,
+          "pass": 35,
+          "fail": 0,
+          "unittestSeconds": 2.617,
+          "outerSeconds": 2.7904722499952186,
+          "joinedExitCode": 0,
+          "stdoutEmpty": true,
+          "ownedStagingFinallyRemoved": true,
+          "GoNodeSDKBrowserNetworkExecutions": 0,
+          "scope": "Real supervise under fake clock/process/selectors/IO; control-plane only, not compiler/native/browser qualification."
+        }
+      },
+      "retainedAftermath": {
+        "normativeCorrectedManifest": {
+          "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-composition-v2/MANIFEST.corrected.json",
+          "bytes": 3485,
+          "sha256": "57a62a015b0bba28322d324aba79ab6271d10cda5b98923bbc81c5905f6e2a17"
+        },
+        "executableSourcePeer": {
+          "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 9481,
+          "sha256": "f30589444afa79e809471cbe19d5234737217115a0714812870f1502370264b3"
+        },
+        "provisionalDocInputPeer": {
+          "path": ".nextgo-test-results/recovery/retained-8b8-owner-passive-aftermath-composition-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 7647,
+          "sha256": "0fc1327aae74f811c16fd94d45dd63b3d265849dfcbdaa17948323a901d1fa68"
+        },
+        "specSHA256": "86e6350ca922300cbbb3d903754b14a3be19f65e94bd687df4705b8deaa68545",
+        "docsSHA256": "d38cdd03d3b2ad5001583d7af2f2bf94c31430aae94328157a6edf2c507d7a51",
+        "partialCandidateInputNotAdopted": true,
+        "finalCombinedWholeInventoryRebindPerformed": true,
+        "oldSelectedOriginsPreservedInsteadOfProvisionalRewrite": true,
+        "invocation": "Only finally after original immediate finite owner-scroll mismatch; passing cases unchanged",
+        "diagnosticRAFs": 2,
+        "timers": 1,
+        "requestedTimerDelayMS": 250,
+        "visibilityListeners": 1,
+        "fixedSamples": 3,
+        "attachmentBytes": 8192,
+        "requestedDelayNotHardWallBound": true,
+        "externalDeadlineOrPageCloseMayTruncate": true,
+        "cleanupAttemptAndFailureFlagsNotSuccessGuarantee": true,
+        "observerEffectsAndMissingPhasesExplicit": true,
+        "runtimeSettlementFrameIdentityNotObserved": true,
+        "originalAssertionsTitlesDeadlinesRetriesPreserved": true,
+        "noProductionHooksFocusScrollWritesWrappers": true,
+        "laterMatchCannotChangeImmediateFailureOrProveCause": true,
+        "diagnosticSourceExecuted": false
+      },
+      "offlineDisableObservation": {
+        "normativeManifest": {
+          "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-v1/MANIFEST.final.json",
+          "bytes": 2409,
+          "sha256": "753f0a1821cc1098325a49bf974de8fbf1e551d40cb03e87e43399287bb7c8e5"
+        },
+        "sourcePeer": {
+          "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-peer-v1/SOURCE_REVIEW.json",
+          "bytes": 7020,
+          "sha256": "bcf991c4f3e282de7a7f2bb512e9e875cdad742b803bf89de4b248b4ef273a36"
+        },
+        "finalProvenance": {
+          "path": ".nextgo-test-results/recovery/offline-8b8-disable-conflict-diagnostic-v1/SOURCE_PROVENANCE.final.json",
+          "bytes": 2803,
+          "sha256": "0a63e21b19b6af8cd8c8a4ec9d4d07e75c1cc483cc28fb5bb64b801e6ad40363"
+        },
+        "sourcePath": "tests/offline.spec.mjs",
+        "sourceBytes": 61815,
+        "sourceSHA256": "6a570dd438e7330220711ec9d3c41d0bd64e9f09abb11d9ba3d653f34d5d7214",
+        "actual8b8Audit": {
+          "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/offline-one-checkpoint-v1/AUDIT.json",
+          "bytes": 9107,
+          "sha256": "27dfcd64a994e42ec65ba518233b3e762d3fefceaec0996443a497075971c8f0"
+        },
+        "actualMatrix": "17PASS/1FirefoxExplicitDisableFAIL/22UNRUN",
+        "failedOrdinal": 18,
+        "expectedEnabled": false,
+        "observedEnabled": true,
+        "publicOperationError": "conflict",
+        "conflictReason": "UNKNOWN_TRUNCATED_CONSOLE_ATTRIBUTE",
+        "nativeCause": "UNKNOWN",
+        "FirefoxPolicyCase20": "UNREACHED_NO_NEW_FOUR_SCALAR_ERROR",
+        "invocation": "Inner finally only after original failed/incomplete body and first disable attempt with existing page; passing cases add no evaluation",
+        "newPageEvaluationsMaximum": 1,
+        "newControlsQueriesMaximum": 1,
+        "newAttributeReadsMaximum": 8,
+        "newAttachmentsMaximum": 1,
+        "attachmentByteAcceptanceCap": 2048,
+        "capIsPostConstructionNotRSSBound": true,
+        "fixedRecognizedReasons": 21,
+        "missingOrUnrecognizedValuesRemainNull": true,
+        "completedOperationsIsUIRevisionNotNativeWorkerRetryJoinCount": true,
+        "rawErrorTextReturned": false,
+        "newWorkerRegistryStorageNetworkProbesTimersFramesListenersWritesRetries": 0,
+        "originalAssertionsTitlesDeadlinesRetriesAndExistingFourScalarPolicyErrorExact": true,
+        "newErrorsCaughtExternalDeadlineOrPageCloseMayTruncate": true,
+        "existingOuterFixtureObserverByteExact": true,
+        "newInnerObservationPrecedesExistingOuterObserverAndAddsPostFailureTaskLatency": true,
+        "existingOuterGatedAttachmentMayAlreadyDiscriminateButPayloadGateMatchAndSuccessUnread": true,
+        "current44MBArtifactNotAdmittedOrDownloaded": true,
+        "diagnosticSourceExecuted": false,
+        "runtimeOrCauseOrFixQualified": false
+      }
+    },
+    "nativeControlsModified": [
+      ".github/workflows/offline-first-compile.yml",
+      "tests/offline-first-compile.py",
+      "tests/test_offline_first_compile.py"
+    ],
+    "nativeControlsUnchanged": 38,
+    "all37FixtureImagesAndCompileContractByteExact": true,
+    "fixedIsolated3dToBa24SourceNotRebased": true,
+    "sourceEvidence8b8Only": {
+      "Go124Audit": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/source-one-checkpoint-v1/AUDIT.json",
+        "bytes": 9353,
+        "sha256": "99c85908ad404d4f2ab694c9470ff18d3376f647c77854e15da608407b0ae2a5"
+      },
+      "actualRequiredSetsSeparate": {
+        "baseline": 600,
+        "AD01": 21,
+        "exportHelper": 8
+      },
+      "actualGoVersion": "go1.24.13 linux/amd64",
+      "actualNode": "v22.23.3",
+      "JSONEvents": 30086,
+      "testRows": 7234,
+      "packageCompletions": 306,
+      "nonmandatoryTestSkips": 2,
+      "ordinaryGoIdentityExactThisSource": true,
+      "newControlOrBrowserSourceNotQualifiedByTheseResults": true,
+      "Go127Audit": {
+        "path": ".nextgo-test-results/qualification/ci-8b8a2626-pr8/source-go127-checkpoint-v1/AUDIT.json",
+        "bytes": 2223,
+        "sha256": "04ad1a24b3f9c769d9578f79c7cb8e5281c81c3e25ef0c8e350a51dd29f9da2f"
+      },
+      "Go127": "API_SUCCESS_ONLY_DETAILED_TRANSPORT_CLOSED_NO_PAYLOAD_NO_RETRY",
+      "native37CompilerAndRetainedBrowserQualified": false
+    },
+    "retainedHistoricalEvidence": {
+      "audit": {
+        "path": ".nextgo-test-results/recovery/retained-2a34-browser-data-audit-v1/DATA_AUDIT.json",
+        "bytes": 9739,
+        "sha256": "68e4b050018348b6ee68e115de3db7dee54f630791a32b07951f4a2948372c6e"
+      },
+      "sourceCommit": "2a34c8ac11b753d75877faf9e0065afb62cb436f",
+      "matrix": "48PASS/1desktopWebKitFAIL/23UNRUN",
+      "expectedOwnerScroll": 200,
+      "observedOwnerScrollAfterBack": 1283,
+      "clickTaskSamplesDoNotProveCommitTimeCapture": true,
+      "underlyingCauseAndRuntimeFrameChronology": "UNKNOWN",
+      "noSiblingFailureCauseInherited": true
+    },
+    "historyPolicy": {
+      "allUntouchedOldTopLevelValuesRawExact": true,
+      "allOldQualificationObjectsRawExact": true,
+      "old26AncestryElementsRawExact": true,
+      "oneActual8b8FoundationAppended": true,
+      "ancestryEntries": 27,
+      "laterPublisherMustNotAppendAgain": true
+    },
+    "originInterpretation": "Preserved selected origin strings and historical qualification objects are lineage only. Current digests plus the three separately reviewed source scopes govern current bytes. Provisional retained input was not adopted; this composition independently rebinds all current identities.",
+    "all79Capabilities11GatesRemainOpen": true
+  },
+  "nativeCadenceAndRetainedAftermathCIWireTransition": {
+    "status": "SOURCE_ONLY_CADENCE_RETAINED_AND_OFFLINE_OBSERVATIONS_PENDING_WHOLE_PEER_ROOT_PUBLISHER_AND_PUBLICATION",
+    "baseCommit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+    "baseTree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
+    "publishedFoundation": {
+      "kind": "published-8b8-foundation-for-cadence-and-retained-post-failure-observations",
+      "commit": "8b8a2626417e9a00aa007759fb39217e7e2499a2",
+      "tree": "10dcde70cd6756085f605e6a35cd9da8c9db68fc",
+      "inputPath": "tests/retained-routes-ci-inputs.json",
+      "inputBytes": 497500,
+      "inputSHA256": "ced67dc3770d2e07efd590e8cbdafb58a7c754529d4e4b09c59d74b46c54e6cc",
+      "historicalOnly": true,
+      "runtimeQualificationInherited": false,
+      "allOrdinaryGoUnchanged": true
+    },
+    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
+    "sourcePins": 207,
+    "sourcePinCap": 207,
+    "ready": true,
+    "readyMeaning": "PRESERVED_EXISTING_HOSTED_STRUCTURAL_INIT_ONLY_AFTER_SEPARATE_REVIEW_AND_PUBLICATION",
+    "sourceReady": false,
+    "profileReady": false,
+    "runtimeExecuted": false,
+    "runtimeQualified": false,
+    "nativeCauseIdentified": false,
+    "browserFixQualified": false,
+    "measurementAdmitted": false,
+    "publisherExecutionAdmitted": false,
+    "publicationPerformed": false,
+    "allOrdinaryGoByteExact": true,
+    "baseline600AndAD0121RawExact": true,
+    "all26AncestryRawExact": true,
+    "oneActual8b8FoundationAlreadyAppended": true,
+    "ancestryEntries": 27,
+    "laterPublisherMustNotAppendAgain": true,
+    "native38ControlsAnd37FixtureContractUnmodified": true,
+    "threeControlPostimagesExplicit": true,
+    "Root35ModelsPassOnly": {
+      "path": ".nextgo-test-results/recovery/offline-gatea-cadence-root-execution-v1/root-execution.json",
+      "bytes": 1218,
+      "sha256": "5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c"
+    },
+    "newRetainedSpecUnexecuted": true,
+    "noNewCompilerOrBrowserQualification": true,
+    "all79Capabilities11GatesRemainOpen": true,
+    "sourcePostimagesExactToThreeReviewedComponents": true,
+    "newOfflineDisableObservationSourceUnexecuted": true,
+    "existingFourScalarPolicyErrorAndOuterNativeObserverByteExact": true
   }
 }

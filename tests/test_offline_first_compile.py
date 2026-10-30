@@ -33,6 +33,11 @@ ACTUAL_ENVIRONMENT_STDOUT = b'{\n\t"CC": "gcc",\n\t"CGO_ENABLED": "0",\n\t"GOARC
 ACTUAL_ENVIRONMENT_STDOUT_SHA256 = "348fc32dfffdfd14459ab33f7f86281c037f74153ee0aad0ccb137c597cc6d99"
 
 
+# Saved scalar projection only. The actual walk-versus-scheduler cause split is UNKNOWN.
+# The separate209ms+50ms virtual scenario below is a regression construction, not an incident diagnosis.
+ACTUAL_DISK_CADENCE_WITNESS = {'id': 'graph-native', 'ordinal': 3, 'joined': True, 'exitCode': -15, 'error': 'disk sampling interval exceeded', 'diskMaximumObservedSampleIntervalMS': 259, 'diskObservedPeakBytes': 11932091, 'durationMS': 6901, 'stdoutBytes': 0, 'stderrBytes': 0, 'run': 40985777074, 'job': 123836329595, 'sourceProofsSHA256': '6aadda8d8fd5be8eca3c4f55b06bc1147cf516b22c7023e670d0b23e7b494b8e', 'actualCauseSplit': 'UNKNOWN'}
+
+
 def load_runner():
     spec = importlib.util.spec_from_file_location("private_gatea_runner_under_test", RUNNER)
     module = importlib.util.module_from_spec(spec)
@@ -97,6 +102,35 @@ class FakeSelector:
         return [(value, 1) for value in list(self.keys.values())]
     def close(self):
         self.closed = True
+
+
+class CadenceClock:
+    """Virtual seconds; reads never advance time, waits/walk fixtures do."""
+    def __init__(self):
+        self.now = 0.0
+    def monotonic(self):
+        return self.now
+    def wall(self):
+        return 1000.0 + self.now
+    def advance(self, seconds):
+        self.now += seconds
+
+
+class CadenceSelector(FakeSelector):
+    def __init__(self, clock, scans, delayed_first_wait=0.0):
+        super().__init__()
+        self.clock, self.scans = clock, scans
+        self.delayed_first_wait = delayed_first_wait
+        self.waits = []
+    def select(self, timeout):
+        # A hard fixture bound prevents a broken supervisor from spinning forever.
+        if len(self.waits) >= 16:
+            raise AssertionError("virtual selector iteration bound")
+        before = self.clock.now
+        self.waits.append({"at": before, "timeout": timeout, "scans": len(self.scans)})
+        self.clock.advance(timeout + (self.delayed_first_wait if len(self.waits) == 1 else 0.0))
+        # Keep both synthetic pipes open until two monitored scans have been observed.
+        return [(value, 1) for value in list(self.keys.values())] if len(self.scans) >= 2 else []
 
 
 class GateARunnerTests(unittest.TestCase):
@@ -336,6 +370,40 @@ class GateARunnerTests(unittest.TestCase):
         if proof.get("error") is not None:
             failure = self.r.Refusal(proof["error"])
         return child, launch, killpg, failure, proof
+
+    def cadence_supervisor(self, walk_seconds, delayed_first_wait=0.0,
+                           command_timeout_ms=10000, whole_timeout_ms=10000):
+        clock = CadenceClock()
+        scans = []
+        selector = CadenceSelector(clock, scans, delayed_first_wait)
+        child = FakeChild(code=0)
+        def inventory(owned_root):
+            self.assertEqual(owned_root, self.root)
+            scans.append(clock.now)
+            self.assertLessEqual(len(scans), 8)
+            clock.advance(walk_seconds[len(scans)-1] if len(scans) <= len(walk_seconds) else 0.0)
+            return 11932091  # Synthetic returned byte counter; no filesystem walk.
+        limits = {"timeoutMS": command_timeout_ms, "stdoutLimitBytes": 1024, "stderrLimitBytes": 1024}
+        with mock.patch.object(self.r.subprocess, "Popen", return_value=child) as launch, \
+             mock.patch.object(self.r.selectors, "DefaultSelector", return_value=selector), \
+             mock.patch.object(self.r.os, "set_blocking"), \
+             mock.patch.object(self.r.os, "read", return_value=b"") as read_pipe, \
+             mock.patch.object(self.r, "process_group_absent", return_value=True), \
+             mock.patch.object(self.r, "disk_usage", side_effect=inventory), \
+             mock.patch.object(self.r.time, "monotonic", side_effect=clock.monotonic), \
+             mock.patch.object(self.r.time, "time", side_effect=clock.wall):
+            returned, stdout, stderr = self.r.supervise(["synthetic-cadence-child"], self.root, {},
+                self.root, limits, clock.wall() + whole_timeout_ms / 1000.0)
+        self.assertEqual(launch.call_count, 1)
+        self.assertEqual(launch.call_args.args[0], ["synthetic-cadence-child"])
+        self.assertTrue(returned["joined"])
+        self.assertFalse((self.root / "active.json").exists())
+        self.assertEqual((stdout, stderr), (b"", b""))
+        self.assertTrue(selector.closed and child.stdout.closed and child.stderr.closed)
+        self.assertLessEqual(len(selector.waits), 16)
+        self.assertTrue(all(0.0 <= row["timeout"] <= 0.05 for row in selector.waits))
+        self.assertEqual(returned, self.r.read_json(self.root / "last-command.json"))
+        return returned, scans, selector.waits, read_pipe.call_count
 
     def collector_fixture(self):
         self.state(self.r.COMPILE_IDS)
@@ -736,6 +804,58 @@ class GateARunnerTests(unittest.TestCase):
                 self.assertEqual(report["error"], "actual Go environment")
                 self.assertFalse((root / "meta/environment.json").exists())
                 self.assertEqual(json.loads(submitted)[key], value)
+
+    def test_cadence_209ms_scan_avoids_extra_idle_wait(self):
+        # Saved259ms is a reported scalar only; the actual cause split stays UNKNOWN.
+        self.assertEqual(ACTUAL_DISK_CADENCE_WITNESS["diskMaximumObservedSampleIntervalMS"], 259)
+        self.assertEqual(ACTUAL_DISK_CADENCE_WITNESS["actualCauseSplit"], "UNKNOWN")
+        self.assertAlmostEqual(1000 * (0.209 + 0.050), 259)
+        proof, scans, waits, pipe_reads = self.cadence_supervisor((0.209, 0.0))
+        self.assertIsNone(proof["error"])
+        self.assertEqual((proof["exitCode"], proof["diskObservedPeakBytes"], pipe_reads), (0, 11932091, 2))
+        after_first_scan = [row for row in waits if row["scans"] == 1]
+        self.assertEqual(len(after_first_scan), 1)
+        self.assertEqual(after_first_scan[0]["timeout"], 0.0)
+        self.assertEqual(len(scans), 2)
+        self.assertAlmostEqual(scans[1] - scans[0], 0.209)
+        self.assertLessEqual(proof["diskMaximumObservedSampleIntervalMS"], 209)
+        self.assertFalse(proof["diskHardQuota"])
+
+    def test_cadence_fast_scan_waits_use_remaining_target_and_50ms_cap(self):
+        for scan_seconds, expected_wait in ((0.010, 0.050), (0.070, 0.030)):
+            with self.subTest(scan_seconds=scan_seconds):
+                proof, scans, waits, pipe_reads = self.cadence_supervisor((scan_seconds, 0.0))
+                self.assertIsNone(proof["error"])
+                self.assertEqual(pipe_reads, 2)
+                after_first_scan = [row for row in waits if row["scans"] == 1]
+                self.assertGreaterEqual(len(after_first_scan), 1)
+                self.assertAlmostEqual(after_first_scan[0]["timeout"], expected_wait)
+                self.assertAlmostEqual(scans[1] - scans[0], 0.100)
+                self.assertLessEqual(proof["diskMaximumObservedSampleIntervalMS"], 100)
+
+    def test_cadence_walk_over_250ms_still_refuses(self):
+        proof, scans, waits, pipe_reads = self.cadence_supervisor((0.251,))
+        self.assertEqual(proof["error"], "disk inventory exceeded sample interval")
+        self.assertEqual((len(scans), pipe_reads), (1, 0))
+        self.assertFalse(any(row["scans"] >= 1 for row in waits))
+
+    def test_cadence_scheduling_delay_over_250ms_still_refuses(self):
+        proof, scans, waits, pipe_reads = self.cadence_supervisor((), delayed_first_wait=0.201)
+        # Requested50ms plus synthetic201ms scheduler delay is251ms; no walk occurs.
+        self.assertEqual(proof["error"], "disk sampling interval exceeded")
+        self.assertEqual((len(scans), len(waits), pipe_reads), (0, 1, 0))
+        self.assertAlmostEqual(waits[0]["timeout"], 0.050)
+        self.assertGreaterEqual(proof["diskMaximumObservedSampleIntervalMS"], 250)
+
+    def test_cadence_command_and_whole_job_deadlines_remain_active(self):
+        for command_ms, whole_ms in ((80, 10000), (10000, 80)):
+            with self.subTest(command_ms=command_ms, whole_ms=whole_ms):
+                proof, scans, waits, pipe_reads = self.cadence_supervisor((),
+                    command_timeout_ms=command_ms, whole_timeout_ms=whole_ms)
+                self.assertEqual(proof["error"], "command/whole-job deadline")
+                self.assertEqual((len(scans), pipe_reads), (0, 0))
+                self.assertEqual(len(waits), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
