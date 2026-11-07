@@ -145,6 +145,9 @@ type Route struct {
 	StaticParamsLayers []StaticParamsLayer
 }
 type Config struct {
+	// StaticShell explicitly permits publishing one generic public ClientIsland
+	// seed for a bounded static-only subtree. It never rewrites native requests.
+	StaticShell *StaticShell
 	// Offline explicitly opts into a saved-anonymous-public managed bundle.
 	// OfflineBuild is compiler-owned inventory, required with Offline.
 	Offline      *offline.Config
@@ -346,6 +349,10 @@ func NewContext(ctx context.Context, c Config) (*App, error) {
 }
 
 func newApp(c Config) (*App, error) {
+	if c.StaticShell != nil {
+		owned := *c.StaticShell
+		c.StaticShell = &owned
+	}
 	if err := normalizeConfigPhase(&c); err != nil {
 		return nil, err
 	}
@@ -731,6 +738,12 @@ func (a *App) render(c *Context, r Route) (page Page, status int) {
 	}
 	c, r = a.selectPrimary(c, r)
 	page, err := r.Page(c)
+	if err == nil && a.config.Phase == PhaseStaticExport && a.config.StaticShell != nil && r.Pattern == a.config.StaticShell.Pattern && (page.Stream || page.DeferredMetadata != nil || page.deferredPlan != nil || page.partial != nil) {
+		// Refuse before a public snapshot could flatten deferred metadata. A
+		// public-cache context also rejects this staged response mutation.
+		_ = c.SetHeader(RequiresServerHeader, "1")
+		return errorPage(), http.StatusInternalServerError
+	}
 	if err == nil && r.Prerender != nil && r.Prerender.Partial && page.DeferredMetadata != nil {
 		page = errorPage()
 		page.deferredErr = ErrDeferredMetadataPartial
@@ -896,6 +909,13 @@ func (a *App) respond(w http.ResponseWriter, r *http.Request, p Page, status int
 }
 func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status int) {
 	metadataAdmitted := false
+	// Buffered export would otherwise erase these declarations after resolving
+	// their work. Refuse them only for the explicitly reusable export seed.
+	if a.config.Phase == PhaseStaticExport && a.config.StaticShell != nil {
+		if _, owned := routing.Match(a.config.StaticShell.Pattern, paths.Logical(r.URL.EscapedPath())); owned && (p.Stream || p.DeferredMetadata != nil || p.deferredPlan != nil || p.partial != nil) {
+			w.Header().Set(RequiresServerHeader, "1")
+		}
+	}
 	if capture := offlineCaptureFor(r); capture != nil && capture.fallback {
 		respondOfflineFallback(w, capture, status)
 		return

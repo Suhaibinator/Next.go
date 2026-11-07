@@ -33,6 +33,11 @@ var prefetches = map[string]*prefetchRequest{}
 var cacheEpoch uint64
 var routeManifest navigation.Manifest
 
+// Document-only implementations register these hooks from the core target.
+// Lazy components keep the existing location/path snapshot and host API.
+var registeredStaticShellInitializer func() error
+var registeredStaticShellFetch func(context.Context, string) (data envelope, ttl time.Duration, handled, fallback bool, err error)
+
 type prefetchContextKey struct{}
 
 type prefetchRequest struct {
@@ -146,6 +151,13 @@ func Run() {
 	if moduleMode {
 		panic("client.Run cannot own a document from a component module")
 	}
+	hydrateInitial := func() {
+		// Shell documents keep their useful build fallback until descriptor,
+		// manifest and document ownership have all been checked.
+		if doc.Get("body").Call("getAttribute", "data-nextgo-static-shell").IsNull() {
+			hydrate()
+		}
+	}
 	// Islands still hydrate when document validation disables SPA routing. Give
 	// their location subscriptions an initial snapshot without enabling Navigate
 	// (currentURL remains unset until all router validation succeeds).
@@ -174,7 +186,7 @@ func Run() {
 	installActionViewLifecycle()
 	if raw := doc.Get("body").Call("getAttribute", "data-nextgo-navigation"); !raw.IsNull() {
 		if err := json.Unmarshal([]byte(raw.String()), &routeManifest); err != nil {
-			hydrate()
+			hydrateInitial()
 			report("Invalid navigation manifest")
 			return
 		}
@@ -189,14 +201,14 @@ func Run() {
 	routeManifest.Public = public
 
 	if mode := documentDraft(); (routeManifest.Draft && mode != "0" && mode != "1") || (!routeManifest.Draft && mode != "") {
-		hydrate()
+		hydrateInitial()
 		report("Invalid draft session marker; reload the page")
 		return
 	}
 	configuration := doc.Get("body").Call("getAttribute", "data-nextgo-configuration")
 	expected := navigation.ConfigurationID(doc.Get("body").Call("getAttribute", "data-nextgo-build").String(), deployment, routeManifest, doc.Get("body").Call("getAttribute", "data-nextgo-preserve-layouts").String() == "true", doc.Get("body").Call("getAttribute", "data-nextgo-transitions").String() == "true")
 	if configuration.IsNull() || configuration.String() != expected {
-		hydrate()
+		hydrateInitial()
 		report("Incompatible document configuration; reload the page")
 		return
 	}
@@ -207,13 +219,21 @@ func Run() {
 		initialDocument.Viewport = viewport.Call("getAttribute", "content").String()
 	}
 	if err := initialDocument.Validate(); err != nil {
-		hydrate()
+		hydrateInitial()
 		report("Invalid document attributes; reload the page")
 		return
 	}
+	if initialize := registeredStaticShellInitializer; initialize != nil {
+		if err := initialize(); err != nil {
+			// Keep the build-rendered fallback; a malformed descriptor must not
+			// mount a shell at an unvalidated deep URL or trigger a reload loop.
+			report("Invalid static shell document: " + err.Error())
+			return
+		}
+	}
 	savedOffline, offlineErr := initializeOfflineDocument()
 	if offlineErr != nil {
-		hydrate()
+		hydrateInitial()
 		report("Invalid offline document configuration")
 		return
 	}
@@ -906,6 +926,11 @@ func fetchEnvelope(ctx context.Context, target string) (data envelope, ttl time.
 	}()
 	fetchTarget := target
 	if staticExport() {
+		if fetch := registeredStaticShellFetch; fetch != nil {
+			if shell, lifetime, handled, reload, failure := fetch(ctx, target); handled {
+				return shell, lifetime, reload, failure
+			}
+		}
 		u := win.Get("URL").New(target)
 		local, inside := deployment.Strip(u.Get("pathname").String())
 		if !inside {

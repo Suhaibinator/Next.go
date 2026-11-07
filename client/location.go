@@ -1,6 +1,10 @@
 package client
 
-import "net/url"
+import (
+	"net/url"
+
+	"github.com/Suhaibinator/Next.go/internal/navigation"
+)
 
 // Location is a value snapshot of the committed browser URL. Pathname is escaped
 // and includes deployment and locale prefixes. Search and Hash include their
@@ -23,4 +27,13 @@ func (l Location) Query() url.Values {
 	}
 	values, _ := url.ParseQuery(raw)
 	return values
+}
+
+// RouteParams matches this committed escaped pathname against a caller-provided
+// application route pattern. BasePath must be a complete literal deployment
+// prefix. The returned decoded map is independently owned; optional catchalls
+// have an empty value at their zero-tail path. A match does not authorize access
+// or identify the active page. Search and Hash remain available separately.
+func (l Location) RouteParams(pattern, basePath string) (map[string]string, bool) {
+	return navigation.MatchRouteParams(pattern, basePath, l.Pathname)
 }

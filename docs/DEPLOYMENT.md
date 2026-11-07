@@ -411,6 +411,41 @@ host at the static server/CDN; its manifest records ownership but cannot enforce
 Host on its own. Request-time negotiation is rejected before publication. See [locale export/hosting limits](LOCALES.md), including canonical
 paths, per-language data directories and host redirect responsibility.
 
+### Static publication versions and explicit client shells
+
+Ordinary exports continue to publish concrete HTML plus navigation JSON. Native
+`ExportConfig` versions 1/2 keep their existing contracts (including their
+existing parser extension behavior); published `nextgo-static-v1` ordinary and
+`nextgo-static-v2` locale-scope artifacts retain their existing meanings.
+These native DTO versions and published format versions are separate axes.
+
+Experimental `Config.StaticShell` opts one exclusive
+literal-prefix optional catchall into native export configuration 3 and
+`nextgo-static-v3` publication with descriptor 1. No declaration means no version
+3 transition. Older CLIs must reject unsupported version 3; use one fresh paired
+CLI/framework/core/lazy artifact. Descriptor 1 requires the actual 20-lowercase-
+hex CLI build ID; navigation protocol 3 and module ABI 5 remain unchanged.
+
+Only a generic public ClientIsland seed is reusable. The host must reject all
+methods except GET/HEAD before any file/document lookup, serve exact retained
+files/documents first, then apply a validated HTML-Accept fallback
+inside the declared literal subtree, with reserved namespaces and the seven
+virtual-resource suffixes excluded. Unknown outside paths remain errors. A
+client missing-screen still has the generic document's HTTP 200 status. Export
+does not install a provider rule, authenticate users or analyze trusted Go
+loaders for captured secrets. Read the [declaration, exclusions, immutable-
+envelope validation and complete host contract](STATIC_SHELL.md) before attempting
+publication. [Dedicated public CI run 40454404997](https://github.com/Suhaibinator/Next.go/actions/runs/40454404997)
+passes for the recorded `7926f225` PR checkout: each of Go 1.24.13 and 1.27.3
+completes seven producer commands, four actual eager/lazy root/mounted exports
+and 48 browser cases without skips or retries. All 96 observations across SDKs
+include joined physical fixture closure. [Exact source, job links and earlier
+failed-attempt history](STATIC_SHELL.md#sample-and-qualification-boundary)
+keep this Linux AMD64 reference-host result separate from other browser/core
+campaigns. The [CI proof scope](../tests/STATIC_SHELL_CI.md) does not qualify the
+held ARM64 resource profile, cgroup/resource behavior, providers/cloud or
+production readiness.
+
 ### Static host browser matrix
 
 ```sh

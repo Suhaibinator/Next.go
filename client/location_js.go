@@ -24,6 +24,18 @@ func CurrentLocation() (Location, bool) {
 	return committedLocation, committedLocation.URL != ""
 }
 
+// CurrentRouteParams matches pattern against the committed visible pathname
+// using this document's application base. It is unavailable before Run. Lazy
+// components use the same committed location and paths supplied by the core;
+// matching does not establish which route is authorized or selected.
+func CurrentRouteParams(pattern string) (map[string]string, bool) {
+	location, ready := CurrentLocation()
+	if !ready {
+		return nil, false
+	}
+	return location.RouteParams(pattern, deployment.BasePath)
+}
+
 // ObserveLocation synchronizes immediately and then observes URL changes after
 // successful commits, including same-page fragment changes and back/forward.
 // Refreshing the same URL does not notify. Cleanup automatically unsubscribes;
