@@ -157,11 +157,15 @@ func renderEventNode(ctx context.Context, node Node, known map[string]bool, dept
 		}
 	}()
 	buffer := &streamBuffer{}
-	writer := &streamWriter{contextWriter: contextWriter{ctx, buffer}, known: known, depth: depth, total: total}
+	canonical := &htmlUTF8Writer{ctx: ctx, dst: buffer}
+	writer := &streamWriter{contextWriter: contextWriter{ctx, canonical}, known: known, depth: depth, total: total}
 	if node != nil {
 		if err := node.Render(writer); err != nil {
 			return nil, nil, err
 		}
+	}
+	if err := canonical.finish(); err != nil {
+		return nil, nil, err
 	}
 	return buffer.data.Bytes(), writer.tasks, nil
 }

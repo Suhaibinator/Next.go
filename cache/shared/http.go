@@ -551,6 +551,12 @@ func (h *HTTP) call(ctx context.Context, req wireRequest) (wireResponse, error) 
 			return wireResponse{}, ErrProtocol
 		}
 	}
+	// A buffered response can finish while transport cancellation propagates.
+	// Do not acknowledge success after known caller cancellation; the remote
+	// operation may already have completed and is not rolled back here.
+	if err := ctx.Err(); err != nil {
+		return wireResponse{}, err
+	}
 	return out, nil
 }
 func validSeedTicket(ticket SeedTicket) bool {

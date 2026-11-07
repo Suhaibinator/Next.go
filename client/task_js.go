@@ -11,7 +11,8 @@ import (
 // callback. Its context is canceled when the scope unmounts. Tasks must observe
 // cancellation before updating the DOM; cancellation cannot stop arbitrary Go
 // code. Development refresh accounts the whole worker, including time before
-// its first request and after its last browser promise settles.
+// its first request and after its last browser promise settles. Retained views
+// cancel the current visible period without replaying this function on resume.
 func (s *Scope) Go(work func(context.Context)) error {
 	if !s.active() {
 		return ErrLifetimeClosed
@@ -23,21 +24,30 @@ func (s *Scope) Go(work func(context.Context)) error {
 	if err != nil {
 		return err
 	}
-	if s.taskContext == nil {
-		ctx, cancel := context.WithCancel(context.Background())
-		s.taskContext = ctx
-		s.Cleanup(cancel)
+	physical, err := beginRetainedTask()
+	if err != nil {
+		lease.Done()
+		return err
 	}
+	if s.taskContext == nil {
+		s.taskContext, s.taskCancel = context.WithCancel(context.Background())
+		if !s.taskCleanup {
+			s.taskCleanup = true
+			s.Cleanup(s.stopVisibilityTasks)
+		}
+	}
+	ctx := s.taskContext
 	s.taskWorkers++
 	go func() {
 		defer lease.Done()
+		defer physical.Done()
 		defer func() {
 			s.taskWorkers--
 			if recover() != nil {
 				report("component task failed")
 			}
 		}()
-		work(s.taskContext)
+		work(ctx)
 	}()
 	return nil
 }

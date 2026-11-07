@@ -196,8 +196,12 @@ func ClientIsland(component string, props any, fallback Node) Node {
 		ctx := context.WithValue(RenderContext(w), clientFallbackKey{}, true)
 		elements := 0
 		ctx = context.WithValue(ctx, clientFallbackElementsKey{}, &elements)
-		writer := &contextWriter{ctx: ctx, w: &output}
+		canonical := &htmlUTF8Writer{ctx: ctx, dst: &output}
+		writer := &contextWriter{ctx: ctx, w: canonical}
 		if err := renderClientFallbackNode(writer, fallback); err != nil {
+			return fmt.Errorf("client island %s: %w", component, err)
+		}
+		if err := canonical.finish(); err != nil {
 			return fmt.Errorf("client island %s: %w", component, err)
 		}
 		body := nodeFunc(func(w io.Writer) error {
@@ -250,8 +254,10 @@ func RenderContext(w io.Writer) context.Context {
 	return context.Background()
 }
 
-// RenderTo buffers no output itself. It renders through a context-aware writer;
-// use RenderStream when deferred nodes should flush independently.
+// RenderTo emits canonical valid UTF-8 HTML through a context-aware writer.
+// Valid input is unchanged; each malformed byte becomes U+FFFD. At most three
+// incomplete bytes are held across writes, not a whole output buffer. Use
+// RenderStream when deferred nodes should flush independently.
 func RenderTo(ctx context.Context, w io.Writer, n Node) (err error) {
 	if ctx == nil {
 		return fmt.Errorf("ui: nil rendering context")
@@ -267,7 +273,14 @@ func RenderTo(ctx context.Context, w io.Writer, n Node) (err error) {
 	if n == nil {
 		return nil
 	}
-	return n.Render(&contextWriter{ctx: ctx, w: w})
+	if canonicalHTMLWriter(w) {
+		return n.Render(&contextWriter{ctx: ctx, w: w})
+	}
+	canonical := &htmlUTF8Writer{ctx: ctx, dst: w}
+	if err := n.Render(&contextWriter{ctx: ctx, w: canonical}); err != nil {
+		return err
+	}
+	return canonical.finish()
 }
 
 // HTMLContext renders buffered HTML while propagating cancellation, deadlines

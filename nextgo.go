@@ -64,6 +64,9 @@ type Context struct {
 	interceptFrom  string
 }
 type Page struct {
+	// Retention opts this response into document-local UI retention. The public
+	// partition is an application identity boundary, never an access credential.
+	Retention   *RouteRetention
 	Body        ui.Node
 	Title       string
 	Description string
@@ -145,6 +148,9 @@ type Route struct {
 	StaticParamsLayers []StaticParamsLayer
 }
 type Config struct {
+	// RetainRoutes enables experimental buffered route UI retention. Pages must
+	// also opt in; unsupported compositions retain ordinary fresh rendering.
+	RetainRoutes bool
 	// StaticShell explicitly permits publishing one generic public ClientIsland
 	// seed for a bounded static-only subtree. It never rewrites native requests.
 	StaticShell *StaticShell
@@ -263,19 +269,20 @@ type Document = seo.DocumentAttributes
 type Envelope struct {
 	// Shell identifies a negotiated public partial shell. ShellRef is only sent
 	// in a stream when the caller proposes that exact cached shell generation.
-	Shell         string            `json:"shell,omitempty"`
-	ShellRef      bool              `json:"shellRef,omitempty"`
-	Document      Document          `json:"document"`
-	Version       int               `json:"version"`
-	Configuration string            `json:"configuration"`
-	Build         string            `json:"build"`
-	URL           string            `json:"url"`
-	HTML          string            `json:"html"`
-	Title         string            `json:"title"`
-	Description   string            `json:"description"`
-	Meta          map[string]string `json:"meta"`
-	Status        int               `json:"status"`
-	Head          []seo.Element     `json:"head,omitempty"`
+	Shell         string                `json:"shell,omitempty"`
+	ShellRef      bool                  `json:"shellRef,omitempty"`
+	Document      Document              `json:"document"`
+	Version       int                   `json:"version"`
+	Configuration string                `json:"configuration"`
+	Build         string                `json:"build"`
+	URL           string                `json:"url"`
+	HTML          string                `json:"html"`
+	Title         string                `json:"title"`
+	Description   string                `json:"description"`
+	Meta          map[string]string     `json:"meta"`
+	Status        int                   `json:"status"`
+	Head          []seo.Element         `json:"head,omitempty"`
+	Retention     *navigation.Retention `json:"retention,omitempty"`
 }
 
 func validateRouteLayers(r Route) error {
@@ -465,7 +472,7 @@ func newApp(c Config) (*App, error) {
 	if err := a.initManagedOffline(); err != nil {
 		return nil, err
 	}
-	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, Documents: documentPathPatterns(c.DocumentPaths)}
+	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, RetainRoutes: c.RetainRoutes, Documents: documentPathPatterns(c.DocumentPaths)}
 	manifest.Draft = c.Draft != nil
 	manifest.Scripts = earlyScriptsIdentity(c.EarlyScripts)
 	manifest.Prerender = a.prerenderIdentity()
@@ -726,6 +733,14 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) render(c *Context, r Route) (page Page, status int) {
 	status = 200
+	retentionBlocked := r.Cache != nil || r.Prerender != nil || len(r.Regions) > 0 || len(r.Slots) > 0 || hasPrimaries(r) || len(r.LayoutBases) > 0
+	defer func() {
+		// Never capture a per-request privacy partition in a cached or composed
+		// page. Keeping this nil also makes unsupported responses cold-render.
+		if retentionBlocked || a.config.Phase != PhaseProduction || c.response.public || c.interceptSlot != "" || c.parallel != nil && len(c.parallel.infos) > 0 || page.Stream || page.DeferredMetadata != nil || page.deferredPlan != nil || page.partial != nil {
+			page.Retention = nil
+		}
+	}()
 	defer func() { page = a.withManagedMetadataHead(page) }()
 	defer func() {
 		if v := recover(); v != nil {
@@ -1094,6 +1109,16 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		documentAttrs, _ = seo.ResolveDocument(p.Metadata)
 		status = 500
 	}
+	retention, retentionErr := a.retentionDescriptor(p, status, body)
+	if retentionErr != nil {
+		a.config.Logger.Printf("route retention: %v", retentionErr)
+		a.respondPage(w, r, errorPage(), http.StatusInternalServerError)
+		return
+	}
+	if retention != nil {
+		w.Header().Set("Cache-Control", "private, no-store")
+		clearNavigationReuse(w.Header())
+	}
 	w.Header().Set(navigation.ConfigurationHeader, a.configurationID)
 	// A native offline capture is a constructed, non-negotiating HTML GET.
 	// Preserve all application Vary fields; omit only this framework addition.
@@ -1122,7 +1147,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 			Shell: shell, ShellRef: shellRef,
 			Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: documentAttrs,
 			Build: a.config.BuildID, URL: requestURI(r), HTML: body,
-			Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head,
+			Title: p.Title, Description: p.Description, Meta: p.Meta, Status: status, Head: head, Retention: retention,
 		}
 		if shell != "" {
 			encoded, err := json.Marshal(envelope)
@@ -1171,6 +1196,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		RuntimeScripts template.HTML
 		Offline        string
 		OfflineSaved   bool
+		Retention      string
 	}{
 		Page: p, Document: documentAttrs, Body: template.HTML(body),
 		Build: a.config.BuildID, Dev: a.config.Dev, DevGeneration: a.config.DevGeneration,
@@ -1182,6 +1208,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Early:          template.HTML(a.earlyScripts(r)),
 		RuntimeScripts: template.HTML(runtimeScripts(a.paths.RuntimeURL(a.config.BuildID), scripts.Nonce(r.Context()))),
 		Offline:        a.offlineDescriptorJSON(), OfflineSaved: a.offlineSavedDocument(r),
+		Retention: retentionJSON(retention),
 	})
 	if err != nil {
 		http.Error(w, "Unable to render document", 500)
@@ -1202,7 +1229,7 @@ var document = template.Must(template.New("document").Parse(`<!doctype html>
 <style{{if .Nonce}} nonce="{{.Nonce}}"{{end}}>` + frameworkCSS + `</style>
 <link rel="stylesheet" href="{{.Style}}">
 {{.Early}}
-</head><body{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
+</head><body{{if .Retention}} data-nextgo-retention="{{.Retention}}"{{end}}{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
 <div id="nextgo-status" role="status" aria-live="polite" hidden></div>
 ` + routeAnnouncer + `
 <div id="nextgo-app" tabindex="-1">{{.Body}}</div>

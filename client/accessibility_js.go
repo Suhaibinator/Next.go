@@ -14,7 +14,7 @@ import (
 func completeAccessibleNavigation(previous, target string, active js.Value, title string) {
 	before, after := win.Get("URL").New(previous), win.Get("URL").New(target)
 	changedPath := before.Get("pathname").String() != after.Get("pathname").String()
-	lostFocus := !active.IsNull() && !active.IsUndefined() && !active.Get("isConnected").Bool()
+	lostFocus := !active.IsNull() && !active.IsUndefined() && (!active.Get("isConnected").Bool() || hiddenRetainedNode(active))
 	changedFragment := before.Get("hash").String() != after.Get("hash").String() && len(after.Get("hash").String()) > 1
 	// A disposed native modal restores its connected opener, or an incoming
 	// modal focuses its controls. Keep that browser-managed contextual focus.
@@ -36,10 +36,10 @@ func completeAccessibleNavigation(previous, target string, active js.Value, titl
 			}
 		}
 		if destination.IsNull() {
-			destination = doc.Call("querySelector", "#nextgo-app [data-nextgo-focus]")
+			destination = applicationQuery("[data-nextgo-focus]")
 		}
 		if destination.IsNull() {
-			destination = doc.Call("querySelector", "#nextgo-app main, #nextgo-app h1")
+			destination = applicationQuery("main,h1")
 		}
 		if destination.IsNull() || destination.Get("focus").Type() != js.TypeFunction {
 			destination = doc.Call("getElementById", "nextgo-app")
@@ -59,7 +59,7 @@ func completeAccessibleNavigation(previous, target string, active js.Value, titl
 	}
 	message := strings.TrimSpace(title)
 	if message == "" {
-		heading := doc.Call("querySelector", "#nextgo-app h1")
+		heading := applicationQuery("h1")
 		if !heading.IsNull() {
 			message = strings.TrimSpace(heading.Get("textContent").String())
 		}

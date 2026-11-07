@@ -49,7 +49,21 @@ type AsyncResource struct {
 	observers          map[int]func(ResourceSnapshot)
 	next               int
 	closed             bool
+	closePending       bool
+	revision           uint64
+	delivered          map[int]resourceDelivery
+	resumePending      bool
 	notifying, pending bool
+}
+
+type resourceDelivery struct {
+	revision uint64
+	epoch    uint64
+}
+
+func (r *AsyncResource) setState(snapshot ResourceSnapshot) {
+	r.revision++
+	r.state = snapshot
 }
 
 // The private expando belongs to the DOM node, not a Scope or module runtime.
@@ -147,7 +161,7 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 	r := &AsyncResource{scope: s, source: source, state: ResourceSnapshot{Phase: ResourceIdle}, observers: map[int]func(ResourceSnapshot){}}
 	if options.Seed != nil {
 		if err = source.AdoptSeed(*options.Seed); err == nil {
-			r.state = ResourceSnapshot{Phase: ResourceReady, Body: bytes.Clone(options.Seed.Body), Seeded: true}
+			r.setState(ResourceSnapshot{Phase: ResourceReady, Body: bytes.Clone(options.Seed.Body), Seeded: true})
 		} else if err != ErrResourceSeed {
 			return nil, err
 		}
@@ -157,15 +171,17 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 	if r.state.Phase != ResourceReady {
 		source.store.mu.Lock()
 		if !source.store.seedAllowed || source.store.epoch != 0 {
-			r.state = ResourceSnapshot{Phase: ResourceInvalidated}
+			r.setState(ResourceSnapshot{Phase: ResourceInvalidated})
 		}
 		if entry, ok := source.store.entries[source]; ok && time.Now().Before(entry.expires) {
-			r.state = ResourceSnapshot{Phase: ResourceReady, Body: bytes.Clone(entry.data)}
+			r.setState(ResourceSnapshot{Phase: ResourceReady, Body: bytes.Clone(entry.data)})
 		}
 		source.store.mu.Unlock()
 	}
 	r.stop, err = source.observe(func() {
-		if !r.active() {
+		// Visibility suppression must not discard invalidation fences. Keep the
+		// original frozen/closed behavior for scopes that are not retained.
+		if r.closed || !r.scope.live() || (!r.active() && !r.scope.retentionHidden()) {
 			return
 		}
 		r.sequence++
@@ -180,10 +196,14 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 		if closed {
 			phase = ResourceClosed
 		}
-		r.state = ResourceSnapshot{Phase: phase}
+		r.setState(ResourceSnapshot{Phase: phase})
 		r.notify()
 		if closed {
-			r.Close()
+			if r.scope.retentionHidden() {
+				r.closePending = true
+			} else {
+				r.Close()
+			}
 		}
 	})
 	if err != nil {
@@ -194,6 +214,10 @@ func (s *Scope) AsyncResource(source *ResourceSource, options AsyncResourceOptio
 		r.stop()
 		return nil, err
 	}
+	if s.asyncResources == nil {
+		s.asyncResources = map[*AsyncResource]struct{}{}
+	}
+	s.asyncResources[r] = struct{}{}
 	return r, nil
 }
 func (r *AsyncResource) active() bool { return r != nil && !r.closed && r.scope.active() }
@@ -215,19 +239,33 @@ func (r *AsyncResource) Subscribe(fn func(ResourceSnapshot)) (func(), error) {
 	r.next++
 	id := r.next
 	r.observers[id] = fn
-	r.call(fn)
-	return func() { delete(r.observers, id) }, nil
+	r.call(id, fn, false)
+	return func() { delete(r.observers, id); delete(r.delivered, id) }, nil
 }
-func (r *AsyncResource) call(fn func(ResourceSnapshot)) {
+func (r *AsyncResource) call(id int, fn func(ResourceSnapshot), retained bool) {
 	if !r.active() {
 		return
 	}
+	stamp := resourceDelivery{revision: r.revision, epoch: r.scope.activityEpoch}
+	if retained {
+		if previous, ok := r.delivered[id]; ok && previous == stamp {
+			return
+		}
+	}
+	if r.delivered == nil {
+		r.delivered = map[int]resourceDelivery{}
+	}
+	// Record before the callback: it may synchronously load, invalidate,
+	// subscribe or close and must not have a later stamp overwritten here.
+	r.delivered[id] = stamp
 	if err := lifetimeGuard(func() { fn(r.Snapshot()) }); err != nil {
 		report(err.Error())
 	}
 }
-func (r *AsyncResource) notify() {
+func (r *AsyncResource) notify() { r.notifyMode(false) }
+func (r *AsyncResource) notifyMode(retained bool) {
 	r.pending = true
+	r.resumePending = r.resumePending || retained
 	if r.notifying {
 		return
 	}
@@ -240,13 +278,15 @@ func (r *AsyncResource) notify() {
 			return
 		}
 		r.pending = false
+		retainedTurn := r.resumePending
+		r.resumePending = false
 		ids := make([]int, 0, len(r.observers))
 		for id := range r.observers {
 			ids = append(ids, id)
 		}
 		for _, id := range ids {
 			if fn, ok := r.observers[id]; ok {
-				r.call(fn)
+				r.call(id, fn, retainedTurn)
 			}
 		}
 	}
@@ -259,10 +299,16 @@ func (r *AsyncResource) Load() error {
 	if activityErr != nil {
 		return activityErr
 	}
+	physical, physicalErr := beginRetainedTask()
+	if physicalErr != nil {
+		activity.Done()
+		return physicalErr
+	}
 	workerOwnsActivity := false
 	defer func() {
 		if !workerOwnsActivity {
 			activity.Done()
+			physical.Done()
 		}
 	}()
 	r.source.store.mu.Lock()
@@ -278,7 +324,7 @@ func (r *AsyncResource) Load() error {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	r.cancel = cancel
-	r.state = ResourceSnapshot{Phase: ResourceLoading}
+	r.setState(ResourceSnapshot{Phase: ResourceLoading})
 	r.notify()
 	if !r.active() || sequence != r.sequence {
 		cancel()
@@ -287,6 +333,7 @@ func (r *AsyncResource) Load() error {
 	workerOwnsActivity = true
 	go func() {
 		defer activity.Done()
+		defer physical.Done()
 		body, err := r.source.Read(ctx)
 		cancel()
 		if !r.active() || sequence != r.sequence {
@@ -294,9 +341,9 @@ func (r *AsyncResource) Load() error {
 		}
 		r.cancel = nil
 		if err != nil {
-			r.state = ResourceSnapshot{Phase: ResourceFailed, Err: err}
+			r.setState(ResourceSnapshot{Phase: ResourceFailed, Err: err})
 		} else {
-			r.state = ResourceSnapshot{Phase: ResourceReady, Body: body}
+			r.setState(ResourceSnapshot{Phase: ResourceReady, Body: body})
 		}
 		r.notify()
 	}()
@@ -308,6 +355,9 @@ func (r *AsyncResource) Close() {
 		return
 	}
 	r.closed = true
+	if r.scope != nil {
+		delete(r.scope.asyncResources, r)
+	}
 	r.sequence++
 	if r.cancel != nil {
 		r.cancel()
@@ -317,8 +367,10 @@ func (r *AsyncResource) Close() {
 		r.stop()
 		r.stop = nil
 	}
-	r.state = ResourceSnapshot{Phase: ResourceClosed}
+	r.setState(ResourceSnapshot{Phase: ResourceClosed})
 	r.observers = nil
+	r.delivered = nil
+	r.pending, r.resumePending = false, false
 	if r.cleanup != nil {
 		cleanup := r.cleanup
 		r.cleanup = nil
@@ -326,6 +378,31 @@ func (r *AsyncResource) Close() {
 	}
 	r.scope = nil
 	r.source = nil
+}
+
+func (r *AsyncResource) suspendForRetention() {
+	if r == nil || r.closed {
+		return
+	}
+	r.sequence++
+	if r.cancel != nil {
+		r.cancel()
+		r.cancel = nil
+	}
+	if r.state.Phase == ResourceLoading {
+		r.setState(ResourceSnapshot{Phase: ResourceInvalidated})
+	}
+	// Resynchronize once on return, unless explicit visible work already
+	// delivered the current snapshot. No request is automatically replayed.
+	r.pending = true
+}
+func (r *AsyncResource) resumeFromRetention() {
+	if r.active() && r.pending {
+		r.notifyMode(true)
+	}
+	if r.closePending {
+		r.Close()
+	}
 }
 
 // InvalidateResources applies the document mutation/cache fence, including

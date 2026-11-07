@@ -30,8 +30,14 @@ export async function holdRequests(page, pattern, matches, failure = false) {
       if (closing) return closing;
       closing = (async () => {
         release();
-        await page.unroute(pattern, handler);
-        await expect.poll(() => active.size, {message: `all ${pattern} route handlers drained`}).toBe(0);
+        // Removing interception can forward an intercepted request before its
+        // released handler has applied abort/continue. Drain admitted handlers
+        // first; finally still removes the route if the bounded drain fails.
+        try {
+          await expect.poll(() => active.size, {message: `all ${pattern} route handlers drained`}).toBe(0);
+        } finally {
+          await page.unroute(pattern, handler);
+        }
         const outcomes = await Promise.allSettled(jobs);
         const failed = outcomes.filter(outcome => outcome.status === 'rejected');
         if (failed.length) throw new AggregateError(failed.map(outcome => outcome.reason), 'link gate route handlers failed');

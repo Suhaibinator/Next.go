@@ -27,7 +27,7 @@ func (s *Scope) Lifetime() (*Lifetime, error) {
 			return nil, err
 		}
 	} else {
-		life = NewLifetime(LifetimeOptions{OnError: func(err error) { report(err.Error()) }})
+		life = NewLifetime(LifetimeOptions{OnError: func(err error) { reportScopeError(s, err.Error()) }})
 	}
 	s.lifetime = life
 	s.Cleanup(life.Close)
