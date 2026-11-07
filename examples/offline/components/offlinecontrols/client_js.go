@@ -5,7 +5,10 @@ package offlinecontrols
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/Suhaibinator/Next.go/client"
 )
@@ -37,7 +40,8 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 		buttons[action] = button
 	}
 	closed, busy, actionFailed := false, false, false
-	operation := ""
+	operation, operationError := "", ""
+	var completedOperations uint32 // Explicit completion revision wraps modulo 2^32.
 	scope.Cleanup(func() { closed = true })
 	render := func(state client.OfflineState) {
 		if closed {
@@ -49,6 +53,9 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 		root.Attribute("data-offline-cleanup-pending", strconv.FormatBool(state.CleanupPending))
 		root.Attribute("data-offline-active-generation", state.ActiveGeneration)
 		root.Attribute("data-offline-waiting-generation", state.WaitingGeneration)
+		root.Attribute("data-offline-last-error", boundedOfflineError(state.LastError))
+		root.Attribute("data-offline-operation-error", operationError)
+		root.Attribute("data-offline-completed-operations", strconv.FormatUint(uint64(completedOperations), 10))
 		controllerBusy := false
 		controllerMessage := ""
 		switch state.Phase {
@@ -109,6 +116,7 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 			return
 		}
 		busy, actionFailed, operation = true, false, message
+		operationError = ""
 		render(client.OfflineStatus())
 		if err := scope.Go(func(ctx context.Context) {
 			err := operationFn(ctx)
@@ -116,9 +124,13 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 				return
 			}
 			busy, actionFailed, operation = false, err != nil, ""
+			operationError = offlineOperationError(err)
+			completedOperations++
 			render(client.OfflineStatus())
 		}); err != nil {
 			busy, actionFailed, operation = false, true, ""
+			operationError = offlineOperationError(err)
+			completedOperations++
 			render(client.OfflineStatus())
 		}
 	}
@@ -136,4 +148,47 @@ func Mount(scope *client.Scope, raw json.RawMessage) error {
 	})
 	root.Attribute("data-offline-controls-ready", "true")
 	return nil
+}
+
+// Inspect at most the first 256 input bytes and emit sanitized UTF-8 text no
+// larger than 256 bytes. Invalid or truncated input may produce U+FFFD.
+// These values are existing public API diagnostics only.
+func boundedOfflineError(value string) string {
+	const limit = 256
+	if len(value) > limit {
+		value = value[:limit]
+	}
+	var output strings.Builder
+	for _, r := range value {
+		if output.Len()+utf8.RuneLen(r) > limit {
+			break
+		}
+		output.WriteRune(r)
+	}
+	return output.String()
+}
+
+func offlineOperationError(err error) string {
+	switch {
+	case err == nil:
+		return ""
+	case errors.Is(err, client.ErrOfflineBusy):
+		return "busy"
+	case errors.Is(err, client.ErrOfflineUnavailable):
+		return "unavailable"
+	case errors.Is(err, client.ErrOfflineUnsupported):
+		return "unsupported"
+	case errors.Is(err, client.ErrOfflineConflict):
+		return "conflict"
+	case errors.Is(err, client.ErrOfflineProtocol):
+		return "protocol"
+	case errors.Is(err, client.ErrOfflineUnknown):
+		return "unknown"
+	case errors.Is(err, context.Canceled):
+		return "canceled"
+	case errors.Is(err, context.DeadlineExceeded):
+		return "deadline"
+	default:
+		return "operation-failed"
+	}
 }

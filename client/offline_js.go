@@ -27,6 +27,7 @@ type offlineController struct {
 	request           uint64
 	confirmedDisabled bool
 	nativeMode        bool
+	conflictReason    string
 }
 
 var documentOffline *offlineController
@@ -203,6 +204,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		return ErrOfflineBusy
 	}
 	c.busy = true
+	c.conflictReason = ""
 	phase := map[string]string{"status": "checking", "enable": "enabling", "update": "updating", "disable": "disabling"}[command]
 	if phase == "" {
 		c.busy = false
@@ -219,6 +221,9 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		if err != nil {
 			c.state.Phase = "error"
 			c.state.LastError = err.Error()
+			if err == ErrOfflineConflict && c.conflictReason != "" {
+				c.state.LastError += " [" + c.conflictReason + "]"
+			}
 		}
 		c.notify()
 	}()
@@ -228,10 +233,15 @@ func offlineOperation(parent context.Context, command string) (err error) {
 	}
 	ctx, cancel := context.WithTimeout(parent, limit)
 	defer cancel()
-	registration, err := c.registration(ctx)
+	use := offlineRegistrationMutation
+	if command == "status" {
+		use = offlineRegistrationStatus
+	}
+	selection, err := c.registrationForOperation(ctx, use)
 	if err != nil {
 		return err
 	}
+	registration := selection.registration
 	controllerOwned := c.controlling()
 	if (command == "enable" || command == "disable" && !controllerOwned) && !registration.Truthy() {
 		sw := win.Get("navigator").Get("serviceWorker")
@@ -247,6 +257,11 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		if !registration.Truthy() {
 			return ErrOfflineUnavailable
 		}
+		if selection.recovered {
+			if err = c.recoveredRegistrationFence(ctx, selection, js.Undefined(), false, "registration-proof-empty-update"); err != nil {
+				return err
+			}
+		}
 		if _, err = c.promise(ctx, registration.Call("update")); err != nil {
 			return err
 		}
@@ -254,7 +269,7 @@ func offlineOperation(parent context.Context, command string) (err error) {
 			return err
 		}
 	}
-	worker := js.Undefined()
+	worker := selection.statusWorker
 	if registration.Truthy() {
 		worker = registration.Get("active")
 		if !worker.Truthy() && (command == "enable" || command == "disable") {
@@ -281,11 +296,16 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		}
 		if command == "enable" || command == "disable" {
 			if registration.Truthy() && registration.Get("active").Truthy() && !registration.Get("active").Equal(worker) {
-				return ErrOfflineConflict
+				return c.ownershipConflict("active-worker-changed")
 			}
 			if command == "enable" {
 				c.confirmedDisabled = false
 				c.notify()
+			}
+			if selection.recovered {
+				if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-message"); err != nil {
+					return err
+				}
 			}
 			result, e := c.message(ctx, worker, command, status.RuntimeID, status.ConfigurationID)
 			if e != nil {
@@ -312,6 +332,11 @@ func offlineOperation(parent context.Context, command string) (err error) {
 		}
 	}
 	if command == "disable" && registration.Truthy() {
+		if selection.recovered {
+			if err = c.recoveredRegistrationFence(ctx, selection, worker, true, "registration-proof-empty-unregister"); err != nil {
+				return err
+			}
+		}
 		if _, err = c.promise(ctx, registration.Call("unregister")); err != nil {
 			return err
 		}
@@ -352,6 +377,13 @@ func (c *offlineController) promise(ctx context.Context, promise js.Value) (js.V
 	return value, err
 }
 
+// ownershipConflict records only a fixed diagnostic category. Keep returning
+// the exact sentinel: ownership decisions and callers' error identity stay intact.
+func (c *offlineController) ownershipConflict(reason string) error {
+	c.conflictReason = reason
+	return ErrOfflineConflict
+}
+
 func (c *offlineController) ownedWorker(worker js.Value) bool {
 	return worker.Type() == js.TypeObject && !worker.IsNull() && worker.Get("scriptURL").Type() == js.TypeString && worker.Get("scriptURL").String() == c.descriptor.WorkerURL
 }
@@ -363,9 +395,20 @@ func (c *offlineController) controlling() (owned bool) {
 	}()
 	return c.ownedWorker(win.Get("navigator").Get("serviceWorker").Get("controller"))
 }
-func (c *offlineController) validateRegistration(registration js.Value) error {
+
+// A record with the exact scope but no worker slots does not prove ownership.
+// Status may instead query an independently validated controller; mutations must
+// still establish ownership from the registration itself.
+type offlineRegistrationOwnership uint8
+
+const (
+	offlineRegistrationUnproven offlineRegistrationOwnership = iota
+	offlineRegistrationOwned
+)
+
+func (c *offlineController) registrationOwnership(registration js.Value) (offlineRegistrationOwnership, error) {
 	if registration.Type() != js.TypeObject || registration.IsNull() || registration.Get("scope").Type() != js.TypeString || registration.Get("scope").String() != c.descriptor.Scope {
-		return ErrOfflineConflict
+		return offlineRegistrationUnproven, c.ownershipConflict("registration-scope")
 	}
 	provedWorker := false
 	for _, key := range []string{"active", "waiting", "installing"} {
@@ -374,47 +417,207 @@ func (c *offlineController) validateRegistration(registration js.Value) error {
 			provedWorker = true
 		}
 		if worker.Truthy() && !c.ownedWorker(worker) {
-			return ErrOfflineConflict
+			return offlineRegistrationUnproven, c.ownershipConflict("registration-" + key + "-worker")
 		}
 	}
 	if !provedWorker {
-		return ErrOfflineConflict
+		return offlineRegistrationUnproven, nil
+	}
+	return offlineRegistrationOwned, nil
+}
+
+func (c *offlineController) validateRegistration(registration js.Value) error {
+	ownership, err := c.registrationOwnership(registration)
+	if err != nil {
+		return err
+	}
+	if ownership == offlineRegistrationUnproven {
+		return c.ownershipConflict("registration-empty")
 	}
 	return nil
 }
+
+// statusWorker is read-only controller authority. A recovered registration has
+// independent inventory/worker proof and uses synchronous pre-mutation fences.
+type offlineRegistrationSelection struct {
+	registration js.Value
+	statusWorker js.Value
+	container    js.Value
+	recovered    bool
+}
+
+type offlineRegistrationUse uint8
+
+const (
+	offlineRegistrationStrict offlineRegistrationUse = iota
+	offlineRegistrationStatus
+	offlineRegistrationMutation
+)
+
+type offlineRegistrationInventory struct {
+	exact    js.Value
+	unproven bool
+}
+
 func (c *offlineController) registration(ctx context.Context) (js.Value, error) {
-	sw := win.Get("navigator").Get("serviceWorker")
-	registrations, err := c.promise(ctx, sw.Call("getRegistrations"))
+	selection, err := c.registrationForOperation(ctx, offlineRegistrationStrict)
 	if err != nil {
 		return js.Undefined(), err
 	}
+	return selection.registration, nil
+}
+
+// Inspect every entry before permitting recovery. An empty exact record still
+// counts as an overlap, so it cannot hide a later foreign owner or duplicate.
+func (c *offlineController) inspectRegistrationInventory(registrations js.Value) (offlineRegistrationInventory, error) {
+	inventory := offlineRegistrationInventory{exact: js.Undefined()}
 	if registrations.Type() != js.TypeObject || registrations.IsNull() || registrations.Length() > 64 {
-		return js.Undefined(), ErrOfflineConflict
+		return inventory, c.ownershipConflict("registration-list")
 	}
-	selected := js.Undefined()
 	for i := 0; i < registrations.Length(); i++ {
 		registration := registrations.Index(i)
 		scope := registration.Get("scope")
 		if scope.Type() != js.TypeString {
-			return js.Undefined(), ErrOfflineConflict
+			return inventory, c.ownershipConflict("registration-scope-type")
 		}
-		// Browser service-worker scope matching is literal URL prefix matching,
-		// including /reader vs /reader2. Refuse every overlapping foreign owner.
+		// Native scope matching is literal prefix matching, including reader2.
 		if strings.HasPrefix(scope.String(), c.descriptor.Scope) || strings.HasPrefix(c.descriptor.Scope, scope.String()) {
-			if err = c.validateRegistration(registration); err != nil {
-				return js.Undefined(), err
+			ownership, err := c.registrationOwnership(registration)
+			if err != nil {
+				return inventory, err
 			}
-			if selected.Truthy() {
-				return js.Undefined(), ErrOfflineConflict
+			if inventory.exact.Truthy() {
+				return inventory, c.ownershipConflict("registration-duplicate")
 			}
-			selected = registration
+			inventory.exact = registration
+			inventory.unproven = ownership == offlineRegistrationUnproven
 		}
 	}
+	return inventory, nil
+}
+
+func (c *offlineController) registrationController(sw js.Value) (js.Value, error) {
 	controller := sw.Get("controller")
 	if controller.Truthy() && !c.ownedWorker(controller) {
-		return js.Undefined(), ErrOfflineConflict
+		return js.Undefined(), c.ownershipConflict("controller-worker")
 	}
-	return selected, nil
+	return controller, nil
+}
+
+func (c *offlineController) registrationForOperation(ctx context.Context, use offlineRegistrationUse) (offlineRegistrationSelection, error) {
+	sw := win.Get("navigator").Get("serviceWorker")
+	registrations, err := c.promise(ctx, sw.Call("getRegistrations"))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	inventory, err := c.inspectRegistrationInventory(registrations)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	controller, err := c.registrationController(sw)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if inventory.unproven {
+		switch use {
+		case offlineRegistrationStatus:
+			if !controller.Truthy() {
+				return offlineRegistrationSelection{}, ErrOfflineUnavailable
+			}
+			return offlineRegistrationSelection{registration: js.Undefined(), statusWorker: controller}, nil
+		case offlineRegistrationMutation:
+			return c.reacquireRegistration(ctx, sw)
+		default:
+			return offlineRegistrationSelection{}, c.ownershipConflict("registration-empty-selection")
+		}
+	}
+	return offlineRegistrationSelection{registration: inventory.exact, statusWorker: js.Undefined()}, nil
+}
+
+func (c *offlineController) requireRegistrationProof(registration js.Value, emptyReason string) error {
+	ownership, err := c.registrationOwnership(registration)
+	if err != nil {
+		return err
+	}
+	if ownership != offlineRegistrationOwned {
+		return c.ownershipConflict(emptyReason)
+	}
+	return nil
+}
+
+// One acquisition transaction: initial inventory, one exact-scope lookup, one
+// final inventory. The same-environment native object map binds the lookup to
+// the latest entry; no equality with the initial record or UA repair is assumed.
+func (c *offlineController) reacquireRegistration(ctx context.Context, sw js.Value) (offlineRegistrationSelection, error) {
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	if sw.Get("getRegistration").Type() != js.TypeFunction {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-unavailable")
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	candidate, err := c.promise(ctx, sw.Call("getRegistration", c.descriptor.Scope))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if !candidate.Truthy() {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
+	}
+	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-lookup"); err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	registrations, err := c.promise(ctx, sw.Call("getRegistrations"))
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	inventory, err := c.inspectRegistrationInventory(registrations)
+	if err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if _, err = c.registrationController(sw); err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if !inventory.exact.Truthy() {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-missing")
+	}
+	if !candidate.Equal(inventory.exact) {
+		return offlineRegistrationSelection{}, c.ownershipConflict("registration-proof-changed")
+	}
+	// Re-read strict fields AFTER the last awaited read and controller check.
+	if err = c.requireRegistrationProof(candidate, "registration-proof-empty-final-inventory"); err != nil {
+		return offlineRegistrationSelection{}, err
+	}
+	if ctx.Err() != nil {
+		return offlineRegistrationSelection{}, context.Cause(ctx)
+	}
+	return offlineRegistrationSelection{registration: candidate, statusWorker: js.Undefined(), container: sw, recovered: true}, nil
+}
+
+// These synchronous fences protect the next recovered-path dispatch after an
+// awaited message. They are not an atomic registry lock against other writers,
+// nor a rollback of a worker message which has already completed.
+func (c *offlineController) recoveredRegistrationFence(ctx context.Context, selection offlineRegistrationSelection, worker js.Value, requireActive bool, emptyReason string) error {
+	if ctx.Err() != nil {
+		return context.Cause(ctx)
+	}
+	if _, err := c.registrationController(selection.container); err != nil {
+		return err
+	}
+	if err := c.requireRegistrationProof(selection.registration, emptyReason); err != nil {
+		return err
+	}
+	if requireActive {
+		active := selection.registration.Get("active")
+		if !active.Truthy() || !active.Equal(worker) {
+			return c.ownershipConflict("active-worker-changed")
+		}
+	}
+	return context.Cause(ctx)
 }
 
 func (c *offlineController) waitInstallation(ctx context.Context, registration js.Value) error {
@@ -444,7 +647,7 @@ func (c *offlineController) waitActivation(ctx context.Context, registration js.
 
 func (c *offlineController) waitWorker(ctx context.Context, worker js.Value, complete func(string) bool) error {
 	if !c.ownedWorker(worker) {
-		return ErrOfflineConflict
+		return c.ownershipConflict("worker-state-target")
 	}
 	done := make(chan struct{}, 1)
 	callback := js.FuncOf(func(js.Value, []js.Value) any {
@@ -508,7 +711,7 @@ func (c *offlineController) message(ctx context.Context, worker js.Value, comman
 		return reply, context.Cause(ctx)
 	}
 	if !c.ownedWorker(worker) {
-		return reply, ErrOfflineConflict
+		return reply, c.ownershipConflict("message-worker")
 	}
 	c.request++
 	request := offlineRequest{Version: offlineMessageVersion, Command: command, OwnerPolicyID: c.descriptor.OwnerPolicyID, RuntimeID: runtime, ConfigurationID: configuration, RequestID: "offline-" + strconv.FormatUint(c.request, 36)}

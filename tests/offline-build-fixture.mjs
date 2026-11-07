@@ -105,7 +105,8 @@ function gitEnvironment() {
     GIT_TERMINAL_PROMPT:'0',GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:process.platform==='win32'?'NUL':'/dev/null'};
 }
 async function git(root,args,maximum=limits.gitBytes) {
-  const {stdout}=await execFileAsync('git',['-C',root,...args],{encoding:'buffer',maxBuffer:maximum,timeout:30_000,env:gitEnvironment()});
+  // The caller supplies a canonical directory; trust only this command's exact directory.
+  const {stdout}=await execFileAsync('git',['-c','safe.directory='+root,'-C',root,...args],{encoding:'buffer',maxBuffer:maximum,timeout:30_000,env:gitEnvironment()});
   return stdout;
 }
 async function trackedFiles(root) {
