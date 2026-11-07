@@ -2,7 +2,8 @@
 // the trusted local JSON DATA SOURCE, never application HTML or stream frames.
 import {createServer, request as httpRequest} from 'node:http';
 import {spawn} from 'node:child_process';
-import {lstat, mkdtemp, readFile, rm} from 'node:fs/promises';
+import {lstat, mkdtemp, open, readFile, rm} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {join, isAbsolute} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -15,6 +16,33 @@ const pause = (ms, signal) => new Promise((resolve, reject) => {
   const timer = setTimeout(() => {signal.removeEventListener('abort', onAbort); resolve();}, ms);
   if (signal.aborted) {clearTimeout(timer); reject(signal.reason);} else signal.addEventListener('abort', onAbort, {once: true});
 });
+// Additive qualification evidence only: observe the actual tracked child, not a
+// separate probe process. Other platforms honestly report unsupported procfs.
+async function observeNativeIdentity(child) {
+  if (process.platform !== 'linux') return {supported: false, platform: process.platform, reason: 'linux-procfs-only'};
+  const pid = child?.pid;
+  if (!Number.isSafeInteger(pid) || pid < 1 || child.exitCode !== null || child.signalCode !== null) return {supported: true, observed: false, reason: 'native-not-live'};
+  const bounded = async path => {
+    const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    try {
+      const bytes = Buffer.alloc(64 * 1024 + 1); let length = 0;
+      while (length < bytes.length) {const part = await file.read(bytes, length, bytes.length - length, null); if (!part.bytesRead) break; length += part.bytesRead;}
+      if (length > 64 * 1024) throw new Error('procfs-byte-bound');
+      return bytes.subarray(0, length).toString('utf8');
+    } finally {await file.close();}
+  };
+  try {
+    const before = await bounded(`/proc/${pid}/stat`), status = await bounded(`/proc/${pid}/status`), after = await bounded(`/proc/${pid}/stat`);
+    const fields = text => text.slice(text.lastIndexOf(')') + 2).trim().split(/\s+/);
+    const first = fields(before), last = fields(after);
+    const uids = /^Uid:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/m.exec(status);
+    const gids = /^Gid:\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/m.exec(status);
+    const actualPID = /^Pid:\s+(\d+)$/m.exec(status), parentPID = /^PPid:\s+(\d+)$/m.exec(status);
+    if (['Z', 'X', 'x'].includes(first[0]) || ['Z', 'X', 'x'].includes(last[0]) || first[19] !== last[19] || !/^\d+$/.test(last[19] || '') || !uids || !gids || Number(actualPID?.[1]) !== pid || Number(parentPID?.[1]) !== process.pid || child.exitCode !== null || child.signalCode !== null) throw new Error('native-identity-changed');
+    return {supported: true, observed: true, pid, parentPID: Number(parentPID[1]), startTimeTicks: last[19], processGroup: Number(last[2]), uids: uids.slice(1).map(Number), gids: gids.slice(1).map(Number)};
+  } catch {return {supported: true, observed: false, reason: 'native-identity-unconfirmed'};}
+}
+
 export async function startMetadataStream(options = {}) {
   const startup = options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(20_000)]) : AbortSignal.timeout(20_000);
   startup.throwIfAborted();
@@ -27,7 +55,7 @@ export async function startMetadataStream(options = {}) {
   const cwd = await mkdtemp(join(tmpdir(), 'nextgo-metadata-stream-native-'));
   const source = [], queue = [], wire = [], sockets = new Set(), upstreams = new Set(), logs = [], listeners = new Map();
   let native, gateway, dataServer, closePromise, httpJoined = false;
-  const processProof = {binary, sha256: expected, bytes: info.size, cwd, pid: null, closed: false, joined: false, forced: false, code: null, signal: null, metadataHTML: options.html !== false, fixtureMode: options.mode || '', termSent: false, shutdownRequested: false, unexpectedExit: false, environmentPolicy: 'remove all NEXTGO_DEMO_*, Lambda adapters and NEXTGO_ENV_DIR; explicit empty owned env directory'};
+  const processProof = {binary, sha256: expected, bytes: info.size, cwd, cwdRemoved: false, parentUID: typeof process.getuid === 'function' ? process.getuid() : null, nativeIdentity: null, artifactMode: info.mode & 0o777, artifactUID: info.uid, pid: null, closed: false, joined: false, forced: false, code: null, signal: null, metadataHTML: options.html !== false, fixtureMode: options.mode || '', termSent: false, shutdownRequested: false, unexpectedExit: false, environmentPolicy: 'remove all NEXTGO_DEMO_*, Lambda adapters and NEXTGO_ENV_DIR; explicit empty owned env directory'};
   const boundedLog = data => {logs.push(String(data)); while (logs.join('').length > 128 << 10) logs.shift();};
   const listen = (server, port) => {
     const controller = new AbortController();
@@ -183,6 +211,8 @@ export async function startMetadataStream(options = {}) {
         httpJoined = true;
         const current = await readFile(binary); if (hash(current) !== expected) throw new Error('Artifact changed during browser case');
         await rm(cwd, {recursive: true, force: true});
+        try {await lstat(cwd); throw new Error('Owned native cwd remains after removal');}
+        catch (error) {if (error.code !== 'ENOENT') throw error; processProof.cwdRemoved = true;}
       })(); return closePromise;
     },
   };
@@ -193,7 +223,7 @@ export async function startMetadataStream(options = {}) {
       if (spawnError || processProof.closed) throw spawnError || new Error('Native server exited before readiness');
       let healthy = false;
       try {const response = await fetch('http://127.0.0.1:4161/api/health', {signal: AbortSignal.any([startup, AbortSignal.timeout(250)])}); healthy = response.ok; await response.body?.cancel();} catch (error) {if (startup.aborted) throw error;}
-      if (healthy) {await listen(gateway, 4160); return fixture;}
+      if (healthy) {processProof.nativeIdentity = await observeNativeIdentity(native); await listen(gateway, 4160); return fixture;}
       await pause(50, startup);
     }
   } catch (error) {
