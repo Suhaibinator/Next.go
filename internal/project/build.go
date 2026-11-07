@@ -48,6 +48,10 @@ func compile(ctx context.Context, root string, dev bool, output io.Writer, allow
 }
 
 func compileApplication(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender, allowRefresh bool, releasePlans ...*zoneReleasePlan) (*Build, error) {
+	return compileApplicationTarget(ctx, root, dev, output, allowPrerender, allowRefresh, nil, releasePlans...)
+}
+
+func compileApplicationTarget(ctx context.Context, root string, dev bool, output io.Writer, allowPrerender, allowRefresh bool, target *lambdaTarget, releasePlans ...*zoneReleasePlan) (*Build, error) {
 	var release *zoneReleasePlan
 	if len(releasePlans) > 1 {
 		return nil, fmt.Errorf("one zone release plan is required")
@@ -327,7 +331,11 @@ func compileApplication(ctx context.Context, root string, dev bool, output io.Wr
 	if err != nil {
 		return nil, err
 	}
-	if err = run(ctx, p.Root, output, nil, "build", "-overlay="+serverOverlay, "-trimpath", "-ldflags=-s -w", "-o", binary, serverTarget); err != nil {
+	var nativeEnv []string
+	if target != nil {
+		nativeEnv = target.environment()
+	}
+	if err = run(ctx, p.Root, output, nativeEnv, "build", "-overlay="+serverOverlay, "-trimpath", "-ldflags=-s -w", "-o", binary, serverTarget); err != nil {
 		return nil, err
 	}
 	if err := validateGeneratedVirtualRoot(p.Root); err != nil {

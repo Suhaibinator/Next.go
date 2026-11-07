@@ -59,16 +59,47 @@ test('hidden effects stop and a real owned HTTP read is canceled without replay'
   await expect.poll(async()=>Number(await part(page,'ticks').textContent())).toBeGreaterThan(ticks);
 });
 
-test('history restores focus and real window and nested scroll without reloading the document',async({page,native})=>{
+test('history restores focus and real window and nested scroll without reloading the document',async({page,native},info)=>{
+  let saved,outgoing,afterBack;
+  try{
   await page.goto(native.origin+'/a');await ready(page);await saveA(page);await part(page,'draft').fill('Focused draft');await part(page,'draft').focus();
   await page.evaluate(()=>{window.scrollTo(0,500);document.querySelector('[data-retained-scroll]').scrollTop=160;});
   await page.waitForFunction(()=>history.state?.nextgoY===window.scrollY&&window.scrollY>0);
-  const saved=await page.evaluate(()=>({window:scrollY,nested:document.querySelector('[data-retained-scroll]').scrollTop}));
+  saved=await page.evaluate(()=>({window:scrollY,nested:document.querySelector('[data-retained-scroll]').scrollTop}));
   // Programmatic native click keeps the current input focus while exercising
   // the actual document link listener and Go router.
-  await page.evaluate(()=>document.querySelector('nav a[href="/b"]').click());await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
+  outgoing=await page.evaluate(()=>{
+    const read=()=>{
+      try{
+        const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),viewport=window.visualViewport;
+        return {complete:true,windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),viewportPresent:!!viewport,viewportLeft:number(viewport?.offsetLeft),viewportTop:number(viewport?.offsetTop),viewportPageLeft:number(viewport?.pageLeft),viewportPageTop:number(viewport?.pageTop),viewportWidth:number(viewport?.width),viewportHeight:number(viewport?.height),viewportScale:number(viewport?.scale),focusedDraft:document.activeElement===retainedA.draft,sameDocument:document===retainedDocument,pathA:location.pathname==='/a',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy'),ownerHidden:retainedA.owner.hidden,ownerConnected:retainedA.owner.isConnected};
+      }catch{return {complete:false};}
+    };
+    const before=read();document.querySelector('nav a[href="/b"]').click();return {before,after:read()};
+  });await ready(page);await expect(panel(page)).toHaveAttribute('data-retained-panel','B');
   await backA(page);await expect(part(page,'draft')).toBeFocused();
-  expect(await page.evaluate(()=>({window:scrollY,nested:document.querySelector('[data-nextgo-view-active] [data-retained-scroll]').scrollTop,same:document===retainedDocument}))).toEqual({...saved,same:true});
+  const restored=await page.evaluate(()=>{
+    // Sample the original assertion's exact fields FIRST, before diagnostics.
+    const actual={window:scrollY,nested:document.querySelector('[data-nextgo-view-active] [data-retained-scroll]').scrollTop,same:document===retainedDocument};
+    let observation;
+    try{
+      const number=value=>({present:Number.isFinite(value),value:Number.isFinite(value)?value:0}),viewport=window.visualViewport;
+      observation={complete:true,windowX:number(scrollX),windowY:number(scrollY),documentY:number(document.scrollingElement?.scrollTop),historyX:number(history.state?.nextgoX),historyY:number(history.state?.nextgoY),viewportPresent:!!viewport,viewportLeft:number(viewport?.offsetLeft),viewportTop:number(viewport?.offsetTop),viewportPageLeft:number(viewport?.pageLeft),viewportPageTop:number(viewport?.pageTop),viewportWidth:number(viewport?.width),viewportHeight:number(viewport?.height),viewportScale:number(viewport?.scale),focusedDraft:document.activeElement===retainedA.draft,sameDocument:document===retainedDocument,pathA:location.pathname==='/a',pathB:location.pathname==='/b',hydrationReady:document.body.getAttribute('data-nextgo-hydration')==='ready',appBusy:document.getElementById('nextgo-app').hasAttribute('aria-busy'),ownerHidden:retainedA.owner.hidden,ownerConnected:retainedA.owner.isConnected};
+    }catch{observation={complete:false};}
+    return {actual,observation};
+  });
+  afterBack=restored.observation;
+  expect(restored.actual).toEqual({...saved,same:true});
+  }finally{
+    // Attachment happens after the original assertion attempt. Missing values
+    // stay unknown; a later historyY is not the popstate event's saved value.
+    try{
+      const proof={version:1,savedCaptured:!!saved,outgoingCaptured:!!outgoing,afterBackCaptured:!!afterBack,...(saved?{saved}:{}),...(outgoing?{outgoing}:{}),...(afterBack?{afterBack}:{})};
+      const body=Buffer.from(JSON.stringify(proof));
+      if(body.length<=4096)await info.attach('retained-scroll-observations',{body,contentType:'application/json'});
+      else console.warn('Retained scroll diagnostics incomplete: attachment byte cap');
+    }catch{console.warn('Retained scroll diagnostics incomplete: attachment failed');}
+  }
 });
 
 test('changed server output takes a fresh render instead of serving retained stale HTML',async({page,native})=>{
