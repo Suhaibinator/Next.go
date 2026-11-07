@@ -21,6 +21,7 @@ type moduleState struct {
 	Location      Location
 	Selections    map[string]Selection
 	Frozen, Ready bool
+	Revoked       bool
 	Configuration string
 }
 
@@ -29,17 +30,26 @@ func syncModule(raw string) error {
 	if err := json.Unmarshal([]byte(raw), &state); err != nil {
 		return err
 	}
+	// A recognized revocation fences every owned scope before any validation
+	// error, resource invalidation or observer can run authored work.
+	if state.Revoked {
+		syncModuleAuthority(true)
+	}
 	if state.Configuration != documentConfiguration() {
 		return fmt.Errorf("module configuration changed")
 	}
 	if err := state.Paths.Validate(); err != nil {
 		return err
 	}
+	if !state.Revoked {
+		syncModuleAuthority(false)
+	}
 	setResourceEpoch(state.ResourceEpoch)
 	old := selections
 	deployment = state.Paths
 	routeManifest.Public = state.Public
 	committedLocation = state.Location
+	propsLocationChanged(committedLocation)
 	selections = state.Selections
 	draftFrozen = state.Frozen
 	if state.Ready {
@@ -106,10 +116,10 @@ func runModule(name, epoch string, refresh *moduleRefreshRuntime) {
 		return ""
 	})
 	bind("sync", func(args []js.Value) any {
-		if devRefreshBuild && refresh != nil && (refresh.frozen || len(args) != 1 || args[0].Type() != js.TypeString) {
-			return "development refresh module sync is unavailable"
+		if len(args) != 1 || args[0].Type() != js.TypeString {
+			return "module sync is unavailable"
 		}
-		if err := syncModule(args[0].String()); err != nil {
+		if err := syncModuleExport(args[0].String(), devRefreshBuild && refresh != nil && refresh.frozen); err != nil {
 			return err.Error()
 		}
 		return ""
@@ -143,6 +153,11 @@ func runModule(name, epoch string, refresh *moduleRefreshRuntime) {
 		}
 		navigationOpener = args[2]
 		scope := &Scope{Root: Element{args[0]}}
+		releaseAuthority, err := beginModuleMountAuthority(scope)
+		if err != nil {
+			return map[string]any{"error": err.Error()}
+		}
+		defer releaseAuthority()
 		mount := registry[name]
 		if mount == nil {
 			return map[string]any{"error": "module component is unregistered"}

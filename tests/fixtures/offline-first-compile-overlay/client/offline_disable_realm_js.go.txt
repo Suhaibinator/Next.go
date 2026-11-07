@@ -1,0 +1,394 @@
+//go:build js && wasm
+
+package client
+
+import (
+ "context"
+ "strconv"
+ "syscall/js"
+)
+
+// Portable receipts leave the realm; no child-native identity escapes it.
+type offlineFreshDisableResult struct {
+ status, confirmedStatus offlineReply
+ hasConfirmedStatus, disableAcknowledged bool
+ unregisterAttempted, unregisterResolvedTrue, verifiedRegistryAbsent bool
+ parent offlineRealmParent
+}
+
+// Kept as an ownership marker for historical test fixtures. Production Promise
+// observation uses the startup-captured adapter, never a child property lookup.
+type offlineDisablePromiseObserver struct { then, apply js.Value; valid bool }
+
+// Every native invocation, including synchronous append/removal, owns one cell
+// BEFORE allocating callbacks or calling preparation. Unknown setup retains it.
+type offlineDisableNativeCell struct {
+ realm *offlineProofRealm
+ operation offlineNativeOperation
+ nonce string
+ call *offlineNativeCall
+ receiptIdentity, promise, value js.Value
+ authorize, resolved, rejected js.Func
+ authorizeOwned, resolvedOwned, rejectedOwned bool
+ entered, terminal, rejectedValue, charged, retiring, quarantined bool
+ unregister bool
+ callbacks int
+ done chan struct{}
+}
+
+type offlineDisableSettlement struct {
+ value js.Value
+ invoked, returned, terminal, rejected bool
+ receiptKnown bool
+ reason offlineNativeReason
+}
+
+func offlineSignal(done chan struct{}) { select { case done <- struct{}{}: default: } }
+
+func (cell *offlineDisableNativeCell) linkedLocked() bool {
+ if cell == nil || cell.realm == nil || !cell.charged { return false }
+ for _, owned := range cell.realm.disableNative { if owned == cell { return true } }
+ return false
+}
+
+// Only scalar decoding precedes the lock. In particular no JS property access
+// or callback allocation occurs inside the shared ownership critical section.
+func (cell *offlineDisableNativeCell) authorizeCall(_ js.Value, args []js.Value) any {
+ valid := len(args) == 3
+ nonce := ""
+ operation := float64(0)
+ receipt := js.Undefined()
+ if valid {
+  valid = args[0].Type() == js.TypeString && args[1].Type() == js.TypeNumber && args[2].Type() == js.TypeObject && !args[2].IsNull()
+  if valid { nonce, operation, receipt = args[0].String(), args[1].Float(), args[2] }
+ }
+ offlineAuthorityMu.Lock()
+ defer offlineAuthorityMu.Unlock()
+ r := cell.realm
+ if !valid || !cell.linkedLocked() || offlineRealmInUse != r || r.activity!=r.originalActivity || r.closing || r.quarantined || cell.retiring || cell.quarantined || cell.entered || cell.terminal || cell.operation<offlineNativeAppendFrame || cell.operation>offlineNativeParentListRetired || cell.call == nil || nonce != cell.nonce || operation != float64(cell.operation) || !receipt.Equal(cell.receiptIdentity) { return false }
+ physical := cell.operation == offlineNativeRetireLive || cell.operation == offlineNativeRetireUnopened || cell.operation == offlineNativeRetireNeverConnected
+ if physical {
+  // Physical custody belongs to the original realm even after cancellation or
+  // controller replacement. This gate never grants business/public authority.
+  if !r.frameRetiring || !r.frameCreated || r.frame.IsUndefined() || r.pending != 1 || len(r.disableNative) != 1 || len(r.disableReplies) != 0 || len(r.listeners) != 0 || len(r.ports) != 0 || r.navigationPending || r.navigationCallbacks != 0 || r.creationPending { return false }
+  if cell.operation == offlineNativeRetireLive && !r.childEstablished { return false }
+  if cell.operation == offlineNativeRetireUnopened && (r.childEstablished || !r.navigationTerminal) { return false }
+  if cell.operation == offlineNativeRetireNeverConnected && (r.childEstablished || !r.appendKnownNotIssued || r.appendIssued || r.navigationTerminal) { return false }
+ } else {
+  if r.operation!=OfflineDiagnosticUpdate && r.operation!=OfflineDiagnosticDisable{return false}
+  if r.frameRetiring || !offlineCurrentAuthorityLocked(r.parent.c,r.parent.descriptor,r.parent.document,r.parent.window) || r.operation!=r.parent.c.diag.Operation || r.attemptRevision!=r.parent.c.diag.DiagnosticRevision { return false }
+  if cell.operation==offlineNativeUpdateRegistration && r.operation!=OfflineDiagnosticUpdate {return false}
+  if (cell.operation==offlineNativeRPCActiveStatus || cell.operation==offlineNativeRPCActiveDisableRecovered || cell.operation==offlineNativeUnregisterRegistration) && r.operation!=OfflineDiagnosticDisable {return false}
+  if cell.operation == offlineNativeParentListRetired {
+   if !r.retired || r.childEstablished || !r.frame.IsUndefined() || !r.host.IsUndefined() || !r.window.IsUndefined() || !r.document.IsUndefined() || !r.container.IsUndefined() || !r.controller.IsUndefined() { return false }
+  } else if r.retired { return false
+  } else if cell.operation==offlineNativeAppendFrame {
+   if !r.frameCreated || r.creationPending || !r.navigationPending || r.appendIssued || !r.appendKnownNotIssued || r.childEstablished{return false}
+  } else if !r.frameCreated || !r.childEstablished || !r.navigationTerminal || r.navigationPending{return false}
+  // r.ctx is the production WithTimeout context, not the public caller's
+  // arbitrary Context implementation. This LAST read is the linearization.
+  if r.ctx == nil || r.ctx.Err() != nil { return false }
+ }
+ cell.entered = true
+ return true
+}
+
+func (cell *offlineDisableNativeCell) quarantine() {
+ offlineAuthorityMu.Lock()
+ cell.quarantined, cell.realm.quarantined = true, true
+ offlineDiagnosticUnknownLocked(&cell.realm.parent.c.diag,OfflineDiagnosticNativeDispatchThrow)
+ offlineAuthorityMu.Unlock()
+}
+
+func offlineNativeMethod(operation offlineNativeOperation) OfflineDiagnosticMethod {
+ if operation == offlineNativeUpdateRegistration { return OfflineDiagnosticMethodUpdate }
+ if operation == offlineNativeUnregisterRegistration { return OfflineDiagnosticMethodUnregister }
+ return 0
+}
+
+func (cell *offlineDisableNativeCell) settled(value js.Value, rejected bool) {
+ offlineAuthorityMu.Lock()
+ cell.callbacks++
+ offlineAuthorityMu.Unlock()
+ defer func(){offlineAuthorityMu.Lock();cell.callbacks--;offlineAuthorityMu.Unlock();offlineSignal(cell.done)}()
+ // Value classification is outside the mutex; Type/Bool inspect Go tags only.
+ outcome := OfflineDiagnosticResolvedOther
+ if rejected { outcome = OfflineDiagnosticRejected } else if value.Type() == js.TypeBoolean { if value.Bool() { outcome = OfflineDiagnosticResolvedTrue } else { outcome = OfflineDiagnosticResolvedFalse } }
+ offlineAuthorityMu.Lock()
+ if cell.linkedLocked() && !cell.retiring && !cell.terminal {
+  cell.value, cell.rejectedValue, cell.terminal = value, rejected, true
+  if cell.unregister && outcome == OfflineDiagnosticResolvedTrue { cell.realm.parent.c.lastDisable.unregisterResolvedTrue = true }
+  if method := offlineNativeMethod(cell.operation); method != 0 { offlineDiagnosticNativeTerminalLocked(&cell.realm.parent.c.diag,method,outcome) }
+ }
+ offlineAuthorityMu.Unlock()
+}
+
+func (cell *offlineDisableNativeCell) retire() (err error) {
+ offlineAuthorityMu.Lock()
+ if !cell.linkedLocked() || !cell.terminal || cell.callbacks != 0 || cell.quarantined || cell.retiring { offlineAuthorityMu.Unlock(); return ErrOfflineUnknown }
+ cell.retiring = true
+ offlineAuthorityMu.Unlock()
+ defer func(){ if recover()!=nil { cell.quarantine(); err=ErrOfflineUnknown } }()
+ // Handler release never runs under the authority mutex. Terminal native
+ // Promise callbacks cannot dispatch a second terminal transition.
+ if cell.authorizeOwned { cell.authorize.Release() }
+ if cell.resolvedOwned { cell.resolved.Release() }
+ if cell.rejectedOwned { cell.rejected.Release() }
+ offlineAuthorityMu.Lock()
+ defer offlineAuthorityMu.Unlock()
+ if !cell.linkedLocked() || cell.callbacks != 0 { cell.quarantined,cell.realm.quarantined=true,true; return ErrOfflineUnknown }
+ for i, owned := range cell.realm.disableNative { if owned == cell {
+  cell.realm.disableNative=append(cell.realm.disableNative[:i],cell.realm.disableNative[i+1:]...)
+  cell.realm.pending--
+  cell.charged=false
+  cell.call=nil
+  cell.receiptIdentity,cell.promise,cell.value=js.Undefined(),js.Undefined(),js.Undefined()
+  return nil
+ } }
+ return ErrOfflineUnknown
+}
+
+func (r *offlineProofRealm) nativeInvoke(input offlineNativeInput, asynchronous bool) (settlement offlineDisableSettlement, err error) {
+ offlineAuthorityMu.Lock()
+ if offlineRealmInUse != r || r.closing || r.quarantined || r.nativeNonce == ^uint64(0) { offlineAuthorityMu.Unlock(); return settlement,ErrOfflineUnknown }
+ r.nativeNonce++
+ cell:=&offlineDisableNativeCell{realm:r,operation:input.Operation,nonce:"realm-"+strconv.FormatUint(r.nativeNonce,36),charged:true,unregister:input.Operation==offlineNativeUnregisterRegistration,done:make(chan struct{},1)}
+ r.disableNative=append(r.disableNative,cell)
+ r.pending++
+ offlineAuthorityMu.Unlock()
+ defer func(){if recover()!=nil {cell.quarantine();err=ErrOfflineUnknown}}()
+ cell.authorize=js.FuncOf(cell.authorizeCall);cell.authorizeOwned=true
+ if asynchronous {
+  cell.resolved=js.FuncOf(func(_ js.Value,values []js.Value) any {value:=js.Undefined();if len(values)>0 {value=values[0]};cell.settled(value,false);return nil});cell.resolvedOwned=true
+  cell.rejected=js.FuncOf(func(_ js.Value,_ []js.Value) any {cell.settled(js.Undefined(),true);return nil});cell.rejectedOwned=true
+ }
+ input.Nonce,input.Authorize=cell.nonce,cell.authorize
+ call,prepareErr:=offlineNativePrepare(input)
+ if prepareErr!=nil {cell.quarantine();return settlement,prepareErr}
+ offlineAuthorityMu.Lock()
+ cell.call,cell.receiptIdentity=call,call.ReceiptIdentity()
+ offlineAuthorityMu.Unlock()
+ receipt,invokeErr:=call.Invoke(cell.authorize)
+ // Native flag decoding is complete before taking the writer lock.
+ known:=invokeErr==nil
+ offlineAuthorityMu.Lock()
+ settlement.receiptKnown,settlement.reason=known,receipt.Reason
+ settlement.invoked,settlement.returned=receipt.Issued,receipt.Returned
+ if method:=offlineNativeMethod(input.Operation);method!=0 {
+  offlineDiagnosticNativeReceiptLocked(&r.parent.c.diag,method,known,receipt.Issued,receipt.Returned,receipt.Issued,OfflineDiagnosticReason(receipt.Reason))
+ }
+ if input.Operation==offlineNativeUnregisterRegistration && receipt.Issued {r.parent.c.lastDisable.unregisterAttempted=true}
+ if input.Operation==offlineNativeAppendFrame {
+  if known && !receipt.Issued {r.appendKnownNotIssued=true;r.navigationPending=false} else if receipt.Issued {r.appendIssued=true}
+ }
+ unused:=known && input.Operation==offlineNativeRetireNeverConnected && receipt.Entered && !receipt.Issued && receipt.Returned && receipt.Reason==offlineNativeReasonNone
+ nativeRefusal:=known && receipt.Reason!=offlineNativeReasonNone && receipt.Reason!=offlineNativeReasonEntryRefused
+ if !known || receipt.Issued && !receipt.Returned || nativeRefusal {cell.quarantined,r.quarantined=true,true;offlineDiagnosticUnknownLocked(&r.parent.c.diag,OfflineDiagnosticReason(receipt.Reason))}
+ if known && !receipt.Issued {
+  cell.terminal=true
+  if !unused && receipt.Reason!=offlineNativeReasonEntryRefused {r.quarantined=true;offlineDiagnosticUnknownLocked(&r.parent.c.diag,OfflineDiagnosticReason(receipt.Reason))}
+ }
+ if known && receipt.Issued && receipt.Returned {
+  if asynchronous {cell.promise=receipt.Value} else {cell.value,cell.terminal=receipt.Value,true}
+ }
+ offlineAuthorityMu.Unlock()
+ if !known || receipt.Issued && !receipt.Returned || nativeRefusal {return settlement,ErrOfflineUnknown}
+ if !receipt.Issued {
+  settlement.terminal=unused
+  if cleanup:=cell.retire();cleanup!=nil {return settlement,cleanup}
+  if unused{return settlement,nil}
+  return settlement,ErrOfflineUnknown
+ }
+ if asynchronous {
+  if e:=offlineNativePromiseThen(receipt.Value,cell.resolved,cell.rejected);e!=nil {cell.quarantine();return settlement,e}
+  canceled:=r.ctx.Done()
+  for {
+   offlineAuthorityMu.Lock();joined:=cell.terminal && cell.callbacks==0;offlineAuthorityMu.Unlock()
+   if joined {break}
+   select {case <-cell.done:case <-canceled:canceled=nil}
+  }
+ }
+ offlineAuthorityMu.Lock()
+ settlement.value,settlement.terminal,settlement.rejected=cell.value,cell.terminal,cell.rejectedValue
+ offlineAuthorityMu.Unlock()
+ if e:=cell.retire();e!=nil {return settlement,e}
+ physical:=input.Operation==offlineNativeRetireLive || input.Operation==offlineNativeRetireUnopened || input.Operation==offlineNativeRetireNeverConnected
+ if settlement.rejected || !physical && (r.ctx==nil || r.ctx.Err()!=nil) {return settlement,ErrOfflineUnknown}
+ return settlement,nil
+}
+
+// Compatibility entry points route only to the closed native operation set.
+// They never fall back to Get/Call on a registration/container instance.
+func (r *offlineProofRealm) disableNativeCall(ctx context.Context,parentTail bool,target js.Value,method string,args ...any) (offlineDisableSettlement,error) {
+ return r.disableNativeCallWithFence(ctx,parentTail,nil,target,method,args...)
+}
+func (r *offlineProofRealm) disableNativeCallWithFence(ctx context.Context,parentTail bool,authorize func()error,target js.Value,method string,args ...any) (offlineDisableSettlement,error) {
+ if authorize!=nil {if err:=authorize();err!=nil {return offlineDisableSettlement{},err}}
+ operation:=offlineNativeOperation(0)
+ switch method {case "getRegistrations":if parentTail {operation=offlineNativeParentListRetired} else if target.Equal(r.parent.container) {operation=offlineNativeParentListLive} else if target.Equal(r.container) {operation=offlineNativeChildList}
+ case "getRegistration":if target.Equal(r.container) {operation=offlineNativeChildLookup}
+ case "update":operation=offlineNativeUpdateRegistration
+ case "unregister":operation=offlineNativeUnregisterRegistration}
+ if operation==0 {return offlineDisableSettlement{},ErrOfflineUnknown}
+ var candidate offlineNativeRegistration
+ if operation==offlineNativeUpdateRegistration || operation==offlineNativeUnregisterRegistration {var err error;candidate,err=r.snapshotCandidate(target);if err!=nil {return offlineDisableSettlement{},err}}
+ return r.nativeInvoke(r.nativeInput(operation,candidate),true)
+}
+func (r *offlineProofRealm) disableRead(ctx context.Context,target js.Value,method string,args ...any)(js.Value,error){value,err:=r.disableNativeCall(ctx,false,target,method,args...);return value.value,err}
+
+// One existing listener receives actual native events. Valid replies are counted
+// before the terminal guard; only the first can commit, including inner reentry.
+type offlineDisableReplyCell struct {
+ realm *offlineProofRealm
+ channel,port,other,worker js.Value
+ listener js.Func
+ listenerOwned bool
+ request offlineRequest
+ reply offlineReply
+ installed,terminal,charged,retiring,quarantined bool
+ callbacks int
+ done chan struct{}
+}
+func (cell *offlineDisableReplyCell) diagnosticRPC() OfflineDiagnosticRPC {if cell.request.Command=="disable-recovered" {return OfflineDiagnosticRPCDisableRecovered};return OfflineDiagnosticRPCStatus}
+func (cell *offlineDisableReplyCell) linkedLocked() bool {if !cell.charged{return false};for _,owned:=range cell.realm.disableReplies {if owned==cell{return true}};return false}
+func (cell *offlineDisableReplyCell) receive(_ js.Value,args []js.Value) any {
+ offlineAuthorityMu.Lock();cell.callbacks++;eligible:=cell.linkedLocked() && !cell.retiring;port,request:=cell.port,cell.request;offlineAuthorityMu.Unlock()
+ defer func(){offlineAuthorityMu.Lock();cell.callbacks--;offlineAuthorityMu.Unlock();offlineSignal(cell.done)}()
+ defer func(){_ = recover()}()
+ if !eligible || len(args)!=1 || args[0].Type()!=js.TypeObject || args[0].IsNull(){return nil}
+ event:=args[0]
+ trusted,target:=offlineJSGet(event,"isTrusted"),offlineJSGet(event,"target")
+ if trusted.Type()!=js.TypeBoolean || !trusted.Bool() || !target.Equal(port){return nil}
+ reply,err:=decodeOfflineMessage(offlineJSGet(event,"data"),request)
+ if err!=nil{return nil}
+ ack:=OfflineDiagnosticACK{State:reply.State,Error:reply.Error,Enabled:reply.Enabled,Supported:reply.Supported,DeferredCleanup:reply.DeferredCleanup,RuntimeID:reply.RuntimeID,ConfigurationID:reply.ConfigurationID}
+ offlineAuthorityMu.Lock()
+ defer offlineAuthorityMu.Unlock()
+ if !cell.linkedLocked() || cell.retiring{return nil}
+ offlineDiagnosticRPCEventLocked(&cell.realm.parent.c.diag,cell.diagnosticRPC(),OfflineDiagnosticTrustedEvent)
+ offlineDiagnosticRPCValidReplyLocked(&cell.realm.parent.c.diag,cell.diagnosticRPC(),ack)
+ if cell.terminal{return nil}
+ cell.reply,cell.terminal=reply,true
+ if request.Command=="disable-recovered" && offlineDisableAcknowledged(reply){cell.realm.parent.c.lastDisable.disableAcknowledged=true}
+ return nil
+}
+func (cell *offlineDisableReplyCell) quarantine(){offlineAuthorityMu.Lock();cell.quarantined,cell.realm.quarantined=true,true;offlineDiagnosticUnknownLocked(&cell.realm.parent.c.diag,OfflineDiagnosticNativeDispatchThrow);offlineAuthorityMu.Unlock()}
+func (cell *offlineDisableReplyCell) record(event OfflineDiagnosticRPCEvent){offlineAuthorityMu.Lock();offlineDiagnosticRPCEventLocked(&cell.realm.parent.c.diag,cell.diagnosticRPC(),event);offlineAuthorityMu.Unlock()}
+func (cell *offlineDisableReplyCell) retire()(err error){
+ offlineAuthorityMu.Lock()
+ if !cell.linkedLocked() || !cell.terminal || cell.callbacks!=0 || cell.quarantined || cell.retiring {offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+ cell.retiring=true;installed:=cell.installed
+ offlineAuthorityMu.Unlock()
+ defer func(){if recover()!=nil {cell.quarantine();err=ErrOfflineUnknown}}()
+ if installed {if e:=offlineNativeRemove(cell.port,"message",cell.listener);e!=nil{cell.quarantine();return e};cell.record(OfflineDiagnosticListenerRemoved);offlineAuthorityMu.Lock();cell.installed=false;offlineAuthorityMu.Unlock()}
+ // Removal joins callbacks through the existing count before Release. A host
+ // reentry during removal sees retiring and has no protocol authority.
+ for {offlineAuthorityMu.Lock();joined:=cell.callbacks==0;offlineAuthorityMu.Unlock();if joined{break};<-cell.done}
+ if e:=offlineNativeClose(cell.port);e!=nil{cell.quarantine();return e};cell.record(OfflineDiagnosticPort1Closed)
+ if e:=offlineNativeClose(cell.other);e!=nil{cell.quarantine();return e};cell.record(OfflineDiagnosticPort2Closed)
+ if cell.listenerOwned{cell.listener.Release()}
+ offlineAuthorityMu.Lock();defer offlineAuthorityMu.Unlock()
+ if !cell.linkedLocked() || cell.callbacks!=0{cell.quarantined,cell.realm.quarantined=true,true;return ErrOfflineUnknown}
+ for i,owned:=range cell.realm.disableReplies {if owned==cell {cell.realm.disableReplies=append(cell.realm.disableReplies[:i],cell.realm.disableReplies[i+1:]...);cell.realm.pending--;cell.charged=false;cell.channel,cell.port,cell.other,cell.worker=js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined();return nil}}
+ return ErrOfflineUnknown
+}
+func (r *offlineProofRealm) disableMessage(ctx context.Context,candidate,worker js.Value,command,runtime,configuration string)(reply offlineReply,received bool,err error){
+ if err=r.fence(ctx);err!=nil{return reply,false,err}
+ operation:=offlineNativeRPCActiveStatus
+ if command=="disable-recovered"{operation=offlineNativeRPCActiveDisableRecovered}else if command!="status"{return reply,false,ErrOfflineProtocol}
+ snapshot,e:=r.snapshotCandidate(candidate);if e!=nil{return reply,false,e}
+ if snapshot.Active.IsNull() || !snapshot.Active.Equal(worker){return reply,false,ErrOfflineConflict}
+ sequence,owner,e:=r.parent.c.reserveOfflineRequest();if e!=nil{return reply,false,e}
+ request:=offlineRequest{Version:offlineMessageVersion,Command:command,OwnerPolicyID:owner,RuntimeID:runtime,ConfigurationID:configuration,RequestID:"offline-"+strconv.FormatUint(sequence,36)}
+ cell:=&offlineDisableReplyCell{realm:r,worker:worker,request:request,charged:true,done:make(chan struct{},1)}
+ offlineAuthorityMu.Lock();if offlineRealmInUse!=r || r.closing || r.quarantined{offlineAuthorityMu.Unlock();return reply,false,ErrOfflineUnknown};r.disableReplies=append(r.disableReplies,cell);r.pending++;offlineAuthorityMu.Unlock()
+ defer func(){if recover()!=nil{cell.quarantine();err=ErrOfflineUnknown}}()
+ cell.listener=js.FuncOf(cell.receive);cell.listenerOwned=true
+ channel,e:=offlineNativeCreateChannel();if e!=nil{cell.quarantine();return reply,false,e}
+ offlineAuthorityMu.Lock();cell.channel,cell.port,cell.other=channel.Channel,channel.Port1,channel.Port2;offlineAuthorityMu.Unlock();cell.record(OfflineDiagnosticChannelCreated)
+ offlineAuthorityMu.Lock();cell.installed=true;offlineAuthorityMu.Unlock()
+ if e=offlineNativeListen(cell.port,"message",cell.listener);e!=nil{cell.quarantine();return reply,false,e};cell.record(OfflineDiagnosticListenerAdded)
+ if e=offlineNativeStart(cell.port);e!=nil{cell.quarantine();return reply,false,e};cell.record(OfflineDiagnosticPortStarted)
+ // The RPC owns a distinct bridge cell as well as its precharged channel cell.
+ input:=r.nativeInput(operation,snapshot)
+ input.Payload=offlineNativePayload{Version:request.Version,Command:request.Command,OwnerPolicyID:request.OwnerPolicyID,RuntimeID:request.RuntimeID,ConfigurationID:request.ConfigurationID,RequestID:request.RequestID}
+ input.Port=cell.other
+ settlement,dispatchErr:=r.nativeInvoke(input,false)
+ offlineAuthorityMu.Lock()
+ offlineDiagnosticRPCReceiptLocked(&r.parent.c.diag,cell.diagnosticRPC(),settlement.receiptKnown,settlement.invoked,settlement.returned,settlement.invoked,OfflineDiagnosticReason(settlement.reason))
+ if dispatchErr!=nil && !settlement.invoked && !r.quarantined {cell.terminal=true}
+ terminal:=cell.terminal
+ quarantined:=r.quarantined
+ offlineAuthorityMu.Unlock()
+ // Cancellation/replacement after a known returned dispatch cannot abandon
+ // its real ACK. Join it before applying the logical operation result.
+ if dispatchErr!=nil && quarantined {
+  cell.quarantine()
+  offlineAuthorityMu.Lock();reply,received=cell.reply,cell.terminal && cell.reply.State!="";offlineAuthorityMu.Unlock()
+  return reply,received,dispatchErr
+ }
+ if dispatchErr!=nil && (!settlement.invoked || !settlement.returned) {
+  if !terminal {cell.quarantine();return reply,false,dispatchErr}
+  offlineAuthorityMu.Lock();reply,received=cell.reply,cell.reply.State!="";offlineAuthorityMu.Unlock()
+  if e=cell.retire();e!=nil{return reply,received,e};return reply,received,dispatchErr
+ }
+ canceled:=ctx.Done()
+ for {offlineAuthorityMu.Lock();joined:=cell.terminal && cell.callbacks==0;offlineAuthorityMu.Unlock();if joined{break};select{case <-cell.done:case <-canceled:canceled=nil}}
+ offlineAuthorityMu.Lock();reply,received=cell.reply,true;offlineAuthorityMu.Unlock()
+ if e=cell.retire();e!=nil{return reply,received,e}
+ if ctx.Err()!=nil{return reply,received,ErrOfflineUnknown}
+ if e=r.fence(ctx);e!=nil{return reply,received,e}
+ return reply,received,nil
+}
+
+// Final proofs use the native inspector for every entry and all worker slots.
+func (r *offlineProofRealm) disableDispatchFence(ctx context.Context,candidate,active js.Value)error{
+ if err:=r.fence(ctx);err!=nil{return err};snapshot,err:=r.snapshotCandidate(candidate);if err!=nil{return err};if snapshot.Active.IsNull() || !snapshot.Active.Equal(active){return ErrOfflineConflict};return r.fence(ctx)
+}
+func (r *offlineProofRealm) disableProof(ctx context.Context,candidate,active js.Value)error{
+ if err:=r.proof(ctx,candidate);err!=nil{return err};return r.disableDispatchFence(ctx,candidate,active)
+}
+func (r *offlineProofRealm) disable(ctx context.Context,result *offlineFreshDisableResult)error{
+ c:=r.parent.c
+ value,err:=r.disableRead(ctx,r.container,"getRegistrations");if err!=nil{return err}
+ inventory,err:=r.inspectInventory(value);if err!=nil{return err}
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryInitial,true,!inventory.exact.Truthy());offlineAuthorityMu.Unlock()
+ if !inventory.exact.Truthy(){return c.ownershipConflict("registration-proof-missing")}
+ candidate,err:=r.disableRead(ctx,r.container,"getRegistration",r.parent.descriptor.Scope);if err!=nil{return err}
+ snapshot,err:=r.snapshotCandidate(candidate);if err!=nil{return err};active:=snapshot.Active
+ if active.IsNull(){return c.ownershipConflict("registration-proof-empty-active")}
+ if err=r.disableProof(ctx,candidate,active);err!=nil{return err}
+ status,_,err:=r.disableMessage(ctx,candidate,active,"status",r.parent.descriptor.RuntimeID,r.parent.descriptor.ConfigurationID);if err!=nil{return err}
+ if !status.Supported{return ErrOfflineUnsupported}
+ if offlineDisableReplyConfirmed(status){result.confirmedStatus,result.hasConfirmedStatus=status,true}
+ if err=r.disableProof(ctx,candidate,active);err!=nil{return err}
+ reply,received,err:=r.disableMessage(ctx,candidate,active,"disable-recovered",status.RuntimeID,status.ConfigurationID)
+ if received && offlineDisableAcknowledged(reply){result.status,result.disableAcknowledged=reply,true}
+ if err!=nil{return err}
+ if !result.disableAcknowledged{if !reply.Supported{return ErrOfflineUnsupported};return ErrOfflineProtocol}
+ if err=r.disableProof(ctx,candidate,active);err!=nil{return err}
+ snapshot,err=r.snapshotCandidate(candidate);if err!=nil{return err}
+ settlement,err:=r.nativeInvoke(r.nativeInput(offlineNativeUnregisterRegistration,snapshot),true)
+ result.unregisterAttempted=settlement.invoked
+ result.unregisterResolvedTrue=settlement.terminal && !settlement.rejected && settlement.value.Type()==js.TypeBoolean && settlement.value.Bool()
+ if err!=nil{return err};if !result.unregisterResolvedTrue{return ErrOfflineUnknown}
+ value,err=r.disableRead(ctx,r.container,"getRegistrations");if err!=nil{return err}
+ inventory,err=r.inspectInventory(value);if err!=nil{return err}
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryFinal,true,!inventory.exact.Truthy());offlineAuthorityMu.Unlock()
+ if inventory.exact.Truthy(){return c.ownershipConflict("registration-proof-remains-after-unregister")}
+ return r.fence(ctx)
+}
+func (c *offlineController) disableInFreshRealm(ctx context.Context,container,controller js.Value)(result offlineFreshDisableResult,err error){
+ r,err:=c.newProofRealm(ctx,container,controller);if err!=nil{return result,err};result.parent=r.parent
+ defer func(){if recover()!=nil{err=ErrOfflineUnknown};if cleanup:=r.close();cleanup!=nil{err=cleanup}}()
+ if err=r.open(ctx);err!=nil{return result,err}
+ if err=r.disable(ctx,&result);err!=nil{return result,err}
+ if err=r.retireFrame();err!=nil{return result,err}
+ value,e:=r.nativeInvoke(r.nativeInput(offlineNativeParentListRetired,offlineNativeRegistration{}),true);if e!=nil{return result,e}
+ inventory,e:=r.inspectInventory(value.value);if e!=nil{return result,e}
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryParentRetired,true,!inventory.exact.Truthy());offlineAuthorityMu.Unlock()
+ if inventory.exact.Truthy(){return result,c.ownershipConflict("registration-proof-remains-after-unregister")}
+ if err=r.parent.fence(ctx);err!=nil{return result,err}
+ result.verifiedRegistryAbsent=true
+ return result,nil
+}

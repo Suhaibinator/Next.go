@@ -121,7 +121,9 @@ Generated wrappers now inherit the implemented native `Result.Cookies` output
 and the core typed-dispatch FIFO without a second transport. The historical
 cookie/dispatch matrix used ABI 3; ABI 4 subsequently added mandatory
 [resource invalidation](CLIENT_RESOURCES.md). Current paired bundles require
-ABI 5 for [per-anchor link-status forwarding](LINK_STATUS.md). Rebuild the core,
+ABI 6, retaining [per-anchor link-status forwarding](LINK_STATUS.md) and adding
+recognized document revocation before module observer dispatch. That ABI-6 source
+increment is unqualified by the historical action checks. Rebuild the core,
 every lazy module and development entries together from the same framework
 revision and selected Go SDK. See [native cookies](NATIVE_COOKIES.md) and
 [dispatch](MUTATION_DISPATCH.md). The cookie/dispatch checkpoint's SDK/deployment

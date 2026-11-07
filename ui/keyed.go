@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"github.com/Suhaibinator/Next.go/internal/keyed"
+	"github.com/Suhaibinator/Next.go/internal/renderowner"
 	"io"
 	"maps"
 	"strings"
@@ -29,6 +30,11 @@ func Keyed(tag, key string, attrs Attrs, children ...Node) Node {
 		if err := keyed.ValidateKey(key); err != nil {
 			return err
 		}
-		return El(tag, owned, children...).Render(w)
+		node := El(tag, owned, children...)
+		ctx := RenderContext(w)
+		if renderowner.RecorderFrom(ctx) == nil {
+			return node.Render(w)
+		}
+		return RenderTo(renderowner.With(ctx, renderowner.Frame{Kind: "keyed", ID: key, Tag: strings.ToLower(tag)}), w, node)
 	})
 }

@@ -194,8 +194,10 @@ from submitting the action again.
 The cookie/FIFO phase used lazy Go/WASM bridge ABI 3 to delegate transport,
 typed-result validation and document commit to the core runtime. ABI 4 added
 mandatory [resource invalidation](CLIENT_RESOURCES.md). Those checkpoint results
-remain historical. Current paired bundles require ABI 5 for
-[per-anchor link-status forwarding](LINK_STATUS.md); rebuild the core, every lazy
+remain historical. Current paired bundles require ABI 6, retaining
+[per-anchor link-status forwarding](LINK_STATUS.md) and adding recognized document
+revocation before module observer dispatch. This ABI-6 increment is source-only
+and unqualified by the older action-view results. Rebuild the core, every lazy
 module and development entries together from the same framework revision and
 selected Go SDK. Module callbacks remain
 retained until the physical host operation settles; cancellation cannot free a

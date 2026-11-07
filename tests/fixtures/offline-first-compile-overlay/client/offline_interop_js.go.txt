@@ -1,0 +1,61 @@
+//go:build js && wasm
+
+package client
+
+import (
+	"syscall/js"
+)
+
+// Offline operations share the one framework checked native primitive. Keep
+// offline receipt/decoder policy here; never introduce a second reflection
+// capture or implicit recursive Go ValueOf conversion for composites.
+
+func offlineJSGet(value js.Value, property string) js.Value {
+	return checkedJSGet(value, property)
+}
+
+func offlineJSSet(value js.Value, property string, next any) {
+	checkedJSSet(value, property, next)
+}
+
+func offlineJSIndex(value js.Value, index int) js.Value {
+	return checkedJSIndex(value, index)
+}
+
+func offlineJSLength(value js.Value) int {
+	return checkedJSLength(value)
+}
+
+func offlineJSCall(value js.Value, method string, args ...any) js.Value {
+	return checkedJSCall(value, method, args...)
+}
+
+func offlineJSInvoke(function js.Value, args ...any) js.Value { return checkedJSInvoke(function, args...) }
+func offlineJSNew(function js.Value, args ...any) js.Value { return checkedJSNew(function, args...) }
+func offlineJSArray(values []any) js.Value { return checkedJSArray(values) }
+func offlineJSObject(values map[string]any) js.Value { return checkedJSObject(values) }
+func offlineJSApply(function, receiver, arguments js.Value) js.Value { return checkedJSApply(function, receiver, arguments) }
+
+func offlineJSRequest(request offlineRequest) js.Value {
+	return offlineJSObject(map[string]any{
+		"version": request.Version, "command": request.Command,
+		"ownerPolicyID": request.OwnerPolicyID, "runtimeID": request.RuntimeID,
+		"configurationID": request.ConfigurationID, "requestID": request.RequestID,
+	})
+}
+
+// Legacy read-only/ordinary reply callbacks have no caller-stack recovery: a
+// callback runs on its own Go event goroutine. Decode the event property within
+// its own recovery boundary too. Fresh Disable additionally retains its owned
+// listener/charge until a later valid exact native reply.
+func decodeOfflineEvent(args []js.Value, request offlineRequest) (reply offlineReply, err error) {
+	defer func() {
+		if recover() != nil {
+			reply, err = offlineReply{}, ErrOfflineProtocol
+		}
+	}()
+	if len(args) != 1 {
+		return reply, ErrOfflineProtocol
+	}
+	return decodeOfflineMessage(offlineJSGet(args[0], "data"), request)
+}

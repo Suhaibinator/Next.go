@@ -202,6 +202,14 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 		}
 	}()
 	_, err = FetchStream(ctx, key, FetchOptions{Headers: headers, Cache: "no-store"}, func(value Response) error {
+		// Only the active navigation may change published document authority.
+		// A superseded response can still settle after cancellation was requested.
+		if failure := ctx.Err(); failure != nil {
+			return failure
+		}
+		if id != navigationID {
+			return context.Canceled
+		}
 		response = value
 		if !sameOriginResponse(value.URL) {
 			if sameResponseOrigin(value.URL) {
@@ -210,12 +218,21 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 			return fmt.Errorf("navigation redirected outside the application origin")
 		}
 		if value.Header.Get(navigation.DraftHeader) != documentDraft() || value.Header.Get(navigation.ProtocolHeader) != fmt.Sprint(navigation.ProtocolVersion) {
+			// Match the envelope decoder before this header-only fallback skips it.
+			revokeMergeDocument()
 			return errStreamFallback
 		}
 		media := strings.ToLower(strings.TrimSpace(strings.Split(value.Header.Get("Content-Type"), ";")[0]))
 		isStream = media == navigation.StreamMediaType
-		if isStream && (value.StatusCode != 200 || value.Header.Get(navigation.StreamHeader) != fmt.Sprint(navigation.StreamVersion) || value.Header.Get(navigation.ConfigurationHeader) != documentConfiguration()) {
-			return errStreamFallback
+		if isStream {
+			// Status and stream codec negotiation alone establish no identity change.
+			if value.StatusCode != 200 || value.Header.Get(navigation.StreamHeader) != fmt.Sprint(navigation.StreamVersion) {
+				return errStreamFallback
+			}
+			if value.Header.Get(navigation.ConfigurationHeader) != documentConfiguration() {
+				revokeMergeDocument()
+				return errStreamFallback
+			}
 		}
 		metadataAck, metadataAckErr := navigation.MetadataAcknowledged(value.Header.Values(navigation.MetadataHeader))
 		if metadataAckErr != nil {
@@ -306,6 +323,16 @@ func fetchActiveNavigation(ctx context.Context, key, target string, pop bool, st
 			return nil
 		})
 	})
+	// EOF has no chunk callback. Recheck before a buffered envelope or fallback
+	// may invalidate the cache or revoke a newer published document.
+	if failure := ctx.Err(); failure != nil {
+		err = failure
+		return
+	}
+	if id != navigationID {
+		err = context.Canceled
+		return
+	}
 	if errors.Is(err, errStreamFallback) && !streamed {
 		fallback = true
 		err = nil

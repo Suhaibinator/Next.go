@@ -1,0 +1,228 @@
+package client
+
+import (
+	"encoding/json"
+	"errors"
+	"strconv"
+)
+
+// OfflineDiagnosticOperation identifies the admitted public operation, not a
+// native bridge mode or an authority capability.
+type OfflineDiagnosticOperation uint8
+const (
+	OfflineDiagnosticOperationUnknown OfflineDiagnosticOperation = iota
+	OfflineDiagnosticStatus
+	OfflineDiagnosticEnable
+	OfflineDiagnosticUpdate
+	OfflineDiagnosticDisable
+)
+
+type OfflineDiagnosticCoverage uint8
+const (
+	OfflineDiagnosticCoverageUnknown OfflineDiagnosticCoverage = iota
+	OfflineDiagnosticCoverageComplete
+)
+
+type OfflineDiagnosticOutcome uint8
+const (
+	OfflineDiagnosticOutcomeUnknown OfflineDiagnosticOutcome = iota
+	OfflineDiagnosticResolvedTrue
+	OfflineDiagnosticResolvedFalse
+	OfflineDiagnosticResolvedOther
+	OfflineDiagnosticRejected
+)
+
+// OfflineDiagnosticReason is the exact closed native bridge V3 reason enum.
+type OfflineDiagnosticReason uint8
+const (
+	OfflineDiagnosticNone OfflineDiagnosticReason = iota
+	OfflineDiagnosticEntryRefused
+	OfflineDiagnosticInputRefused
+	OfflineDiagnosticParentRefused
+	OfflineDiagnosticFrameRefused
+	OfflineDiagnosticChildRefused
+	OfflineDiagnosticRegistrationRefused
+	OfflineDiagnosticNativeReadThrow
+	OfflineDiagnosticNativeDispatchThrow
+)
+
+const OfflineRecoveryObservationLimit = 8192
+
+// OfflineRecoveryDiagnostic is a bounded value copy of one admitted attempt's
+// actual receipts. It is separate from confirmed OfflineState. No field grants
+// authority or retains a browser object. Unsupported evidence remains unknown.
+type OfflineRecoveryDiagnostic struct {
+	uncertain bool
+	frameUncertain bool
+	Version uint8 `json:"version"`
+	DiagnosticRevision uint32 `json:"diagnosticRevision"`
+	Operation OfflineDiagnosticOperation `json:"operation"`
+	RuntimeID string `json:"runtimeID"`
+	ConfigurationID string `json:"configurationID"`
+	Available bool `json:"available"`
+	Coverage OfflineDiagnosticCoverage `json:"coverage"`
+	LogicalReturned bool `json:"logicalReturned"`
+	CleanupKnown bool `json:"cleanupKnown"`
+	Overflow bool `json:"overflow"`
+	Failure OfflineDiagnosticReason `json:"failure"`
+	Update OfflineDiagnosticNative `json:"update"`
+	Unregister OfflineDiagnosticNative `json:"unregister"`
+	Register OfflineDiagnosticNative `json:"register"`
+	Status OfflineDiagnosticRPCObservation `json:"status"`
+	DisableRecovered OfflineDiagnosticRPCObservation `json:"disableRecovered"`
+	Frame OfflineDiagnosticFrame `json:"frame"`
+	Registry OfflineDiagnosticRegistry `json:"registry"`
+}
+
+type OfflineDiagnosticNative struct {
+	Covered bool
+	Issued, Returned, Terminal uint8
+	Outcome OfflineDiagnosticOutcome
+	ExactReceiver bool
+}
+
+type OfflineDiagnosticACK struct {
+	State string `json:"state"`
+	Error string `json:"error"`
+	Enabled bool `json:"enabled"`
+	Supported bool `json:"supported"`
+	DeferredCleanup bool `json:"deferredCleanup"`
+	RuntimeID string `json:"runtimeID"`
+	ConfigurationID string `json:"configurationID"`
+}
+
+type OfflineDiagnosticRPCObservation struct {
+	Covered bool
+	Issued, Returned, BindingExact, WorkerURLExact, Terminal bool
+	StartKnown, StartReturned bool
+	Port1CloseReturned, Port2CloseReturned, OnceListenerObserved bool
+	ChannelsCreated, ListenerAdds, ListenerRemoves, TrustedEvents, DuplicateTerminals uint8
+	ACK OfflineDiagnosticACK
+}
+
+type OfflineDiagnosticFrame struct {
+	ListenerAdds, ListenerRemoves uint8
+	BalanceKnown bool
+}
+
+type OfflineDiagnosticRegistry struct {
+	InitialInventoryKnown bool `json:"initialInventoryKnown"`
+	FinalInventoryKnown bool `json:"finalInventoryKnown"`
+	FinalAbsent bool `json:"-"`
+	ParentPostRetirementInventoryKnown bool `json:"parentPostRetirementInventoryKnown"`
+	ParentPostRetirementAbsent bool `json:"-"`
+}
+
+// The nullable wire scalars are temporary encoding values. The public snapshot
+// itself remains pointer-free, contains no collections, and is copied by value.
+type offlineDiagnosticCount struct { known bool; value uint8 }
+func (v offlineDiagnosticCount) MarshalJSON() ([]byte, error) {
+	if !v.known { return []byte("null"), nil }
+	return strconv.AppendUint(nil, uint64(v.value), 10), nil
+}
+type offlineDiagnosticBoolean struct { known, value bool }
+func (v offlineDiagnosticBoolean) MarshalJSON() ([]byte, error) {
+	if !v.known { return []byte("null"), nil }
+	return strconv.AppendBool(nil, v.value), nil
+}
+type offlineDiagnosticACKWire struct { known bool; value OfflineDiagnosticACK }
+func (v offlineDiagnosticACKWire) MarshalJSON() ([]byte, error) {
+	if !v.known { return []byte("null"), nil }
+	return json.Marshal(v.value)
+}
+
+func (v OfflineDiagnosticNative) MarshalJSON() ([]byte, error) {
+	if !v.Covered { v.Outcome = OfflineDiagnosticOutcomeUnknown }
+	return json.Marshal(struct {
+		Covered bool `json:"covered"`
+		Issued offlineDiagnosticCount `json:"issued"`
+		Returned offlineDiagnosticCount `json:"returned"`
+		Terminal offlineDiagnosticCount `json:"terminal"`
+		Outcome OfflineDiagnosticOutcome `json:"outcome"`
+		ExactReceiver offlineDiagnosticBoolean `json:"exactReceiver"`
+	}{v.Covered, offlineDiagnosticCount{v.Covered,v.Issued}, offlineDiagnosticCount{v.Covered,v.Returned}, offlineDiagnosticCount{v.Covered,v.Terminal}, v.Outcome, offlineDiagnosticBoolean{v.Covered && v.Issued != 0,v.ExactReceiver}})
+}
+
+func (v OfflineDiagnosticRPCObservation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Covered bool `json:"covered"`
+		Issued offlineDiagnosticBoolean `json:"issued"`
+		Returned offlineDiagnosticBoolean `json:"returned"`
+		BindingExact offlineDiagnosticBoolean `json:"bindingExact"`
+		WorkerURLExact offlineDiagnosticBoolean `json:"workerURLExact"`
+		Terminal offlineDiagnosticBoolean `json:"terminal"`
+		StartReturned offlineDiagnosticBoolean `json:"startReturned"`
+		Port1CloseReturned offlineDiagnosticBoolean `json:"port1CloseReturned"`
+		Port2CloseReturned offlineDiagnosticBoolean `json:"port2CloseReturned"`
+		OnceListenerObserved offlineDiagnosticBoolean `json:"onceListenerObserved"`
+		ChannelsCreated offlineDiagnosticCount `json:"channelsCreated"`
+		ListenerAdds offlineDiagnosticCount `json:"listenerAdds"`
+		ListenerRemoves offlineDiagnosticCount `json:"listenerRemoves"`
+		TrustedEvents offlineDiagnosticCount `json:"trustedEvents"`
+		DuplicateTerminals offlineDiagnosticCount `json:"duplicateTerminals"`
+		ACK offlineDiagnosticACKWire `json:"ack"`
+	}{v.Covered, offlineDiagnosticBoolean{v.Covered,v.Issued}, offlineDiagnosticBoolean{v.Covered,v.Returned}, offlineDiagnosticBoolean{v.Covered && v.Terminal,v.BindingExact}, offlineDiagnosticBoolean{v.Covered && v.Issued,v.WorkerURLExact}, offlineDiagnosticBoolean{v.Covered,v.Terminal}, offlineDiagnosticBoolean{v.Covered && v.StartKnown,v.StartReturned}, offlineDiagnosticBoolean{v.Covered,v.Port1CloseReturned}, offlineDiagnosticBoolean{v.Covered,v.Port2CloseReturned}, offlineDiagnosticBoolean{v.Covered,v.OnceListenerObserved}, offlineDiagnosticCount{v.Covered,v.ChannelsCreated}, offlineDiagnosticCount{v.Covered,v.ListenerAdds}, offlineDiagnosticCount{v.Covered,v.ListenerRemoves}, offlineDiagnosticCount{v.Covered,v.TrustedEvents}, offlineDiagnosticCount{v.Covered,v.DuplicateTerminals}, offlineDiagnosticACKWire{v.Covered && v.Terminal,v.ACK}})
+}
+
+func (v OfflineDiagnosticFrame) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		ListenerAdds offlineDiagnosticCount `json:"listenerAdds"`
+		ListenerRemoves offlineDiagnosticCount `json:"listenerRemoves"`
+		BalanceKnown bool `json:"balanceKnown"`
+	}{offlineDiagnosticCount{v.BalanceKnown,v.ListenerAdds},offlineDiagnosticCount{v.BalanceKnown,v.ListenerRemoves},v.BalanceKnown})
+}
+func (v OfflineDiagnosticRegistry) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		InitialInventoryKnown bool `json:"initialInventoryKnown"`
+		FinalInventoryKnown bool `json:"finalInventoryKnown"`
+		FinalAbsent offlineDiagnosticBoolean `json:"finalAbsent"`
+		ParentPostRetirementInventoryKnown bool `json:"parentPostRetirementInventoryKnown"`
+		ParentPostRetirementAbsent offlineDiagnosticBoolean `json:"parentPostRetirementAbsent"`
+	}{v.InitialInventoryKnown,v.FinalInventoryKnown,offlineDiagnosticBoolean{v.FinalInventoryKnown,v.FinalAbsent},v.ParentPostRetirementInventoryKnown,offlineDiagnosticBoolean{v.ParentPostRetirementInventoryKnown,v.ParentPostRetirementAbsent}})
+}
+
+func offlineDiagnosticHex(value string, length int) bool {
+	if len(value) != length { return false }
+	for i := 0; i < len(value); i++ { if !(value[i] >= '0' && value[i] <= '9' || value[i] >= 'a' && value[i] <= 'f') { return false } }
+	return true
+}
+func offlineDiagnosticACKValid(v OfflineDiagnosticACK) bool {
+	if !offlineDiagnosticHex(v.RuntimeID,20) || !offlineDiagnosticHex(v.ConfigurationID,64) { return false }
+	switch v.State { case "disabled", "ready", "staged", "failed", "busy": default: return false }
+	switch v.Error {
+	case "", "clock-rollback", "storage-failed", "expired", "unsupported-command", "invalid-message", "identity-changed", "locking-unavailable", "waiting-worker", "clients-unavailable", "client-capacity", "sender-uncontrolled", "cleanup-pending", "cleanup-failed", "corrupt-storage", "activation-failed", "update-waiting", "catalog-changed", "quota", "integrity-failed", "download-failed", "unavailable":
+	default: return false
+	}
+	return len(v.State) <= 16 && len(v.Error) <= 32
+}
+func offlineDiagnosticNativeValid(v OfflineDiagnosticNative) bool {
+	return v.Issued <= 2 && v.Returned <= v.Issued && v.Terminal <= v.Returned && v.Outcome <= OfflineDiagnosticRejected
+}
+func offlineDiagnosticRPCValid(v OfflineDiagnosticRPCObservation) bool {
+	if v.ChannelsCreated > 8 || v.ListenerAdds > 8 || v.ListenerRemoves > v.ListenerAdds || v.TrustedEvents > 8 || v.DuplicateTerminals > 1 { return false }
+	if v.Returned && !v.Issued || v.Terminal && !v.BindingExact || v.Terminal && !offlineDiagnosticACKValid(v.ACK) { return false }
+	if !v.Terminal && v.ACK != (OfflineDiagnosticACK{}) { return false }
+	return true
+}
+
+func (v OfflineRecoveryDiagnostic) sanitized() OfflineRecoveryDiagnostic {
+	valid := v.Version == 1 && v.Operation <= OfflineDiagnosticDisable && v.Coverage <= OfflineDiagnosticCoverageComplete && v.Failure <= OfflineDiagnosticNativeDispatchThrow && !v.Overflow
+	if v.Available { valid = valid && v.Operation != OfflineDiagnosticOperationUnknown && offlineDiagnosticHex(v.RuntimeID,20) && offlineDiagnosticHex(v.ConfigurationID,64) }
+	valid = valid && offlineDiagnosticNativeValid(v.Update) && offlineDiagnosticNativeValid(v.Unregister) && offlineDiagnosticNativeValid(v.Register) && offlineDiagnosticRPCValid(v.Status) && offlineDiagnosticRPCValid(v.DisableRecovered) && v.Frame.ListenerAdds <= 8 && v.Frame.ListenerRemoves <= v.Frame.ListenerAdds
+	if !valid || !v.Available {
+		reason := v.Failure
+		if reason > OfflineDiagnosticNativeDispatchThrow { reason = OfflineDiagnosticInputRefused }
+		return OfflineRecoveryDiagnostic{Version:1, DiagnosticRevision:v.DiagnosticRevision, Overflow:v.Overflow, Failure:reason}
+	}
+	return v
+}
+
+// MarshalJSON encodes only after the caller has copied the observation outside
+// the authority mutex. It never serializes native refs or truncates identities.
+func (v OfflineRecoveryDiagnostic) MarshalJSON() ([]byte, error) {
+	type wire OfflineRecoveryDiagnostic
+	body, err := json.Marshal(wire(v.sanitized()))
+	if err != nil { return nil, err }
+	if len(body) > OfflineRecoveryObservationLimit { return nil, errors.New("nextgo: offline recovery observation exceeds bound") }
+	return body, nil
+}

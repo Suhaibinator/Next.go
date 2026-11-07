@@ -759,3 +759,268 @@ func TestRetainedRawEnvelopeRequiresExactBodyBeforeDOMAccess(t *testing.T) {
 		}
 	}
 }
+
+// The browser failure used real partition revocation before the retained commit.
+// This prepared-DOM test exercises the same decoder authority hook and full
+// commit tail; it does not claim browser layout or network qualification.
+func TestRetainedRevokedPartitionPublishesFreshHydratedPageBeforeTerminalNavigation(t *testing.T) {
+	propsBrowserEnvironment(t)
+	f := retainedRouterEnvironment(t)
+	oldWin, oldApplication, oldMerge, oldPrivacy := win, mergeApplication, mergeCurrent, mergePrivacy
+	oldEntries, oldOrder, oldLease, oldInstall := mergeEntryHistory, mergeEntryOrder, mergeActiveLease, mergeInstallActive
+	oldLazy, oldLocation, oldObservers := lazyModules, committedLocation, locationObservers
+	oldSelections, oldSelectionObservers := selections, selectionObservers
+	t.Cleanup(func() {
+		for _, scope := range mounted {
+			scope.dispose()
+		}
+		win, mergeApplication, mergeCurrent, mergePrivacy = oldWin, oldApplication, oldMerge, oldPrivacy
+		mergeEntryHistory, mergeEntryOrder, mergeActiveLease, mergeInstallActive = oldEntries, oldOrder, oldLease, oldInstall
+		lazyModules, committedLocation, locationObservers = oldLazy, oldLocation, oldObservers
+		selections, selectionObservers = oldSelections, oldSelectionObservers
+	})
+	mergeCurrent, mergeActiveLease, mergeInstallActive = nil, nil, false
+	mergeEntryHistory, mergeEntryOrder = map[string]*mergeEntryFocus{}, nil
+	lazyModules = map[string]*lazyState{}
+	locationObservers, selectionObservers = map[uint64]*locationObserver{}, map[uint64]selectionObserver{}
+	selections = map[string]Selection{}
+	win = js.Global().Get("Function").New("document", "make", `
+ const viewport=make('meta'),description=make('meta');
+ document.head=make('head');document.documentElement=make('html');document.baseURI='https://retained.test/a';
+ const query=document.querySelector.bind(document);
+ document.querySelector=selector=>selector==='meta[name="viewport"]'?viewport:selector==='meta[name="description"]'?description:query(selector);
+ document.createElement=make;
+ const window={URL,Object,Array,console,location:new URL('https://retained.test/a'),scrollX:0,scrollY:0,scrollTo(x,y){this.scrollX=x;this.scrollY=y;}};
+ window.history={state:null,pushState(state,unused,target){this.state=state;window.location=new URL(target,window.location);},replaceState(state,unused,target){this.state=state;window.location=new URL(target,window.location);}};
+ return window;
+ `).Invoke(doc, f.makeNode)
+	setLocation(currentURL)
+	installMergeApplicationAuthority(f.app, nil, &retainedCurrent.descriptor)
+	oldAuthority := mergeApplication
+	retainedTaskAdmission = true
+	entered, settled, release := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	var taskContext context.Context
+	if err := f.scope.Go(func(ctx context.Context) {
+		defer close(settled)
+		taskContext = ctx
+		close(entered)
+		<-ctx.Done()
+		<-release
+	}); err != nil {
+		t.Fatal(err)
+	}
+	<-entered
+	t.Cleanup(func() {
+		f.scope.stopVisibilityTasks()
+		select {
+		case <-release:
+		default:
+			close(release)
+		}
+		<-settled
+		propsWait(t, func() bool { return retainedTaskWorkers == 0 && f.scope.taskWorkers == 0 })
+	})
+	descriptor, err := navigation.NewRetention("new-public-partition", f.data.HTML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.data.Retention = descriptor
+	f.data.Title = "B"
+	f.data.URL = "/b"
+	f.data.Document = navigation.Document{Language: "en", Direction: "ltr", Viewport: "width=device-width"}
+	f.fresh.Call("setAttribute", "data-nextgo-island", "revoked-retirement-counter")
+	f.fresh.Call("setAttribute", "data-nextgo-props", "null")
+	mounts, clicks := 0, 0
+	var freshScope *Scope
+	registry["revoked-retirement-counter"] = func(scope *Scope, _ json.RawMessage) error {
+		mounts++
+		freshScope = scope
+		scope.On(scope.Root, "click", func(Event) { clicks++ })
+		return nil
+	}
+	calls, observed := 0, false
+	f.scope.Cleanup(func() {
+		calls++
+		observed = retainedCurrent != nil && retainedCurrent.root.Equal(f.fresh) && !f.app.Get("hidden").Bool() && !f.app.Call("hasAttribute", "inert").Bool() && !f.fresh.Get("hidden").Bool() && f.fresh.Call("getAttribute", "data-nextgo-hydrated").String() == "true" && doc.Get("body").Call("getAttribute", "data-nextgo-hydration").String() == "ready" && mounts == 1 && freshScope != nil && freshScope.active() && currentURL == "https://retained.test/b" && doc.Get("title").String() == "B" && taskContext.Err() != nil && retainedTaskWorkers == 1
+		navigationID++
+		f.status.Set("hidden", false)
+		f.status.Set("textContent", "Newer C loading")
+	})
+	mergeIncomingAuthority(nil, f.data.Retention, 200)
+	if !f.scope.mergeRevoked || !f.scope.lifetime.revoked || !f.app.Get("hidden").Bool() || !f.app.Call("hasAttribute", "inert").Bool() || f.scope.retentionCapable() {
+		t.Fatal("partition did not immediately fence old activity")
+	}
+	// The retirement exception is exact app/root registration, never a general
+	// permission to operate revoked or independent manually-created scopes.
+	delete(oldAuthority.scopes, f.scope)
+	if _, ok := retainedRevokedScopes(f.old); ok {
+		t.Fatal("unregistered old scope admitted for retirement")
+	}
+	oldAuthority.scopes[f.scope] = struct{}{}
+	oldAuthority.root = f.fresh
+	if _, ok := retainedRevokedScopes(f.old); ok {
+		t.Fatal("replaced app authority admitted for retirement")
+	}
+	oldAuthority.root = f.app
+	if err := commit(f.incoming, f.app, f.data, "https://retained.test/b", false, js.Null(), false); err != nil {
+		t.Fatal("fresh authorized retained destination was canceled", err)
+	}
+	if !observed || calls != 1 || !f.scope.closed || f.old.Get("isConnected").Bool() || mergeApplication == oldAuthority || mergeApplication.revoked || !mergeApplication.root.Equal(f.app) || f.scope.propsLive() {
+		t.Fatal("terminal cleanup ran before visible hydrated replacement or revived old authority", observed, calls, mounts)
+	}
+	if f.status.Get("textContent").String() != "Newer C loading" {
+		t.Fatal("B completion overwrote newer request status")
+	}
+	f.fresh.Call("fire")
+	if clicks != 1 || freshScope.mergeCallbacks {
+		t.Fatal("fresh NoProps native callback did not complete synchronously")
+	}
+	report("Navigation failed. Try again or reload.")
+	f.fresh.Call("fire")
+	if clicks != 2 || f.app.Get("hidden").Bool() || currentURL != "https://retained.test/b" || doc.Get("title").String() != "B" || retainedCurrent == nil || !retainedCurrent.root.Equal(f.fresh) {
+		t.Fatal("failed newer request discarded committed B")
+	}
+	f.old.Call("fire")
+	if f.clicks != 0 || f.state.Get() != 7 {
+		t.Fatal("retired private old listener remained active")
+	}
+	close(release)
+	<-settled
+	propsWait(t, func() bool { return retainedTaskWorkers == 0 })
+}
+
+// Exercise the real commit/common tail, not a duplicate restore helper. This
+// prepared-DOM queue models a native reveal scheduled by focus/selection and
+// canceled by one later explicit window scroll. It is a deterministic ordering
+// regression, not evidence that this model caused a real browser's displacement.
+func TestRetainedFullCommitRestoresWindowAfterFocusBeforeQueuedNativeReveal(t *testing.T) {
+	for _, selection := range []string{"unchanged", "different"} {
+		t.Run(selection, func(t *testing.T) {
+			propsBrowserEnvironment(t)
+			f := retainedRouterEnvironment(t)
+			mergeQueueTestState(t)
+			oldWin, oldApplication := win, mergeApplication
+			oldEntries, oldOrder := mergeEntryHistory, mergeEntryOrder
+			oldLazy, oldLocation, oldObservers := lazyModules, committedLocation, locationObservers
+			oldSelectionObservers := selectionObservers
+			oldOpener, oldModal := navigationOpener, modalReturnFocus
+			t.Cleanup(func() {
+				for _, scope := range mounted {
+					scope.dispose()
+				}
+				win, mergeApplication = oldWin, oldApplication
+				mergeEntryHistory, mergeEntryOrder = oldEntries, oldOrder
+				lazyModules, committedLocation, locationObservers = oldLazy, oldLocation, oldObservers
+				selectionObservers = oldSelectionObservers
+				navigationOpener, modalReturnFocus = oldOpener, oldModal
+			})
+			mergeCurrent, mergeActiveLease, mergeInstallActive = nil, nil, false
+			mergeEntryHistory, mergeEntryOrder = map[string]*mergeEntryFocus{}, nil
+			lazyModules = map[string]*lazyState{}
+			locationObservers, selectionObservers = map[uint64]*locationObserver{}, map[uint64]selectionObserver{}
+			selections = map[string]Selection{}
+			streamingActive = false
+			initialMetadata = nil
+			initialMetadataGeneration = 0
+			navigationOpener, modalReturnFocus = js.Undefined(), js.Undefined()
+			if mergeCallbackReads != 0 {
+				t.Fatal("inherited callback read is still active")
+			}
+			originalDocument := doc
+			nested := f.makeNode.Invoke("section")
+			nested.Call("appendChild", f.draft)
+			f.old.Call("appendChild", nested)
+			nested.Set("scrollTop", 160)
+			win = js.Global().Get("Function").New("document", "make", "draft", `
+ const viewport=make('meta'),description=make('meta');
+ document.head=make('head');document.documentElement=make('html');document.baseURI='https://retained.test/a';
+ const query=document.querySelector.bind(document);
+ document.querySelector=selector=>selector==='meta[name="viewport"]'?viewport:selector==='meta[name="description"]'?description:query(selector);
+ document.createElement=make;
+ let reveal=null;
+ const stats={focus:0,selection:0,layout:0,scheduled:0,canceled:0,drained:0,scrolls:0,preventScroll:false,order:[]};
+ const window={URL,Object,Array,console,location:new URL('https://retained.test/a'),scrollX:0,scrollY:500,
+  scrollTo(x,y){stats.scrolls++;stats.order.push('window-scroll');if(reveal!==null){reveal=null;stats.canceled++;}this.scrollX=x;this.scrollY=y;},
+  drainNativeReveal(){const pending=reveal;reveal=null;if(pending!==null){stats.drained++;pending();}},
+  stats};
+ const schedule=kind=>{stats.scheduled++;stats.order.push(kind);reveal=()=>{window.scrollY=289;};};
+ Object.defineProperty(draft,'offsetWidth',{get(){stats.layout++;return 320;}});
+ draft.selectionStart=2;draft.selectionEnd=7;draft.selectionDirection='backward';
+ draft.focus=function(options){stats.focus++;stats.preventScroll=options?.preventScroll===true;document.activeElement=this;schedule('focus');};
+ draft.setSelectionRange=function(start,end,direction){stats.selection++;this.selectionStart=start;this.selectionEnd=end;this.selectionDirection=direction;schedule('selection');};
+ window.history={state:null,pushState(state,unused,target){this.state=state;window.location=new URL(target,window.location);},replaceState(state,unused,target){this.state=state;window.location=new URL(target,window.location);}};
+ return window;
+ `).Invoke(doc, f.makeNode, f.draft)
+			doc.Get("body").Call("setAttribute", "data-nextgo-configuration", strings.Repeat("c", 64))
+			// Establish cached A and active B using the real capture/suspend/owner APIs.
+			// Only A's return below uses the complete application commit being tested.
+			a := retainedCurrent
+			captureRetained(a)
+			if !a.focus.Equal(f.draft) || len(a.scroll) != 1 || !a.scroll[0].node.Equal(nested) || a.scroll[0].y != 160 {
+				t.Fatal("retained A did not capture its real input/nested scroll")
+			}
+			if err := f.scope.suspendForRetention(); err != nil {
+				t.Fatal(err)
+			}
+			hideRetained(a)
+			f.app.Call("appendChild", f.fresh)
+			b := prepareRetainedView(f.fresh, f.data.Retention, "https://retained.test/b", 512, strings.Repeat("b", 32))
+			registerRetained(b)
+			retainedCurrent = b
+			showRetained(b)
+			template := f.makeNode.Invoke("main")
+			f.incoming.Call("appendChild", template)
+			currentURL = "https://retained.test/b"
+			setLocation(currentURL)
+			doc.Set("activeElement", f.fresh)
+			win.Set("scrollY", 0)
+			nested.Set("scrollTop", 0)
+			if selection == "different" {
+				f.draft.Set("selectionEnd", 8)
+			}
+			key := strings.Repeat("e", 32)
+			if !ownedHistory.put(key, historyRecord{URL: a.info.URL, Previous: "https://retained.test/b"}) {
+				t.Fatal("history fixture refused retained A")
+			}
+			retainedOwners.bind(key, a.info.ID)
+			state := js.ValueOf(map[string]any{"nextgoEntry": key, "nextgoX": 0, "nextgoY": 500})
+			win.Get("history").Set("state", state)
+			installMergeApplicationAuthority(f.app, nil, &b.descriptor)
+			f.data.Title = "A restored"
+			f.data.URL = "/a"
+			f.data.Document = navigation.Document{Language: "en", Direction: "ltr", Viewport: navigation.DefaultViewport}
+			if err := commit(f.incoming, f.app, f.data, a.info.URL, true, state, false); err != nil {
+				t.Fatal("full retained pop commit failed", err)
+			}
+			// No timer advances and no restoration is replayed. Drain the single modeled
+			// native operation only after actual commit returned, as a later browser turn.
+			win.Call("drainNativeReveal")
+			stats := win.Get("stats")
+			wantSelection := 0
+			wantScheduled := 1
+			if selection == "different" {
+				wantSelection = 1
+				wantScheduled = 2
+			}
+			if stats.Get("scrolls").Int() != 1 || stats.Get("focus").Int() != 1 || stats.Get("selection").Int() != wantSelection || stats.Get("layout").Int() != 1 || stats.Get("scheduled").Int() != wantScheduled || stats.Get("canceled").Int() != 1 || stats.Get("drained").Int() != 0 || !stats.Get("preventScroll").Bool() {
+				t.Fatalf("common tail/native queue: scrolls=%d focus=%d selection=%d layout=%d scheduled=%d canceled=%d drained=%d order=%s", stats.Get("scrolls").Int(), stats.Get("focus").Int(), stats.Get("selection").Int(), stats.Get("layout").Int(), stats.Get("scheduled").Int(), stats.Get("canceled").Int(), stats.Get("drained").Int(), stats.Get("order").Call("join", ",").String())
+			}
+			if win.Get("scrollY").Int() != 500 || win.Get("history").Get("state").Get("nextgoY").Int() != 500 || currentState.Get("nextgoY").Int() != 500 || nested.Get("scrollTop").Int() != 160 {
+				t.Fatal("late native reveal displaced restored window/history/nested scroll", win.Get("scrollY"), win.Get("history").Get("state"), nested.Get("scrollTop"))
+			}
+			if !doc.Equal(originalDocument) || retainedCurrent != a || !retainedCurrent.root.Equal(f.old) || !f.old.Get("parentNode").Equal(f.app) || !nested.Get("parentNode").Equal(f.old) || !f.draft.Get("parentNode").Equal(nested) || !doc.Get("activeElement").Equal(f.draft) || f.old.Get("hidden").Bool() || !f.draft.Get("isConnected").Bool() || f.draft.Get("value").String() != "retained draft" || f.state.Get() != 7 || retainedFocus != nil {
+				t.Fatal("full commit replaced retained input/state/focus or left hidden ownership")
+			}
+			if f.draft.Get("selectionStart").Int() != 2 || f.draft.Get("selectionEnd").Int() != 7 || f.draft.Get("selectionDirection").String() != "backward" {
+				t.Fatal("saved native selection changed")
+			}
+			if !f.scope.active() || f.scope.closed || f.scope.suspended || f.setups != 2 || f.cleanups != 1 || currentURL != a.info.URL || doc.Get("title").String() != "A restored" || doc.Get("body").Call("getAttribute", "data-nextgo-hydration").String() != "ready" {
+				t.Fatal("full common tail did not publish/resume the retained page")
+			}
+			f.old.Call("fire")
+			if f.clicks != 1 || f.state.Get() != 8 {
+				t.Fatal("retained Go event/state was remounted or lost")
+			}
+		})
+	}
+}

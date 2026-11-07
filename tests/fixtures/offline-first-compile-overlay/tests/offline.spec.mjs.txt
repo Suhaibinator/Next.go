@@ -1,0 +1,1087 @@
+import {test as base, expect, chromium, firefox, webkit} from '@playwright/test';
+import {mkdir, rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {readOfflineArtifacts, startOfflineFixture} from './offline-fixture.mjs';
+import {observeOfflineRegistrationProof} from './offline-registration-proof-diagnostics.mjs';
+import {observeOfflineUpdateFailure, retireOfflineParentFault} from './offline-update-failure-observation.mjs';
+
+const browserTypes = {chromium, firefox, webkit};
+const controls = page => page.locator('[data-offline-controls]');
+const counter = page => page.locator('[data-offline-count]');
+const ready = async page => {
+  await expect(controls(page)).toHaveAttribute('data-offline-controls-ready', 'true');
+  await expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
+  await expect(page.locator('[data-nextgo-island="counter"]')).toHaveAttribute('data-nextgo-hydrated', 'true');
+  await expect(page.locator('[data-offline-counter-proof]')).toHaveText('Hydrated by lazy Go');
+  await expect(page.locator('[data-offline-increment]')).toBeEnabled();
+};
+async function cachedEntries(page) {
+  return page.evaluate(async () => {
+    const result = [];
+    for (const name of (await caches.keys()).sort()) {
+      const cache = await caches.open(name);
+      result.push({name, urls: (await cache.keys()).map(request => request.url).sort()});
+    }
+    return result;
+  });
+}
+async function ownedAccounting(page) {
+  return page.evaluate(async () => {
+    const names = (await caches.keys()).filter(name => /^nextgo-offline-v1-[a-f0-9]{64}(?:-meta|-g-[a-f0-9]{64})$/.test(name));
+    let index = null;
+    const generations = [];
+    for (const name of names) {
+      const cache = await caches.open(name), requests = await cache.keys();
+      if (name.endsWith('-meta')) {
+        const key = requests.find(request => new URL(request.url).pathname.endsWith('/__nextgo_offline_owner__'));
+        if (!key) throw new Error('Owned metadata cache has no owner index');
+        const response = await cache.match(key), text = await response.text();
+        if (text.length > 16 * 1024) throw new Error('Owner index observation exceeds bound');
+        const value = JSON.parse(text);
+        index = {active: value.active, previous: value.previous, staging: value.staging, disabled: value.disabled, retainedClients: value.retained?.length || 0};
+      } else {
+        let bytes = 0;
+        for (const request of requests) {const response = await cache.match(request); bytes += (await response.arrayBuffer()).byteLength;}
+        generations.push({generation: name.slice(-64), entries: requests.length, physicalBytes: bytes});
+      }
+    }
+    generations.sort((a, b) => a.generation.localeCompare(b.generation));
+    return {index, generations};
+  });
+}
+async function verifySavedPayloads(page, generation) {
+  return page.evaluate(async generation => {
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
+    const response = await fetch(descriptor.catalogURL, {cache: 'no-store'});
+    if (!response.ok) throw new Error('Actual native catalog unavailable');
+    const catalog = await response.json();
+    if (catalog.Version !== 1 || catalog.Config.Origin !== location.origin) throw new Error('Unexpected native catalog binding');
+    const expected = [
+      ...catalog.Assets.map(asset => ({url: new URL(asset.URL, location.origin).href, sha256: asset.SHA256, bytes: asset.DecodedBytes})),
+      ...catalog.Documents.map(document => ({url: new URL(catalog.Config.BasePath + document.Path, location.origin).href, sha256: document.SHA256, bytes: document.DecodedBytes})),
+    ];
+    if (!expected.length || expected.length > 192) throw new Error('Unexpected catalog entry bound');
+    const names = await caches.keys(), actual = [];
+    for (const entry of expected) {
+      let matched;
+      for (const name of names) {
+        const cache = await caches.open(name), response = await cache.match(entry.url);
+        if (response) {if (matched) throw new Error('Multiple saved payloads for one generation URL'); matched = response;}
+      }
+      if (!matched) throw new Error('Required native catalog payload is absent: ' + entry.url);
+      const bytes = await matched.arrayBuffer();
+      const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2, '0')).join('');
+      if (bytes.byteLength !== entry.bytes || sha256 !== entry.sha256) throw new Error('Saved payload does not match actual native catalog: ' + entry.url);
+      actual.push({url: entry.url, sha256, bytes: bytes.byteLength});
+    }
+    return {payloads: actual, preparationPaths: catalog.Documents.map(document => '/_nextgo/offline/documents/' + generation + '/' + document.SHA256)};
+  }, generation);
+}
+const test = base.extend({
+  shelf: async ({}, use, info) => {
+    const fixture = await startOfflineFixture(await readOfflineArtifacts());
+    const profile = info.outputPath('private-persistent-profile');
+    await mkdir(profile, {recursive: true});
+    let context, launches = 0;
+    const sessions = [], traces = [];
+    const shelf = {
+      ...fixture,
+      async open() {
+        if (context) throw new Error('Close the previous browser process before reopening its profile');
+        const variant = info.project.metadata.offlineBrowser;
+        const type = variant === 'webkit-touch' ? 'webkit' : variant;
+        const options = {headless: true, serviceWorkers: 'allow', viewport: {width: 1100, height: 800}};
+        if (variant === 'webkit-touch') Object.assign(options, {viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true});
+        if (type === 'chromium' && process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH) options.executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+        context = await browserTypes[type].launchPersistentContext(profile, options);
+        await context.tracing.start({screenshots: true, snapshots: true, sources: true});
+        await context.addInitScript(() => {globalThis.offlineDocumentToken = crypto.randomUUID();});
+        const page = context.pages()[0] || await context.newPage();
+        sessions.push({launch: ++launches, variant, profile, pages: context.pages().length});
+        return page;
+      },
+      async closeBrowser() {
+        if (!context) return;
+        const owned = context; context = undefined;
+        const trace = info.outputPath(`persistent-process-${launches}.zip`);
+        const publicDocuments = [];
+        for (const page of owned.pages()) {
+          try {publicDocuments.push(await page.evaluate(async () => {
+            const body = document.body, catalogs = [];
+            for (const name of await caches.keys()) {
+              if (!/^nextgo-offline-v1-[a-f0-9]{64}-g-[a-f0-9]{64}$/.test(name)) continue;
+              const cache = await caches.open(name);
+              for (const request of await cache.keys()) if (new URL(request.url).pathname.endsWith('/__nextgo_offline_catalog__')) {
+                const response = await cache.match(request), bytes = await response.arrayBuffer();
+                const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2, '0')).join('');
+                catalogs.push({generation: name.slice(-64), bytes: bytes.byteLength, sha256});
+              }
+            }
+            return {url: location.href, runtime: body?.getAttribute('data-nextgo-build'), hydration: body?.getAttribute('data-nextgo-hydration'), descriptor: body?.getAttribute('data-nextgo-offline'), saved: body?.getAttribute('data-nextgo-offline-saved'), lazyProof: document.querySelector('[data-offline-counter-proof]')?.textContent, catalogs};
+          }));} catch (error) {publicDocuments.push({observationError: error.message});}
+        }
+        sessions.at(-1).publicDocuments = publicDocuments;
+        let traceError;
+        try {await owned.tracing.stop({path: trace}); traces.push(trace);} catch (error) {traceError = error;}
+        const browser = owned.browser();
+        await owned.close();
+        if (browser) expect(browser.isConnected()).toBe(false);
+        sessions.at(-1).closed = true;
+        if (traceError) throw traceError;
+      },
+    };
+    try {await use(shelf);} finally {
+      if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
+          info.title === 'a genuine new generation waits while the old client is open and activates only after every scoped client closes') {
+        try {await observeOfflineUpdateFailure(context, info);} catch {} // Never replace the original failure.
+        try {await observeOfflineRegistrationProof(context, info, fixture.origin);} catch {console.warn('Offline registration diagnostic unavailable before attachment');}
+      }
+      if (info.status !== info.expectedStatus && [
+        'Go update recovers a forced parent-empty proof through one live native realm without activating or remounting',
+        'Go parent-empty update honors actual native HTTP-helper CSP policy with real worker state and cleanup',
+      ].includes(info.title)) {
+        try {await observeOfflineUpdateFailure(context, info);} catch {} // Late DOM only, before fixture close.
+      }
+      if (info.status !== info.expectedStatus && info.project.metadata.offlineBrowser === 'firefox' &&
+          info.title === 'explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation') {
+        try {await observeOfflineRegistrationProof(context, info, fixture.origin);} catch {console.warn('Offline registration diagnostic unavailable before attachment');}
+      }
+      let closed = false;
+      try {
+        const errors = [];
+        try {await shelf.closeBrowser();} catch (error) {errors.push(error);}
+        try {await fixture.close();} catch (error) {errors.push(error);}
+        if (errors.length) throw new AggregateError(errors, 'Offline fixture cleanup failed');
+        const proof = {sessions, ...fixture.snapshot()};
+        expect(proof.nativePID).toBe(null); expect(proof.gatewayListening).toBe(false);
+        expect(proof.processes.every(process => process.exited)).toBe(true);
+        expect(proof.sessions.every(session => session.closed)).toBe(true);
+        await info.attach('offline-artifact-process-wire-proof', {body: JSON.stringify(proof), contentType: 'application/json'});
+        closed = true;
+      } finally {
+        // The profile is reused across full process restarts WITHIN a case.
+        // Keep failures/interruption intact; remove only joined successful cases.
+        if (closed && info.status === info.expectedStatus) {
+          await rm(profile, {recursive: true, force: true});
+          await Promise.all(traces.map(path => rm(path, {force: true})));
+        } else {
+          for (const [n, path] of traces.entries()) await info.attach(`persistent-process-${n + 1}`, {path, contentType: 'application/zip'});
+          await info.attach('retained-private-profile-path', {body: profile, contentType: 'text/plain'});
+        }
+      }
+    }
+  },
+});
+async function enable(shelf, page) {
+  await page.goto(shelf.origin + '/'); await ready(page);
+  await page.locator('[data-offline-enable]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', /^[a-f0-9]{64}$/);
+  // Installation deliberately does not claim an already open client.
+  await page.reload(); await ready(page);
+  const previousCompletion = await controls(page).getAttribute('data-offline-completed-operations');
+  expect(previousCompletion).toMatch(/^(0|[1-9][0-9]{0,9})$/);
+  expect(BigInt(previousCompletion)).toBeLessThan(1n << 32n);
+  const nextCompletion = ((BigInt(previousCompletion) + 1n) % (1n << 32n)).toString();
+  await page.locator('[data-offline-status-button]').click();
+  // Wait for exactly this operation to settle, not an already-true controller flag.
+  await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', nextCompletion);
+  const confirmation = await controls(page).evaluate(root => ({
+    phase: root.querySelector('[data-offline-status-output]').getAttribute('data-offline-state'),
+    stateError: root.getAttribute('data-offline-last-error'),
+    operationError: root.getAttribute('data-offline-operation-error'),
+    enabled: root.getAttribute('data-offline-enabled'),
+    controlling: root.getAttribute('data-offline-controlling'),
+  }));
+  expect(confirmation).toEqual({phase: 'ready', stateError: '', operationError: '', enabled: 'true', controlling: 'true'});
+  await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
+  return controls(page).getAttribute('data-offline-active-generation');
+}
+async function saved(shelf, page, path, marker) {
+  const response = await page.goto(shelf.origin + path);
+  expect(response.status()).toBe(200); expect(response.fromServiceWorker()).toBe(true);
+  await expect(page.locator(`[data-offline-page="${marker}"]`)).toBeVisible();
+  await ready(page);
+  await expect(controls(page)).toHaveAttribute('data-offline-saved-document', 'true');
+  return response;
+}
+async function offlineFetch(page, path, options = {}) {
+  return page.evaluate(async ({path, options}) => {
+    try {const response = await fetch(path, options); return {status: response.status, type: response.headers.get('content-type'), text: (await response.text()).slice(0, 512)};}
+    catch {return {unavailable: true};}
+  }, {path, options});
+}
+
+test('useful cold and warm-reloaded server HTML precedes WASM and hydration retains existing DOM nodes', async ({shelf}, info) => {
+  const page = await shelf.open(), journeys = [];
+  // The second journey is a genuine warm document reload after the Go button
+  // was enabled. It catches restored disabled-property state before hydration.
+  for (const stage of ['cold navigation', 'warm reload']) {
+    let release;
+    const gate = new Promise(resolve => {release = resolve;});
+    const wasmRequests = [];
+    await page.route('**/*.wasm', async route => {
+      wasmRequests.push(route.request().url());
+      await gate; await route.continue();
+    });
+    try {
+      const response = stage === 'cold navigation'
+        ? await page.goto(shelf.origin + '/', {waitUntil: 'domcontentloaded'})
+        : await page.reload({waitUntil: 'domcontentloaded'});
+      expect(response.status()).toBe(200); expect(response.fromServiceWorker()).toBe(false);
+      await expect.poll(() => wasmRequests.length, {message: 'actual WASM request reaches held gate'}).toBeGreaterThan(0);
+      await expect(page.getByRole('heading', {name: 'A small public reading shelf.', exact: true})).toBeVisible();
+      await expect(counter(page)).toHaveText('3');
+      await expect(page.locator('[data-offline-counter-proof]')).toHaveText('Waiting for lazy Go');
+      await expect(page.locator('[data-offline-increment]')).toBeDisabled();
+      await expect(page.locator('body')).not.toHaveAttribute('data-nextgo-hydration', 'ready');
+      const token = await page.evaluate(() => {
+        globalThis.ssrOfflineNodes = [document.querySelector('[data-offline-controls]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];
+        return offlineDocumentToken;
+      });
+      release(); await ready(page);
+      expect(await page.evaluate(() => ssrOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-offline-controls]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+      expect(await page.evaluate(() => offlineDocumentToken)).toBe(token);
+      await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+      journeys.push({stage, wasmRequests: [...wasmRequests], documentToken: token, counterAfterGoClick: '4'});
+    } finally {release(); await page.unroute('**/*.wasm');}
+  }
+  expect(await cachedEntries(page)).toEqual([]);
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  await info.attach('cold-and-warm-reload-held-WASM-proof', {body: JSON.stringify(journeys), contentType: 'application/json'});
+});
+
+test('explicit Go enable saves only the approved public documents and verified runtime assets', async ({shelf}, info) => {
+  const page = await shelf.open(); const generation = await enable(shelf, page);
+  const entries = await cachedEntries(page), urls = entries.flatMap(entry => entry.urls);
+  expect(urls).toContain(shelf.origin + '/'); expect(urls).toContain(shelf.origin + '/guide');
+  expect(urls.some(url => /\/module-[a-f0-9]+\.wasm$/.test(url))).toBe(true);
+  expect(urls.some(url => /\.css$/.test(url))).toBe(true);
+  expect(urls.filter(url => /\/api\/|\?|\/_nextgo\/actions\//.test(url))).toEqual([]);
+  await page.locator('[data-offline-status-button]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', generation);
+  const proof = await verifySavedPayloads(page, generation);
+  const prepared = shelf.records.filter(record => record.path.startsWith('/_nextgo/offline/documents/'));
+  expect([...new Set(prepared.map(record => record.path))].sort()).toEqual([...proof.preparationPaths].sort());
+  for (const record of prepared) {expect(proof.preparationPaths).toContain(record.path); expect(record.method).toBe('GET'); expect(record.status).toBe(200);}
+  await info.attach('saved-public-cache-inventory', {body: JSON.stringify({entries, ...proof}), contentType: 'application/json'});
+});
+
+test('closing the browser process and stopping the server still reopens saved SSR, CSS, core and lazy Go from the same private profile', async ({shelf}, info) => {
+  let page = await shelf.open(); const generation = await enable(shelf, page);
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  await shelf.closeBrowser(); await shelf.stopNetwork();
+  page = await shelf.open(); const assets = [];
+  page.on('response', response => {if (/\.(?:wasm|css|js)(?:\?|$)/.test(response.url())) assets.push({url: response.url(), status: response.status(), worker: response.fromServiceWorker()});});
+  await saved(shelf, page, '/', 'overview'); await expect(counter(page)).toHaveText('3');
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', generation);
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  expect(assets.some(asset => /\/app\.wasm$/.test(asset.url))).toBe(true);
+  expect(assets.some(asset => /\/boot\.js$/.test(asset.url))).toBe(true);
+  expect(assets.some(asset => /\/module-/.test(asset.url))).toBe(true);
+  expect(assets.some(asset => /\.css$/.test(asset.url))).toBe(true);
+  expect(assets.every(asset => asset.status === 200 && asset.worker)).toBe(true);
+  expect(await page.locator('body').evaluate(node => getComputedStyle(node).fontFamily)).toContain('system-ui');
+  await info.attach('saved-runtime-network-sources', {body: JSON.stringify(assets), contentType: 'application/json'});
+});
+
+test('native reading links open the saved guide and overview without a live server', async ({shelf}) => {
+  let page = await shelf.open(); await enable(shelf, page); await shelf.closeBrowser(); await shelf.stopNetwork();
+  page = await shelf.open(); await saved(shelf, page, '/', 'overview');
+  await page.getByRole('navigation', {name: 'Offline example', exact: true}).getByRole('link', {name: 'Reading guide', exact: true}).click();
+  await expect(page.locator('[data-offline-page="guide"]')).toBeVisible(); await expect(page).toHaveTitle('Reading guide — Next.go'); await ready(page);
+  await expect(controls(page)).toHaveAttribute('data-offline-saved-document', 'true');
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  await page.getByRole('navigation', {name: 'Offline example', exact: true}).getByRole('link', {name: 'Overview', exact: true}).click();
+  await ready(page); await expect(counter(page)).toHaveText('3');
+});
+
+test('API, POST, query and navigation JSON requests stay network-only and are never replayed after reconnection', async ({shelf}) => {
+  const page = await shelf.open(); await enable(shelf, page);
+  expect((await offlineFetch(page, '/api/health')).status).toBe(200);
+  expect((await offlineFetch(page, '/api/health', {method: 'POST', body: 'public-probe'})).status).toBe(405);
+  const before = shelf.records.filter(record => record.method === 'POST').length;
+  await shelf.stopNetwork();
+  for (const [path, options] of [['/api/health', {}], ['/api/health', {method: 'POST', body: 'must-not-replay'}], ['/guide', {headers: {'X-Nextgo-Navigate': '1'}}], ['/?query=not-saved', {}]]) {
+    const result = await offlineFetch(page, path, options);
+    expect(result.unavailable || result.status >= 400).toBe(true);
+    expect(result.text || '').not.toContain('A small public reading shelf.');
+  }
+  await shelf.startNetwork('A');
+  expect((await offlineFetch(page, '/api/health')).status).toBe(200);
+  await page.locator('[data-offline-status-button]').click();
+  expect(shelf.records.filter(record => record.method === 'POST')).toHaveLength(before);
+});
+
+test('evicting an actual required lazy WASM entry fails closed to an inert document instead of hydrating the wrong page', async ({shelf}) => {
+  let page = await shelf.open(); await enable(shelf, page);
+  const removed = await page.evaluate(async () => {
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name);
+      for (const request of await cache.keys()) if (/\/module-[a-f0-9]+\.wasm$/.test(new URL(request.url).pathname)) {
+        if (!await cache.delete(request)) throw new Error('Required asset deletion failed');
+        return {name, url: request.url};
+      }
+    }
+    throw new Error('No actual cached lazy WASM entry available for eviction');
+  });
+  expect(removed.url).toMatch(/\/module-/);
+  await shelf.closeBrowser(); await shelf.stopNetwork();
+  page = await shelf.open(); const response = await page.goto(shelf.origin + '/guide');
+  expect(response.status()).toBe(503); expect(response.fromServiceWorker()).toBe(true);
+  await expect(page.locator('[data-offline-controls]')).toHaveCount(0);
+  await expect(page.locator('[data-nextgo-island]')).toHaveCount(0);
+  await expect(page.locator('script[src]')).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveAttribute('data-nextgo-hydration', 'ready');
+});
+
+test('a genuine new generation waits while the old client is open and activates only after every scoped client closes', async ({shelf}) => {
+  let page = await shelf.open(); const oldGeneration = await enable(shelf, page);
+  const document = await page.evaluate(() => {
+    globalThis.waitingOfflineNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];
+    return offlineDocumentToken;
+  });
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  expect(await page.evaluate(() => waitingOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+  expect(await page.evaluate(() => offlineDocumentToken)).toBe(document);
+  await shelf.select('B'); await page.locator('[data-offline-update]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
+  const candidate = await controls(page).getAttribute('data-offline-waiting-generation'); expect(candidate).not.toBe(oldGeneration);
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', oldGeneration);
+  expect(await page.evaluate(() => offlineDocumentToken)).toBe(document);
+  expect(await page.evaluate(() => waitingOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+  await expect(counter(page)).toHaveText('4');
+  const registration = await page.evaluate(async () => {const r = await navigator.serviceWorker.getRegistration(); return {active: r.active?.state, waiting: r.waiting?.state, controller: navigator.serviceWorker.controller?.state};});
+  expect(registration).toEqual({active: 'activated', waiting: 'installed', controller: 'activated'});
+  await shelf.closeBrowser(); page = await shelf.open(); await page.goto(shelf.origin + '/'); await ready(page);
+  await page.locator('[data-offline-status-button]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', candidate);
+  await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', ''); await expect(counter(page)).toHaveText('3');
+});
+
+test('explicit Go disable reports retained charged payloads until closed clients allow explicit physical reconciliation', async ({shelf}, info) => {
+  let page = await shelf.open(); await enable(shelf, page);
+  const before = await cachedEntries(page), owned = before.map(entry => entry.name), beforeAccounting = await ownedAccounting(page);
+  expect(owned.length).toBeGreaterThan(0);
+  await page.evaluate(() => caches.open('offline-fixture-unrelated-empty-cache'));
+  await page.locator('[data-offline-disable]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+  await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'true');
+  await page.locator('[data-offline-status-button]').click();
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  const retained = await cachedEntries(page), retainedAccounting = await ownedAccounting(page);
+  expect(retainedAccounting.generations).toEqual(beforeAccounting.generations);
+  expect(retainedAccounting.generations.every(generation => generation.physicalBytes > 0)).toBe(true);
+  expect(retainedAccounting.index.disabled).toBe(true);
+  expect(retainedAccounting.index.active).toBe(beforeAccounting.index.active);
+  expect(retainedAccounting.index.retainedClients).toBeGreaterThan(0);
+  expect(retainedAccounting.index.retainedClients).toBeLessThanOrEqual(4);
+  expect(retained.filter(entry => owned.includes(entry.name))).toEqual(before);
+  expect(retained.some(entry => entry.name === 'offline-fixture-unrelated-empty-cache')).toBe(true);
+  // Unregister does not detach this live controller or claim physical erasure.
+  await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
+  await shelf.closeBrowser(); page = await shelf.open();
+  await page.goto(shelf.origin + '/'); await ready(page);
+  await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'false');
+  const prior = shelf.records.length;
+  await page.locator('[data-offline-disable]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'false');
+  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+  await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  const remaining = await cachedEntries(page), reconciledAccounting = await ownedAccounting(page);
+  expect(reconciledAccounting).toEqual({index: null, generations: []});
+  expect(remaining.map(entry => entry.name)).toContain('offline-fixture-unrelated-empty-cache');
+  expect(remaining.filter(entry => owned.includes(entry.name))).toEqual([]);
+  expect(shelf.records.slice(prior).filter(record => record.path.startsWith('/_nextgo/offline/documents/'))).toEqual([]);
+  await info.attach('explicit-disable-cache-accounting', {body: JSON.stringify({before, retained, remaining, beforeAccounting, retainedAccounting, reconciledAccounting}), contentType: 'application/json'});
+});
+
+// Explicit V3 observation derivative of immutable V4. Only the initial parent
+// selector is faulted; final native inventory and dispatch bypass these methods.
+// The test owns one document capture-load listener plus one MutationObserver.
+// Production-owned scalar receipts, read after public return, prove Go resources.
+const registrationHelperPath = '/_nextgo/offline/registration-helper-v1';
+const exactObservationKeys = (value, keys) => {
+  expect(value !== null && typeof value === 'object' && !Array.isArray(value)).toBe(true);
+  expect(Object.keys(value).sort()).toEqual([...keys].sort());
+};
+const observationUint = (value, maximum) => {expect(Number.isInteger(value) && value >= 0 && value <= maximum).toBe(true);};
+const observationNullableBool = value => {expect(value === null || typeof value === 'boolean').toBe(true);};
+const observationNullableCount = (value, maximum) => {if (value !== null) observationUint(value, maximum);};
+const observationText = (value, maximum) => {expect(typeof value === 'string' && value.length <= maximum && /^[\x20-\x7e]*$/.test(value)).toBe(true);};
+function closedRecoveryObservation(text) {
+  expect(typeof text).toBe('string'); expect(new TextEncoder().encode(text).byteLength).toBeLessThanOrEqual(8192);
+  const envelope = JSON.parse(text);
+  exactObservationKeys(envelope, ['version', 'completionRevision', 'advanced', 'observation']);
+  expect(envelope.version).toBe(1); observationUint(envelope.completionRevision, 0xffffffff); expect(typeof envelope.advanced).toBe('boolean');
+  const value = envelope.observation;
+  exactObservationKeys(value, ['version', 'diagnosticRevision', 'operation', 'runtimeID', 'configurationID', 'available', 'coverage', 'logicalReturned', 'cleanupKnown', 'overflow', 'failure', 'update', 'unregister', 'register', 'status', 'disableRecovered', 'frame', 'registry']);
+  expect(value.version).toBe(1); observationUint(value.diagnosticRevision, 0xffffffff); observationUint(value.operation, 4);
+  observationUint(value.coverage, 1); observationUint(value.failure, 8);
+  for (const key of ['available', 'logicalReturned', 'cleanupKnown', 'overflow']) expect(typeof value[key]).toBe('boolean');
+  observationText(value.runtimeID, 20); observationText(value.configurationID, 64);
+  if (value.available) {expect(value.runtimeID).toMatch(/^[a-f0-9]{20}$/); expect(value.configurationID).toMatch(/^[a-f0-9]{64}$/);}
+  for (const native of [value.update, value.unregister, value.register]) {
+    exactObservationKeys(native, ['covered', 'issued', 'returned', 'terminal', 'outcome', 'exactReceiver']);
+    expect(typeof native.covered).toBe('boolean');
+    for (const key of ['issued', 'returned', 'terminal']) observationNullableCount(native[key], 2);
+    observationUint(native.outcome, 4); observationNullableBool(native.exactReceiver);
+    if (!native.covered) {for (const key of ['issued', 'returned', 'terminal', 'exactReceiver']) expect(native[key]).toBe(null); expect(native.outcome).toBe(0);}
+    else {
+      for (const key of ['issued', 'returned', 'terminal']) observationUint(native[key], 2);
+      expect(native.returned).toBeLessThanOrEqual(native.issued); expect(native.terminal).toBeLessThanOrEqual(native.returned);
+      if (!native.issued) expect(native.exactReceiver).toBe(null);
+    }
+  }
+  for (const rpc of [value.status, value.disableRecovered]) {
+    exactObservationKeys(rpc, ['covered', 'issued', 'returned', 'bindingExact', 'workerURLExact', 'terminal', 'startReturned', 'port1CloseReturned', 'port2CloseReturned', 'onceListenerObserved', 'channelsCreated', 'listenerAdds', 'listenerRemoves', 'trustedEvents', 'duplicateTerminals', 'ack']);
+    expect(typeof rpc.covered).toBe('boolean');
+    for (const key of ['issued', 'returned', 'bindingExact', 'workerURLExact', 'terminal', 'startReturned', 'port1CloseReturned', 'port2CloseReturned', 'onceListenerObserved']) observationNullableBool(rpc[key]);
+    for (const key of ['channelsCreated', 'listenerAdds', 'listenerRemoves', 'trustedEvents', 'duplicateTerminals']) observationNullableCount(rpc[key], 8);
+    if (!rpc.covered) {for (const key of Object.keys(rpc).filter(key => key !== 'covered')) expect(rpc[key]).toBe(null);}
+    else {
+      for (const key of ['issued', 'returned', 'terminal', 'port1CloseReturned', 'port2CloseReturned', 'onceListenerObserved']) expect(typeof rpc[key]).toBe('boolean');
+      for (const key of ['channelsCreated', 'listenerAdds', 'listenerRemoves', 'trustedEvents', 'duplicateTerminals']) observationUint(rpc[key], 8);
+      expect(rpc.listenerRemoves).toBeLessThanOrEqual(rpc.listenerAdds);
+      // JSON has no public StartKnown capability: null is the closed encoding
+      // of no observed start, true is the actual native start-return receipt.
+      if (rpc.channelsCreated === 0) expect(rpc.startReturned).toBe(null);
+      if (rpc.issued && rpc.returned && rpc.terminal) expect(rpc.startReturned).toBe(true);
+      if (!rpc.terminal) expect(rpc.ack).toBe(null);
+    }
+    if (rpc.ack !== null) {
+      exactObservationKeys(rpc.ack, ['state', 'error', 'enabled', 'supported', 'deferredCleanup', 'runtimeID', 'configurationID']);
+      observationText(rpc.ack.state, 16); observationText(rpc.ack.error, 32);
+      expect(['disabled', 'ready', 'staged', 'failed', 'busy']).toContain(rpc.ack.state);
+      expect(['', 'unavailable', 'clock-rollback', 'storage-failed', 'expired', 'unsupported-command', 'invalid-message', 'identity-changed', 'locking-unavailable', 'waiting-worker', 'clients-unavailable', 'client-capacity', 'sender-uncontrolled', 'cleanup-pending', 'cleanup-failed', 'corrupt-storage', 'activation-failed', 'update-waiting', 'catalog-changed', 'quota', 'integrity-failed', 'download-failed']).toContain(rpc.ack.error);
+      for (const key of ['enabled', 'supported', 'deferredCleanup']) expect(typeof rpc.ack[key]).toBe('boolean');
+      expect(rpc.ack.runtimeID).toMatch(/^[a-f0-9]{20}$/); expect(rpc.ack.configurationID).toMatch(/^[a-f0-9]{64}$/);
+    }
+  }
+  exactObservationKeys(value.frame, ['listenerAdds', 'listenerRemoves', 'balanceKnown']);
+  observationNullableCount(value.frame.listenerAdds, 8); observationNullableCount(value.frame.listenerRemoves, 8); expect(typeof value.frame.balanceKnown).toBe('boolean');
+  if (!value.frame.balanceKnown) {expect(value.frame.listenerAdds).toBe(null); expect(value.frame.listenerRemoves).toBe(null);}
+  exactObservationKeys(value.registry, ['initialInventoryKnown', 'finalInventoryKnown', 'finalAbsent', 'parentPostRetirementInventoryKnown', 'parentPostRetirementAbsent']);
+  for (const key of ['initialInventoryKnown', 'finalInventoryKnown', 'parentPostRetirementInventoryKnown']) expect(typeof value.registry[key]).toBe('boolean');
+  observationNullableBool(value.registry.finalAbsent); observationNullableBool(value.registry.parentPostRetirementAbsent);
+  if (!value.registry.finalInventoryKnown) expect(value.registry.finalAbsent).toBe(null);
+  if (!value.registry.parentPostRetirementInventoryKnown) expect(value.registry.parentPostRetirementAbsent).toBe(null);
+  return envelope;
+}
+async function parentEmptyRegistrationFault(page) {
+  const prior = closedRecoveryObservation(await controls(page).getAttribute('data-offline-recovery-observation'));
+  const completion = await controls(page).getAttribute('data-offline-completed-operations');
+  expect(completion).toMatch(/^(0|[1-9][0-9]{0,9})$/); expect(BigInt(completion)).toBeLessThan(1n << 32n);
+  expect(prior.completionRevision).toBe(Number(completion));
+  await page.evaluate(({helperPath, priorRevision, priorCompletion}) => {
+    const sw = navigator.serviceWorker, host = document.documentElement, root = document.querySelector('[data-offline-controls]');
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline')), suffix = '/_nextgo/offline/sw.js';
+    if (globalThis.offlineEmptyParentFault || ['getRegistrations', 'getRegistration'].some(name => Object.hasOwn(sw, name)) || !descriptor.workerURL.endsWith(suffix)) throw new Error('Initial parent selector fault ownership unavailable');
+    const helperURL = descriptor.workerURL.slice(0, -suffix.length) + helperPath;
+    if (new URL(helperURL).origin !== location.origin || document.querySelector('iframe')) throw new Error('Unexpected helper environment');
+    const nativeList = sw.getRegistrations, nativeTarget = sw.getRegistration, wrappers = new WeakMap();
+    const state = {lists: 0, lookups: 0, added: 0, removed: 0, live: new Set(), maximumLive: 0,
+      trustedLoads: 0, eligibleLoads: 0, ineligibleLoads: 0, inaccessibleLoads: 0, observationKnown: true};
+    const empty = registration => {
+      if (!registration || registration.scope !== descriptor.scope) return registration;
+      let value = wrappers.get(registration);
+      if (!value) {value = {scope: registration.scope, active: null, waiting: null, installing: null}; wrappers.set(registration, value);}
+      return value;
+    };
+    const list = function(...args) {
+      if (this !== sw || ++state.lists > 2) throw new Error('Initial selector list exceeds exact finite seam');
+      return Reflect.apply(nativeList, this, args).then(values => values.map(empty));
+    };
+    const target = function(...args) {
+      if (this !== sw || ++state.lookups > 1) throw new Error('Initial selector lookup exceeds exact finite seam');
+      return Reflect.apply(nativeTarget, this, args).then(empty);
+    };
+    const record = records => {
+      if (records.length > 128) {state.observationKnown = false; return;}
+      for (const value of records) {
+        for (const frame of value.addedNodes) if (frame.nodeType === 1 && frame.tagName === 'IFRAME') {
+          if (frame.getAttribute('src') !== helperURL || frame.ownerDocument !== document || frame.parentNode !== host) state.observationKnown = false;
+          state.added++; state.live.add(frame); state.maximumLive = Math.max(state.maximumLive, state.live.size);
+        }
+        for (const frame of value.removedNodes) if (state.live.delete(frame)) state.removed++;
+      }
+    };
+    const observer = new MutationObserver(record);
+    const onLoad = event => {
+      if (!event.isTrusted) return;
+      const frame = event.target;
+      if (!frame || frame.nodeType !== 1 || frame.tagName !== 'IFRAME') return;
+      record(observer.takeRecords());
+      if (!state.live.has(frame) || frame.ownerDocument !== document || frame.parentNode !== host || frame.getAttribute('src') !== helperURL) {state.observationKnown = false; return;}
+      state.trustedLoads++;
+      if (state.trustedLoads !== 1) {state.observationKnown = false; return;}
+      let eligible = false, inaccessible = false;
+      try {
+        const child = frame.contentWindow, childDocument = frame.contentDocument;
+        inaccessible = childDocument === null;
+        eligible = !!child && !!childDocument && child.location.href === helperURL && child.origin === location.origin &&
+          childDocument.readyState === 'complete' && childDocument.documentElement?.getAttribute('data-nextgo-offline-helper') === '1' &&
+          childDocument.head?.childNodes.length === 0 && childDocument.body?.childNodes.length === 0;
+      } catch {}
+      if (eligible) state.eligibleLoads++; else {state.ineligibleLoads++; if (inaccessible) state.inaccessibleLoads++;}
+    };
+    // This test observer replaces the obsolete createElement/frame-own listener
+    // seam. It supplies no production dispatch or listener-lifecycle evidence.
+    globalThis.offlineEmptyParentFault = {sw, root, list, target, state, observer, record, onLoad,
+      priorRevision, priorCompletion, documentToken: offlineDocumentToken, runtimeID: descriptor.runtimeID, configurationID: descriptor.configurationID};
+    try {
+      observer.observe(host, {childList: true}); document.addEventListener('load', onLoad, true);
+      Object.defineProperty(sw, 'getRegistrations', {value: list, configurable: true});
+      Object.defineProperty(sw, 'getRegistration', {value: target, configurable: true});
+    } catch (error) {
+      observer.disconnect(); document.removeEventListener('load', onLoad, true);
+      if (sw.getRegistrations === list) delete sw.getRegistrations;
+      if (sw.getRegistration === target) delete sw.getRegistration;
+      delete globalThis.offlineEmptyParentFault;
+      throw error;
+    }
+  }, {helperPath: registrationHelperPath, priorRevision: prior.observation.diagnosticRevision, priorCompletion: Number(completion)});
+}
+async function retireParentEmptyRegistrationFault(page) {
+  const proof = await page.evaluate(() => {
+    const fault = globalThis.offlineEmptyParentFault;
+    if (!fault) throw new Error('Missing owned initial selector fault');
+    try {
+      fault.record(fault.observer.takeRecords());
+      if (navigator.serviceWorker !== fault.sw || fault.sw.getRegistrations !== fault.list || fault.sw.getRegistration !== fault.target || document.querySelector('[data-offline-controls]') !== fault.root) throw new Error('Initial selector fault ownership changed');
+      const state = fault.state;
+      if (!state.observationKnown || state.live.size || document.querySelector('iframe')) throw new Error('Independent helper observation is UNKNOWN or remains live');
+      delete fault.sw.getRegistrations; delete fault.sw.getRegistration;
+      if (Object.hasOwn(fault.sw, 'getRegistrations') || Object.hasOwn(fault.sw, 'getRegistration')) throw new Error('Initial selector fault restoration failed');
+      return {forcedParentEmptyOnly: true, initialSelectorLists: state.lists, initialSelectorLookups: state.lookups,
+        framesAdded: state.added, framesRemoved: state.removed, framesConnected: document.querySelectorAll('iframe').length, maximumLiveFrames: state.maximumLive,
+        trustedLoads: state.trustedLoads, eligibleLoads: state.eligibleLoads, ineligibleLoads: state.ineligibleLoads, inaccessibleLoads: state.inaccessibleLoads,
+        independentObservationKnown: state.observationKnown, forwardingRestored: true, documentUnchanged: offlineDocumentToken === fault.documentToken,
+        priorDiagnosticRevision: fault.priorRevision, priorCompletionRevision: fault.priorCompletion,
+        completionRevision: Number(fault.root.getAttribute('data-offline-completed-operations')),
+        runtimeID: fault.runtimeID, configurationID: fault.configurationID,
+        observationJSON: fault.root.getAttribute('data-offline-recovery-observation')};
+    } finally {
+      fault.observer.disconnect(); document.removeEventListener('load', fault.onLoad, true);
+      if (fault.sw.getRegistrations === fault.list) delete fault.sw.getRegistrations;
+      if (fault.sw.getRegistration === fault.target) delete fault.sw.getRegistration;
+      delete globalThis.offlineEmptyParentFault;
+    }
+  });
+  const envelope = closedRecoveryObservation(proof.observationJSON);
+  delete proof.observationJSON;
+  return {...proof, envelope, observation: envelope.observation};
+}
+function assertCurrentRecoveryObservation(proof, operation, expectedCleanupKnown) {
+  expect(proof.documentUnchanged).toBe(true); expect(proof.independentObservationKnown).toBe(true); expect(proof.forwardingRestored).toBe(true);
+  expect(proof.completionRevision).toBe((proof.priorCompletionRevision + 1) >>> 0);
+  expect(proof.envelope.completionRevision).toBe(proof.completionRevision); expect(proof.envelope.advanced).toBe(true);
+  const value = proof.observation;
+  expect(value.diagnosticRevision).toBe((proof.priorDiagnosticRevision + 1) >>> 0);
+  expect(value.operation).toBe(operation); expect(value.runtimeID).toBe(proof.runtimeID); expect(value.configurationID).toBe(proof.configurationID);
+  expect(value.available).toBe(true); expect(value.logicalReturned).toBe(true); expect(value.cleanupKnown).toBe(expectedCleanupKnown); expect(value.overflow).toBe(false);
+  // These are actual receipts for precisely the native load/error listeners.
+  // They do not qualify legacy UPDATE port or worker-state listener history.
+  expect(value.frame.balanceKnown).toBe(true); expect(value.frame.listenerAdds).toBe(2); expect(value.frame.listenerRemoves).toBe(2);
+}
+function assertNativeReceipt(value, issued, outcome = 0) {
+  expect(value.covered).toBe(true); expect(value.issued).toBe(issued); expect(value.returned).toBe(issued); expect(value.terminal).toBe(issued);
+  expect(value.outcome).toBe(outcome); if (issued) expect(value.exactReceiver).toBe(true);
+}
+function assertUpdateWitness(proof, permitted) {
+  assertCurrentRecoveryObservation(proof, 3, !permitted);
+  expect(proof.forcedParentEmptyOnly).toBe(true); expect(proof.initialSelectorLists).toBe(1); expect(proof.initialSelectorLookups).toBe(1);
+  expect(proof.framesAdded).toBe(1); expect(proof.framesRemoved).toBe(1); expect(proof.framesConnected).toBe(0); expect(proof.maximumLiveFrames).toBe(1); expect(proof.trustedLoads).toBe(1);
+  // The native update receipt covers this dispatch. Legacy UPDATE RPC physical
+  // history remains UNKNOWN and prevents full cleanup qualification on the
+  // permitted path; the actual native frame cleanup above is still mandatory.
+  expect(proof.observation.coverage).toBe(0);
+  expect(proof.observation.status.covered).toBe(false); expect(proof.observation.disableRecovered.covered).toBe(false);
+  assertNativeReceipt(proof.observation.update, permitted ? 1 : 0, permitted ? 3 : 0);
+  if (permitted) {
+    expect(proof.observation.failure).toBe(0);
+    expect(proof.eligibleLoads).toBe(1); expect(proof.ineligibleLoads).toBe(0); expect(proof.inaccessibleLoads).toBe(0);
+    expect(proof.observation.registry.finalInventoryKnown).toBe(true); expect(proof.observation.registry.finalAbsent).toBe(false);
+  } else {expect(proof.eligibleLoads).toBe(0); expect(proof.ineligibleLoads).toBe(1); expect(proof.inaccessibleLoads).toBe(1);}
+}
+async function nextOfflineCompletion(page) {
+  const current = await controls(page).getAttribute('data-offline-completed-operations');
+  expect(current).toMatch(/^(0|[1-9][0-9]{0,9})$/);
+  expect(BigInt(current)).toBeLessThan(1n << 32n);
+  return ((BigInt(current) + 1n) % (1n << 32n)).toString();
+}
+
+test('Go update recovers a forced parent-empty proof through one live native realm without activating or remounting', async ({shelf}, info) => {
+  let page = await shelf.open();
+  const active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  await page.evaluate(() => {globalThis.freshRealmOfflineNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];});
+  await parentEmptyRegistrationFault(page);
+  let proof, primaryFailed = false;
+  try {
+    await shelf.select('B');
+    const completion = await nextOfflineCompletion(page);
+    await page.locator('[data-offline-update]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-last-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+    expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
+    expect(await page.evaluate(() => freshRealmOfflineNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+    await expect(counter(page)).toHaveText('4');
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await retireOfflineParentFault(page, info, retireParentEmptyRegistrationFault, primaryFailed);}
+  assertUpdateWitness(proof, true);
+  const waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
+  const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state, controller: navigator.serviceWorker.controller?.state, frames: document.querySelectorAll('iframe').length};});
+  expect(native).toEqual({active: 'activated', waiting: 'installed', controller: 'activated', frames: 0});
+  const helperRequests = shelf.records.filter(value => value.path === registrationHelperPath);
+  expect(helperRequests).toEqual([{generation: 'B', method: 'GET', path: registrationHelperPath, status: 200}]);
+  await info.attach('forced-parent-empty-live-realm-update', {body: JSON.stringify({proof, native, helperRequests, active, waiting, naturalCause: 'UNKNOWN', nativeEligibility: 'actual HTTP helper registry/update flight; no browser-cause inference'}), contentType: 'application/json'});
+  await shelf.closeBrowser(); page = await shelf.open(); await page.goto(shelf.origin + '/'); await ready(page);
+  const completion = await nextOfflineCompletion(page);
+  await page.locator('[data-offline-status-button]').click();
+  await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+  await expect(controls(page)).toHaveAttribute('data-offline-active-generation', waiting);
+  await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', '');
+  await expect(counter(page)).toHaveText('3');
+});
+
+// One immutable HTTP src is set BEFORE insertion. Only a trusted exact-target
+// load retires that high-level native navigation; error/timeout/removal do not.
+// Failed navigation documents also load but never grant helper authority.
+async function httpHelperPolicy(page) {
+  return page.evaluate(async helperPath => {
+    if (document.querySelector('iframe')) throw new Error('Policy probe requires no preexisting frames');
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline')), suffix = '/_nextgo/offline/sw.js';
+    if (!descriptor.workerURL.endsWith(suffix)) throw new Error('Unexpected worker path');
+    const helperURL = descriptor.workerURL.slice(0, -suffix.length) + helperPath;
+    if (new URL(helperURL).origin !== location.origin) throw new Error('Unexpected helper origin');
+    const frame = document.createElement('iframe');
+    frame.hidden = true; frame.inert = true; frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true');
+    frame.loading = 'eager'; frame.referrerPolicy = 'no-referrer'; frame.src = helperURL;
+    let trustedLoad = false, violation = false, timer, timedOut = false, settled = false, finish;
+    // Passive evidence only: cache values already read by the existing handlers.
+    // No event, DOM or native observation is added when the deadline rejects.
+    const passive = {trustedExactLoads: 0, acceptedLoads: 0, trustedExactErrors: 0,
+      accessibilityChecks: 0, accessibleChecks: 0, inaccessibleChecks: 0,
+      trustedPolicyEvents: 0, policyObservations: []};
+    const bump = key => {try {if (passive[key] < 32) passive[key]++;} catch {}};
+    const scalar = (value, maximum) => typeof value === 'string' ? value.slice(0, maximum) : null;
+    const cleanup = () => {
+      frame.removeEventListener('load', onLoad); frame.removeEventListener('error', onError);
+      document.removeEventListener('securitypolicyviolation', onPolicy);
+      if (!trustedLoad) throw new Error('No native navigation terminal observation');
+      frame.remove();
+      if (frame.isConnected || document.querySelector('iframe')) throw new Error('Native policy probe did not retire');
+    };
+    const result = new Promise((resolve, reject) => {
+      finish = () => {
+        if (!trustedLoad || settled) return;
+        let accessible = false;
+        try {
+          const child = frame.contentWindow, childDocument = frame.contentDocument;
+          accessible = !!child && !!childDocument && child.location.href === helperURL && child.origin === location.origin &&
+            childDocument.readyState === 'complete' && childDocument.documentElement?.getAttribute('data-nextgo-offline-helper') === '1' &&
+            childDocument.head?.childNodes.length === 0 && childDocument.body?.childNodes.length === 0 && !!child.navigator.serviceWorker;
+        } catch {}
+        bump('accessibilityChecks'); bump(accessible ? 'accessibleChecks' : 'inaccessibleChecks');
+        if (accessible || violation) {settled = true; resolve({nativePermitsHTTPHelper: accessible, policyViolationObserved: violation, trustedNavigationLoad: true});}
+      };
+      timer = setTimeout(() => {
+        timedOut = true; settled = true;
+        // This precedes the original rejection/finally. A trusted load can still
+        // make finally retire the frame; this snapshot does not claim otherwise.
+        try {
+          const body = JSON.stringify({version: 1, snapshotPhase: 'before-original-rejection',
+            trustedNavigationLoad: trustedLoad, policyViolationObserved: violation, countsSaturateAt: 32,
+            trustedExactLoads: passive.trustedExactLoads, acceptedLoads: passive.acceptedLoads,
+            trustedExactErrors: passive.trustedExactErrors, accessibilityChecks: passive.accessibilityChecks,
+            accessibleChecks: passive.accessibleChecks, inaccessibleChecks: passive.inaccessibleChecks,
+            trustedPolicyEvents: passive.trustedPolicyEvents, policyObservations: passive.policyObservations});
+          if (body.length <= 12288) console.warn('NEXTGO_OFFLINE_HTTP_HELPER_POLICY_TIMEOUT ' + body);
+        } catch {} // Diagnostic failure cannot mask the original rejection.
+        reject(new Error('Native HTTP helper policy remains unknown; navigation still charged until trusted load'));
+      }, 5000);
+    });
+    const onLoad = event => {
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      const target = event.target;
+      if (target !== frame) return;
+      bump('trustedExactLoads');
+      if (frame.getAttribute('src') !== helperURL) return;
+      bump('acceptedLoads');
+      trustedLoad = true;
+      if (timedOut) cleanup(); else finish();
+    };
+    const onError = event => {
+      // An error does not prove that the one navigation attempt settled. Keep
+      // the live frame/listener ownership for a later trusted load or teardown.
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      const target = event.target;
+      if (target !== frame) return;
+      bump('trustedExactErrors');
+    };
+    const onPolicy = event => {
+      if (!(event instanceof SecurityPolicyViolationEvent)) return;
+      const isTrusted = event.isTrusted;
+      if (!isTrusted) return;
+      bump('trustedPolicyEvents');
+      // Preserve the original short-circuit read order. Null means that the
+      // original predicate never reached that field, not that it was absent.
+      const disposition = event.disposition;
+      const directive = disposition === 'enforce' ? event.effectiveDirective : null;
+      const blockedURI = disposition === 'enforce' && directive === 'frame-src' ? event.blockedURI : null;
+      try {
+        if (passive.policyObservations.length < 4) passive.policyObservations.push({
+          disposition: scalar(disposition, 32), directive: scalar(directive, 64), blockedURI: scalar(blockedURI, 256),
+          blockedURITruncated: typeof blockedURI === 'string' ? blockedURI.length > 256 : null});
+      } catch {} // Passive projection failure must not change the policy predicate.
+      if (disposition === 'enforce' && directive === 'frame-src' && blockedURI === helperURL && frame.getAttribute('src') === helperURL &&
+          document.querySelectorAll('iframe').length === 1 && frame.isConnected) {violation = true; finish();}
+    };
+    frame.addEventListener('load', onLoad); frame.addEventListener('error', onError);
+    document.addEventListener('securitypolicyviolation', onPolicy);
+    try {document.documentElement.appendChild(frame); return await result;}
+    finally {clearTimeout(timer); if (trustedLoad) cleanup();}
+    // With no trusted load, closure-held listeners/frame remain one charged
+    // attempt; the failed case's existing browser-context owner must contain it.
+  }, registrationHelperPath);
+}
+
+test('Go parent-empty update honors actual native HTTP-helper CSP policy with real worker state and cleanup', async ({shelf}, info) => {
+  const page = await shelf.open(), active = await enable(shelf, page), documentToken = await page.evaluate(() => offlineDocumentToken);
+  // This exact parent policy governs loading the HTTP child; an HTTP child does
+  // not inherit every parent-only worker-src policy. No response/header bypass.
+  await page.evaluate(() => {const policy = document.createElement('meta'); policy.httpEquiv = 'Content-Security-Policy'; policy.content = "frame-src 'none'"; document.head.append(policy);});
+  const policy = await httpHelperPolicy(page);
+  await parentEmptyRegistrationFault(page);
+  let proof, waiting, primaryFailed = false;
+  try {
+    await shelf.select('B');
+    const completion = await nextOfflineCompletion(page);
+    await page.locator('[data-offline-update]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    if (policy.nativePermitsHTTPHelper) {
+      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+      await expect(controls(page)).toHaveAttribute('data-offline-last-error', '');
+      await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', /^[a-f0-9]{64}$/);
+      waiting = await controls(page).getAttribute('data-offline-waiting-generation'); expect(waiting).not.toBe(active);
+    } else {
+      expect(policy.policyViolationObserved).toBe(true);
+      await expect(controls(page)).toHaveAttribute('data-offline-operation-error', 'conflict');
+      await expect(controls(page)).toHaveAttribute('data-offline-waiting-generation', '');
+    }
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+    expect(await page.evaluate(() => offlineDocumentToken)).toBe(documentToken);
+    await expect(counter(page)).toHaveText('3');
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await retireOfflineParentFault(page, info, retireParentEmptyRegistrationFault, primaryFailed);}
+  assertUpdateWitness(proof, policy.nativePermitsHTTPHelper);
+  const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state || null, frames: document.querySelectorAll('iframe').length};});
+  expect(native).toEqual({active: 'activated', waiting: policy.nativePermitsHTTPHelper ? 'installed' : null, frames: 0});
+  const helperRequests = shelf.records.filter(value => value.path === registrationHelperPath);
+  if (policy.nativePermitsHTTPHelper) expect(helperRequests).toEqual([{generation: 'A', method: 'GET', path: registrationHelperPath, status: 200}, {generation: 'B', method: 'GET', path: registrationHelperPath, status: 200}]);
+  else expect(helperRequests).toEqual([]);
+  await info.attach('forced-parent-empty-native-csp-policy', {body: JSON.stringify({policy, proof, native, helperRequests, active, waiting: waiting || null, naturalCause: 'UNKNOWN', meaning: 'Native load retires one high-level attempt; no socket or worker-client-ID disappearance claim. Update counts come from actual same-attempt native receipts; legacy UPDATE RPC physical history remains UNKNOWN.'}), contentType: 'application/json'});
+});
+
+// Recovery witnesses preserve all sixteen titles, intended outcomes, retry
+// policy and timeouts. This derivative explicitly adapts the two UPDATE bodies
+// above and the recovered Disable bodies below to same-production receipts.
+async function parentEmptyDisableFault(page) {await parentEmptyRegistrationFault(page);}
+async function retireParentEmptyDisableFault(page) {return retireParentEmptyRegistrationFault(page);}
+async function finishDisableWitness(page, info, primaryFailed) {
+  try {
+    const proof = await retireParentEmptyDisableFault(page);
+    await info.attach('forced-parent-empty-disable-native-observation', {body: JSON.stringify(proof), contentType: 'application/json'});
+    return proof;
+  } catch (error) {
+    await info.attach('forced-parent-empty-disable-observation-error', {body: error.message, contentType: 'text/plain'});
+    if (!primaryFailed) throw error;
+  }
+}
+function assertRPCReceipt(value, dispatched) {
+  expect(value.covered).toBe(true); expect(value.issued).toBe(dispatched); expect(value.returned).toBe(dispatched);
+  expect(value.channelsCreated).toBe(dispatched ? 1 : 0); expect(value.listenerAdds).toBe(dispatched ? 1 : 0); expect(value.listenerRemoves).toBe(dispatched ? 1 : 0);
+  expect(value.trustedEvents).toBe(dispatched ? 1 : 0); expect(value.duplicateTerminals).toBe(0);
+  if (dispatched) {
+    expect(value.terminal).toBe(true); expect(value.bindingExact).toBe(true); expect(value.workerURLExact).toBe(true);
+    expect(value.startReturned).toBe(true);
+    expect(value.port1CloseReturned).toBe(true); expect(value.port2CloseReturned).toBe(true); expect(value.onceListenerObserved).toBe(false);
+    expect(value.ack).not.toBe(null);
+  } else {expect(value.startReturned).toBe(null); expect(value.terminal).toBe(false); expect(value.ack).toBe(null);}
+}
+function assertDisableWitness(proof, {dispatched, unregister}) {
+  assertCurrentRecoveryObservation(proof, 4, true);
+  expect(proof.forcedParentEmptyOnly).toBe(true); expect(proof.initialSelectorLists).toBe(2); expect(proof.initialSelectorLookups).toBe(1);
+  expect(proof.framesAdded).toBe(1); expect(proof.framesRemoved).toBe(1); expect(proof.framesConnected).toBe(0); expect(proof.maximumLiveFrames).toBe(1); expect(proof.trustedLoads).toBe(1);
+  const value = proof.observation;
+  // COMPLETE is earned by the audited typed fresh branch and actual records;
+  // missing, unsupported, partial and legacy paths remain UNKNOWN and fail.
+  expect(value.coverage).toBe(1);
+  assertNativeReceipt(value.unregister, unregister, unregister ? 1 : 0);
+  assertNativeReceipt(value.update, 0); assertNativeReceipt(value.register, 0);
+  assertRPCReceipt(value.status, dispatched === 1); assertRPCReceipt(value.disableRecovered, dispatched === 1);
+  if (dispatched) {
+    expect(value.failure).toBe(0);
+    expect(value.status.ack.error).toBe(''); expect(value.status.ack.supported).toBe(true);
+    expect(value.disableRecovered.ack.runtimeID).toBe(value.status.ack.runtimeID); expect(value.disableRecovered.ack.configurationID).toBe(value.status.ack.configurationID);
+  }
+  if (unregister) {
+    expect(value.registry.initialInventoryKnown).toBe(true); expect(value.registry.finalInventoryKnown).toBe(true); expect(value.registry.finalAbsent).toBe(true);
+    expect(value.registry.parentPostRetirementInventoryKnown).toBe(true); expect(value.registry.parentPostRetirementAbsent).toBe(true);
+  }
+}
+
+test('Go disable recovers parent-empty ownership with native sender binding and one child unregister while retaining charged payloads', async ({shelf}, info) => {
+  const page = await shelf.open(), active = await enable(shelf, page), token = await page.evaluate(() => offlineDocumentToken);
+  const before = await ownedAccounting(page);
+  await page.evaluate(() => {globalThis.disableWitnessNodes = [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')];});
+  await page.locator('[data-offline-increment]').click(); await expect(counter(page)).toHaveText('4');
+  await page.evaluate(() => caches.open('offline-fixture-recovered-disable-unrelated'));
+  await parentEmptyDisableFault(page);
+  let proof, primaryFailed = false;
+  try {
+    const completion = await nextOfflineCompletion(page);
+    await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+    await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'true');
+    await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
+    expect(await page.evaluate(() => offlineDocumentToken)).toBe(token);
+    expect(await page.evaluate(() => disableWitnessNodes.every((node, index) => node.isConnected && node === [document.querySelector('[data-nextgo-island="counter"]'), document.querySelector('[data-offline-count]'), document.querySelector('[data-offline-increment]')][index]))).toBe(true);
+    await expect(counter(page)).toHaveText('4');
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await finishDisableWitness(page, info, primaryFailed);}
+  assertDisableWitness(proof, {dispatched: 1, unregister: 1});
+  expect(proof.eligibleLoads).toBe(1); expect(proof.ineligibleLoads).toBe(0); expect(proof.inaccessibleLoads).toBe(0);
+  const ack = proof.observation.disableRecovered.ack;
+  expect(ack).toMatchObject({state: 'disabled', enabled: false, supported: true, error: '', deferredCleanup: true});
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  const after = await ownedAccounting(page);
+  expect(after.generations).toEqual(before.generations); expect(after.index.disabled).toBe(true); expect(after.index.active).toBe(active);
+  expect(after.index.retainedClients).toBeGreaterThan(0); expect(after.index.retainedClients).toBeLessThanOrEqual(4);
+  expect((await cachedEntries(page)).some(value => value.name === 'offline-fixture-recovered-disable-unrelated')).toBe(true);
+  expect(shelf.records.filter(value => value.path === registrationHelperPath)).toEqual([{generation: 'A', method: 'GET', path: registrationHelperPath, status: 200}]);
+  await info.attach('recovered-disable-storage-receipt', {body: JSON.stringify({before, after, active, nativeSenderMembership: 'accepted by actual recovery-only worker transition', limitation: 'Retained count comes from the worker snapshot; frame removal does not establish client-ID disappearance or physical purge.'}), contentType: 'application/json'});
+});
+
+test('Go parent-empty disable refuses native parent frame-CSP denial without a destructive command or unregister', async ({shelf}, info) => {
+  const page = await shelf.open(), active = await enable(shelf, page), before = await ownedAccounting(page);
+  await page.evaluate(() => {const policy = document.createElement('meta'); policy.httpEquiv = 'Content-Security-Policy'; policy.content = "frame-src 'none'"; document.head.append(policy);});
+  const policy = await httpHelperPolicy(page);
+  // This witness requires a real enforcing engine, rather than replacing native
+  // loading with a pretend denied callback. A non-enforcing engine fails it.
+  expect(policy).toEqual({nativePermitsHTTPHelper: false, policyViolationObserved: true, trustedNavigationLoad: true});
+  await parentEmptyDisableFault(page);
+  let proof, primaryFailed = false;
+  try {
+    const completion = await nextOfflineCompletion(page); await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).toHaveAttribute('data-offline-operation-error', 'conflict');
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await finishDisableWitness(page, info, primaryFailed);}
+  assertDisableWitness(proof, {dispatched: 0, unregister: 0});
+  expect(proof.eligibleLoads).toBe(0); expect(proof.ineligibleLoads).toBe(1); expect(proof.inaccessibleLoads).toBe(1);
+  expect((await ownedAccounting(page)).generations).toEqual(before.generations);
+  expect((await ownedAccounting(page)).index.disabled).toBe(false);
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(1);
+  expect(shelf.records.filter(value => value.path === registrationHelperPath)).toEqual([]);
+});
+
+async function openControlledPeers(page, origin, count) {
+  const peers = [];
+  for (let index = 0; index < count; index++) {
+    const peer = await page.context().newPage(); peers.push(peer);
+    await peer.goto(origin + '/'); await ready(peer);
+    await expect(controls(peer)).toHaveAttribute('data-offline-enabled', 'true');
+    await expect(controls(peer)).toHaveAttribute('data-offline-controlling', 'true');
+    expect(await peer.evaluate(() => {
+      const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
+      return navigator.serviceWorker.controller?.scriptURL === descriptor.workerURL;
+    })).toBe(true);
+  }
+  return peers;
+}
+
+test('recovered Go disable keeps all actual retained clients within cap four while three user documents remain controlled', async ({shelf}, info) => {
+  const page = await shelf.open(); await enable(shelf, page);
+  const peers = await openControlledPeers(page, shelf.origin, 2), before = await ownedAccounting(page);
+  await parentEmptyDisableFault(page);
+  let proof, primaryFailed = false;
+  try {
+    const completion = await nextOfflineCompletion(page); await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).toHaveAttribute('data-offline-operation-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'false');
+    await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'true');
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await finishDisableWitness(page, info, primaryFailed);}
+  assertDisableWitness(proof, {dispatched: 1, unregister: 1});
+  const after = await ownedAccounting(page);
+  expect(after.generations).toEqual(before.generations); expect(after.index.disabled).toBe(true);
+  expect(after.index.retainedClients).toBeGreaterThanOrEqual(3); expect(after.index.retainedClients).toBeLessThanOrEqual(4);
+  for (const live of [page, ...peers]) expect(await live.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  await info.attach('recovered-disable-real-client-cap-success', {body: JSON.stringify({before, after, liveUserDocuments: 3,
+    limitation: 'Persisted retained count is native worker output. The helper is neither subtracted nor assumed controlled; a removed frame is not proof of an absent native client ID.'}), contentType: 'application/json'});
+});
+
+test('recovered Go disable refuses more than four actual controlled user clients without publishing default disabled state', async ({shelf}, info) => {
+  const page = await shelf.open(), active = await enable(shelf, page);
+  const peers = await openControlledPeers(page, shelf.origin, 4), before = await ownedAccounting(page);
+  await parentEmptyDisableFault(page);
+  let proof, primaryFailed = false;
+  try {
+    const completion = await nextOfflineCompletion(page); await page.locator('[data-offline-disable]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+    await expect(controls(page)).not.toHaveAttribute('data-offline-operation-error', '');
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+    await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'false');
+    await expect(controls(page)).toHaveAttribute('data-offline-active-generation', active);
+    await expect(controls(page)).toHaveAttribute('data-offline-controlling', 'true');
+  } catch (error) {primaryFailed = true; throw error;}
+  finally {proof = await finishDisableWitness(page, info, primaryFailed);}
+  assertDisableWitness(proof, {dispatched: 1, unregister: 0});
+  const ack = proof.observation.disableRecovered.ack;
+  expect(ack).toMatchObject({enabled: false, error: 'client-capacity'});
+  const after = await ownedAccounting(page);
+  expect(after.generations).toEqual(before.generations); expect(after.index.disabled).toBe(false); expect(after.index.active).toBe(active);
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(1);
+  for (const live of [page, ...peers]) expect(await live.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await info.attach('recovered-disable-real-client-cap-refusal', {body: JSON.stringify({before, after, liveUserDocuments: 5,
+    ack, meaning: 'The actual worker refused before disable transition. A false field in an errored base reply did not become confirmed Disabled. Prior status may legitimately advance metadata time.'}), contentType: 'application/json'});
+});
+
+test('native recovered-disable sender binding refuses an actual same-script worker that does not control the parent', async ({shelf}, info) => {
+  const page = await shelf.open(); await enable(shelf, page);
+  const before = await ownedAccounting(page);
+  const result = await page.evaluate(async () => {
+    const descriptor = JSON.parse(document.body.getAttribute('data-nextgo-offline'));
+    const parentController = navigator.serviceWorker.controller;
+    if (!parentController || parentController.scriptURL !== descriptor.workerURL) throw new Error('Missing original owned parent controller');
+    const secondaryScope = new URL('/recovered-disable-cross-worker/', location.origin).href;
+    const secondary = await navigator.serviceWorker.register(descriptor.workerURL, {scope: secondaryScope, updateViaCache: 'none', type: 'classic'});
+    if (secondary.scope !== secondaryScope) throw new Error('Unexpected secondary registration scope');
+    const worker = secondary.active || secondary.installing || secondary.waiting;
+    if (!worker || worker.scriptURL !== descriptor.workerURL) throw new Error('No genuine same-script secondary worker');
+    if (worker.state !== 'activated') await new Promise((resolve, reject) => {
+      const changed = () => {if (worker.state === 'activated') {worker.removeEventListener('statechange', changed); clearTimeout(timer); resolve();} else if (worker.state === 'redundant') {worker.removeEventListener('statechange', changed); clearTimeout(timer); reject(new Error('Secondary worker became redundant'));}};
+      const timer = setTimeout(() => {worker.removeEventListener('statechange', changed); reject(new Error('Secondary native activation not established'));}, 5000);
+      worker.addEventListener('statechange', changed); changed();
+    });
+    if (!secondary.active || secondary.active !== worker || navigator.serviceWorker.controller !== parentController) throw new Error('Native worker/control identity changed');
+    const owned = {pending: [], secondary, worker, parentController};
+    globalThis.offlineCrossWorkerWitness = owned;
+    const message = request => new Promise((resolve, reject) => {
+      const channel = new MessageChannel(), port = channel.port1;
+      const pending = {channel, listener: null, timer: null, terminal: false}; owned.pending.push(pending);
+      pending.listener = event => {
+        if (!event.isTrusted || event.target !== port || pending.terminal) return;
+        const reply = event.data;
+        if (!reply || reply.version !== request.version || reply.requestID !== request.requestID || reply.ownerPolicyID !== request.ownerPolicyID ||
+            request.command !== 'status' && (reply.runtimeID !== request.runtimeID || reply.configurationID !== request.configurationID)) return;
+        pending.terminal = true; clearTimeout(pending.timer); port.removeEventListener('message', pending.listener); pending.listener = null;
+        port.close(); channel.port2.close(); resolve(reply);
+      };
+      port.addEventListener('message', pending.listener); port.start();
+      // A timeout does not assert native operation death. Leave the port and
+      // listener owned by this document for a late terminal receipt or the
+      // fixture's actual browser-context teardown; never replay the command.
+      pending.timer = setTimeout(() => reject(new Error('Native secondary-worker receipt remains unknown')), 5000);
+      worker.postMessage(request, [channel.port2]);
+    });
+    let unregisterResult = null;
+    try {
+      const base = {version: descriptor.version, ownerPolicyID: descriptor.ownerPolicyID, runtimeID: descriptor.runtimeID, configurationID: descriptor.configurationID};
+      const status = await message({...base, command: 'status', requestID: 'cross-worker-status-1'});
+      if (!status.supported || status.error || !status.runtimeID || !status.configurationID) throw new Error('Actual secondary worker status unavailable');
+      const request = {...base, runtimeID: status.runtimeID, configurationID: status.configurationID, command: 'disable-recovered', requestID: 'cross-worker-disable-1'};
+      const reply = await message(request);
+      if (navigator.serviceWorker.controller !== parentController || secondary.active !== worker) throw new Error('Control changed during cross-worker refusal');
+      return {reply, statusIdentity: {runtimeID: status.runtimeID, configurationID: status.configurationID},
+        sameScriptURL: parentController.scriptURL === worker.scriptURL, distinctNativeWorker: parentController !== worker,
+        secondaryScope, parentControlUnchanged: true};
+    } finally {
+      // Only a fully observed terminal path authorizes this separate test-setup
+      // cleanup. Unknown issued work remains contained by browser teardown.
+      if (owned.pending.every(pending => pending.terminal)) {
+        if (secondary.scope !== secondaryScope) throw new Error('Secondary cleanup scope changed');
+        unregisterResult = await secondary.unregister();
+        if (unregisterResult !== true) throw new Error('Secondary test registration cleanup did not resolve true');
+        delete globalThis.offlineCrossWorkerWitness;
+      }
+    }
+  });
+  expect(result.sameScriptURL).toBe(true); expect(result.distinctNativeWorker).toBe(true); expect(result.parentControlUnchanged).toBe(true);
+  expect(result.reply).toMatchObject({enabled: false, error: 'sender-uncontrolled'});
+  expect(result.reply.runtimeID).toBe(result.statusIdentity.runtimeID); expect(result.reply.configurationID).toBe(result.statusIdentity.configurationID);
+  const after = await ownedAccounting(page);
+  expect(after.generations).toEqual(before.generations); expect(after.index.disabled).toBe(false);
+  const registrations = await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map(value => value.scope));
+  expect(registrations).toEqual([shelf.origin + '/']);
+  await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+  await info.attach('recovered-disable-native-cross-worker-refusal', {body: JSON.stringify({result, before, after, registrations,
+    scope: 'Actual native sender to a genuinely different registration using the same artifact. Test-setup secondary unregister is separate from recovery dispatch; no scope-string ownership or atomic registry CAS claim.'}), contentType: 'application/json'});
+});
+
+test('new Go recovery client refuses a genuinely previous worker without legacy disable replay or unregister', async ({shelf}, info) => {
+  const legacyPath = process.env.NEXTGO_OFFLINE_LEGACY_ARTIFACTS;
+  if (!legacyPath) throw new Error('NEXTGO_OFFLINE_LEGACY_ARTIFACTS must pin actual pre-recovery 46bf production artifacts; no synthetic legacy worker or skip is permitted');
+  const legacy = await readOfflineArtifacts(legacyPath);
+  expect([shelf.artifacts.A.binarySHA256, shelf.artifacts.B.binarySHA256]).not.toContain(legacy.A.binarySHA256);
+  // Stop the original server owner before creating the explicitly owned mixed
+  // generation fixture on the same fixed public origin. Its finalizer remains
+  // harmless and the mixed owner is joined separately below.
+  await shelf.stopNetwork();
+  const mixed = await startOfflineFixture({...legacy, B: shelf.artifacts.B});
+  let page, proof, before, after, oldRuntime, newRuntime;
+  try {
+    page = await shelf.open(); await enable(mixed, page);
+    oldRuntime = await page.locator('body').getAttribute('data-nextgo-build');
+    const controllerBefore = await page.evaluate(() => {globalThis.legacyRecoveryController = navigator.serviceWorker.controller; return {scriptURL: legacyRecoveryController.scriptURL, state: legacyRecoveryController.state};});
+    await mixed.select('B'); await page.reload(); await ready(page);
+    newRuntime = await page.locator('body').getAttribute('data-nextgo-build'); expect(newRuntime).not.toBe(oldRuntime);
+    // A native reload is still controlled by the old active generation; no
+    // update/activation request has been issued by this compatibility witness.
+    const statusCompletion = await nextOfflineCompletion(page); await page.locator('[data-offline-status-button]').click();
+    await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', statusCompletion);
+    await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+    before = await ownedAccounting(page);
+    await parentEmptyDisableFault(page);
+    let primaryFailed = false;
+    try {
+      const completion = await nextOfflineCompletion(page); await page.locator('[data-offline-disable]').click();
+      await expect(controls(page)).toHaveAttribute('data-offline-completed-operations', completion);
+      await expect(controls(page)).not.toHaveAttribute('data-offline-operation-error', '');
+      await expect(controls(page)).toHaveAttribute('data-offline-enabled', 'true');
+      await expect(controls(page)).toHaveAttribute('data-offline-cleanup-pending', 'false');
+    } catch (error) {primaryFailed = true; throw error;}
+    finally {proof = await finishDisableWitness(page, info, primaryFailed);}
+    assertDisableWitness(proof, {dispatched: 1, unregister: 0});
+    const ack = proof.observation.disableRecovered.ack;
+    expect(ack).toMatchObject({enabled: false, error: 'unsupported-command', runtimeID: oldRuntime});
+    after = await ownedAccounting(page); expect(after.generations).toEqual(before.generations); expect(after.index.disabled).toBe(false);
+    const native = await page.evaluate(async () => {const registration = await navigator.serviceWorker.getRegistration(); return {active: registration.active?.state, waiting: registration.waiting?.state || null, controller: navigator.serviceWorker.controller?.state, scriptURL: navigator.serviceWorker.controller?.scriptURL};});
+    expect(native.active).toBe('activated'); expect(native.controller).toBe('activated'); expect(native.scriptURL).toBe(controllerBefore.scriptURL);
+    expect([null, 'installed']).toContain(native.waiting);
+    await info.attach('recovered-disable-genuine-legacy-worker-refusal', {body: JSON.stringify({legacyArtifact: legacy.A, currentArtifact: shelf.artifacts.B,
+      requiredLegacySource: '46bf41a35b5db96f81927c6f138ca1a8e36e2d6d', oldRuntime, newRuntime, proof, native, before, after,
+      meaning: 'One actual unsupported recovery command, COMPLETE typed-branch coverage, and zero actual unregister/update/register dispatch receipts. Native browser soft-update scheduling is not counted as a Go dispatch; an old active worker remains the actual status/control target.'}), contentType: 'application/json'});
+  } finally {
+    const closeErrors = [];
+    try {await shelf.closeBrowser();} catch (error) {closeErrors.push(error);}
+    try {await mixed.close();} catch (error) {closeErrors.push(error);}
+    const joined = mixed.snapshot();
+    expect(joined.nativePID).toBe(null); expect(joined.gatewayListening).toBe(false); expect(joined.processes.every(value => value.exited)).toBe(true);
+    await info.attach('recovered-disable-mixed-fixture-joined', {body: JSON.stringify(joined), contentType: 'application/json'});
+    if (closeErrors.length) throw new AggregateError(closeErrors, 'Mixed-release browser/server ownership could not be joined');
+  }
+});

@@ -1,0 +1,416 @@
+//go:build js && wasm
+
+package client
+
+import (
+ "context"
+ "strconv"
+ "strings"
+ "syscall/js"
+ "time"
+
+ "github.com/Suhaibinator/Next.go/offline"
+)
+
+// The original realm owns the global lease through physical cleanup and the
+// final parent Promise. Cancellation/controller replacement never clears it.
+var offlineRealmInUse *offlineProofRealm
+
+type offlineRealmParent struct {
+ c *offlineController
+ descriptor offline.ClientDescriptor
+ document,window,container,controller js.Value
+ origin string
+ native offlineNativeParent
+}
+func (p offlineRealmParent) fence(ctx context.Context)error{
+ offlineAuthorityMu.Lock()
+ valid:=offlineCurrentAuthorityLocked(p.c,p.descriptor,p.document,p.window)
+ if valid {valid=ctx!=nil && ctx.Err()==nil}
+ offlineAuthorityMu.Unlock()
+ if !valid{return ErrOfflineUnknown};return nil
+}
+
+type offlineRealmListener struct {
+ target js.Value
+ event string
+ callback js.Func
+ installed,owned,retiring,frame bool
+ callbacks int
+ done chan struct{}
+}
+type offlineProofRealm struct {
+ parent offlineRealmParent
+ ctx context.Context // the internal production operation timeout context
+ frame,host,window,document,container,controller js.Value
+ child offlineNativeChild
+ listeners []*offlineRealmListener
+ ports []js.Value
+ pending int
+ retired,closing,quarantined,frameRetiring bool
+ activity *refreshActivityLease
+ originalActivity *refreshActivityLease
+ operation OfflineDiagnosticOperation
+ attemptRevision uint32
+ helperURL string
+ creationPending,frameCreated,childEstablished bool
+ legacyRPCUnqualified bool
+ appendIssued,appendKnownNotIssued bool
+ navigationPending,navigationFailed,navigationTerminal bool
+ navigationCallbacks int
+ nativeNonce uint64
+ disableNative []*offlineDisableNativeCell
+ disableReplies []*offlineDisableReplyCell
+ disableObserver offlineDisablePromiseObserver
+}
+type offlineFreshUpdateResult struct {status offlineReply;waiting string;parent offlineRealmParent}
+
+func(c *offlineController)newProofRealm(ctx context.Context,container,controller js.Value)(*offlineProofRealm,error){
+ if moduleMode || !offlineNativeReady(){return nil,ErrOfflineUnsupported}
+ offlineAuthorityMu.Lock()
+ p:=offlineRealmParent{c:c,descriptor:c.descriptor,document:doc,window:win,container:container,controller:controller}
+ operation,revision:=c.diag.Operation,c.diag.DiagnosticRevision
+ valid:=offlineCurrentAuthorityLocked(c,p.descriptor,p.document,p.window) && offlineRealmInUse==nil && (c.diag.Operation==OfflineDiagnosticUpdate || c.diag.Operation==OfflineDiagnosticDisable)
+ if valid {valid=ctx!=nil && ctx.Err()==nil}
+ offlineAuthorityMu.Unlock()
+ if !valid{return nil,ErrOfflineUnknown}
+ parent,err:=offlineNativeCaptureParent(p.window,p.document);if err!=nil{return nil,err}
+ if !parent.Container.Equal(container) || !parent.Controller.Equal(controller) || controller.IsNull(){return nil,c.ownershipConflict("parent-controller-changed")}
+ p.native,p.origin=parent,parent.Origin
+ helper,err:=offline.RegistrationHelperURL(p.descriptor.WorkerURL);if err!=nil{return nil,ErrOfflineUnknown}
+ activity,err:=beginRefreshActivity();if err!=nil{return nil,err}
+ r:=&offlineProofRealm{parent:p,ctx:ctx,activity:activity,originalActivity:activity,operation:operation,attemptRevision:revision,helperURL:helper,appendKnownNotIssued:true}
+ offlineAuthorityMu.Lock()
+ valid=offlineCurrentAuthorityLocked(c,p.descriptor,p.document,p.window) && offlineRealmInUse==nil && c.diag.Operation==operation && c.diag.DiagnosticRevision==revision
+ if valid {valid=ctx.Err()==nil}
+ if valid {
+  offlineRealmInUse=r
+  if operation==OfflineDiagnosticUpdate{
+   // The typed fresh UPDATE branch returns directly to its caller; every
+   // registration dispatch in this branch is routed through the native cell.
+   // Its legacy status RPC remains uncovered, so whole coverage stays UNKNOWN.
+   offlineDiagnosticNativeCoverageLocked(&c.diag,OfflineDiagnosticMethodUpdate,true)
+   offlineDiagnosticNativeCoverageLocked(&c.diag,OfflineDiagnosticMethodUnregister,true)
+   offlineDiagnosticNativeCoverageLocked(&c.diag,OfflineDiagnosticMethodRegister,true)
+  } else if operation==OfflineDiagnosticDisable{
+   // Native support and parent association are already established. This
+   // audited typed branch returns directly and cannot replay legacy disable.
+   offlineDiagnosticFreshDisableCoverageLocked(&c.diag)
+  }
+ }
+ offlineAuthorityMu.Unlock()
+ if !valid{activity.Done();return nil,ErrOfflineUnknown}
+ return r,nil
+}
+
+func(r *offlineProofRealm)fence(ctx context.Context)error{
+ offlineAuthorityMu.Lock()
+ valid:=offlineRealmInUse==r && !r.retired && !r.closing && !r.quarantined && !r.frameRetiring && offlineCurrentAuthorityLocked(r.parent.c,r.parent.descriptor,r.parent.document,r.parent.window)
+ if valid{valid=ctx!=nil && ctx.Err()==nil}
+ offlineAuthorityMu.Unlock()
+ if !valid{return ErrOfflineUnknown};return nil
+}
+
+// All records are operation local. Unused fields remain undefined, rather than
+// retaining child identities in append/unopened/parent-retired modes.
+func(r *offlineProofRealm)nativeInput(operation offlineNativeOperation,candidate offlineNativeRegistration)offlineNativeInput{
+ offlineAuthorityMu.Lock()
+ p:=r.parent
+ helperURL:=r.helperURL
+ var frame,host js.Value
+ var child offlineNativeChild
+ if operation!=offlineNativeParentListRetired{
+  frame,host=r.frame,r.host
+  if operation!=offlineNativeAppendFrame && operation!=offlineNativeRetireUnopened && operation!=offlineNativeRetireNeverConnected{child=r.child}
+ }
+ offlineAuthorityMu.Unlock()
+ input:=offlineNativeInput{Operation:operation,Refs:offlineNativeRefs{ParentWindow:p.native.Window,ParentDocument:p.native.Document,ParentNavigator:p.native.Navigator,ParentContainer:p.native.Container,ParentController:p.native.Controller,ParentLocation:p.native.Location},Policy:offlineNativePolicy{Origin:p.origin,HelperURL:helperURL,WorkerURL:p.descriptor.WorkerURL,Scope:p.descriptor.Scope}}
+ if operation==offlineNativeParentListRetired{return input}
+ input.Refs.Frame,input.Refs.Host=frame,host
+ if operation==offlineNativeAppendFrame || operation==offlineNativeRetireUnopened || operation==offlineNativeRetireNeverConnected{return input}
+ input.Refs.ChildWindow,input.Refs.ChildDocument,input.Refs.ChildNavigator,input.Refs.ChildContainer,input.Refs.ChildController=child.Window,child.Document,child.Navigator,child.Container,child.Controller
+ input.Nodes.Root,input.Nodes.Head,input.Nodes.Body=child.Root,child.Head,child.Body
+ if operation>=offlineNativeRPCActiveStatus && operation<=offlineNativeUnregisterRegistration{
+  input.Refs.Candidate,input.Refs.Active=candidate.Registration,candidate.Active
+  input.Nodes.Waiting,input.Nodes.Installing=candidate.Waiting,candidate.Installing
+ }
+ return input
+}
+
+// The native snapshot covers EVERY registration and slot. Go owns URL policy,
+// literal prefix overlap (including reader2), duplicate detection and proof.
+func(r *offlineProofRealm)inspectInventory(value js.Value)(offlineRegistrationInventory,error){
+ entries,err:=offlineNativeInspectInventory(value);if err!=nil{return offlineRegistrationInventory{exact:js.Undefined()},err}
+ return r.inspectSnapshotEntries(entries)
+}
+func(r *offlineProofRealm)snapshotCandidate(candidate js.Value)(offlineNativeRegistration,error){
+ if candidate.Type()!=js.TypeObject || candidate.IsNull(){return offlineNativeRegistration{},r.parent.c.ownershipConflict("registration-proof-empty-lookup")}
+ // Singleton inspection proves only this exact candidate's native fields. It
+ // makes no claim that a complete registry list contained this candidate.
+ entries,err:=offlineNativeInspectInventory(offlineJSArray([]any{candidate}));if err!=nil || len(entries)!=1{if err==nil{err=ErrOfflineUnknown};return offlineNativeRegistration{},err}
+ inventory,err:=r.inspectSnapshotEntries(entries);if err!=nil{return offlineNativeRegistration{},err}
+ if !inventory.exact.Truthy() || inventory.unproven{return offlineNativeRegistration{},r.parent.c.ownershipConflict("registration-proof-empty")}
+ return entries[0],nil
+}
+func(r *offlineProofRealm)inspectSnapshotEntries(entries []offlineNativeRegistration)(offlineRegistrationInventory,error){
+ inventory:=offlineRegistrationInventory{exact:js.Undefined()}
+ for _,entry:=range entries{
+  if !strings.HasPrefix(entry.Scope,r.parent.descriptor.Scope) && !strings.HasPrefix(r.parent.descriptor.Scope,entry.Scope){continue}
+  if entry.Scope!=r.parent.descriptor.Scope{return inventory,r.parent.c.ownershipConflict("registration-scope")}
+  if inventory.exact.Truthy(){return inventory,r.parent.c.ownershipConflict("registration-duplicate")}
+  anySlot:=false
+  for i,ref:=range [3]js.Value{entry.Active,entry.Waiting,entry.Installing}{
+   url:=[3]string{entry.ActiveURL,entry.WaitingURL,entry.InstallingURL}[i]
+   if ref.IsNull(){if url!=""{return inventory,ErrOfflineUnknown};continue}
+   if ref.Type()!=js.TypeObject || url!=r.parent.descriptor.WorkerURL{return inventory,r.parent.c.ownershipConflict("registration-worker")};anySlot=true
+  }
+  inventory.exact,inventory.unproven=entry.Registration,!anySlot
+ }
+ return inventory,nil
+}
+
+func(r *offlineProofRealm)listen(target js.Value,event string,notify chan<- bool,value bool)*offlineRealmListener{
+ l:=&offlineRealmListener{target:target,event:event,done:make(chan struct{},1)}
+ offlineAuthorityMu.Lock();r.listeners=append(r.listeners,l);offlineAuthorityMu.Unlock()
+ l.callback=js.FuncOf(func(js.Value,[]js.Value)any{
+  offlineAuthorityMu.Lock();l.callbacks++;eligible:=!l.retiring;offlineAuthorityMu.Unlock()
+  if eligible{select{case notify<-value:default:}}
+  offlineAuthorityMu.Lock();l.callbacks--;offlineAuthorityMu.Unlock();offlineSignal(l.done);return nil
+ });l.owned=true
+ offlineAuthorityMu.Lock();l.installed=true;offlineAuthorityMu.Unlock()
+ if err:=offlineNativeListen(target,event,l.callback);err!=nil{offlineAuthorityMu.Lock();r.quarantined=true;offlineAuthorityMu.Unlock();panic(err)}
+ return l
+}
+func(r *offlineProofRealm)removeListeners()(err error){
+ defer func(){if recover()!=nil{offlineAuthorityMu.Lock();r.quarantined=true;offlineAuthorityMu.Unlock();err=ErrOfflineUnknown}}()
+ for{
+  offlineAuthorityMu.Lock()
+  if len(r.listeners)==0{offlineAuthorityMu.Unlock();return nil}
+  l:=r.listeners[0]
+  if l.retiring{offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+  l.retiring=true;installed:=l.installed
+  offlineAuthorityMu.Unlock()
+  if installed{
+   e:=offlineNativeRemove(l.target,l.event,l.callback)
+   offlineAuthorityMu.Lock();if l.frame{offlineDiagnosticFrameEventLocked(&r.parent.c.diag,false,e==nil)};if e!=nil{r.quarantined=true};offlineAuthorityMu.Unlock()
+   if e!=nil{return e}
+   offlineAuthorityMu.Lock();l.installed=false;offlineAuthorityMu.Unlock()
+  }
+  for{offlineAuthorityMu.Lock();joined:=l.callbacks==0;offlineAuthorityMu.Unlock();if joined{break};<-l.done}
+  if l.owned{l.callback.Release()}
+  offlineAuthorityMu.Lock()
+  if len(r.listeners)==0 || r.listeners[0]!=l || l.callbacks!=0{r.quarantined=true;offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+  l.target=js.Undefined();r.listeners[0]=nil;r.listeners=r.listeners[1:]
+  offlineAuthorityMu.Unlock()
+ }
+}
+func(r *offlineProofRealm)listenNavigation(event string,completed chan<- struct{}){
+ l:=&offlineRealmListener{target:r.frame,event:event,frame:true,done:make(chan struct{},1)}
+ offlineAuthorityMu.Lock();r.listeners=append(r.listeners,l);offlineAuthorityMu.Unlock()
+ l.callback=js.FuncOf(func(_ js.Value,args []js.Value)any{
+  offlineAuthorityMu.Lock();r.navigationCallbacks++;l.callbacks++;eligible:=!l.retiring;frame:=r.frame;offlineAuthorityMu.Unlock()
+  defer func(){offlineAuthorityMu.Lock();r.navigationCallbacks--;l.callbacks--;joined:=!r.navigationPending && r.navigationCallbacks==0;offlineAuthorityMu.Unlock();offlineSignal(l.done);if joined{select{case completed<-struct{}{}:default:}}}()
+  defer func(){_ = recover()}()
+  if !eligible || len(args)!=1 || args[0].Type()!=js.TypeObject || args[0].IsNull(){return nil}
+  trusted,target:=offlineJSGet(args[0],"isTrusted"),offlineJSGet(args[0],"target")
+  if trusted.Type()!=js.TypeBoolean || !trusted.Bool() || !target.Equal(frame){return nil}
+  offlineAuthorityMu.Lock()
+  if r.navigationPending && !l.retiring{
+   if event=="load"{r.navigationPending=false;r.navigationTerminal=true}else{r.navigationFailed=true}
+  }
+  offlineAuthorityMu.Unlock();return nil
+ });l.owned=true
+ offlineAuthorityMu.Lock();l.installed=true;offlineAuthorityMu.Unlock()
+ err:=offlineNativeListen(r.frame,event,l.callback)
+ offlineAuthorityMu.Lock();offlineDiagnosticFrameEventLocked(&r.parent.c.diag,true,err==nil);if err!=nil{r.quarantined=true};offlineAuthorityMu.Unlock()
+ if err!=nil{panic(err)}
+}
+func(r *offlineProofRealm)awaitNavigation(ctx context.Context,completed <-chan struct{},expired <-chan time.Time)error{
+ canceled:=ctx.Done();var logical error
+ for{
+  offlineAuthorityMu.Lock();joined:=!r.navigationPending && r.navigationCallbacks==0;failed:=r.navigationFailed;offlineAuthorityMu.Unlock()
+  if joined{if ctx.Err()!=nil{return ErrOfflineUnknown};if logical!=nil{return logical};if failed{return r.parent.c.ownershipConflict("registration-proof-empty-lookup")};return nil}
+  select{case <-completed:case <-canceled:logical=ErrOfflineUnknown;canceled=nil;case <-expired:if logical==nil{logical=ErrOfflineUnknown};expired=nil}
+ }
+}
+func(r *offlineProofRealm)open(ctx context.Context)error{
+ if err:=r.parent.fence(ctx);err!=nil{return err}
+ offlineAuthorityMu.Lock();r.creationPending=true;offlineAuthorityMu.Unlock()
+ frame,err:=offlineNativeCreateFrame(r.parent.document,r.helperURL)
+ offlineAuthorityMu.Lock()
+ if err!=nil{r.quarantined=true;offlineDiagnosticUnknownLocked(&r.parent.c.diag,OfflineDiagnosticNativeDispatchThrow)}else{r.frame,r.host=frame,r.parent.native.Root;r.creationPending=false;r.frameCreated=true}
+ offlineAuthorityMu.Unlock()
+ if err!=nil{return err}
+ completed:=make(chan struct{},1)
+ r.listenNavigation("load",completed);r.listenNavigation("error",completed)
+ offlineAuthorityMu.Lock();r.navigationPending=true;offlineAuthorityMu.Unlock()
+ appended,err:=r.nativeInvoke(r.nativeInput(offlineNativeAppendFrame,offlineNativeRegistration{}),false)
+ offlineAuthorityMu.Lock();quarantined:=r.quarantined;offlineAuthorityMu.Unlock()
+ if err!=nil && (!appended.invoked || !appended.returned || quarantined){return err}
+ timer:=time.NewTimer(5*time.Second);defer timer.Stop()
+ if err=r.awaitNavigation(ctx,completed,timer.C);err!=nil{return err}
+ if err=r.removeListeners();err!=nil{return err}
+ if err=r.parent.fence(ctx);err!=nil{return err}
+ child,err:=offlineNativeCaptureChild(r.frame)
+ if err!=nil{return r.parent.c.ownershipConflict("registration-proof-empty-lookup")}
+ offlineAuthorityMu.Lock()
+ // Captured native child references stay confined to the original live owner.
+ r.child=child;r.window,r.document,r.container,r.controller=child.Window,child.Document,child.Container,child.Controller;r.childEstablished=true
+ offlineAuthorityMu.Unlock()
+ return r.fence(ctx)
+}
+
+func(r *offlineProofRealm)call(ctx context.Context,target js.Value,method string,args ...any)(js.Value,error){
+ settlement,err:=r.disableNativeCall(ctx,false,target,method,args...);return settlement.value,err
+}
+func(r *offlineProofRealm)parentInventory(ctx context.Context)error{
+ value,err:=r.call(ctx,r.parent.container,"getRegistrations");if err!=nil{return err}
+ inventory,err:=r.inspectInventory(value);if err!=nil{return err}
+ // The parent registry may expose the exact scope with empty slots; its
+ // independently exact native controller is mandatory in the bridge. This
+ // inventory corroborates presence only and never grants mutation authority.
+ if !inventory.exact.Truthy(){return r.parent.c.ownershipConflict("registration-proof-missing")}
+ return r.fence(ctx)
+}
+func(r *offlineProofRealm)proof(ctx context.Context,candidate js.Value)error{
+ if err:=r.parentInventory(ctx);err!=nil{return err}
+ value,err:=r.call(ctx,r.container,"getRegistrations");if err!=nil{return err}
+ inventory,err:=r.inspectInventory(value);if err!=nil{return err}
+ if !inventory.exact.Truthy() || inventory.unproven || !candidate.Equal(inventory.exact){return r.parent.c.ownershipConflict("registration-proof-changed")}
+ _,err=r.snapshotCandidate(candidate);if err!=nil{return err}
+ return r.fence(ctx)
+}
+func(r *offlineProofRealm)update(ctx context.Context)(string,error){
+ c:=r.parent.c
+ value,err:=r.call(ctx,r.container,"getRegistrations");if err!=nil{return "",err}
+ inventory,err:=r.inspectInventory(value);if err!=nil{return "",err}
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryInitial,true,!inventory.exact.Truthy());offlineAuthorityMu.Unlock()
+ if !inventory.exact.Truthy() || inventory.unproven{return "",c.ownershipConflict("registration-proof-missing")}
+ candidate,err:=r.call(ctx,r.container,"getRegistration",r.parent.descriptor.Scope);if err!=nil{return "",err}
+ if _,err=r.snapshotCandidate(candidate);err!=nil{return "",err}
+ if err=r.proof(ctx,candidate);err!=nil{return "",err}
+ if _,err=r.call(ctx,candidate,"update");err!=nil{return "",err}
+ if err=r.waitInstallation(ctx,candidate);err!=nil{return "",err}
+ if err=r.proof(ctx,candidate);err!=nil{return "",err}
+ // The existing post-update proof observed this exact owned candidate in the
+ // final native child inventory. Copy that actual presence; add no query.
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryFinal,true,false);offlineAuthorityMu.Unlock()
+ snapshot,err:=r.snapshotCandidate(candidate);if err!=nil{return "",err}
+ waiting:=snapshot.Waiting
+ if waiting.IsNull(){return "",nil}
+ reply,err:=r.waitingStatus(ctx,waiting);if err!=nil{return "",err}
+ if err=r.fence(ctx);err!=nil{return "",err}
+ snapshot,err=r.snapshotCandidate(candidate);if err!=nil{return "",err}
+ if !snapshot.Waiting.Equal(waiting){return "",c.ownershipConflict("waiting-worker-changed")}
+ return reply.Generation,nil
+}
+func(r *offlineProofRealm)waitInstallation(ctx context.Context,candidate js.Value)(err error){
+ snapshot,err:=r.snapshotCandidate(candidate);if err!=nil{return err}
+ worker:=snapshot.Installing
+ if worker.IsNull(){return nil}
+ changed:=make(chan bool,1);r.listen(worker,"statechange",changed,true)
+ defer func(){if e:=r.removeListeners();e!=nil{err=e}}()
+ for{
+  if err=r.proof(ctx,candidate);err!=nil{return err}
+  snapshot,err=r.snapshotCandidate(candidate);if err!=nil{return err}
+  if !snapshot.Installing.IsNull() && !snapshot.Installing.Equal(worker){return r.parent.c.ownershipConflict("worker-state-target")}
+  state:=offlineJSGet(worker,"state").String()
+  if state=="installed" || state=="activated"{return nil};if state=="redundant"{return ErrOfflineProtocol}
+  select{case <-changed:case <-ctx.Done():return ErrOfflineUnknown}
+ }
+}
+
+// Legacy UPDATE status RPC remains explicitly outside full physical diagnostic
+// coverage. Its registration update and all registry queries use native cells.
+func(r *offlineProofRealm)waitingStatus(ctx context.Context,worker js.Value)(reply offlineReply,err error){
+ if err=r.fence(ctx);err!=nil{return reply,err}
+ offlineAuthorityMu.Lock();r.legacyRPCUnqualified=true;offlineAuthorityMu.Unlock()
+ sequence,owner,e:=r.parent.c.reserveOfflineRequest();if e!=nil{return reply,e}
+ request:=offlineRequest{Version:offlineMessageVersion,Command:"status",OwnerPolicyID:owner,RuntimeID:r.parent.descriptor.RuntimeID,ConfigurationID:r.parent.descriptor.ConfigurationID,RequestID:"offline-"+strconv.FormatUint(sequence,36)}
+ channel:=offlineJSNew(offlineJSGet(r.parent.window,"MessageChannel"));port,other:=offlineJSGet(channel,"port1"),offlineJSGet(channel,"port2")
+ offlineAuthorityMu.Lock();r.ports=append(r.ports,port,other);offlineAuthorityMu.Unlock()
+ defer func(){if e:=r.removeListeners();e!=nil{err=e};if e:=r.closePorts();e!=nil{err=e}}()
+ type result struct{reply offlineReply;err error};received:=make(chan result,1)
+ l:=&offlineRealmListener{target:port,event:"message",done:make(chan struct{},1)}
+ offlineAuthorityMu.Lock();r.listeners=append(r.listeners,l);offlineAuthorityMu.Unlock()
+ l.callback=js.FuncOf(func(_ js.Value,args []js.Value)any{
+  offlineAuthorityMu.Lock();l.callbacks++;eligible:=!l.retiring;offlineAuthorityMu.Unlock()
+  defer func(){offlineAuthorityMu.Lock();l.callbacks--;offlineAuthorityMu.Unlock();offlineSignal(l.done)}()
+  if !eligible{return nil};value:=result{err:ErrOfflineProtocol};value.reply,value.err=decodeOfflineEvent(args,request);select{case received<-value:default:};return nil
+ });l.owned=true
+ offlineAuthorityMu.Lock();l.installed=true;offlineAuthorityMu.Unlock()
+ if e=offlineNativeListen(port,"message",l.callback);e!=nil{return reply,e}
+ if e=offlineNativeStart(port);e!=nil{return reply,e}
+ offlineJSCall(worker,"postMessage",offlineJSRequest(request),offlineJSArray([]any{other}))
+ select{case value:=<-received:return value.reply,value.err;case <-ctx.Done():return reply,ErrOfflineUnknown}
+}
+func(r *offlineProofRealm)closePorts()(err error){
+ defer func(){if recover()!=nil{offlineAuthorityMu.Lock();r.quarantined=true;offlineAuthorityMu.Unlock();err=ErrOfflineUnknown}}()
+ for{offlineAuthorityMu.Lock();if len(r.ports)==0{offlineAuthorityMu.Unlock();return nil};port:=r.ports[0];offlineAuthorityMu.Unlock()
+  if e:=offlineNativeClose(port);e!=nil{offlineAuthorityMu.Lock();r.quarantined=true;offlineAuthorityMu.Unlock();return e}
+  offlineAuthorityMu.Lock();r.ports[0]=js.Undefined();r.ports=r.ports[1:];offlineAuthorityMu.Unlock()
+ }
+}
+
+func(r *offlineProofRealm)retireFrame()(err error){
+ offlineAuthorityMu.Lock()
+ if r.retired{offlineAuthorityMu.Unlock();return nil}
+ if offlineRealmInUse!=r || r.activity!=r.originalActivity || r.closing || r.quarantined || r.frameRetiring || r.pending!=0 || r.navigationPending || r.navigationCallbacks!=0 || r.creationPending || len(r.disableNative)!=0 || len(r.disableReplies)!=0{offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+ offlineAuthorityMu.Unlock()
+ if err=r.removeListeners();err!=nil{return err};if err=r.closePorts();err!=nil{return err}
+ offlineAuthorityMu.Lock()
+ if offlineRealmInUse!=r || r.quarantined || r.pending!=0 || r.navigationPending || r.navigationCallbacks!=0 || len(r.listeners)!=0 || len(r.ports)!=0{offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+ if r.frame.IsUndefined(){
+  // No successful native frame allocation and no unknown setup is owed.
+  r.retired=true;offlineAuthorityMu.Unlock();return nil
+ }
+ operation:=offlineNativeRetireNeverConnected
+ if r.childEstablished{operation=offlineNativeRetireLive}else if r.navigationTerminal{operation=offlineNativeRetireUnopened}else if !r.appendKnownNotIssued || r.appendIssued{offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+ r.frameRetiring=true
+ r.disableObserver=offlineDisablePromiseObserver{}
+ offlineAuthorityMu.Unlock()
+ settlement,err:=r.nativeInvoke(r.nativeInput(operation,offlineNativeRegistration{}),false)
+ if err!=nil || !settlement.returned || !settlement.invoked && operation!=offlineNativeRetireNeverConnected{return ErrOfflineUnknown}
+ offlineAuthorityMu.Lock()
+ // The bridge's only post-remove reads are parent-owned frame predicates. No
+ // child identity/property is touched after its checked native removal.
+ r.frame,r.host,r.window,r.document,r.container,r.controller=js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined()
+ r.child=offlineNativeChild{};r.childEstablished=false;r.retired=true;r.frameRetiring=false
+ offlineAuthorityMu.Unlock()
+ return nil
+}
+func(r *offlineProofRealm)close()(err error){
+ offlineAuthorityMu.Lock();owned:=offlineRealmInUse==r;offlineAuthorityMu.Unlock();if !owned{return nil}
+ defer func(){if recover()!=nil{err=ErrOfflineUnknown}}()
+ if err=r.retireFrame();err!=nil{return err}
+ offlineAuthorityMu.Lock()
+ if offlineRealmInUse!=r || r.activity!=r.originalActivity || r.closing || r.quarantined || !r.retired || r.pending!=0 || r.navigationPending || r.navigationCallbacks!=0 || len(r.disableNative)!=0 || len(r.disableReplies)!=0 || len(r.listeners)!=0 || len(r.ports)!=0{offlineAuthorityMu.Unlock();return ErrOfflineUnknown}
+ // Stage one reserves exact custody. The global remains held while the refresh
+ // utility acquires its separate private mutex and completes the activity.
+ r.closing=true;activity:=r.activity
+ offlineAuthorityMu.Unlock()
+ activity.Done()
+ offlineAuthorityMu.Lock()
+ defer offlineAuthorityMu.Unlock()
+ if offlineRealmInUse!=r || !r.closing || r.activity!=activity || r.pending!=0 || r.quarantined{return ErrOfflineUnknown}
+ r.activity=nil;offlineRealmInUse=nil
+ r.parent.c.diag.CleanupKnown=!r.legacyRPCUnqualified && !r.parent.c.diag.uncertain && !r.parent.c.diag.Overflow
+ return nil
+}
+func(c *offlineController)updateInFreshRealm(ctx context.Context,container,controller js.Value)(result offlineFreshUpdateResult,err error){
+ r,err:=c.newProofRealm(ctx,container,controller);if err!=nil{return result,err};result.parent=r.parent
+ defer func(){if recover()!=nil{err=ErrOfflineUnknown};if cleanup:=r.close();cleanup!=nil{err=cleanup}}()
+ if err=r.open(ctx);err!=nil{return result,err}
+ waiting,e:=r.update(ctx);if e!=nil{return result,e}
+ if err=r.retireFrame();err!=nil{return result,err}
+ settled,e:=r.nativeInvoke(r.nativeInput(offlineNativeParentListRetired,offlineNativeRegistration{}),true);if e!=nil{return result,e}
+ inventory,e:=r.inspectInventory(settled.value);if e!=nil{return result,e}
+ offlineAuthorityMu.Lock();offlineDiagnosticRegistryLocked(&c.diag,OfflineDiagnosticRegistryParentRetired,true,!inventory.exact.Truthy());offlineAuthorityMu.Unlock()
+ if !inventory.exact.Truthy(){return result,c.ownershipConflict("registration-proof-missing")}
+ if err=r.parent.fence(ctx);err!=nil{return result,err}
+ // This old parent RPC's physical ownership remains separately unqualified.
+ offlineAuthorityMu.Lock();r.legacyRPCUnqualified=true;offlineAuthorityMu.Unlock()
+ status,e:=c.message(ctx,r.parent.controller,"status",r.parent.descriptor.RuntimeID,r.parent.descriptor.ConfigurationID);if e!=nil{return result,e}
+ if err=r.parent.fence(ctx);err!=nil{return result,err};if !status.Supported{return result,ErrOfflineUnsupported}
+ return offlineFreshUpdateResult{status:status,waiting:waiting,parent:r.parent},nil
+}

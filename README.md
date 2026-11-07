@@ -800,8 +800,11 @@ bounded public reuse/deduplication. A zero public TTL disables both reuse and
 sharing; positive TTL is an application promise of request-independent data.
 There is no implicit request or automatic retry. Core/lazy invalidation epochs
 introduced module ABI 4. The current paired core/lazy bridge requires
-**module ABI 5**, which retains those epochs and adds per-link observers: rebuild
-and publish every module with its core.
+**module ABI 6**, which retains those epochs and per-link observers and adds
+recognized document-authority revocation before module observer dispatch. Rebuild
+and publish every module with its core and matching SDK runtime support. The
+ABI-6/query/Refresh merge increment is source-only and unqualified; historical
+ABI-5 checks do not establish its browser or deployment behavior.
 Try `/resources` and read [resource ownership and privacy](docs/CLIENT_RESOURCES.md).
 
 `client.CurrentLocation` reads the committed browser address. `scope.ObserveLocation` synchronizes a Go island immediately and after committed path, query, and fragment changes, with automatic cleanup and no speculative or unchanged-refresh notifications. See [navigation and subscriptions](docs/NAVIGATION.md) for the API and lifecycle contract.

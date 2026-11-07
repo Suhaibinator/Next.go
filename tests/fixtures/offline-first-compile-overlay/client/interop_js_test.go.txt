@@ -1,0 +1,274 @@
+//go:build js && wasm
+
+package client
+
+import (
+ "math"
+ "syscall/js"
+ "testing"
+)
+
+func checkedJSTestFailure(t *testing.T, run func()) {
+ t.Helper()
+ failed:=false
+ func(){
+  defer func(){
+   if recovered:=recover();recovered!=nil{
+    failure,ok:=recovered.(checkedJSFailure)
+    if !ok { t.Error("failure retained a foreign panic value");return }
+    if failure.Error()!="nextgo: native operation failed" {t.Error("failure was not fixed")}
+    failed=true
+   }
+  }()
+  run()
+ }()
+ if !failed {t.Fatal("expected a fixed native failure")}
+}
+func checkedJSTestAccessor(target js.Value,key string,get,set js.Value){
+ descriptor:=map[string]any{"configurable":true}
+ if get.Type()==js.TypeFunction{descriptor["get"]=get}
+ if set.Type()==js.TypeFunction{descriptor["set"]=set}
+ checkedJSCall(checkedJSReflection.object,"defineProperty",target,key,checkedJSObject(descriptor))
+}
+
+func TestCheckedJSGetAndIndexCatchActualNativeThrowingAccessors(t *testing.T){
+ target:=checkedJSObject(nil)
+ // Reflect.get called by JavaScript as a zero-argument getter throws a real
+ // native TypeError. No eval, Function constructor or Go panic creates it.
+ checkedJSTestAccessor(target,"broken",checkedJSReflection.get,js.Undefined())
+ checkedJSTestAccessor(target,"0",checkedJSReflection.get,js.Undefined())
+ checkedJSTestFailure(t,func(){checkedJSGet(target,"broken")})
+ checkedJSTestFailure(t,func(){checkedJSIndex(target,0)})
+}
+func TestCheckedJSSetCatchesActualSetterThrowAndFalseResult(t *testing.T){
+ target:=checkedJSObject(nil)
+ // A setter receives one scalar argument; Reflect.get rejects that scalar as
+ // its target, producing a native exception at the setter boundary.
+ checkedJSTestAccessor(target,"broken",js.Undefined(),checkedJSReflection.get)
+ checkedJSTestFailure(t,func(){checkedJSSet(target,"broken",true)})
+ frozen:=checkedJSObject(map[string]any{"value":1})
+ checkedJSCall(checkedJSReflection.object,"freeze",frozen)
+ checkedJSTestFailure(t,func(){checkedJSSet(frozen,"value",2)})
+}
+func TestCheckedJSLengthCatchesGetterAndRejectsInvalidNumericLength(t *testing.T){
+ throwing:=checkedJSObject(nil)
+ checkedJSTestAccessor(throwing,"length",checkedJSReflection.get,js.Undefined())
+ checkedJSTestFailure(t,func(){checkedJSLength(throwing)})
+ for _,value:=range []any{-1,1.5,math.NaN(),math.Inf(1),float64(9007199254740992),"4"}{
+  target:=checkedJSObject(map[string]any{"length":value})
+  checkedJSTestFailure(t,func(){checkedJSLength(target)})
+ }
+ if got:=checkedJSLength(checkedJSArray([]any{1,2,3}));got!=3{t.Fatal("valid array length changed")}
+ checkedJSTestFailure(t,func(){checkedJSIndex(throwing,-1)})
+}
+func TestCheckedJSCallNeverRereadsMethodGetterOnBodyFailure(t *testing.T){
+ target:=checkedJSObject(nil)
+ reads:=0
+ getter:=js.FuncOf(func(js.Value,[]js.Value)any{reads++;return checkedJSReflection.get})
+ defer getter.Release()
+ checkedJSTestAccessor(target,"method",getter.Value,js.Undefined())
+ // The getter returns Reflect.get once. Invoking that function without args
+ // throws; no failure path may read target.method a second time.
+ checkedJSTestFailure(t,func(){checkedJSCall(target,"method")})
+ if reads!=1{t.Fatal("method getter was repeated on failure")}
+ broken:=checkedJSObject(nil)
+ checkedJSTestAccessor(broken,"method",checkedJSReflection.get,js.Undefined())
+ checkedJSTestFailure(t,func(){checkedJSCall(broken,"method")})
+}
+func TestCheckedJSCallPreservesReceiverAndReentrantGetter(t *testing.T){
+ target:=checkedJSObject(map[string]any{"marker":"receiver"})
+ method:=js.FuncOf(func(this js.Value,_ []js.Value)any{return checkedJSGet(this,"marker")})
+ defer method.Release()
+ checkedJSSet(target,"method",method)
+ if got:=checkedJSCall(target,"method");got.Type()!=js.TypeString||got.String()!="receiver"{t.Fatal("method receiver changed")}
+ reads:=0
+ getter:=js.FuncOf(func(js.Value,[]js.Value)any{reads++;return 17})
+ defer getter.Release()
+ checkedJSTestAccessor(target,"reentrant",getter.Value,js.Undefined())
+ if checkedJSGet(target,"reentrant").Int()!=17||reads!=1{t.Fatal("getter reentry changed")}
+}
+func TestCheckedJSInvokeAndConstructUseCapturedNativeApply(t *testing.T){
+ parse:=checkedJSGet(js.Global(),"parseInt")
+ if got:=checkedJSInvoke(parse,"15",10);got.Type()!=js.TypeNumber||got.Int()!=15{t.Fatal("primitive invoke changed")}
+ date:=checkedJSNew(checkedJSGet(js.Global(),"Date"),123)
+ if checkedJSCall(date,"getTime").Float()!=123{t.Fatal("constructor arguments changed")}
+ checkedJSTestFailure(t,func(){checkedJSInvoke(checkedJSReflection.get)})
+ checkedJSTestFailure(t,func(){checkedJSNew(checkedJSReflection.get)})
+ checkedJSTestFailure(t,func(){checkedJSNew(checkedJSGet(js.Global(),"URL"),"http://[")})
+}
+func TestCheckedJSFailureNeverInspectsPoisonedErrorMessage(t *testing.T){
+ poisoned:=checkedJSObject(nil)
+ checkedJSTestAccessor(poisoned,"message",checkedJSReflection.get,js.Undefined())
+ // This is a direct representation test of the Go js.Error value produced by
+ // Invoke, not a claim that Go callbacks can throw arbitrary JavaScript values.
+ checkedJSTestFailure(t,func(){
+  func(){defer checkedJSRecover();panic(js.Error{Value:poisoned})}()
+ })
+}
+func TestCheckedJSArgumentsRejectImplicitCompositeConversion(t *testing.T){
+ target:=checkedJSObject(nil)
+ called:=false
+ fn:=js.FuncOf(func(js.Value,[]js.Value)any{called=true;return nil})
+ defer fn.Release()
+ checkedJSSet(target,"method",fn)
+ checkedJSTestFailure(t,func(){checkedJSCall(target,"method",map[string]any{"hidden":1})})
+ checkedJSTestFailure(t,func(){checkedJSSet(target,"hidden",[]any{1})})
+ checkedJSTestFailure(t,func(){checkedJSArray([]any{map[string]any{"nested":1}})})
+ checkedJSTestFailure(t,func(){checkedJSObject(map[string]any{"nested":[]any{1}})})
+ if called{t.Fatal("method ran after argument refusal")}
+}
+func TestCheckedJSBuildersRequireExplicitNestedValues(t *testing.T){
+ child:=checkedJSObject(map[string]any{"value":"child"})
+ list:=checkedJSArray([]any{child,nil,true,7})
+ outer:=checkedJSObject(map[string]any{"list":list})
+ if checkedJSLength(checkedJSGet(outer,"list"))!=4{t.Fatal("explicit array changed")}
+ if got:=checkedJSGet(checkedJSIndex(list,0),"value");got.Type()!=js.TypeString||got.String()!="child"{t.Fatal("explicit object changed")}
+}
+func TestCheckedJSInheritedSetterFailurePreservesEarlierMutation(t *testing.T){
+ prototype:=checkedJSObject(nil)
+ checkedJSTestAccessor(prototype,"blocked",js.Undefined(),checkedJSReflection.get)
+ target:=checkedJSCall(checkedJSReflection.object,"create",prototype)
+ checkedJSSet(target,"accepted",11)
+ checkedJSTestFailure(t,func(){checkedJSSet(target,"blocked",true)})
+ if checkedJSGet(target,"accepted").Int()!=11{t.Fatal("helper invented rollback of earlier mutation")}
+ // The isolated target prototype is deliberately hostile. No global built-in
+ // prototype is modified, and the helper promises no rollback or sandbox.
+}
+
+func TestCheckedJSApplyUsesPrebuiltArgumentsAndExactReceiver(t *testing.T){
+ receiver:=checkedJSObject(map[string]any{"marker":"prebuilt"})
+ called:=0
+ method:=js.FuncOf(func(this js.Value,args []js.Value)any{
+  called++
+  if !this.Equal(receiver)||len(args)!=2||args[0].Type()!=js.TypeString||args[0].String()!="argument"||args[1].Int()!=9 {t.Error("prebuilt receiver/arguments changed")}
+  return checkedJSGet(this,"marker")
+ })
+ defer method.Release()
+ // A prebuilt dispatch must not look up a method on the function itself.
+ checkedJSTestAccessor(method.Value,"call",checkedJSReflection.get,js.Undefined())
+ arguments:=checkedJSArray([]any{"argument",9})
+ // Real integration callers perform their final authority fence here. This
+ // test verifies prebuilt argument/receiver behavior, not that caller policy.
+ result:=checkedJSApply(method.Value,receiver,arguments)
+ if result.Type()!=js.TypeString||result.String()!="prebuilt"||called!=1{t.Fatal("prebuilt apply changed")}
+ checkedJSTestFailure(t,func(){checkedJSApply(checkedJSReflection.get,js.Undefined(),checkedJSArray(nil))})
+ checkedJSTestFailure(t,func(){checkedJSApply(js.Undefined(),receiver,arguments)})
+ checkedJSTestFailure(t,func(){checkedJSApply(method.Value,receiver,js.Null())})
+}
+func TestCheckedJSConstructUsesPrebuiltArguments(t *testing.T){
+ constructor:=checkedJSGet(js.Global(),"Date")
+ arguments:=checkedJSArray([]any{321})
+ value:=checkedJSConstruct(constructor,arguments)
+ if checkedJSCall(value,"getTime").Float()!=321{t.Fatal("prebuilt construction changed")}
+ checkedJSTestFailure(t,func(){checkedJSConstruct(checkedJSReflection.get,arguments)})
+ checkedJSTestFailure(t,func(){checkedJSConstruct(constructor,js.Null())})
+}
+
+// Install only a named non-shim key or an Array index above every fixed Invoke
+// transport arity used here. Cleanup uses pre-captured native functions with
+// primitive/js.Value arguments, not a builder under the poisoned prototype.
+func checkedJSTestPrototypeSetter(t *testing.T,prototype js.Value,key string,setter js.Value){
+ t.Helper()
+ original:=checkedJSCall(checkedJSReflection.object,"getOwnPropertyDescriptor",prototype,key)
+ // A saved accessor descriptor must not inherit the temporarily poisoned
+ // descriptor fields when it is restored.
+ if original.Type()==js.TypeObject{checkedJSCall(checkedJSReflection.object,"setPrototypeOf",original,js.Null())}
+ remove:=checkedJSGet(checkedJSGet(js.Global(),"Reflect"),"deleteProperty")
+ define:=checkedJSReflection.defineProperty
+ descriptor:=checkedJSObject(map[string]any{"set":setter,"configurable":true})
+ t.Cleanup(func(){
+  failed:=false
+  func(){
+   defer func(){if recover()!=nil{failed=true}}()
+   var result js.Value
+   if original.Type()==js.TypeUndefined{result=remove.Invoke(prototype,key)}else{result=define.Invoke(prototype,key,original)}
+   if result.Type()!=js.TypeBoolean||!result.Bool(){failed=true}
+  }()
+  if failed{t.Error("prototype fixture restoration failed")}
+ })
+ result:=define.Invoke(prototype,key,descriptor)
+ if result.Type()!=js.TypeBoolean||!result.Bool(){t.Fatal("prototype fixture installation refused")}
+}
+func checkedJSTestOwnData(t *testing.T,target js.Value,key string,expected js.Value){
+ t.Helper()
+ descriptor:=checkedJSCall(checkedJSReflection.object,"getOwnPropertyDescriptor",target,key)
+ if descriptor.Type()!=js.TypeObject{t.Fatal("builder did not define an own property")}
+ if checkedJSGet(descriptor,"get").Type()!=js.TypeUndefined||checkedJSGet(descriptor,"set").Type()!=js.TypeUndefined{t.Fatal("builder installed an accessor")}
+ if !checkedJSGet(descriptor,"value").Equal(expected){t.Fatal("own data value changed")}
+ for _,field:=range []string{"writable","enumerable","configurable"}{
+  value:=checkedJSGet(descriptor,field)
+  if value.Type()!=js.TypeBoolean||!value.Bool(){t.Fatal("own data flags changed")}
+ }
+}
+func TestCheckedJSObjectBuilderBypassesAbsorbingInheritedSetter(t *testing.T){
+ const key="__nextgoInteropBuilderAbsorbProbe"
+ prototype:=checkedJSGet(checkedJSReflection.object,"prototype")
+ sets:=0
+ setter:=js.FuncOf(func(js.Value,[]js.Value)any{sets++;return nil})
+ t.Cleanup(setter.Release)
+ checkedJSTestPrototypeSetter(t,prototype,key,setter.Value)
+ object:=checkedJSObject(map[string]any{key:41})
+ if sets!=0{t.Fatal("object builder invoked an inherited setter")}
+ checkedJSTestOwnData(t,object,key,js.ValueOf(41))
+ // Set deliberately keeps ordinary write semantics on a separate receiver.
+ ordinary:=checkedJSCall(checkedJSReflection.object,"create",prototype)
+ checkedJSSet(ordinary,key,42)
+ if sets!=1{t.Fatal("checkedJSSet stopped using inherited write semantics")}
+}
+func TestCheckedJSObjectBuilderBypassesSetterInstallingGetter(t *testing.T){
+ const key="__nextgoInteropBuilderGetterProbe"
+ prototype:=checkedJSGet(checkedJSReflection.object,"prototype")
+ sets,gets:=0,0
+ getter:=js.FuncOf(func(js.Value,[]js.Value)any{gets++;return 99})
+ t.Cleanup(getter.Release)
+ setter:=js.FuncOf(func(this js.Value,_ []js.Value)any{
+  sets++
+  checkedJSTestAccessor(this,key,getter.Value,js.Undefined())
+  return nil
+ })
+ t.Cleanup(setter.Release)
+ checkedJSTestPrototypeSetter(t,prototype,key,setter.Value)
+ object:=checkedJSObject(map[string]any{key:43})
+ if sets!=0||gets!=0{t.Fatal("builder used authored prototype behavior")}
+ checkedJSTestOwnData(t,object,key,js.ValueOf(43))
+}
+func TestCheckedJSArrayBuilderBypassesHighInheritedSetter(t *testing.T){
+ const key="16" // Above the fixed maximum3 Invoke arguments in these helpers.
+ prototype:=checkedJSGet(checkedJSReflection.array,"prototype")
+ sets,gets:=0,0
+ getter:=js.FuncOf(func(js.Value,[]js.Value)any{gets++;return 99})
+ t.Cleanup(getter.Release)
+ setter:=js.FuncOf(func(this js.Value,_ []js.Value)any{
+  sets++
+  checkedJSTestAccessor(this,key,getter.Value,js.Undefined())
+  return nil
+ })
+ t.Cleanup(setter.Release)
+ checkedJSTestPrototypeSetter(t,prototype,key,setter.Value)
+ values:=make([]any,17)
+ for i:=range values{values[i]=i}
+ array:=checkedJSArray(values)
+ if sets!=0||gets!=0{t.Fatal("array builder invoked an inherited setter")}
+ checkedJSTestOwnData(t,array,key,js.ValueOf(16))
+}
+func TestCheckedJSObjectBuilderDefinesProtoKeyAsOwnData(t *testing.T){
+ marker:=checkedJSObject(map[string]any{"marker":"data"})
+ object:=checkedJSObject(map[string]any{"__proto__":marker})
+ checkedJSTestOwnData(t,object,"__proto__",marker)
+ prototype:=checkedJSCall(checkedJSReflection.object,"getPrototypeOf",object)
+ if !prototype.Equal(checkedJSGet(checkedJSReflection.object,"prototype")){t.Fatal("builder changed the target prototype")}
+}
+func TestCheckedJSDescriptorBootstrapDoesNotUseInheritedValueSetter(t *testing.T){
+ prototype:=checkedJSGet(checkedJSReflection.object,"prototype")
+ sets:=0
+ setter:=js.FuncOf(func(js.Value,[]js.Value)any{sets++;return nil})
+ t.Cleanup(setter.Release)
+ // This named key is not used by wasm_exec's fixed transport argument array.
+ // It detects a descriptor accidentally built as an ordinary inherited object.
+ checkedJSTestPrototypeSetter(t,prototype,"value",setter.Value)
+ object:=checkedJSObject(map[string]any{"entry":47})
+ array:=checkedJSArray([]any{48})
+ if sets!=0{t.Fatal("descriptor construction consulted an inherited setter")}
+ checkedJSTestOwnData(t,object,"entry",js.ValueOf(47))
+ checkedJSTestOwnData(t,array,"0",js.ValueOf(48))
+}

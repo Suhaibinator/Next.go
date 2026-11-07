@@ -32,6 +32,38 @@ async function artifactHash(path) {
   }finally{await file.close();}
 }
 
+// Qualification-only trusted IO seam. Physical workspace retirement is not a
+// passing test result: nonzero/forced exits retain their existing failure flags.
+// An unjoined/unknown group keeps its cwd for the outer containment owner.
+export async function retireRetainedWorkspace(proof,operations) {
+  const refuse=()=>{
+    proof.cleanupDeferred=true;
+    throw Error('Retained native work is not physically retired; outer controller required');
+  };
+  const requireJoined=()=>{
+    if(!Number.isSafeInteger(proof.pid)||proof.pid<=1||proof.closed!==true||proof.joined!==true||proof.cleanupDeferred===true||proof.identityRefused===true)refuse();
+  };
+  proof.groupEmpty=null;
+  requireJoined();
+  try {
+    const empty=operations.groupEmpty();
+    proof.groupEmpty=empty===true?true:empty===false?false:null;
+    if(proof.groupEmpty!==true)refuse();
+    await operations.observeListener();
+    if(proof.listenerRefused!==true)refuse();
+    await operations.verifyArtifact();
+    await operations.verifyDirectory();
+    requireJoined();
+    if(proof.groupEmpty!==true||proof.listenerRefused!==true)refuse();
+    await operations.removeDirectory();
+    await operations.verifyAbsent();
+    proof.cwdRemoved=true;
+  }catch(error){
+    proof.cleanupDeferred=true;
+    throw error;
+  }
+}
+
 export async function startRetainedServer({signal}={}) {
   const identityMode=process.env.NEXTGO_RETAINED_REQUIRE_LINUX_IDENTITY;
   if(identityMode!==undefined&&identityMode!=='0'&&identityMode!=='1')throw Error('Invalid retained Linux identity requirement');
@@ -75,17 +107,25 @@ export async function startRetainedServer({signal}={}) {
         if(!graceful){proof.forced=await checkedChildSignal(child,capturedIdentity,expectedIdentity,'SIGKILL',proof.identityChecks);
           await Promise.race([childClosed,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Retained native close did not join')),3000);})]).finally(()=>clearTimeout(timer));}
       }
-      proof.groupEmpty=process.platform==='win32'?null:!Number.isSafeInteger(child.pid)||child.pid<1||!groupPresent(child.pid);
-      const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),500);
-      try {const response=await fetch(retainedOrigin+'/api/health',{signal:controller.signal});await response.body?.cancel();}
-      catch(error){proof.listenerRefused=error?.cause?.code==='ECONNREFUSED';}
-      finally{clearTimeout(timeout);}
-      const ending=await artifactHash(binary);
-      if(ending.sha256!==expected||ending.dev!==pinned.dev||ending.inode!==pinned.inode||ending.parent.dev!==pinned.parent.dev||ending.parent.inode!==pinned.parent.inode)throw Error('Retained executable changed during browser case');
-      const present=await lstat(cwd);
-      if(!present.isDirectory()||present.isSymbolicLink()||present.dev!==identity.dev||present.ino!==identity.ino)throw Error('Owned native directory identity changed');
-      await rm(cwd,{recursive:true,force:false});
-      try{await lstat(cwd);throw Error('Owned native directory remains');}catch(error){if(error.code!=='ENOENT')throw error;proof.cwdRemoved=true;}
+      await retireRetainedWorkspace(proof,{
+        groupEmpty:()=>process.platform==='win32'||!Number.isSafeInteger(child.pid)||child.pid<=1?null:!groupPresent(child.pid),
+        async observeListener(){
+          const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),500);
+          try {const response=await fetch(retainedOrigin+'/api/health',{signal:controller.signal});await response.body?.cancel();}
+          catch(error){proof.listenerRefused=error?.cause?.code==='ECONNREFUSED';}
+          finally{clearTimeout(timeout);}
+        },
+        async verifyArtifact(){
+          const ending=await artifactHash(binary);
+          if(ending.sha256!==expected||ending.dev!==pinned.dev||ending.inode!==pinned.inode||ending.parent.dev!==pinned.parent.dev||ending.parent.inode!==pinned.parent.inode)throw Error('Retained executable changed during browser case');
+        },
+        async verifyDirectory(){
+          const present=await lstat(cwd);
+          if(!present.isDirectory()||present.isSymbolicLink()||present.dev!==identity.dev||present.ino!==identity.ino)throw Error('Owned native directory identity changed');
+        },
+        removeDirectory:()=>rm(cwd,{recursive:true,force:false}),
+        async verifyAbsent(){try{await lstat(cwd);throw Error('Owned native directory remains');}catch(error){if(error.code!=='ENOENT')throw error;}}
+      });
     })().catch(error=>{
       if(error.nativeIdentityRefusal)deferIdentityCleanup(error);
       throw error;

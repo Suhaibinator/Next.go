@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {initializeOfflineCIArtifacts,collectOfflineCIArtifacts} from '../scripts/offline-ci-artifacts.mjs';
+import {observeOfflineUpdateFailure,retireOfflineParentFault} from './offline-update-failure-observation.mjs';
 
 const small={totalBytes:16384,fileBytes:2048,metadataBytes:8192,profileBytes:8192,manifestBytes:4096,files:64,scanEntries:128};
 async function fixture(t){
@@ -149,4 +150,110 @@ test('multi-chunk evidence is copied byte-exactly within its declared caps',asyn
   assert.deepEqual(await fs.readFile(join(destination,'report/report.json')),body);
   assert.equal(result.copiedMetadataBytes,body.length);assert.equal(await actualBytes(destination),result.totalOutputBytes);
   assert.ok(result.totalOutputBytes<=limits.totalBytes);
+});
+
+// These prospective cases exercise the actual diagnostic helpers with plain
+// synthetic objects. They do not start a browser, worker, process, timer or IO.
+function offlineDOMObservationFixture(overrides = {}) {
+  const prefix = 'nextgo: a conflicting service worker owns an overlapping scope';
+  const attributes = new Map(Object.entries({
+    'data-offline-last-error': `${prefix} [controller-changed]`,
+    'data-offline-operation-error': 'conflict', 'data-offline-completed-operations': '2',
+    'data-offline-controlling': 'true', 'data-offline-enabled': 'true',
+    'data-offline-waiting-generation': '', ...overrides,
+  }));
+  const reads = [], attachments = [];
+  const root = {
+    getAttribute(name) {assert.ok(attributes.has(name), `unexpected attribute ${name}`); reads.push(name); return attributes.get(name);},
+    querySelector(selector) {assert.equal(selector, '[data-offline-state]'); return {getAttribute(name) {assert.equal(name, 'data-offline-state'); reads.push(name); return 'error';}};},
+    get scrollTop() {throw Error('scroll read prohibited');},
+  };
+  const document = {querySelector(selector) {assert.equal(selector, '[data-offline-controls]'); return root;}, querySelectorAll(selector) {assert.equal(selector, '[data-offline-controls]'); return [root];}};
+  let evaluations = 0;
+  const page = {isClosed: () => false, async evaluate(callback) {
+    evaluations++;
+    const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    Object.defineProperty(globalThis, 'document', {configurable: true, value: document});
+    try {return callback();} finally {if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document;}
+  }};
+  const context = {pages: () => [page]};
+  const info = {async attach(name, {body, contentType}) {assert.ok(body.length <= 4096); assert.equal(contentType, 'application/json'); attachments.push({name, body: body.toString(), report: JSON.parse(body.toString())});}};
+  return {prefix, reads, attachments, context, page, info, evaluations: () => evaluations};
+}
+function offlineScalarRetirementProof() {
+  return {forcedParentEmptyOnly: true, lists: 4, lookups: 1, framesAdded: 1,
+    framesRemoved: 1, framesConnected: 0, maximumLiveFrames: 1,
+    nativeUpdateCalls: null, nativeUpdateWitness: 'disabled', nativeWitnessUnavailable: false,
+    pendingFrameListeners: 0};
+}
+
+test('offline failure DOM observation preserves full fixed categories and exactly seven scalar reads', {concurrency: false}, async () => {
+  for (const reason of ['controller-changed', 'waiting-worker-changed', 'registration-proof-empty-installing', 'parent-controller-changed', 'child-controller-changed', 'child-controller-invalid']) {
+    const f = offlineDOMObservationFixture();
+    const error = `${f.prefix} [${reason}]`;
+    const g = offlineDOMObservationFixture({'data-offline-last-error': error});
+    await observeOfflineUpdateFailure(g.context, g.info);
+    const report = g.attachments[0].report;
+    assert.equal(report.observation, 'observed'); assert.equal(report.values.lastError, error);
+    assert.deepEqual(report.lastErrorCapture, {present: true, complete: true, truncated: false});
+    assert.equal(g.evaluations(), 1); assert.equal(g.reads.length, 7);
+    assert.deepEqual(Object.keys(report.values).sort(), ['completedOperations','controlling','enabled','lastError','operationError','renderedState','waitingGenerationPresent'].sort());
+    assert.match(report.capturePhase, /late/); assert.match(report.meaning, /not operation-stage/);
+  }
+});
+test('offline failure DOM observation suppresses unknown values without inventing truncation or absence', {concurrency: false}, async () => {
+  const secret = 'private-unrecognized-'.repeat(300);
+  const f = offlineDOMObservationFixture({'data-offline-last-error': secret});
+  await observeOfflineUpdateFailure(f.context, f.info);
+  assert.equal(f.attachments[0].report.values.lastError, 'unrecognized');
+  assert.deepEqual(f.attachments[0].report.lastErrorCapture, {present: true, complete: false, truncated: null});
+  assert.equal(f.attachments[0].body.includes('private-unrecognized-'), false);
+  const absent = offlineDOMObservationFixture({'data-offline-last-error': null});
+  await observeOfflineUpdateFailure(absent.context, absent.info);
+  assert.deepEqual(absent.attachments[0].report.lastErrorCapture, {present: false, complete: false, truncated: null});
+});
+test('offline failure unavailable-page gates emit unavailable rather than false scalar evidence', {concurrency: false}, async () => {
+  const f = offlineDOMObservationFixture();
+  await observeOfflineUpdateFailure({pages: () => [f.page, f.page]}, f.info);
+  assert.equal(f.evaluations(), 0); assert.equal(f.attachments[0].report.observation, 'unavailable');
+  assert.equal(f.attachments[0].report.values, null);
+  assert.deepEqual(f.attachments[0].report.lastErrorCapture, {present: null, complete: null, truncated: null});
+});
+test('offline fault retirement attaches fixed proof after cleanup and returns the original proof', async () => {
+  const order = [], proof = offlineScalarRetirementProof(), page = {};
+  proof.unselected = 'must-not-escape';
+  let record;
+  const result = await retireOfflineParentFault(page, {async attach(name, {body}) {order.push('attach'); assert.equal(name, 'forced-parent-empty-retirement-proof'); assert.ok(body.length <= 4096); assert.equal(body.toString().includes('must-not-escape'), false); record = JSON.parse(body.toString());}}, async actual => {assert.equal(actual, page); order.push('retire'); return proof;}, false);
+  assert.equal(result, proof); assert.deepEqual(order, ['retire','attach']);
+  assert.equal(record.retirementCall, 'returned'); assert.equal(record.proofComplete, true);
+  assert.equal(record.proof.nativeUpdateCalls, null); assert.equal(record.proof.nativeUpdateWitness, 'disabled');
+});
+test('offline fault cleanup throw still fails a previously passing body and emits no raw error', async () => {
+  const failure = Error('private-cleanup-error'); let record;
+  await assert.rejects(retireOfflineParentFault({}, {async attach(_name, {body}) {assert.equal(body.toString().includes('private-cleanup-error'), false); record = JSON.parse(body.toString());}}, async () => {throw failure;}, false), error => error === failure);
+  assert.equal(record.retirementCall, 'threw'); assert.equal(record.proof, null);
+});
+test('offline fault diagnostics cannot mask the primary assertion or prevent cleanup', async () => {
+  const original = Error('original assertion'), cleanup = Error('cleanup'), order = [];
+  const run = async () => {
+    let primaryFailed = false;
+    try {throw original;} catch (error) {primaryFailed = true; throw error;}
+    finally {await retireOfflineParentFault({}, {async attach() {order.push('attach'); throw Error('attachment');}}, async () => {order.push('retire'); throw cleanup;}, primaryFailed);}
+  };
+  await assert.rejects(run(), error => error === original);
+  assert.deepEqual(order, ['retire','attach']);
+});
+test('offline diagnostic attachment rejection preserves a successful retirement result', async () => {
+  const proof = offlineScalarRetirementProof(); let calls = 0;
+  const result = await retireOfflineParentFault({}, {async attach() {throw Error('attachment unavailable');}}, async () => {calls++; return proof;}, false);
+  assert.equal(calls, 1); assert.equal(result, proof);
+  const f = offlineDOMObservationFixture();
+  await observeOfflineUpdateFailure(f.context, {async attach() {throw Error('attachment unavailable');}});
+  assert.equal(f.evaluations(), 1);
+});
+test('offline retirement scalar projection preserves unknown rather than promoting it to zero', async () => {
+  const proof = {...offlineScalarRetirementProof(), framesConnected: 'unknown', nativeUpdateWitness: 'unexpected'}; let report;
+  await retireOfflineParentFault({}, {async attach(_name, {body}) {report = JSON.parse(body.toString());}}, async () => proof, false);
+  assert.equal(report.proofComplete, false); assert.equal(report.proof.framesConnected, null);
+  assert.equal(report.proof.nativeUpdateWitness, null);
 });

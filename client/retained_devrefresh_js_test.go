@@ -30,6 +30,8 @@ func retainedDevCommitEnvironment(t *testing.T) js.Value {
 	previousLazy, previousOffline := lazyModules, documentOffline
 	previousAdmission, previousRefresh, previousActivity := retainedTaskAdmission, devRefresh, refreshActivity
 	previousOpener, previousModalFocus := navigationOpener, modalReturnFocus
+	previousApplication, previousMerge, previousFrame := mergeApplication, mergeCurrent, currentPropsFrame
+	previousEntries, previousEntryOrder, previousInstall := mergeEntryHistory, mergeEntryOrder, mergeInstallActive
 	fixture := js.Global().Get("Function").New(`
 return (() => {
  let document;
@@ -104,6 +106,11 @@ return (() => {
 	streamingActive, initialMetadata = false, nil
 	lazyModules, documentOffline = map[string]*lazyState{}, nil
 	retainedTaskAdmission, devRefresh, refreshActivity = false, nil, refreshActivityTracker{}
+	// Each prepared document has its own bootstrap authority and props frame.
+	// A previous cold commit must never make the next fixture inherit its app.
+	mergeApplication, mergeCurrent, mergeInstallActive = nil, nil, false
+	currentPropsFrame = &propsFrame{identity: &propsFrameIdentity{}, revision: 1, entries: map[uint64]propsDatum{}}
+	mergeEntryHistory, mergeEntryOrder = map[string]*mergeEntryFocus{}, nil
 	navigationID, cacheEpoch = 1, 1
 	retainedFreshID, retainedFreshEpoch = navigationID, cacheEpoch
 	setLocation(currentURL)
@@ -124,11 +131,14 @@ return (() => {
 		lazyModules, documentOffline = previousLazy, previousOffline
 		retainedTaskAdmission, devRefresh, refreshActivity = previousAdmission, previousRefresh, previousActivity
 		navigationOpener, modalReturnFocus = previousOpener, previousModalFocus
+		mergeApplication, mergeCurrent, currentPropsFrame = previousApplication, previousMerge, previousFrame
+		mergeEntryHistory, mergeEntryOrder, mergeInstallActive = previousEntries, previousEntryOrder, previousInstall
 	})
 	return fixture
 }
 
 func TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews(t *testing.T) {
+	previousApplication, previousMerge, previousFrame := mergeApplication, mergeCurrent, currentPropsFrame
 	for _, optIn := range []bool{false, true} {
 		name := "default"
 		if optIn {
@@ -142,6 +152,10 @@ func TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews(t *testin
 			if !devRefreshBuild || routeManifest.Development {
 				t.Fatal("wrong compiler personality")
 			}
+			// Match runDocument: authority also covers ordinary NoProps islands in
+			// development, even though both retention managers remain disabled.
+			initializeMergeDocument()
+			installMergeApplicationAuthority(f.Get("app"), mergeCurrent, initialMergeRetention())
 			initializeRetainedDocument()
 			if retainedRoutingEnabled() || retainedTaskAdmission {
 				t.Fatal("development target enabled route retention")
@@ -170,11 +184,23 @@ func TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews(t *testin
 			initial := f.Get("initial")
 			for i := 0; i < 9; i++ {
 				initial.Get("button").Call("fire")
+				if initial.Get("output").Get("textContent").String() != strconv.Itoa(i+1) {
+					t.Fatal("ordinary NoProps event did not complete synchronously", i)
+				}
 			}
 			if initial.Get("output").Get("textContent").String() != "9" || mounts != 1 || len(mounted) != 1 {
-				t.Fatal("initial eager hydration failed")
+				t.Fatal("initial eager hydration failed", mounts, len(mounted), f.Get("status").Get("textContent").String())
+			}
+			if doc.Get("body").Call("getAttribute", "data-nextgo-hydration").String() != "ready" || initial.Get("island").Call("getAttribute", "data-nextgo-hydrated").String() != "true" || !f.Get("status").Get("hidden").Bool() || f.Get("errors").Length() != 0 {
+				t.Fatal("ordinary initial hydration did not publish ready without errors")
 			}
 			firstScope := mounted[0]
+			if mergeApplication == nil || mergeApplication.revoked || !mergeApplication.root.Equal(f.Get("app")) || mergeCurrent != nil || !f.Get("app").Get("firstChild").Equal(initial.Get("main")) || !firstScope.Root.Value.Equal(initial.Get("island")) || firstScope.mergeCallbacks {
+				t.Fatal("ordinary bootstrap lost current authority, SSR identity or direct event timing")
+			}
+			if _, exists := mergeApplication.scopes[firstScope]; !exists {
+				t.Fatal("ordinary initial scope escaped document authority")
+			}
 			var secondScope *Scope
 			for index, page := range []string{"B", "A"} {
 				incoming := f.Get("page").Invoke(page)
@@ -228,5 +254,8 @@ func TestRetainedDevRefreshUsesRealOrdinaryCommitWithoutRetainingViews(t *testin
 				t.Fatal("ordinary commit reported errors", f.Get("errors"))
 			}
 		})
+		if mergeApplication != previousApplication || mergeCurrent != previousMerge || currentPropsFrame != previousFrame {
+			t.Fatal("prepared document leaked authority or props frame into the next subcase", name)
+		}
 	}
 }

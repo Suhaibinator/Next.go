@@ -140,9 +140,11 @@ Framework action dispatch and settlement invalidate resources along with the
 navigation cache, including failed/aborted mutation transports: a transport error
 does not prove server rollback. The core forwards an invalidation epoch to loaded
 lazy modules. The resource checkpoint raised the module ABI from 3 to 4 for this
-mandatory freshness propagation. Those results remain historical. Current ABI 5
-also carries [per-anchor link-status forwarding](LINK_STATUS.md), retaining the
-same mandatory freshness rule. Mixed ABI hosts and modules fail their handshake
+mandatory freshness propagation. Those results remain historical. Current ABI 6
+retains that freshness rule and [per-anchor link-status forwarding](LINK_STATUS.md),
+and adds recognized document revocation before module observer dispatch. This
+ABI-6 source increment remains unqualified by the older resource results. Mixed
+ABI hosts and modules fail their handshake
 before mounting; rebuild and deploy the core, every lazy module and development
 entries together from the same framework revision and selected Go SDK. The host
 shares the original DOM reference with its module, including the private first-observed

@@ -1,0 +1,283 @@
+//go:build js && wasm
+
+package client
+
+import "syscall/js"
+
+// The enum order and eight receipt fields are the frozen V3 bridge contract.
+// No context, mutex, owner/cell link, callback allocation/release, or authority
+// publication belongs to this adapter. The caller owns every resource first.
+type offlineNativeOperation uint8
+const (
+ offlineNativeAppendFrame offlineNativeOperation = iota + 1
+ offlineNativeParentListLive
+ offlineNativeChildList
+ offlineNativeChildLookup
+ offlineNativeRPCActiveStatus
+ offlineNativeRPCActiveDisableRecovered
+ offlineNativeUpdateRegistration
+ offlineNativeUnregisterRegistration
+ offlineNativeRetireLive
+ offlineNativeRetireUnopened
+ offlineNativeRetireNeverConnected
+ offlineNativeParentListRetired
+)
+type offlineNativeReason uint8
+const (
+ offlineNativeReasonNone offlineNativeReason = iota
+ offlineNativeReasonEntryRefused
+ offlineNativeReasonInputRefused
+ offlineNativeReasonParentRefused
+ offlineNativeReasonFrameRefused
+ offlineNativeReasonChildRefused
+ offlineNativeReasonRegistrationRefused
+ offlineNativeReasonReadThrow
+ offlineNativeReasonDispatchThrow
+)
+type offlineNativeRefs struct {
+ ParentWindow, ParentDocument, ParentNavigator, ParentContainer, ParentController, ParentLocation js.Value
+ Frame, Host js.Value
+ ChildWindow, ChildDocument, ChildNavigator, ChildContainer, ChildController js.Value
+ Candidate, Active js.Value
+}
+type offlineNativeNodes struct { Root, Head, Body, Waiting, Installing js.Value }
+type offlineNativePolicy struct { Origin, HelperURL, WorkerURL, Scope string }
+type offlineNativePayload struct {
+ Version int
+ Command, OwnerPolicyID, RuntimeID, ConfigurationID, RequestID string
+}
+type offlineNativeInput struct {
+ Operation offlineNativeOperation
+ Nonce string
+ Refs offlineNativeRefs
+ Nodes offlineNativeNodes
+ Policy offlineNativePolicy
+ Payload offlineNativePayload
+ Port js.Value
+ // This callback is already allocated and charged by the owner. Preparation
+ // never calls it. Unknown dispatch/observer outcomes retain it with the cell.
+ Authorize js.Func
+}
+type offlineNativeReceipt struct {
+ Version uint8
+ Nonce string
+ Operation offlineNativeOperation
+ Entered bool
+ Reason offlineNativeReason
+ Issued, Returned bool
+ Value js.Value
+}
+type offlineNativeParent struct {
+ Window, Document, Navigator, Container, Controller, Location, Root js.Value
+ Origin string
+}
+type offlineNativeChild struct {
+ Window, Document, Navigator, Container, Controller, Root, Head, Body js.Value
+}
+type offlineNativeChannel struct { Channel, Port1, Port2 js.Value }
+type offlineNativeRegistration struct {
+ Registration, Active, Waiting, Installing js.Value
+ Scope, ActiveURL, WaitingURL, InstallingURL string
+}
+
+// Only this package-init claim stores production functions. There is no public
+// setter or synthetic native trust path. Package tests may replace this private
+// value to model refusal/decoding; such a fake never proves platform branding.
+type offlineNativeCapability struct {
+ valid bool
+ prepare, parent, child, inspect, frame, channel, listen, remove, start, close, then js.Value
+}
+var offlineNativeFacet = claimOfflineNativeCapability()
+
+func claimOfflineNativeCapability() (cap offlineNativeCapability) {
+ // Modules have a separate runtime and must not consume the eager core claim.
+ if moduleMode { return cap }
+ defer func(){ if recover()!=nil { cap=offlineNativeCapability{} } }()
+ claim:=checkedJSGet(js.Global(),"__nextgoOfflineNativeClaimV1")
+ if claim.Type()!=js.TypeFunction { return cap }
+ value:=checkedJSInvoke(claim)
+ if value.Type()!=js.TypeObject || value.IsNull() { return cap }
+ version,supported:=checkedJSGet(value,"version"),checkedJSGet(value,"supported")
+ if version.Type()!=js.TypeNumber || version.Float()!=1 || supported.Type()!=js.TypeBoolean || !supported.Bool() { return cap }
+ cap=offlineNativeCapability{
+  prepare:checkedJSGet(value,"prepare"),parent:checkedJSGet(value,"parent"),
+  child:checkedJSGet(value,"child"),inspect:checkedJSGet(value,"inspect"),frame:checkedJSGet(value,"frame"),
+  channel:checkedJSGet(value,"channel"),listen:checkedJSGet(value,"listen"),remove:checkedJSGet(value,"remove"),
+  start:checkedJSGet(value,"start"),close:checkedJSGet(value,"close"),then:checkedJSGet(value,"then"),
+ }
+ for _,f:=range []js.Value{cap.prepare,cap.parent,cap.child,cap.inspect,cap.frame,cap.channel,cap.listen,cap.remove,cap.start,cap.close,cap.then} {
+  if f.Type()!=js.TypeFunction { return offlineNativeCapability{} }
+ }
+ cap.valid=true
+ return cap
+}
+func offlineNativeReady() bool { return offlineNativeFacet.valid }
+
+// Every invocation aggregate is created before Invoke, including its argument
+// array holding the already-owned authorize function. Invoke imports one apply
+// into the static parent-realm closure. No JS/Go scheduling gap exists between
+// that closure's final native predicates and its exact native dispatch.
+type offlineNativeCall struct {
+ run, receipt, read, arguments, authorize js.Value
+ operation offlineNativeOperation
+ nonce string
+ invoked bool
+}
+func offlineNativePrepare(input offlineNativeInput) (call *offlineNativeCall, err error) {
+ if !offlineNativeFacet.valid { return nil, ErrOfflineUnsupported }
+ if input.Operation<offlineNativeAppendFrame || input.Operation>offlineNativeParentListRetired || len(input.Nonce)==0 || len(input.Nonce)>128 || input.Authorize.Value.Type()!=js.TypeFunction {
+  return nil,ErrOfflineUnknown
+ }
+ for _,text:=range []string{input.Policy.Origin,input.Policy.HelperURL,input.Policy.WorkerURL,input.Policy.Scope} {
+  if len(text)==0 || len(text)>8192 {return nil,ErrOfflineUnknown}
+ }
+ rpc:=input.Operation==offlineNativeRPCActiveStatus || input.Operation==offlineNativeRPCActiveDisableRecovered
+ if rpc {
+  q:=input.Payload
+  command:="status";if input.Operation==offlineNativeRPCActiveDisableRecovered {command="disable-recovered"}
+  if q.Version!=1 || q.Command!=command || input.Port.Type()!=js.TypeObject || input.Port.IsNull() {return nil,ErrOfflineUnknown}
+  for _,text:=range []string{q.OwnerPolicyID,q.RuntimeID,q.ConfigurationID,q.RequestID} {if len(text)==0 || len(text)>256 {return nil,ErrOfflineUnknown}}
+ } else if input.Payload!=(offlineNativePayload{}) || !input.Port.IsUndefined() {return nil,ErrOfflineUnknown}
+ defer func(){if recover()!=nil {call=nil;err=ErrOfflineUnknown}}()
+ r,n,p:=input.Refs,input.Nodes,input.Policy
+ refs:=checkedJSArray([]any{r.ParentWindow,r.ParentDocument,r.ParentNavigator,r.ParentContainer,r.ParentController,r.ParentLocation,r.Frame,r.Host,r.ChildWindow,r.ChildDocument,r.ChildNavigator,r.ChildContainer,r.ChildController,r.Candidate,r.Active})
+ nodes:=checkedJSArray([]any{n.Root,n.Head,n.Body,n.Waiting,n.Installing})
+ policy:=checkedJSArray([]any{p.Origin,p.HelperURL,p.WorkerURL,p.Scope})
+ payload,port:=js.Undefined(),js.Undefined()
+ if rpc {
+  q:=input.Payload
+  payload=checkedJSArray([]any{q.Version,q.Command,q.OwnerPolicyID,q.RuntimeID,q.ConfigurationID,q.RequestID})
+  port=input.Port
+ }
+ prepared:=checkedJSInvoke(offlineNativeFacet.prepare,int(input.Operation),input.Nonce,refs,nodes,policy,payload,port)
+ if prepared.Type()!=js.TypeObject || prepared.IsNull() {return nil,ErrOfflineUnknown}
+ run,receipt,read:=checkedJSGet(prepared,"run"),checkedJSGet(prepared,"receipt"),checkedJSGet(prepared,"read")
+ if run.Type()!=js.TypeFunction || read.Type()!=js.TypeFunction || receipt.Type()!=js.TypeObject || receipt.IsNull() {return nil,ErrOfflineUnknown}
+ call=&offlineNativeCall{run:run,receipt:receipt,read:read,authorize:input.Authorize.Value,arguments:checkedJSArray([]any{input.Authorize.Value}),operation:input.Operation,nonce:input.Nonce}
+ // This is a private own-data receipt before entry, not an issued operation.
+ initial,e:=call.readReceipt()
+ if e!=nil || initial.Entered || initial.Issued || initial.Returned || initial.Reason!=offlineNativeReasonNone {return nil,ErrOfflineUnknown}
+ return call,nil
+}
+// ReceiptIdentity is a pure-Go reference copy for the owner's exact gate binding.
+func (call *offlineNativeCall) ReceiptIdentity() js.Value {
+ if call==nil {return js.Undefined()};return call.receipt
+}
+func (call *offlineNativeCall) Invoke(authorize js.Func) (receipt offlineNativeReceipt, err error) {
+ if call==nil || call.invoked || !call.authorize.Equal(authorize.Value) {return receipt,ErrOfflineUnknown}
+ call.invoked=true
+ defer func(){
+  if recover()!=nil {
+   // Readable partial own-data flags are retained separately from this unknown
+   // bridge-return error. They never turn an outer exception into a receipt.
+   receipt,_=call.readReceipt();err=ErrOfflineUnknown
+  }
+ }()
+ result:=checkedJSApply(call.run,js.Undefined(),call.arguments)
+ receipt,err=call.readReceipt()
+ if err!=nil || !result.Equal(call.receipt) {return receipt,ErrOfflineUnknown}
+ if !receipt.Entered && receipt.Reason!=offlineNativeReasonEntryRefused {return receipt,ErrOfflineUnknown}
+ if receipt.Issued && !receipt.Entered {return receipt,ErrOfflineUnknown}
+ if receipt.Reason==offlineNativeReasonNone && !receipt.Returned {return receipt,ErrOfflineUnknown}
+ return receipt,nil
+}
+func (call *offlineNativeCall) readReceipt() (receipt offlineNativeReceipt, err error) {
+ defer func(){if recover()!=nil {receipt=offlineNativeReceipt{};err=ErrOfflineUnknown}}()
+ // The native preparation closure checks EXACT eight own data fields and no
+ // symbols, then copies them outside the protected segment. Value is the actual
+ // native return/Promise, never a coerced copy or a synthetic resolved Promise.
+ a:=checkedJSInvoke(call.read)
+ if checkedJSLength(a)!=8 {return receipt,ErrOfflineUnknown}
+ v,nonce,operation:=checkedJSIndex(a,0),checkedJSIndex(a,1),checkedJSIndex(a,2)
+ entered,reason,issued,returned:=checkedJSIndex(a,3),checkedJSIndex(a,4),checkedJSIndex(a,5),checkedJSIndex(a,6)
+ if v.Type()!=js.TypeNumber || v.Float()!=1 || nonce.Type()!=js.TypeString || nonce.String()!=call.nonce || operation.Type()!=js.TypeNumber || operation.Float()!=float64(call.operation) || entered.Type()!=js.TypeBoolean || reason.Type()!=js.TypeNumber || issued.Type()!=js.TypeBoolean || returned.Type()!=js.TypeBoolean {
+  return receipt,ErrOfflineUnknown
+ }
+ number:=reason.Float()
+ if number<0 || number>8 || number!=float64(uint8(number)) {return receipt,ErrOfflineUnknown}
+ return offlineNativeReceipt{Version:1,Nonce:call.nonce,Operation:call.operation,Entered:entered.Bool(),Reason:offlineNativeReason(uint8(number)),Issued:issued.Bool(),Returned:returned.Bool(),Value:checkedJSIndex(a,7)},nil
+}
+
+// Preparation helpers call only startup-captured primitives. Their caller must
+// precharge the corresponding realm/channel/listener before a potentially
+// delivering native call. An error never asserts that allocation did not occur.
+func offlineNativeCreateFrame(document js.Value, helperURL string) (frame js.Value, err error) {
+ if !offlineNativeFacet.valid {return js.Undefined(),ErrOfflineUnsupported}
+ if len(helperURL)==0 || len(helperURL)>8192 {return js.Undefined(),ErrOfflineUnknown}
+ defer func(){if recover()!=nil {frame=js.Undefined();err=ErrOfflineUnknown}}()
+ frame=checkedJSInvoke(offlineNativeFacet.frame,document,helperURL)
+ if frame.Type()!=js.TypeObject || frame.IsNull() {return js.Undefined(),ErrOfflineUnknown};return frame,nil
+}
+func offlineNativeCaptureParent(window,document js.Value) (parent offlineNativeParent, err error) {
+ if !offlineNativeFacet.valid {return parent,ErrOfflineUnsupported}
+ defer func(){if recover()!=nil {parent=offlineNativeParent{};err=ErrOfflineUnknown}}()
+ a:=checkedJSInvoke(offlineNativeFacet.parent,window,document)
+ if checkedJSLength(a)!=8 {return parent,ErrOfflineUnknown}
+ values:=[6]js.Value{}
+ for i:=range values {values[i]=checkedJSIndex(a,i);if values[i].Type()!=js.TypeObject || values[i].IsNull() {return parent,ErrOfflineUnknown}}
+ origin,root:=checkedJSIndex(a,6),checkedJSIndex(a,7);if origin.Type()!=js.TypeString || origin.String()=="" || root.Type()!=js.TypeObject || root.IsNull() {return parent,ErrOfflineUnknown}
+ return offlineNativeParent{Window:values[0],Document:values[1],Navigator:values[2],Container:values[3],Controller:values[4],Location:values[5],Origin:origin.String(),Root:root},nil
+}
+func offlineNativeCaptureChild(frame js.Value) (child offlineNativeChild, err error) {
+ if !offlineNativeFacet.valid {return child,ErrOfflineUnsupported}
+ defer func(){if recover()!=nil {child=offlineNativeChild{};err=ErrOfflineUnknown}}()
+ a:=checkedJSInvoke(offlineNativeFacet.child,frame)
+ if checkedJSLength(a)!=8 {return child,ErrOfflineUnknown}
+ values:=[8]js.Value{}
+ for i:=range values {values[i]=checkedJSIndex(a,i);if i==4 && values[i].IsNull() {continue};if values[i].Type()!=js.TypeObject || values[i].IsNull() {return child,ErrOfflineUnknown}}
+ return offlineNativeChild{Window:values[0],Document:values[1],Navigator:values[2],Container:values[3],Controller:values[4],Root:values[5],Head:values[6],Body:values[7]},nil
+}
+func offlineNativeInspectInventory(value js.Value) (inventory []offlineNativeRegistration, err error) {
+ if !offlineNativeFacet.valid {return nil,ErrOfflineUnsupported}
+ defer func(){if recover()!=nil {inventory=nil;err=ErrOfflineUnknown}}()
+ a:=checkedJSInvoke(offlineNativeFacet.inspect,value)
+ return offlineNativeDecodeInventory(a)
+}
+func offlineNativeDecodeInventory(a js.Value) (inventory []offlineNativeRegistration, err error) {
+ defer func(){if recover()!=nil {inventory=nil;err=ErrOfflineUnknown}}()
+ size:=checkedJSLength(a);if size>64 {return nil,ErrOfflineUnknown}
+ inventory=make([]offlineNativeRegistration,size)
+ for i:=range inventory {
+  row:=checkedJSIndex(a,i);if checkedJSLength(row)!=8 {return nil,ErrOfflineUnknown}
+  r:=offlineNativeRegistration{Registration:checkedJSIndex(row,0),Active:checkedJSIndex(row,2),Waiting:checkedJSIndex(row,3),Installing:checkedJSIndex(row,4)}
+  if r.Registration.Type()!=js.TypeObject || r.Registration.IsNull() {return nil,ErrOfflineUnknown}
+  fields:=[4]string{}
+  for k,index:=range [4]int{1,5,6,7} {v:=checkedJSIndex(row,index);if v.Type()!=js.TypeString || len(v.String())>8192 {return nil,ErrOfflineUnknown};fields[k]=v.String()}
+  r.Scope,r.ActiveURL,r.WaitingURL,r.InstallingURL=fields[0],fields[1],fields[2],fields[3]
+  if r.Scope=="" {return nil,ErrOfflineUnknown}
+  for k,slot:=range [3]js.Value{r.Active,r.Waiting,r.Installing} {
+   url:=fields[k+1]
+   if slot.IsNull() {if url!="" {return nil,ErrOfflineUnknown};continue}
+   if slot.Type()!=js.TypeObject || url=="" {return nil,ErrOfflineUnknown}
+  }
+  inventory[i]=r
+ }
+ return inventory,nil
+}
+func offlineNativeCreateChannel() (channel offlineNativeChannel, err error) {
+ if !offlineNativeFacet.valid {return channel,ErrOfflineUnsupported}
+ defer func(){if recover()!=nil {channel=offlineNativeChannel{};err=ErrOfflineUnknown}}()
+ a:=checkedJSInvoke(offlineNativeFacet.channel)
+ if checkedJSLength(a)!=3 {return channel,ErrOfflineUnknown}
+ channel=offlineNativeChannel{Channel:checkedJSIndex(a,0),Port1:checkedJSIndex(a,1),Port2:checkedJSIndex(a,2)}
+ for _,v:=range []js.Value{channel.Channel,channel.Port1,channel.Port2} {if v.Type()!=js.TypeObject || v.IsNull() {return offlineNativeChannel{},ErrOfflineUnknown}}
+ if channel.Port1.Equal(channel.Port2) {return offlineNativeChannel{},ErrOfflineUnknown};return channel,nil
+}
+func offlineNativeListen(target js.Value,event string,callback js.Func) error {
+ return offlineNativeResourceCall(offlineNativeFacet.listen,target,event,callback)
+}
+func offlineNativeRemove(target js.Value,event string,callback js.Func) error {
+ return offlineNativeResourceCall(offlineNativeFacet.remove,target,event,callback)
+}
+func offlineNativeStart(port js.Value) error {return offlineNativeResourceCall(offlineNativeFacet.start,port)}
+func offlineNativeClose(port js.Value) error {return offlineNativeResourceCall(offlineNativeFacet.close,port)}
+// Observe only after dispatch, outside protected facets. Native then can invoke
+// authored constructor/species hooks; a failure keeps all handlers/cells owned.
+func offlineNativePromiseThen(promise js.Value,resolved,rejected js.Func) error {
+ return offlineNativeResourceCall(offlineNativeFacet.then,promise,resolved,rejected)
+}
+func offlineNativeResourceCall(function js.Value,args ...any) (err error) {
+ if !offlineNativeFacet.valid {return ErrOfflineUnsupported}
+ defer func(){if recover()!=nil {err=ErrOfflineUnknown}}()
+ checkedJSInvoke(function,args...);return nil
+}

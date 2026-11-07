@@ -1,10 +1,444 @@
 # Next.go capability parity and production release gates
 
-Research baseline: **October 23, 2026**, official Next.js documentation identifying **v16.4.3** as latest ([release](https://github.com/vercel/next.js/releases/tag/v16.4.3), commit `29bbeab09981148ade186e8599ecdede15abc281`). The original October 22 inventory used v16.4.2; the patch delta is recorded below without removing any capability or gate. The [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest) was rechecked on October 27 and still identifies stable v16.4.3. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
+Research baseline: **October 23, 2026**, official Next.js documentation identifying **v16.4.3** as latest ([release](https://github.com/vercel/next.js/releases/tag/v16.4.3), commit `29bbeab09981148ade186e8599ecdede15abc281`). The original October 22 inventory used v16.4.2; the patch delta is recorded below without removing any capability or gate. The [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest) was rechecked on October 29 and still identifies stable v16.4.3. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
 
 The target is an alternative implemented in Go, with Go/WASM browser behavior and only the JavaScript runtime bridge that WASM requires. Equivalent user-visible capabilities may have idiomatic Go APIs. React, JSX, RSC wire formats, JavaScript configuration syntax, npm packages, and exact Next.js source APIs are not compatibility promises. Their underlying capabilities remain in this inventory. An existing Next.js application cannot currently be imported or run unchanged.
 
 The baseline includes the current App Router, supported Pages Router application capabilities, documented opt-in features, deployment behavior, and developer experience. App Router is the current recommended router, while Pages Router remains supported. A second Go router syntax is not necessary to offer equivalent SSR, static generation, data-loading, API, and navigation capabilities. [App Router](https://nextjs.org/docs/app), [Pages Router](https://nextjs.org/docs/pages), [Pages rendering/data capabilities](https://nextjs.org/docs/pages/building-your-application).
+
+## Cadence-only compile supervisor and retained failure aftermath
+
+This source-only successor starts from pushed `8b8a2626417e9a00aa007759fb39217e7e2499a2`,
+whose ordinary Go tree remains byte-identical here: 1,287 files, 6,432,777 bytes,
+canonical SHA-256 `b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997`.
+The current source preserves all 600 baseline requirements, the separate 21 FIFO
+occurrences and the existing eight exporter-helper roots. Go 1.24.13 source
+evidence on the actual 8b8 PR merge matches 600+21+8 separately with exact
+RUN1/PASS1/SKIP0, 30,086 JSON events, 7,234 complete test rows and 306 package
+completions; two nonmandatory test skips remain explicit. Node was 22.23.3.
+This is source-test evidence only. Go 1.27 has API success, but its bounded console
+request returned Transport closed before payload; detailed counts remain unknown,
+with no retry or artifact fallback. Neither result qualifies the new control or
+browser diagnostic source.
+
+The isolated first-compile profile got beyond its corrected environment guard,
+then refused graph-native ordinal 3: joined exit -15, maximum integer sample
+interval 259ms, empty channels and no candidate compiler output. SDK 1.27 remained
+unreached. Saved observations do not separate inventory, selector, loop or OS
+scheduling time; 209+50=259ms is a constructed regression hazard, not a measured
+incident decomposition.
+
+Only the supervisor selector wait changes: it remains at most 50ms but is also
+capped by the remaining 100ms sampling target since last_sample, clamped to zero
+when overdue. It therefore avoids intentional idle after an expensive inventory.
+Both 250ms start-to-start and inventory-duration refusal checks remain exact, as
+do deadlines, ownership, termination/join, UNKNOWN outcomes and resource limits.
+A slow real walk or scheduling stall may still refuse. The workflow changes only
+its runner hash; models preserve all 30 old bodies and add five roots/seven
+scenarios that call the real supervisor with fake clock/process/selector/IO
+boundaries. Root executed all 35 models once: 35 PASS in 2.617 seconds, joined exit0,
+empty stdout and owned staging removed, with no Go/SDK/Node/browser/network work.
+Receipt SHA-256 is
+`5f8bed8d3915c2d7c562d1181041a6a5836d1102207e320acaa6790ce4e4646c`.
+This is control-plane evidence; corrected native compilation remains open.
+
+Separately, a passive retained-test sampler runs only in finally after the
+original immediate owner-scroll assertion has already observed a finite
+mismatch. Original assertions, steps, titles, deadlines and retries remain. It
+requests at most two diagnostic animation frames, one 250ms timer and one
+visibility listener, producing at most three scalar samples and one 8KiB
+attachment. This requested timer is not a hard wall; external test deadlines or
+page closure may truncate collection. Cleanup is attempted with failure flags,
+missing phases stay unknown, and read-only observations may perturb later
+scheduling. These diagnostic frames are not the runtime settlement frames.
+No production hook, focus/scroll write, method wrapper or runtime change is added;
+a later matching sample cannot change the original failure or establish cause.
+
+The bound historical Go1.24 Linux/amd64 retained result is source 2a34, tested
+merge ab18: 48 PASS, one desktop WebKit failure and 23 unrun. The eager-owner case
+expected 200 and observed 1283 after Back. Click-task samples of 200 do not prove
+the later asynchronous commit-time capture; the failing stage remains unknown.
+Other jobs' failure statuses do not establish this cause. The new diagnostic is
+unexecuted. All 37 isolated fixture images and their compile contract, 25 compile/
+13 metadata commands, SDK/resource/custody scope, selected 207 paths/cap and 256
+per-array cap remain. Only three native controls change; 38 stay exact.
+
+The actual 8b8 Go1.27 offline console separately reports 17 PASS, one Firefox
+explicit-disable failure and 22 unrun: the first disable assertion expected
+`data-offline-enabled=false` but still observed true after its original 20 seconds,
+with public operation-error conflict. The rendered reason is truncated; its exact
+branch and native cause remain unknown. Firefox policy case 20 was unreached, so
+no new four-scalar policy error was observed. This is not the earlier policy
+failure or a retained-scroll cause.
+
+An additional test-only inner finally reads existing public DOM status after the
+original failed/incomplete disable body: at most one evaluation, one controls
+query, eight fixed attribute reads and one JSON attachment accepted at 2KiB. It
+returns only fixed booleans/codes, a bounded UI revision and one of 21 recognized
+conflict reasons; missing or unrecognized values remain null. The revision is not
+native worker-message, retry or join evidence. It emits no raw error text and adds
+no worker/registry/storage/network probe, timer, frame, listener, write or retry.
+Original assertions, outcomes, 20s expectations/90s test limit and passing behavior
+remain; existing four-scalar policy diagnostics stay byte-identical. Evaluation
+or attachment errors are caught, while external deadlines/page closure may still
+truncate finally work.
+
+The pre-existing outer-fixture registration observer is unchanged. Its gated
+attachment may already contain this occurrence's reason, but its payload, gate
+match and attachment success remain unread. The new inner DOM observation runs
+before that observer and adds post-failure task latency; neither observation
+establishes historical admission/native cause or quiescence. The current 44.3MB
+artifact was not admitted or downloaded. The new diagnostic remains unexecuted.
+
+All prior qualification objects and the 26-element ancestry prefix remain literal
+historical lineage. One actual 8b8 foundation is appended once as 27; no later
+publisher append. Current full-Go/selected-source admission remains enforced;
+whole-source identity is publication provenance, not a producer guard. All 79
+capabilities and 11 gates remain open; 432 retained cases/440 closures and 40 offline
+cases remain. Cache aliases stay held, preview 3011 protected and AWS remains NO.
+
+## Export fixture, native environment guard and passive policy observations
+
+This source-only successor starts from local FIFO commit
+`f4b37fc828a4bce8da3e703bd4f9af29aa2a2ed1`, tree
+`c4e288af32ae47508bc0ed59339f6924ac6a6d48`. It combines three independently
+reviewed, separate changes in one metadata rebind. No new Go, compiler or
+browser result qualifies this source.
+
+The export startup-purpose test reuses its already compiled native test binary
+instead of building a second tiny program. An exact private environment marker
+and strict `-static-export -addr 127.0.0.1:PORT` grammar select the helper; ordinary
+tests still call `m.Run`. The real exporter launch, HTTP 200/header assertion,
+30-second context, one-second HTTP timeout and production 10-second readiness/
+six-second stop grace remain. Seven focused marker/environment/argument/bind/
+listener/response regressions are added; the original real-child root remains.
+All eight roots are unrun and require an actual native JSON audit. They are not
+new producer requirements: existing native commands run the complete package.
+The prior 30.01-second failure is located at nested `go build` before serving;
+its killer and compiler substage remain unknown. This removes an incidental
+compiler dependency without asserting OOM or increasing a deadline.
+
+Separately, the first-compile profile stopped before graph/compile work because
+its metadata guard expected empty GOWORK while the exact 699-byte report says
+`GOWORK=off`. Exactly 13 predicates match in total, including GOENV, which reports empty.
+Only that expectation changes; requested child policy is still off. The workflow
+rebinds one runner hash, and model source preserves 26 old bodies plus four
+regressions using the exact saved report. Root ran the corrected 30 process-mocked
+models once: 30 PASS, 1.510 seconds, joined exit0, empty stdout and owned staging
+removed; no Go/Node/SDK/browser/network execution occurred. Receipt SHA-256 is
+`8e3fed9f4d0b95f8032087cc81a0b37e7e2600a5ef1a450ece20b7d50ba4af65`.
+This validates only those models. The refused profile produced no candidate
+compiler output and did not reach SDK 1.27; corrected compilation remains open.
+
+The timeout observation change prompted by the Firefox failure copies four existing bounded scalars into
+the existing timeout Error channel: trusted-load/policy booleans and two counters
+saturating at 32. It adds no query, event listener, timer, retry, DOM/worker read
+or actuation, and keeps the same 5-second timer, assertions and cleanup. Expected
+reachable message maximum is 168 ASCII bytes; the unconstrained scalar domain is
+conservatively 169. This passive snapshot precedes finally and grants no helper
+or cleanup authority. Historical b4 offline 19 PASS/1 FAIL/20 UNRUN is unchanged;
+no Firefox runtime fix or cause is claimed.
+
+Only one ordinary Go test file changes relative to f4; all production Go and
+other 1,286 Go files remain exact. Full-Go source has 1,287 files, 6,432,777 bytes
+and canonical SHA-256 `b44645a8ed91f59280e95d371c5900179c379dc14dcfde5e1db8b46093fc6997`.
+The unchanged producer enforces this expected identity before compilation,
+including the unselected test file. Original 600 requirements and the separate
+AD01 seven-by-three 21 contract remain raw-exact. No command/filter/resource cap
+or skip allowance changes. Selected 207 keeps the same paths: 205 full rows remain
+exact and only documentation/offline-spec SHA/size fields rebind.
+
+Of the 41 native controls, three change explicitly (runner, models and workflow);
+38 remain byte-exact, including all 37 fixture images and their compile contract.
+The isolated 3d-to-ba24/1,311-Go source, 25 compile/13 metadata command contract,
+SDK order, resource limits and default-deny scope remain unchanged. These
+controls do not promote that fixture source into ordinary Go. Old native and
+AD01 qualification objects below remain literal historical lineage; current
+postimage hashes and this qualification govern current bytes. All 25 ancestry
+elements remain literal-exact and one f4 foundation is appended once as 26; no
+later publisher append is permitted.
+
+All 79 capabilities and 11 gates remain open; 432 retained cases/440 closures and
+40 offline cases remain. Source reviews and model results do not establish
+compiler, Go-unit, browser or production readiness. Cache aliases stay held,
+preview 3011 is protected and AWS remains NO.
+
+## Standalone AD01 FIFO source increment
+
+This source-only increment starts from immutable native-controls commit
+`2a34c8ac11b753d75877faf9e0065afb62cb436f` (parent `b4efe93f`). Its queue change
+keeps caller-authored Context methods outside the queue mutex, caches Done once
+before admission, and surrenders a canceled ticket's exact slot before resolving
+its cancellation cause. Duplicate accept cannot surrender or duplicate an
+already accepted transport owner. The existing 64-waiting-plus-one-active bound,
+sticky freeze rejection and idempotent exact-owner release remain. It introduces
+no queue watcher goroutine, timer, AfterFunc or stop hook.
+
+The two formatted Go postimages have independent source review and Root's prior
+format/syntax-only receipt. No typecheck, native/WASM/race/browser test or runtime
+result exists for this increment. Of 1,287 ordinary Go files, 1,285 remain exact
+2a34; only `client/mutation_queue.go` and its existing test file change. Their
+combined full-Go source is 6,424,836 bytes, canonical SHA-256
+`0993e3b5e57e221c0446b6d135db2dcfb29467f800690d052e6928ec097d1f17`. The existing expected-full-Go
+guard enforces those exact bytes before compilation; both modified Go files
+remain outside the unchanged 207 selected paths. Whole-source fingerprints remain
+controlled-publication provenance, not a producer-enforced whole-content guard.
+
+All original 600 mandatory names and skips remain unchanged. Seven new portable
+FIFO roots are separately mandatory in native, core and development-core:
+21 additional actual occurrences. A strict additive contract requires the exact
+seven roots in exactly those three phases. Each extra must emit one root RUN,
+one PASS and zero SKIP events in one package. Missing/subtest-only roots, even
+allowed skips, duplicate or foreign-package roots and failures cannot count.
+`requiredPasses` retains the baseline; `additionalRequiredPasses` and campaign
+counts report the 21 separately. Seven new evidence-auditor regressions are
+authored and unrun. No command, filter, resource limit, skip allowance, 207
+selected cap or 256 per-array cap is increased. Existing commands already select
+the new roots; source-workflow raw output audits must check 600 plus 21 explicitly.
+
+All 41 isolated native first-compile controls and their fixed 3d-to-ba24/1,311-Go
+fixture source remain byte-exact 2a34. They are not rebased onto this FIFO change,
+not promoted into ordinary framework source and not credited with a new compile
+or runtime result. All 24 ancestry elements remain literal-exact and one 2a34
+foundation is appended once as element 25; later publisher steps must not append
+it again. The native-profile and older discussions below are historical lineage
+whose relative current/private language applies to their stated foundations.
+
+The separately audited b4 checkpoint has Go 1.24 actual 600 checks and focus
+root+11 PASS; Go 1.27 fails its export fixture's nested build at 30.01s before
+WASM, with 89 mandatory native roots PASS and 511 later checks unreached. Streaming
+reports 280 PASS including action-view 60; offline reports 19 PASS, one Firefox
+HTTP-helper-policy failure and 20 unrun. These are parent observations only;
+their causes and this increment's results remain unqualified. The current FIFO
+source does not fix or inherit those fixture/browser outcomes.
+
+All 79 capability rows and 11 release gates remain open. The 432 retained cases,
+440 closures and 40 offline cases are unchanged. Cache aliases remain held,
+preview 3011 stays protected and AWS remains NO.
+
+## Isolated native default first-compile debug profile
+
+Published foundation `b4efe93f0c760c93fdaba6868138d48033501899` retains the typed
+public-error demo change and the producer's expected full-Go guard. This private
+successor adds a separately reviewed, isolated Gate A compiler profile; it does
+not replace ordinary framework source with the private Disable implementation.
+All 1,287 ordinary Go files remain byte-exact b4: 6,415,473 bytes, canonical
+SHA-256 `fa273a69bba5f4f1ada870c25d55a8625cc50fb0aca1f63f1b598d0f277ef895`.
+The existing producer dynamically reads the current qualification's `GoSource`
+and enforces this expected count, bytes and digest before compilation. That
+producer and its four guard-regression roots are unchanged. Whole-source hashes
+are publication provenance, not a new expected-whole-content enforcement claim.
+
+The debug profile has exactly 41 new non-Go control/input paths: a Python
+standard-library owner/supervisor/tool observer/collector/cleanup driver, its
+closed source contract, 26 Python protocol models, one workflow, and 37 exact
+reviewable UTF-8 `.txt` fixtures totaling 613,921 bytes. The fixture allowlist
+is explicit, capped at 1 MiB, and uses no glob, source archive, external URL or
+ignored bundle. The owner reconstructs immutable `3d583dc7` plus those postimages
+only in disposable owned output: tree `ba24a854fab69ee810394bc193507ba22f2a953e`,
+1,769 files and 1,311 Go files. This isolated source is distinct from the
+ordinary b4 successor; no successful compile of b4 or the private source exists
+yet. The 41 controls stay outside the old 207 selected-source pin list.
+
+The workflow requests immutable action commits and the Docker image digest
+previously observed in hash-bound current-3d logs. Its bounded same-repository
+PR opened/synchronize/reopened path trigger and future manual trigger use the
+actual PR head, separately recording event-merge and workflow identities. One
+90-minute aggregate job covers Go 1.24.13 then 1.27.3 serially: exactly 25
+compile commands and 13 Go metadata commands per SDK, CGO0/internal native
+linking, no race and no produced test/application/CLI execution. CPU2, memory4GiB,
+pids768 and shm512MiB are fixed. The 8GiB disk abort threshold is monitored, not
+a filesystem quota; there is no kernel network-deny claim. Original SDK archive
+provenance alone remains UNKNOWN under Root's first-debug exception. Requested
+immutable configuration and historical observations are not fresh measurements
+or a production authenticity result. Failure or capacity exhaustion is incomplete
+evidence, never permission to raise a cap or manufacture a pass.
+
+Root executed the exact 26 isolated process-mocked Python protocol models once:
+26 PASS, 0 FAIL, 1.332 seconds, joined exit0. Receipt SHA-256 is
+`cdccbab6934f5e7d4ec9a7af149b360676dc681dfbe7a1bb5d229fee442b8048`;
+this used no real child process, signals, Go, SDK, Node, browser or network. The
+complete 41-path source peer found no remaining functional finding after the
+immutable-pin/PR-bootstrap closure (receipt SHA-256
+`e2126f94b1e67a2351e4ea34b4ed6c6bc2f8d38a4ac01f03dd782bfe6be11bdb`).
+These model/source results do not prove a compiler, Go-unit, browser or runtime
+result. Root's technical acceptance is conditioned on this exact source
+composition, independent peer and controlled publisher review/publication; no
+workflow or publication is performed by this private composition.
+
+The existing 207 selected paths/cap, 256 root cap, all 600 required names/skips,
+432 retained browser cases/440 closures and 40 offline cases remain unchanged.
+All 23 prior ancestry elements are preserved; the published b4 input foundation
+is appended once as element24, with no later publisher append. GateB's 886 Go
+roots, the native-tagged4/browserCORE60/legacy4/response-CSP4 profiles, callback
+outer-return/Promise retirement, and promotion of the fixture source into
+ordinary framework source remain held. Go callback body exit is not proof of
+outer JavaScript return. All79 capabilities and11 release gates remain open;
+both cache aliases stay held, preview3011 stays protected and AWS remains NO.
+
+## Historical 3d checkpoint and b4 typed-error source increment
+
+The following preserved b4 discussion reports the earlier 3d checkpoint and the
+typed-error/full-Go-guard increment; its relative "current"/"proposed" language
+is historical and grants no new Gate A result.
+
+The published source baseline is now `3d583dc7`. Its bounded CI checkpoint at
+23:16 UTC on October 29 records 17 successful jobs, six failures and one general
+browser job still running. A later exact-job step query reports all 27 general
+browser steps completed (26 success, one skipped), including `Complete job`
+success; that wrapper does not return a full job conclusion or detailed case
+counts. Go 1.24.13 has independently matched actual RUN=1/PASS=1/SKIP=0 for all
+600 required checks and the focus root plus eleven subcases under Node/WASM.
+Go 1.27.3 has API source-job success, but its one detailed-log fetch returned
+`Transport closed`; current detailed 600/root-subcase evidence remains unknown.
+No prior-head runtime result qualifies the proposed source successor.
+
+Current streaming summaries show 220 passes before the action-view suite's
+59 passes and one Chromium failure, totaling 279 passes and one failure.
+The obsolete-build case fails at its second CDP response-body read after the
+application has displayed the exact decoded public rejection. Selected saved
+trace text plus the existing typed decoder support that observation. The
+historically named `response.json` output is actually the 42-byte POST request
+resource, not a recovered response body. The origin of the recorded
+`ERR_ABORTED` and CDP body unavailability remains unknown; no post-click
+navigation is recorded, and generic scheduled-navigation logs do not prove a
+reload. The failed case does not reach valid-retry assertions and differs from
+the separate passive validation-diagnostic case.
+
+Current offline summaries show 17 passes, one Firefox failure and 22 unrun
+cases. Explicit Go Disable times out waiting for enabled=false, receiving true
+with a reported operation conflict. Its later Firefox native CSP-policy case
+is unrun. All four retained cells fail: amd64/Go1.27.3 stops at the owned native
+command before production/browser phases; three siblings stop in the first
+browser matrix. Their console logs do not expose the redirected cause or exact
+case counts. All four cleanup commands refuse incomplete campaigns. Artifact
+metadata alone does not supply native/browser proof or cleanup completion.
+
+The proposed action-view observation correction exposes only the actual typed
+public Error.Code in a stable demo status attribute. Three rejected-response
+CDP body reads become exact decoded-code assertions, preserving status,
+protocol/revision, content type, message/field, receipt, count, retry and POST
+cardinality checks. Successful retries must clear the attribute. Runtime
+abort/EOF and navigation behavior are unchanged. The browser correction and
+new source remain unexecuted and unqualified.
+
+The retained producer also gains an expected full-Go source check before
+compilation. It reuses the existing bounded source inventory and regular-file
+reader, hashes all 1,287 Go paths using the publisher's exact canonical byte
+encoding, and compares count/bytes/digest to the current qualification.
+This covers the modified demo Go file without adding or removing any of the
+207 selected paths or raising their cap. Four proposed source-guard regression
+roots cover changed/missing/added/stale identities and unsafe/aliased inputs;
+none has executed. The producer does not claim an expected whole-repository
+fingerprint check: whole-source identities remain controlled-publication
+provenance, with existing before/after inventory checks retained. All 600 Go
+requirements, 432 retained cases/440 closures and independent offline 40-case
+contract remain exact. Larger private lifecycle/Disable families stay excluded.
+[Current source run](https://github.com/Suhaibinator/Next.go/actions/runs/40966526826),
+[current CI](https://github.com/Suhaibinator/Next.go/actions/runs/40966526822),
+[current retained run](https://github.com/Suhaibinator/Next.go/actions/runs/40966526931).
+
+The following `ebb90471` checkpoint is preserved as historical evidence only;
+its references to proposed/current work describe that earlier checkpoint and
+must not be transferred to the source successor above.
+
+The published `ebb90471` increment corrects the focus-event target read at the
+Go/JavaScript exception boundary. Both Go 1.24.13 and 1.27.3 now have actual
+RUN/PASS evidence for all 600 declared source-phase checks per SDK, with no
+required root skipped. The preserved focus regression and all eleven subcases,
+including `throwing-target`, pass in Node 22.23.3/WASM. Native race tests, six
+WASM streams and the real CLI's retained/merge production builds complete.
+The seven physical Go streams satisfy nine logical requirement groups because
+the portable roots run inside both module/client streams. Vet completion is
+supported by strict workflow progression. Redirected compiler/runtime hashes,
+test executables and production binary payloads were not independently
+inspected. These are scoped source-job results, not native-browser or release
+qualification. [Source run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915423).
+
+Four Linux SDK/ISA packaging cells cover Go 1.24.13/1.27.3 and amd64/arm64.
+Their actual pass records and immutable test source support 56 native local
+mock-Runtime flights using extracted generated bootstraps. Each cell executes
+only its matching ISA; the other architecture is cross-built and inspected.
+Separate ordinary-HTTP and local buffered/streaming invocation-context tests
+record 18 paired response/After observations and six cleanup receipts across
+the two SDKs. Generated ZIP/bootstrap/WASM bytes and redirected proof payloads
+were not independently downloaded in these audits. This is local mock Runtime
+API evidence, not AWS deployment, universal process-tree/resource isolation or
+provider qualification. AWS execution remains unauthorized.
+[Packaging run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915327),
+[invocation-context run](https://github.com/Suhaibinator/Next.go/actions/runs/40949915353).
+
+The current CI result is mixed. Streaming prints eight passing suite summaries
+totaling 280 cases, including all 60 action-view cases. This run does not prove
+a causal correction for the earlier native response-body lookup failure. The
+action diagnostic remains passive and bounded, preserves the original body
+read/assertions/timeouts, and binds only the initial asserted response's exact
+request. Later error/retry responses cannot inherit that identity. Static shell,
+refresh, link status, independent zones and container jobs report terminal
+success through the Actions API; every inner browser/resource assertion has
+not been independently inspected. In particular, the static shell's 48-case
+payload was redirected and is not established merely by job status.
+
+The general browser batch records 334 passes and one workspace-development
+failure: a raw evaluation loses its execution context while waiting for the
+intended reload after manifest restoration. The proposed test-only correction
+uses one bounded Playwright `waitForFunction` task instead of repeatedly
+calling raw evaluation, preserving the predicate, 45-second timeout, test titles,
+fixtures and other assertions, and disposing its returned handle. Playwright's
+rerunnable task mechanism supports this choice; no fresh runtime result yet
+qualifies the proposed correction.
+
+Offline records 19 passes, one Firefox failure and 20 unrun cases. The failure
+is in the native CSP policy test probe before the Go Update action, so it does
+not demonstrate a failed Go Update. The native load/violation branch remains
+unknown. Only bounded passive timeout diagnostics are proposed here: cached
+observations, capped counters/records/strings and a guarded console record
+before the original rejection. Unobserved values remain unknown; the original
+5-second timer, predicate, rejection, cleanup and all 40 case identities remain.
+No new DOM probe, event-field read, request, frame, timer, listener or retry is
+added. Actual console-event retention and the native cause remain unverified.
+The larger Disable-recovery implementation and profile-selection work remain
+private and outside this increment.
+
+All four retained-route jobs fail the completion guard for their first browser
+matrix command; later merge/Lambda browser modes are unexecuted. Bounded
+inspection of four selected JSON members from the 224-entry AMD64/Go1.27.3
+artifact establishes that cell's 38 passes, one WebKit history failure and 33
+unrun cases, with no retries. It does not establish sibling SDK/ISA case counts.
+The original assertion expects window Y=500, nested Y=160 and the same document;
+it receives window Y=246, nested Y=160 and the same document. Immediate outgoing
+samples before/after the native click both retain Y=500. The later back sample
+shows Y=246. Neither incoming popstate data, the restore/layout event timeline
+nor the first cause of that change is captured; later assertions were not
+reached. Its 39 inline native cleanup receipts record UID 0, so this is not
+non-root qualification. [Retained run](https://github.com/Suhaibinator/Next.go/actions/runs/40949917910).
+
+The proposed retained follow-up adds bounded phase diagnostics while keeping
+the failing assertion and waits intact. It is observation work, not a restoration
+fix. No source review or passing synthetic Node/WASM test supplies the missing
+native event timeline, broad browser closure evidence or production result.
+The source packet enables a fresh qualification run; source review supplies
+no execution or readiness evidence. Native requirements and the 432 retained
+cases/440 closures and independent offline 40-case contract are unchanged. Larger native-accessor and lazy-module lifecycle
+proposals remain private and unadmitted.
+
+Historical `6ef17fce` evidence remains a failed baseline: both SDKs reached ten
+passing focus subcases, then `throwing-target` terminated the WASM runtime
+before its own or the root PASS. Its action suite had 59 passes and one body-read
+failure; its offline matrix had 17 passes, one failure and 22 unrun cases. Those
+partial results do not qualify later source. The prior reasoning that Go
+`defer/recover` alone contained the throwing getter was incorrect and remains
+retracted. Official Go source shows that `Value.Get` performs a bare JavaScript
+property read while the call import catches JavaScript exceptions and converts
+them to a Go error panic. The narrow `Reflect.Call("get", event, "target")`
+correction does not harden other unchecked reads or protect against replacement
+of JavaScript intrinsics.
+[Go bridge](https://github.com/golang/go/blob/go1.27.3/lib/wasm/wasm_exec.js),
+[Go syscall/js](https://github.com/golang/go/blob/go1.27.3/src/syscall/js/js.go).
+
+All **79 capability rows and 11 production release gates remain open**. No test
+is removed to obtain these results. This framework does not claim full Next.js
+compatibility or production maturity.
 
 ## Stable patch baseline update
 
@@ -29,6 +463,32 @@ new compatibility claim follows from this baseline update.
 - **Experimental baseline**: Next.js marks some capabilities experimental or unstable. They remain visible as separate parity work; an implementation must record support and limitations rather than silently treating them as stable requirements already satisfied.
 
 Source evidence refers to the working tree, not a published immutable release. Update each row with verified source and tests; neither a roadmap nor a passing sample establishes parity.
+
+The query/Refresh merge and paired module-ABI-6 privacy increment are currently
+**source-only and unqualified**. The source adds a revocation snapshot processed
+before module observer dispatch and fences pending/mounted framework owners;
+it does not add a full lazy-module merge or development state-transfer contract.
+Its prepared tests and existing ABI-5 results do not prove current matching-SDK
+builds, browser/deployment behavior, resource stabilization or production maturity.
+All **79 capability rows and 11 release gates remain open**.
+
+The subsequent offline-registration recovery increment replaces the provisional
+`about:blank` proof frame with an inert same-origin HTTP helper document. Its
+request passes through application middleware and header rules; its response
+adds a restrictive CSP, uses `no-store, no-transform`, and never enters the
+offline catalog. The Go client keeps one navigation lease until a trusted load,
+checks the final document and native registration ownership, and then removes
+the frame. Cancellation revokes authority without asserting that pending native
+work has ended. This source increment still requires matching-SDK and native
+browser qualification. Its authored browser cases cover parent `frame-src`
+denial; loaded-helper response `worker-src` enforcement remains unverified.
+
+The preceding immutable `203e20f3` CI run reports successful Go, Linux container,
+streaming and refresh jobs. Its general browser suite recorded 334 passes and
+one location-refresh response-wait timeout. The retained-view campaign
+still fails WebKit scroll restoration, and the offline campaign fails its first
+forced fresh-realm update with a native invalid-document-state error. These
+results do not qualify the HTTP-helper increment or establish production parity.
 
 Native race tests and vet pass on Go 1.24.13 (Linux) and 1.27.3 (macOS), with matching-toolchain WASM unit tests and WASM vet on both versions. This includes locale/cache/profile, tracing, view transitions, parallel routes, selected-segment APIs, interceptions, committed browser-location subscriptions, generated typed paths/parameters, optimistic intent state, typed mutation transport, managed draft mode, native history restoration, bounded environment/public-runtime configuration and multi-module workspace/build-input handling and bounded nested streaming/navigation transport.
 
@@ -141,13 +601,13 @@ The current Next.js baseline combines server/client component boundaries, hydrat
 | V04 | Initial hydration without replacing SSR nodes | Implemented for Go islands; sample validates initial nodes/state; browser tests compare element and text-node identity. | Broader nested/composed mismatch recovery, streamed hydration and malformed-props resilience; composed child node/text identity now has focused browser coverage. |
 | V05 | Component state, events, effects, cleanup | Partial: scoped state/events/cleanup and client preservation of shared-layout islands; bounded optimistic state adds canonical confirmation/rollback, concurrent ordered settlement, backpressure, cloning and owner disposal. Keyed collections add SSR identity validation, minimal retained-row moves, explicit updates and row-scoped disposal, including table rows and callback-failure cleanup. Native/race/WASM and browser retained-layout/detached-control tests cover implemented subsets. [Optimistic state](OPTIMISTIC.md), [keyed collections](KEYED_COLLECTIONS.md). Explicit effects, typed lexical providers and DOM child scopes add cleanup-before-rerun, bounded registrations and retained-layout ownership; [contract](COMPONENT_LIFETIMES.md). Typed controlled forms add DOM-preserving field bindings, validation, pending/confirmed baselines and owned transport; [contract](FORMS.md). | Broader controlled-control/form conformance, hidden-route effect suspension, cross-runtime context and complete lifecycle correctness under retained/hidden routes; integrated animation/optimistic transaction scheduling. |
 | V06 | Client navigation and history | Partial: link/history/query/scroll/cancellation behavior plus `client.Navigate`, `client.Replace` and `client.Refresh`; canonical URLs, structured head updates, explicit version/marker checks and safe ordinary-JSON fallback. `client.CurrentLocation` and scoped `ObserveLocation` expose committed escaped pathname/query/fragment snapshots with immediate synchronization, unchanged-refresh deduplication, bounded automatic cleanup and no pending/failed/superseded target publication. Native/WASM tests and ten scenarios on Chromium, Firefox, WebKit and touch WebKit cover SSR identity, retained layouts, history, fragments, interception, denial cleanup and failures. [Navigation contract](NAVIGATION.md). | Richer segment protocol and complete production lifecycle/failure qualification. |
-| V07 | Loading and recoverable errors | Partial: accessible global status, route loading endpoint, nearest server error boundary, network recovery and cancellation. Streamed leaf boundaries preserve completed content and expose a Go retry; the preceding transport has native/WASM and browser fault/recovery checks. Scoped async resources now expose independent idle/loading/ready/failed/invalidated states with explicit load/retry and owner cleanup; focused native/WASM and final cross-engine resource fixtures qualify this bounded contract. Scoped `ObserveLinkStatus` adds immediate per-anchor pending feedback, ownership cleanup and shared 512-registration admission across eager/lazy ABI 5; targeted browser checks pass 60 per SDK. [Link feedback](LINK_STATUS.md), [streaming](STREAMING.md), [resources](CLIENT_RESOURCES.md). | Full segment/island reset, broader offline APIs, independent route/slot ownership and complete error/access-interrupt qualification remain open. |
+| V07 | Loading and recoverable errors | Partial: accessible global status, route loading endpoint, nearest server error boundary, network recovery and cancellation. Streamed leaf boundaries preserve completed content and expose a Go retry; the preceding transport has native/WASM and browser fault/recovery checks. Scoped async resources now expose independent idle/loading/ready/failed/invalidated states with explicit load/retry and owner cleanup; focused native/WASM and final cross-engine resource fixtures qualify this bounded contract. Scoped `ObserveLinkStatus` adds immediate per-anchor pending feedback, ownership cleanup and shared 512-registration admission across eager/lazy ABI 5; that historical targeted browser record passes 60 per SDK and does not qualify the current ABI-6 privacy increment. [Link feedback](LINK_STATUS.md), [streaming](STREAMING.md), [resources](CLIENT_RESOURCES.md). | Full segment/island reset, broader offline APIs, independent route/slot ownership and complete error/access-interrupt qualification remain open. |
 | V08 | Layout partial rendering | Partial: incoming full HTML can update the deepest shared layout outlet while retaining outer layout nodes/islands. Chromium tests verify shared identity/state and divergent-island disposal. | Server still renders/transports complete route output; implement changed-segment transport, per-layout data/metadata semantics and focus qualification. |
 | V09 | Prefetching and client route cache | Partial: typed `ui.Link` defaults to bounded production viewport speculation, with intent/none/replace controls; plain anchors keep pointer/focus intent and public `client.Prefetch` remains explicit. The Go viewport scheduler has two workers, 32 queued candidates, 128 observed links, incremental 256-element scans and bounded node/URL/epoch attempt evidence, with lifecycle/network/draft gates and foreground cancellation. The final parser-ordered startup source passes a selected 232-check matrix including 40 viewport cases, both SDK native/WASM checks and full host/Linux executable suites. The preceding 129-case viewport artifact remains historical; full release qualification is separate. Existing bounded TTL/LRU navigation cache (32 entries, 8 MiB accounted response budget), server-advertised eligibility and local refresh invalidation. Explicit public partial shells negotiate shell protocol 1, retain only fallback HTML/head for a bounded fresh lifetime, and propose a generation digest on a new server request before any commit; private regions are never prefetched. Pinned HTML/epoch and complete metadata/ownership checks validate references; invalid hints are discarded without hidden retry. Both SDK native race/vet, matching core/module WASM tests/vet and complete host/nonroot Linux HTTP/both mock Lambda suites pass. The final focused browser matrix passes 40 checks across host Chromium and Linux Firefox/WebKit/touch. No current broad regression count is claimed. [Public-shell contract](PARTIAL_PREFETCH.md), [typed links/viewport](VIEWPORT_PREFETCH.md). | Viewport policy/device/soak qualification, session-scoped App Shell/complete partial-prefetch phases, completion/invalidation subscriptions, mutation/browser/CDN invalidation coordination, automatic session/request-data analysis and complete network/privacy conformance. |
-| V10 | Retained route UI/state on back navigation | Partial layout/slot and browser-owned preview restoration primitives remain. **UNQUALIFIED SOURCE first slice:** production-only opt-in `Config.RetainRoutes`/`Page.Retention` uses fresh server authority and unchanged body fingerprint/partition only, with bounded owners, suspended managed activity and partition/denial reset. Native/WASM/browser test source is prospective, not passing evidence. [Retained-route scope](RETAINED_ROUTES.md), [lifecycle](LIFECYCLE.md). | Mandatory remaining: compatible-identity reconciliation for changed server output and Refresh/query updates; multi-root, lazy/client-only, forms, slots and streaming interactions; runtime, resource/memory, browser/conformance and deployment qualification. V10 remains OPEN. |
+| V10 | Retained route UI/state on back navigation | Partial layout/slot and browser-owned preview restoration primitives remain. **UNQUALIFIED SOURCE:** the first opt-in `Config.RetainRoutes`/`Page.Retention` slice uses fresh server authority and unchanged body fingerprint/partition, bounded owners, suspended managed activity and partition/denial reset. New stationary source adds `ClientIslandWithOptions` Key/Schema identity under independent `ui.Keyed` roots, live read-only `PropsSource` snapshots and fresh server text/attributes/head/props on query and Refresh. Real `layout.go` ancestor fixtures use independently validated request-local merge authority; legacy whole-route retention stays absent for those layout renders. Native/WASM/browser test source is prospective. The genuine lazy ordinary module privacy fixture covers loaded/download-pending denial and fresh cold recovery, not changed-output module preservation. [Retained-route scope](RETAINED_ROUTES.md), [lifecycle](LIFECYCLE.md), [merge example](../examples/merge/README.md). | Mandatory remaining: complete compatible-identity reconciliation for changed ordinary/server output, moves and Refresh/query/path/history updates; nested providers and full multi-root, lazy/client-only, forms, layout/slot and streaming composition; runtime, resource/memory, browser/conformance and deployment qualification. The stationary subset, generated nested-layout fixture and ABI-6 privacy case do not close V10, any of the79 capabilities or11 release gates. V10 remains OPEN. |
 | V11 | Streaming HTML and independent async boundaries | Partial: `Page.Stream`/`ui.Defer` emit immediate shells and independently scheduled nested boundaries; bounded event rendering drives initial inert templates and negotiated navigation JSON frames. Go readers validate and commit shells, hydrate progressive chunks, reject invalid ownership/IDs, cancel superseded work and offer recoverable retry. Prefetch avoids running deferred UI loaders; old clients retain buffered JSON. App-wide `Config.Streaming` admission shares render/physical-callback capacity and deadlines across locale/domain mounts; marked, validated busy navigation preserves the current view. Canceled callbacks retain physical slots until return, and same-limiter recursive deferred rendering fails explicitly. Full native race/vet and matching core/module WASM checks pass on both SDKs, alongside actual-process host/nonroot Linux HTTP/both mock Lambda coverage; the admission browser matrix passes 329 checks with three existing CDP skips across host Chromium and Linux Firefox/WebKit/touch. Earlier native/UI/WASM/browser and executable Lambda timing fixtures cover the preceding transport subset. Explicit partial prerendering reuses a public static shell while named callbacks stream current-request regions; the final partial-shell matrix passes 377 browser checks with three existing CDP skips plus both SDK native/WASM and host/Linux executable coverage. Deferred typed metadata shares admission/physical callback limits and updates only the owned SEO head; its initial HTML is blocking by default, development buffers and production HTML is explicitly opted in for recognized browsers. Negotiated production navigation is independent of that HTML flag. [Metadata](METADATA.md), [Contract](STREAMING.md), [partial shells](PARTIAL_PRERENDERING.md). | Initial document chunks still require WASM; independent route/slot ownership and broader metadata/crawler streaming, late access/status interrupts, cross-process admission/fairness, full backpressure/peak-memory/soak/accessibility and actual proxy/CDN/cloud qualification remain open. |
 | V12 | Partial prerendering / static shell with dynamic regions | Partial: explicit `PrerenderPolicy.Partial` captures public page/layout HTML and static head/document data once per generation, with bounded `ui.RequestRegion` fallback offsets and owned public props. Native `regions.go` callbacks bind to the current request/middleware values and never run during build capture; private region results never enter shell storage. Existing local/shared lifetime and authority-ticket mechanisms retain shells only; artifact/DTO format 3 preserves descriptor identity and rejects incompatible old readers. Streaming, legacy JSON/HEAD, admission/cancellation/retry and static-export rejection use existing paths. UI/native/audit/codec/ownership and real native/WASM compiler-graph checks pass; the corrected frozen source passes both SDK native/WASM, guarded builds and host/nonroot Linux HTTP/both mock Lambda suites, plus 377 browser checks with three existing CDP skips. A later explicit public-shell prefetch/resume protocol is implemented with native/WASM/executable checks and 40 final focused browser checks across host Chromium and Linux Firefox/WebKit/touch; every resume still runs server checks and fresh private regions. `Page.DeferredMetadata` is explicitly refused for partial public shells; their captured head remains resolved. [Contract and sample](PARTIAL_PRERENDERING.md), [prefetch](PARTIAL_PREFETCH.md). | Automatic Go request-data/purity analysis and secret classification, automatic cached components/nested lifetimes, full session-scoped App Shell/partial prefetch, unknown-parameter/static-application shells, deferred metadata composition, parallel/interception ownership composition and complete Next.js Cache Components semantics; cloud, soak, security/access and immutable release qualification remain open. |
-| V13 | Route/component bundle splitting and lazy browser modules | Partial: opt-in `component.json` generates separate hashed Go/WASM component executables and keeps lazy application imports out of the core entrypoint. A reserved compiler target selects module API forwarding at compile time and preserves application Go tags; exact-target graph checks reject module-only route dependencies. Compiler/native/WASM fixtures cover tag semantics and entrypoint ownership. Core Go loader deduplicates loads, verifies exact bytes/epoch/ABI, limits concurrency and delegates router/history APIs through a JSON/DOM bridge. Resource-invalidation epochs introduced with ABI 4 remain mandatory in paired ABI 5; rebuild every core/lazy asset together, and mixed ABI registration fails. The ABI-4 resource/core/lazy qualification is historical. Current ABI 5 has focused core/module WASM/vet and bounded cross-engine link-status/lazy/resource checks on both SDKs. Initial/streamed SSR islands mount in place, unmount cleans listeners, and document-lifetime runtimes are reused. Eight-package/two-load/8 MiB limits are explicit. Native/WASM tests and browser/deployment qualification cover the stated subset; see [contract and tradeoffs](LAZY_COMPONENTS.md). | Automatic route-to-component graph splitting/preloading, grouping/shared dependencies, shared application context/effect semantics, advanced modal/slot/animation/mutation interactions, multi-module resource/memory/soak/device/CDN qualification and robust damaged-runtime recovery remain open. |
+| V13 | Route/component bundle splitting and lazy browser modules | Partial: opt-in `component.json` generates separate hashed Go/WASM component executables and keeps lazy application imports out of the core entrypoint. A reserved compiler target selects module API forwarding at compile time and preserves application Go tags; exact-target graph checks reject module-only route dependencies. Compiler/native/WASM fixtures cover tag semantics and entrypoint ownership. Core Go loader deduplicates loads, verifies exact bytes/epoch/ABI, limits concurrency and delegates router/history APIs through a JSON/DOM bridge. Resource-invalidation epochs introduced with ABI 4 and per-anchor link-status forwarding introduced with ABI 5 remain mandatory in paired ABI 6; rebuild every core/lazy asset together, and mixed ABI registration fails. ABI 6 adds recognized document-authority revocation before module observer dispatch and fences pending/mounted owners. The ABI-4 resource/core/lazy and ABI-5 core/module/link-status records are historical; the ABI-6/query/Refresh merge source increment is unqualified. Initial/streamed SSR islands mount in place, unmount cleans listeners, and document-lifetime runtimes are reused. Eight-package/two-load/8 MiB limits are explicit. Historical native/WASM tests and browser/deployment qualification cover the preceding subset; see [contract and tradeoffs](LAZY_COMPONENTS.md). | Automatic route-to-component graph splitting/preloading, grouping/shared dependencies, shared application context/effect semantics, advanced modal/slot/animation/mutation interactions, multi-module resource/memory/soak/device/CDN qualification and robust damaged-runtime recovery remain open. |
 | V14 | Third-party browser component/library integration | Partial: raw browser APIs are available through `syscall/js`; no supported integration abstraction. | Scoped adapters, ownership/cleanup and SSR-safe opt-out, script dependencies and lazy loading. |
 | V15 | Accessibility of navigation | Partial: semantic HTML/live loading status, a polite route announcer, destination/fragment focus with `data-nextgo-focus` override, scroll-safe focus and retained-focus refresh. Chromium/Firefox/WebKit/touch-viewport keyboard/focus tests pass. | Screen-reader/manual and contrast review, full keyboard paths, offline/error focus qualification and reduced-motion behavior. |
 | V16 | View transitions | Partial: opt-in `Config.ViewTransitions`, Go component `client.Transition`, typed/link controls and transition types, reduced-motion checks/change handling, bounded snapshot fallback and superseded/unmounted callback guards. Body/head/history/focus commit together; ordinary/streamed/static documents carry a versioned policy. Native/WASM, actual Chromium/Firefox/WebKit/touch transitions, static hosting and generated HTTP/both-Lambda executable checks cover this subset. [Contract](TRANSITIONS.md), [runtime](../client/transition_js.go), [browser](../tests/transitions.spec.mjs). | Cross-document and independent scoped transitions, complete component enter/exit/share orchestration and resource readiness, manual accessibility/physical-device review, snapshot memory/load/soak and full production/browser qualification. |
@@ -173,7 +633,7 @@ Next.js distinguishes server fetching, cache lifetime/invalidation, mutations, p
 | D10 | Server Functions/Actions and typed mutation transport | Partial: registered Go JSON/form POST actions retain bounded bodies, origin/redirect checks, public errors and successful cache hooks. Shared `mutation.Contract[I,O]` supplies explicit versioned endpoint identity, native typed binding/authorization-before-decode, optional form mapping, native multipart calls with explicit fields/typed output and a typed JSON WASM call with byte limits, exact-origin/endpoint checks, protocol/revision validation and structured failures. Calls reject HTTP redirects and incompatible/ambiguous responses, preserve cancellation causes and invalidate Go navigation reuse. Native/WASM/compiler and cross-engine browser fixtures cover this subset; HTTP/both mock Lambda tests check metadata and results. Native action discovery now parses `actions/<name>/contract.go` plus native `action.go` without executing application code, generating shared type/path aliases, named browser JSON/multipart adapters and native registrars that reuse this transport. App-owned registration clones preserve existing router policy and reject duplicate/panicking factories without mutating the original registration table; generation anchors reject mixed outputs. The new subset passes 35 generated-action checks, 138 affected regressions and 20 Linux parser cases (193 distinct local checks); both SDK native race/vet, matching core/module WASM tests/vet and host/Linux deployment pass. Current measurement remains over both WASM size budgets; remote action-step failures are separately recorded. The explicit `CallAndRefresh`/multipart and generated wrappers separate confirmed typed data from a guarded fresh private view, with fallible invalidation acknowledgement and document-owned streaming. This subset passes 75 focused cases and 179 selected host regressions (254 distinct local checks), both SDK native/WASM and full host/Linux executable suites; it does not complete D10 or the remaining cookie/dispatch semantics. A subsequent native-cookie and document FIFO phase has passing SDK/deployment and 55-cookie-check verification: native result cookies are staged only on valid success, and typed eager/lazy calls share one active/64-waiting core queue with dispatch-time snapshots and physical-settlement retention. The corrected affected browser matrix is 342/342, including 75 action-view checks; a native JavaScript CDP reproduction retains an open underlying-cause investigation, and no whole-release claim is made. [Transport](MUTATIONS.md), [generated convention](GENERATED_ACTIONS.md), [action views](ACTION_VIEWS.md), [cookies](NATIVE_COOKIES.md), [dispatch](MUTATION_DISPATCH.md). | Inline closure lifting, complete production dispatch/cookie/login/logout/automatic-refresh conformance, complete action-view form/state/cookie/deployment conformance, transaction/idempotency and ordering integration, richer auth/form recipes and complete production/network/cloud qualification. |
 | D11 | Progressive form submission | Partial: typed Form controls retain native URL-encoded/multipart POST, validation, one cancellable mutation and explicit unknown outcomes. Additive RadioChoice/BindRadioChoice distinguishes absent/selected-empty radios; BindMultipleOptions preserves duplicate-valued option identity by fixed DOM index, while SelectedOptionValues preserves native repeated values without claiming index identity from POST. Portable field-validation tickets and scoped BindFieldValidation add explicit triggers/debounce, distinct logical pending state and bounded physical admission across core/lazy runtimes; stale/canceled work cannot publish current field errors. Both SDK native/WASM and focused example/browser/HTTP/mock-Lambda checks pass; the final host browser record passes 394 checks (335 primary/36 forms/23 static), alongside 48 Linux form checks. [Forms](FORMS.md), [field validation](FIELD_VALIDATION.md), [example](../examples/form-validation/README.md). | Disabled/native successful-control equivalence, dynamic choice/file schemas, field arrays, streaming/resumable uploads/progress, cross-field dependency orchestration, optimistic-list coordination, native validation-page reconstruction, transaction/idempotency/retry patterns and full browser/no-JS/cloud/accessibility/resource qualification remain open. |
 | D12 | Optimistic updates and transitions | Partial: portable `client.Optimistic[T,A]` and `NewScopedOptimistic` maintain bounded ordered intent ledgers with immediate projections, canonical operation confirmation, rejection, concurrent settlement, reset/stale-handle rejection, cloning hooks and serialized/coalesced observers. Scoped disposal closes without notifying detached views. The Go demo exposes accessible pending/backpressure, canonical corrections, errors, cancellation, explicit fresh-SSR reconciliation after an ambiguous commit, and progressive form submission without WASM. Its explicit server dependency rejects plain-static publication while preserving prior output. Native/race/WASM tests cover all 384 four-intent order/rejection combinations; browser and HTTP/both mock Lambda fixtures cover this subset. [Contract](OPTIMISTIC.md). | Automatic server-snapshot reconciliation and version/idempotency/transaction adapters; controlled-form/optimistic-list integration, independent streamed UI settlement, animation scheduling and complete production resource/accessibility/fault qualification. |
-| D13 | Client data fetching and server/client cache coordination | Partial: bounded client.Fetch bridge with binary bodies, same-origin policy, byte limits and scoped abort. New scoped byte-oriented ResourceStore/AsyncResource APIs bind one loader/policy per source, own SSR seeds/snapshots, expose explicit load/retry, and permit bounded public reuse/in-flight dedup only with positive public TTL. Action/Refresh invalidation clears snapshots and propagates mandatory epochs across paired core/lazy ABI 5 (introduced in historical ABI 4); disposal/cancellation retain physical loader admission until return. Native/WASM, sample and final host/Linux resource fixtures pass for the bounded contract; broader production qualification remains open. [Resource contract](CLIENT_RESOURCES.md). | Implicit reactive fetching/background revalidation, richer server/browser key/tag coordination, authenticated seed policies, optimistic consistency, offline/cross-tab persistence and complete production/resource/load/soak qualification remain open. Public representation dimensions and authorization stay application responsibilities. |
+| D13 | Client data fetching and server/client cache coordination | Partial: bounded client.Fetch bridge with binary bodies, same-origin policy, byte limits and scoped abort. New scoped byte-oriented ResourceStore/AsyncResource APIs bind one loader/policy per source, own SSR seeds/snapshots, expose explicit load/retry, and permit bounded public reuse/in-flight dedup only with positive public TTL. Action/Refresh invalidation clears snapshots and propagates mandatory epochs across paired core/lazy ABI 6 (introduced in historical ABI 4); ABI-6 document revocation is source-only and its historical ABI-4/5 resource checks do not qualify that increment. Disposal/cancellation retain physical loader admission until return. Preceding native/WASM, sample and host/Linux resource fixtures pass for their bounded contract; current ABI-6 and broader production qualification remain open. [Resource contract](CLIENT_RESOURCES.md). | Implicit reactive fetching/background revalidation, richer server/browser key/tag coordination, authenticated seed policies, optimistic consistency, offline/cross-tab persistence and complete production/resource/load/soak qualification remain open. Public representation dimensions and authorization stay application responsibilities. |
 | D14 | Draft/preview mode | Partial: server-only `draft.Manager` freezes bounded rotating HMAC keys, expiring host/path/scope/security-bound cookies and explicit application-authorized entry/exit. Verified requests bypass framework data/page caches and public flights without replacing published data; final-write privacy/noindex policy covers API/action/stream/error responses. Configured apps suppress navigation reuse and bind document/response preview markers so changed sessions reload before retaining private layouts. Native/race and Chromium/Firefox/WebKit/touch preview fixtures cover the subset; generated HTTP/both mock Lambda conformance passes on macOS and non-root/read-only Linux. [Contract](DRAFT_MODE.md), [native lifecycle](LIFECYCLE.md), [signer](../draft/draft.go), [sample](../examples/demo/preview/preview.go). | Real CMS/identity integrations, durable replay/revocation policy, complete native cache/device/identity and strict-CSP qualification, arbitrary cache/CDN adapters, build-seeded ISR integration and complete key-rotation/multi-instance/real-cloud/security/production qualification. |
 | D15 | Post-response lifecycle work | Partial: `nextgo.After` reserves bounded callbacks, isolates request cancellation/Memo state, enforces worker/queue budgets, recovers failures and drains/cancels at shutdown. Native and buffered/streaming mock Lambda ordering, transport rejection and deadline tests pass. | Actual AWS/proxy lifecycle qualification, instrumentation and long-running overload/recovery tests. Callbacks are cooperative, process-local and best effort; durable jobs require an external queue. |
 | D16 | Authentication and authorization integrations | Partial: server-only opaque-token sample authenticates once per protected data/API/action path, distinguishes reader/admin roles, rejects query/role-header spoofing, suppresses sensitive error output and verifies denied mutations do not change state. Native, generated HTTP/Lambda and cross-engine browser checks pass for that preceding opaque-token example. The `/cookie-session` demo uses a configured 32-byte HMAC key, strict 15-minute scoped signed claims, native cookie controls and fresh authorization; 55 cookie checks and SDK/host/Linux deployment checks pass for this bounded example, alongside the corrected 342-case affected matrix. A separate native JavaScript CDP reproduction retains an open underlying-cause investigation. Copied tokens remain valid after logout until expiry. [Access example](ACCESS.md), [signed-session limits](NATIVE_COOKIES.md). | Established Go identity-provider adapters, production session/transport/key-rotation policy and durable expiry/revocation, tenant isolation, durable mutations and independent production threat-model qualification. Next.js also expects applications to select an auth solution. |

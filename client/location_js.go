@@ -74,13 +74,27 @@ func dispatchLocation(observer *locationObserver) {
 	if !observer.owner.active() || observer.last == committedLocation {
 		return
 	}
+	if observer.owner.mergeCallbackGuard() != nil && mergeQueueNotification(observer.owner, fmt.Sprintf("location:%p", observer), func() { dispatchLocation(observer) }) {
+		return
+	}
 	observer.last = committedLocation
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			report(fmt.Sprintf("location observer: %v", recovered))
 		}
 	}()
-	observer.fn(committedLocation)
+	if guard := observer.owner.mergeCallbackGuard(); guard != nil {
+		reportOwner := mergeRootScope(observer.owner)
+		if err := guard(func() {
+			if observer.owner.active() {
+				observer.fn(committedLocation)
+			}
+		}); err != nil {
+			reportScopeError(reportOwner, err.Error())
+		}
+	} else {
+		observer.fn(committedLocation)
+	}
 }
 
 // Set before mounting new islands or notifying selection observers so every
@@ -88,6 +102,9 @@ func dispatchLocation(observer *locationObserver) {
 func setLocation(target string) {
 	u := win.Get("URL").New(target)
 	committedLocation = Location{URL: u.Get("href").String(), Pathname: u.Get("pathname").String(), Search: u.Get("search").String(), Hash: u.Get("hash").String()}
+	if !mergeInstallActive {
+		propsLocationChanged(committedLocation)
+	}
 }
 
 func notifyLocationObservers() {

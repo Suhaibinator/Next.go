@@ -1,0 +1,353 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"syscall/js"
+	"testing"
+)
+
+func TestOfflineDisableRefusalPreservesLatestConfirmedState(t *testing.T) {
+	for _, statusKind := range []string{"ready", "corrupt", "failed", "busy", "unsupported"} {
+		t.Run(statusKind, func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			f.c.state.Enabled = true
+			f.c.state.CleanupPending = true
+			f.c.state.ActiveGeneration = strings.Repeat("a", 64)
+			f.c.state.WaitingGeneration = strings.Repeat("b", 64)
+			old := f.respond
+			f.respond = func(request offlineRequest) offlineReply {
+				reply := old(request)
+				if request.Command == "status" {
+					switch statusKind {
+					case "ready":
+						reply.State, reply.Enabled = "ready", true
+						reply.ActiveGeneration = reply.Generation
+					case "corrupt":
+						reply.State, reply.Error = "failed", "corrupt-storage"
+					case "failed":
+						reply.State = "failed"
+					case "busy":
+						reply.State = "busy"
+					case "unsupported":
+						reply.Supported = false
+					}
+					return reply
+				}
+				reply.State, reply.Enabled, reply.Error = "disabled", false, "client-capacity"
+				reply.DeferredCleanup = false
+				reply.ActiveGeneration = ""
+				return reply
+			}
+			if err := DisableOffline(context.Background()); err == nil {
+				t.Fatal("worker refusal was accepted")
+			}
+			state := OfflineStatus()
+			if !state.Enabled || f.c.confirmedDisabled || !offlineNativeNavigation() || f.unregisters != 0 || f.c.lastDisable.disableAcknowledged {
+				t.Fatalf("default false refusal changed enabled/navigation/commit truth: %+v", state)
+			}
+			if statusKind == "ready" {
+				if state.ActiveGeneration != strings.Repeat("e", 64) || state.CleanupPending || state.WaitingGeneration != "" {
+					t.Fatalf("newer successfully confirmed status was discarded: %+v", state)
+				}
+			} else if state.ActiveGeneration != strings.Repeat("a", 64) || !state.CleanupPending || state.WaitingGeneration != strings.Repeat("b", 64) {
+				t.Fatalf("unconfirmed status overwrote previous knowledge: %+v", state)
+			}
+			wantCommands := 2
+			if statusKind == "unsupported" {
+				wantCommands = 1
+			}
+			if len(f.commands) != wantCommands || f.registers != 0 {
+				t.Fatalf("refusal retried or registered: %+v", f.commands)
+			}
+			f.balanced(t)
+		})
+	}
+}
+
+func TestOfflineDisableControlMustAcknowledgeDisabled(t *testing.T) {
+	for _, state := range []string{"failed", "busy", "staged"} {
+		t.Run(state, func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			old := f.respond
+			f.respond = func(request offlineRequest) offlineReply {
+				r := old(request)
+				if request.Command == "status" {
+					r.Enabled, r.State, r.ActiveGeneration = true, "ready", r.Generation
+				} else {
+					r.State = state
+				}
+				return r
+			}
+			if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineProtocol) {
+				t.Fatal("non-disabled control result was accepted", err)
+			}
+			if !OfflineStatus().Enabled || f.c.confirmedDisabled || f.unregisters != 0 || f.c.lastDisable.disableAcknowledged {
+				t.Fatal("failed/busy/staged reply published Disabled or unregistered")
+			}
+			f.balanced(t)
+		})
+	}
+}
+
+func TestOfflineDisableSuccessfulCommitSurvivesUnregisterFailure(t *testing.T) {
+	for _, failure := range []string{"rejected", "false"} {
+		t.Run(failure, func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			f.registration.Set("unregister", f.fn(func(js.Value, []js.Value) any {
+				f.unregisters++
+				if failure == "rejected" {
+					return js.Global().Get("Promise").Call("reject", js.Global().Get("Error").New("native refusal"))
+				}
+				return f.resolve(false)
+			}))
+			if err := DisableOffline(context.Background()); err == nil {
+				t.Fatal("failed unregister claimed full completion")
+			}
+			state := OfflineStatus()
+			if state.Enabled || !state.CleanupPending || !f.c.confirmedDisabled || state.ActiveGeneration == "" || f.unregisters != 1 {
+				t.Fatalf("known successful Disable was rolled back after unregister failure: %+v", state)
+			}
+			if !f.c.lastDisable.disableAcknowledged || !f.c.lastDisable.unregisterAttempted || f.c.lastDisable.unregisterResolvedTrue {
+				t.Fatalf("partial receipt is not truthful: %+v", f.c.lastDisable)
+			}
+			f.balanced(t)
+		})
+	}
+}
+
+func TestOfflineDisableCorruptStatusSuppliesIdentityWithoutPublishingFalse(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.sw.Set("controller", f.worker)
+	f.c.state.Enabled = true
+	f.c.state.ActiveGeneration = strings.Repeat("a", 64)
+	old := f.respond
+	f.respond = func(request offlineRequest) offlineReply {
+		reply := old(request)
+		if request.Command == "status" {
+			reply.State, reply.Error = "failed", "corrupt-storage"
+		} else if !f.c.state.Enabled || f.c.confirmedDisabled {
+			t.Error("errored pre-status published its default false before explicit Disable")
+		}
+		return reply
+	}
+	if err := DisableOffline(context.Background()); err != nil {
+		t.Fatal("explicit corrupt-storage recovery lost authenticated identity", err)
+	}
+	if len(f.commands) != 2 || f.commands[1].Command != "disable" || f.commands[1].RuntimeID != strings.Repeat("c", 20) || f.commands[1].ConfigurationID != strings.Repeat("d", 64) || f.unregisters != 1 {
+		t.Fatalf("cleanup did not bind actual status identity exactly once: %+v", f.commands)
+	}
+	if OfflineStatus().Enabled || !f.c.confirmedDisabled || !f.c.lastDisable.disableAcknowledged {
+		t.Fatal("successful explicit Disable was not confirmed")
+	}
+	f.balanced(t)
+}
+
+func TestOfflineUnsupportedDisableControlPreservesConfirmedState(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.sw.Set("controller", f.worker)
+	old := f.respond
+	f.respond = func(request offlineRequest) offlineReply {
+		reply := old(request)
+		if request.Command == "status" {
+			reply.Enabled, reply.State, reply.ActiveGeneration = true, "ready", reply.Generation
+		} else {
+			reply.Supported, reply.Enabled, reply.State = false, false, "disabled"
+			reply.DeferredCleanup = false
+			reply.ActiveGeneration = ""
+		}
+		return reply
+	}
+	if err := DisableOffline(context.Background()); !errors.Is(err, ErrOfflineUnsupported) {
+		t.Fatal("unsupported control claimed successful Disable", err)
+	}
+	if !OfflineStatus().Enabled || f.c.confirmedDisabled || f.unregisters != 0 || f.c.lastDisable.disableAcknowledged || !offlineNativeNavigation() {
+		t.Fatal("unsupported default false overwrote confirmed enabled/navigation state")
+	}
+	f.balanced(t)
+}
+
+func TestOfflineEmptyDisableSelectionIsSeparateAndRequiresStableControl(t *testing.T) {
+	for _, use := range []offlineRegistrationUse{offlineRegistrationStrict, offlineRegistrationMutation, offlineRegistrationStatus, offlineRegistrationUpdate, offlineRegistrationDisable} {
+		t.Run(string(rune('0'+use)), func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			empty := js.ValueOf(map[string]any{"scope": f.c.descriptor.Scope, "active": js.Null(), "waiting": js.Null(), "installing": js.Null()})
+			f.registrations = []js.Value{empty}
+			f.sw.Set("getRegistration", f.fn(func(js.Value, []js.Value) any { return f.resolve(empty) }))
+			selection, err := f.c.registrationForOperation(context.Background(), use)
+			switch use {
+			case offlineRegistrationDisable:
+				if err != nil || !selection.emptyDisable || selection.emptyUpdate || selection.registration.Truthy() || !selection.parentController.Equal(f.worker) {
+					t.Fatal("Disable did not receive its own non-authoritative selection", err)
+				}
+			case offlineRegistrationUpdate:
+				if err != nil || !selection.emptyUpdate || selection.emptyDisable || selection.registration.Truthy() {
+					t.Fatal("UPDATE selection changed", err)
+				}
+			case offlineRegistrationStatus:
+				if err != nil || selection.emptyDisable || selection.emptyUpdate || !selection.statusWorker.Equal(f.worker) {
+					t.Fatal("status gained mutation authority", err)
+				}
+			default:
+				if !errors.Is(err, ErrOfflineConflict) || selection.emptyDisable || selection.emptyUpdate {
+					t.Fatal("strict or Enable mutation consumed empty lookup", err)
+				}
+			}
+			if len(f.commands) != 0 || f.registers != 0 || f.unregisters != 0 || f.updates != 0 {
+				t.Fatal("selection itself performed mutation")
+			}
+		})
+	}
+}
+
+func TestOfflineEmptyDisableSelectionRejectsFinalForeignAndChangedController(t *testing.T) {
+	for _, change := range []string{"foreign", "controller", "missing", "duplicate"} {
+		t.Run(change, func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			empty := js.ValueOf(map[string]any{"scope": f.c.descriptor.Scope, "active": js.Null(), "waiting": js.Null(), "installing": js.Null()})
+			f.registrations = []js.Value{empty}
+			f.sw.Set("getRegistration", f.fn(func(js.Value, []js.Value) any {
+				switch change {
+				case "foreign":
+					f.registrations = append(f.registrations, js.ValueOf(map[string]any{"scope": f.c.descriptor.Scope + "/foreign", "active": map[string]any{"scriptURL": "https://reader.test/foreign.js"}}))
+				case "controller":
+					f.sw.Set("controller", js.Null())
+				case "missing":
+					f.registrations = nil
+				case "duplicate":
+					f.registrations = append(f.registrations, empty)
+				}
+				return f.resolve(empty)
+			}))
+			selection, err := f.c.registrationForOperation(context.Background(), offlineRegistrationDisable)
+			if !errors.Is(err, ErrOfflineConflict) || selection.emptyDisable || len(f.commands) != 0 || f.unregisters != 0 {
+				t.Fatal("degraded final parent proof granted recovery", err)
+			}
+		})
+	}
+}
+
+func TestOfflineControlRequestCounterNeverWraps(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.c.request = ^uint64(0)
+	if _, err := f.c.message(context.Background(), f.worker, "disable", f.c.descriptor.RuntimeID, f.c.descriptor.ConfigurationID); !errors.Is(err, ErrOfflineProtocol) {
+		t.Fatal("request identity wrapped", err)
+	}
+	if len(f.commands) != 0 || f.channels.Get("created").Int() != 0 {
+		t.Fatal("exhausted identity created a port or dispatched a command")
+	}
+}
+
+func TestOfflineFreshDisableRefusalKeepsNewestConfirmedStatus(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.sw.Set("controller", f.worker)
+	f.c.state.Enabled = false
+	f.c.state.ActiveGeneration = strings.Repeat("a", 64)
+	f.c.confirmedDisabled = true
+	status := f.respond(offlineRequest{Command: "status"})
+	status.State, status.Enabled, status.ActiveGeneration = "ready", true, status.Generation
+	result := offlineFreshDisableResult{
+		confirmedStatus: status, hasConfirmedStatus: true,
+		parent: offlineRealmParent{c: f.c, descriptor: f.c.descriptor, document: doc, window: win, container: f.sw, controller: f.worker, origin: "https://reader.test"},
+	}
+	if err := f.c.completeFreshDisable(context.Background(), result, ErrOfflineUnknown); !errors.Is(err, ErrOfflineUnknown) {
+		t.Fatal("control refusal lost its unconfirmed outcome", err)
+	}
+	if state := OfflineStatus(); !state.Enabled || state.ActiveGeneration != status.Generation || f.c.confirmedDisabled || !offlineNativeNavigation() || f.c.lastDisable.disableAcknowledged {
+		t.Fatalf("fresh status proved enabled, but stale Disabled knowledge survived refusal: %+v", state)
+	}
+}
+
+func TestOfflineFreshDisableUnconfirmedStatusAndRevocationCannotPublish(t *testing.T) {
+	for _, condition := range []string{"errored", "bad-confirmed-flag", "canceled", "replaced"} {
+		t.Run(condition, func(t *testing.T) {
+			f := offlineBrowserFixture(t)
+			f.sw.Set("controller", f.worker)
+			f.c.state.Enabled = true
+			f.c.state.CleanupPending = true
+			f.c.state.ActiveGeneration = strings.Repeat("a", 64)
+			f.c.state.WaitingGeneration = strings.Repeat("b", 64)
+			status := f.respond(offlineRequest{Command: "status"})
+			status.Error = "corrupt-storage"
+			result := offlineFreshDisableResult{
+				confirmedStatus: status,
+				parent:          offlineRealmParent{c: f.c, descriptor: f.c.descriptor, document: doc, window: win, container: f.sw, controller: f.worker, origin: "https://reader.test"},
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			switch condition {
+			case "bad-confirmed-flag":
+				result.hasConfirmedStatus = true
+			case "canceled", "replaced":
+				status.Error = ""
+				result.confirmedStatus, result.hasConfirmedStatus = status, true
+				result.status, result.disableAcknowledged = status, true
+				if condition == "canceled" {
+					cancel()
+				} else {
+					documentOffline = &offlineController{}
+				}
+			}
+			if err := f.c.completeFreshDisable(ctx, result, ErrOfflineUnknown); err == nil {
+				t.Fatal("unconfirmed/revoked recovery claimed completion")
+			}
+			state := f.c.state
+			if !state.Enabled || !state.CleanupPending || state.ActiveGeneration != strings.Repeat("a", 64) || state.WaitingGeneration != strings.Repeat("b", 64) || f.c.confirmedDisabled {
+				t.Fatalf("unconfirmed or revoked status/ACK was published: %+v", state)
+			}
+			if (condition == "canceled" || condition == "replaced") && !f.c.lastDisable.disableAcknowledged {
+				t.Fatal("late authentic ACK was not retained privately")
+			}
+		})
+	}
+}
+
+func TestOfflineFreshDisableAcknowledgementSupersedesConfirmedStatusOnPartialUnregister(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.sw.Set("controller", f.worker)
+	status := f.respond(offlineRequest{Command: "status"})
+	status.State, status.Enabled, status.ActiveGeneration = "ready", true, status.Generation
+	ack := f.respond(offlineRequest{Command: "disable"})
+	result := offlineFreshDisableResult{
+		confirmedStatus: status, hasConfirmedStatus: true,
+		status: ack, disableAcknowledged: true, unregisterAttempted: true,
+		parent: offlineRealmParent{c: f.c, descriptor: f.c.descriptor, document: doc, window: win, container: f.sw, controller: f.worker, origin: "https://reader.test"},
+	}
+	if err := f.c.completeFreshDisable(context.Background(), result, ErrOfflineUnknown); !errors.Is(err, ErrOfflineUnknown) {
+		t.Fatal("partial unregister was reported successful", err)
+	}
+	if state := OfflineStatus(); state.Enabled || !state.CleanupPending || !f.c.confirmedDisabled || state.ActiveGeneration != ack.ActiveGeneration {
+		t.Fatalf("successful Disable did not supersede earlier ready status: %+v", state)
+	}
+	if !f.c.lastDisable.disableAcknowledged || !f.c.lastDisable.unregisterAttempted || f.c.lastDisable.unregisterResolvedTrue || f.c.lastDisable.verifiedRegistryAbsent {
+		t.Fatalf("fresh partial receipt is not truthful: %+v", f.c.lastDisable)
+	}
+}
+
+func TestOfflineFreshDisableUnknownCompletionRetainsAlreadyObservedNativeFacts(t *testing.T) {
+	f := offlineBrowserFixture(t)
+	f.sw.Set("controller", f.worker)
+	f.c.state.Enabled = true
+	f.c.state.ActiveGeneration = strings.Repeat("a", 64)
+	// Model facts retained by this attempt's owned callbacks after possible host
+	// delivery. A result with no portable status cannot publish them, or erase
+	// them merely because its synchronous observation returned Unknown first.
+	f.c.lastDisable = offlineDisableReceipt{disableAcknowledged: true, unregisterAttempted: true, unregisterResolvedTrue: true}
+	if err := f.c.completeFreshDisable(context.Background(), offlineFreshDisableResult{}, ErrOfflineUnknown); !errors.Is(err, ErrOfflineUnknown) {
+		t.Fatal("unknown native observation claimed completion", err)
+	}
+	if !f.c.lastDisable.disableAcknowledged || !f.c.lastDisable.unregisterAttempted || !f.c.lastDisable.unregisterResolvedTrue || f.c.lastDisable.verifiedRegistryAbsent {
+		t.Fatalf("completion erased late native truth or invented registry absence: %+v", f.c.lastDisable)
+	}
+	if state := OfflineStatus(); !state.Enabled || state.ActiveGeneration != strings.Repeat("a", 64) || f.c.confirmedDisabled {
+		t.Fatalf("private late native receipt was published without status/current authority: %+v", state)
+	}
+}

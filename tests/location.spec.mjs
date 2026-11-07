@@ -94,16 +94,119 @@ test('a superseded response cannot notify retained route observers', async ({ pa
   await expect(page).toHaveURL(/\/about$/); expect(await page.evaluate(() => window.locationChanges)).toEqual(['/about']);
 });
 
+// This witness records only fixed stage/HTTP flags and owned native request
+// events. It observes the existing waits; it never changes their requirements.
+const locationRefreshWitnesses = new WeakMap();
+function observeLocationRefresh(page) {
+  const candidates = new Map(), candidateLimit = 4;
+  const stages = new Set(['clicking-refresh', 'waiting-response', 'waiting-body', 'waiting-status',
+    'checking-refresh-location', 'reading-history', 'clicking-replacement', 'waiting-location', 'checking-history', 'complete']);
+  const state = {stage: 'clicking-refresh', responseSelected: false, bodyFinishedResolved: false,
+    metadataAvailable: false, response: null, candidateOverflow: false, observerError: false};
+  let selectedRequest, selectedNetwork, closed = false, saved;
+  const listeners = [];
+  const newNetwork = () => ({requestObserved: false, requestFinishedObserved: false, requestFailedObserved: false});
+  const observe = (kind, request) => {
+    if (closed) return;
+    try {
+      if (!request.url().endsWith('/features') || request.headers()['x-nextgo-navigate'] !== '1') return;
+      let row = request === selectedRequest && selectedNetwork ? selectedNetwork : candidates.get(request);
+      if (!row && candidates.size < candidateLimit) {row = newNetwork(); candidates.set(request, row);}
+      if (!row) {state.candidateOverflow = true; if (request === selectedRequest) row = selectedNetwork;}
+      if (row) row[kind] = true;
+    } catch {state.observerError = true;}
+  };
+  for (const [event, kind] of [['request', 'requestObserved'], ['requestfinished', 'requestFinishedObserved'], ['requestfailed', 'requestFailedObserved']]) {
+    const listener = request => observe(kind, request);
+    page.on(event, listener); listeners.push([event, listener]);
+  }
+  const snapshot = () => ({version: 1, ...state,
+    selectedNetwork: selectedNetwork ? {...selectedNetwork} : null,
+    candidateRequestsRetained: candidates.size, candidateLimit,
+    observationMeaning: 'False means not observed while this witness owned its listeners; unknown coverage is explicit. No native request completion or Go UI cause is inferred.'});
+  const owner = {
+    stage(value) {if (!closed && stages.has(value)) state.stage = value;},
+    bodyFinished() {if (!closed) state.bodyFinishedResolved = true;},
+    select(response) {
+      if (closed) return;
+      state.responseSelected = true;
+      try {
+        selectedRequest = response.request();
+        // A bounded overflow cannot turn an unwitnessed earlier terminal event
+        // into false. Later events for this exact selected object still record.
+        selectedNetwork = candidates.get(selectedRequest) ||
+          {requestObserved: null, requestFinishedObserved: null, requestFailedObserved: null};
+        const headers = response.headers(), requestHeaders = selectedRequest.headers();
+        const rawType = headers['content-type'];
+        const type = typeof rawType === 'string' && rawType.length <= 256 ? rawType.split(';', 1)[0].trim().toLowerCase() : '';
+        const status = response.status();
+        state.response = {status: Number.isInteger(status) && status >= 0 && status <= 599 ? status : null,
+          contentType: ['application/json', 'application/x-nextgo-stream+json', 'text/html'].includes(type) ? type : 'unrecognized',
+          method: selectedRequest.method() === 'GET' ? 'GET' : 'other',
+          navigationFlags: {protocolPresent: Object.hasOwn(headers, 'x-nextgo-protocol'), protocolV3: headers['x-nextgo-protocol'] === '3',
+            streamPresent: Object.hasOwn(headers, 'x-nextgo-stream'), streamV1: headers['x-nextgo-stream'] === '1',
+            metadataPresent: Object.hasOwn(headers, 'x-nextgo-metadata'), metadataV1: headers['x-nextgo-metadata'] === '1',
+            configurationPresent: Object.hasOwn(headers, 'x-nextgo-configuration'), draftPresent: Object.hasOwn(headers, 'x-nextgo-draft'),
+            requestStreamV1: requestHeaders['x-nextgo-stream'] === '1', requestPrefetch: requestHeaders['x-nextgo-purpose'] === 'prefetch'}};
+        state.metadataAvailable = true;
+      } catch {state.observerError = true;}
+    },
+    cleanup() {
+      if (!closed) {saved = snapshot(); closed = true;}
+      let removed = 0;
+      for (const [event, listener] of listeners) {
+        try {page.off(event, listener); removed++;} catch {} // Never replace the primary test failure.
+      }
+      saved.cleanup = {listenersExpected: listeners.length, listenersRemoved: removed, complete: removed === listeners.length};
+      candidates.clear(); selectedRequest = undefined; selectedNetwork = undefined;
+    },
+    report() {return saved || snapshot();},
+  };
+  locationRefreshWitnesses.set(page, owner);
+  return owner;
+}
+
+// A timed-out test may still be inside the original Response.finished promise.
+// afterEach snapshots and releases this test's listeners before fixture close;
+// the test's own finally supplies the same cleanup on ordinary completion.
+test.afterEach(async ({page}, info) => {
+  const owner = locationRefreshWitnesses.get(page);
+  if (!owner) return;
+  try {
+    owner.cleanup();
+    if (info.status !== info.expectedStatus) {
+      const body = JSON.stringify(owner.report());
+      if (Buffer.byteLength(body, 'utf8') <= 4096)
+        await info.attach('location-refresh-wait-state', {body, contentType: 'application/json'});
+    }
+  } catch {} // Failure-only evidence must not replace the original assertion/timeout.
+  finally {owner.cleanup(); locationRefreshWitnesses.delete(page);}
+});
+
 test('refresh leaves the location subscription unchanged and replacement publishes the committed URL', async ({ page }) => {
   await page.goto('/features'); await ready(page); await watch(page);
-  const response = page.waitForResponse(r => r.url().endsWith('/features') && r.request().headers()['x-nextgo-navigate'] === '1');
-  await page.getByRole('button', { name: 'Refresh server data', exact: true }).click();
-  await (await response).finished(); await expect(page.locator('#nextgo-status')).toBeHidden();
-  expect(await page.evaluate(() => window.locationChanges)).toEqual([]);
-  const length = await page.evaluate(() => history.length);
-  await page.getByRole('button', { name: 'Replace with first field note', exact: true }).click();
-  await expect(location(page)).toHaveText('/posts/html-first');
-  expect(await page.evaluate(() => history.length)).toBe(length);
+  const witness = observeLocationRefresh(page);
+  try {
+    const response = page.waitForResponse(r => r.url().endsWith('/features') && r.request().headers()['x-nextgo-navigate'] === '1');
+    await page.getByRole('button', { name: 'Refresh server data', exact: true }).click();
+    witness.stage('waiting-response');
+    const selected = await response;
+    witness.select(selected); witness.stage('waiting-body');
+    await selected.finished(); witness.bodyFinished();
+    witness.stage('waiting-status');
+    await expect(page.locator('#nextgo-status')).toBeHidden();
+    witness.stage('checking-refresh-location');
+    expect(await page.evaluate(() => window.locationChanges)).toEqual([]);
+    witness.stage('reading-history');
+    const length = await page.evaluate(() => history.length);
+    witness.stage('clicking-replacement');
+    await page.getByRole('button', { name: 'Replace with first field note', exact: true }).click();
+    witness.stage('waiting-location');
+    await expect(location(page)).toHaveText('/posts/html-first');
+    witness.stage('checking-history');
+    expect(await page.evaluate(() => history.length)).toBe(length);
+    witness.stage('complete');
+  } finally {witness.cleanup();}
 });
 
 test('denial disposes the previous layout subscription and returning mounts a fresh one', async ({ page }) => {

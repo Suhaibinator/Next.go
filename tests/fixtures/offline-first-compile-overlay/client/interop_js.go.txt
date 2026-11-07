@@ -1,0 +1,164 @@
+//go:build js && wasm
+
+package client
+
+import (
+ "math"
+ "syscall/js"
+)
+
+// checkedJSFailure deliberately contains no foreign exception or property name.
+// In particular, js.Error.Error itself reads an untrusted message property.
+// Callers may recover/format this fixed Go value without inspecting that object.
+type checkedJSFailure struct{}
+func (checkedJSFailure) Error() string { return "nextgo: native operation failed" }
+
+// The only bare property reads in this helper are this one-time capture. This
+// assumes ordinary trusted initial globals and native built-ins when the Go
+// package initializes. It is not a hostile-global/prototype sandbox or a check
+// of native branding. The captured values are never replaced by target reads.
+var checkedJSReflection = func() struct { get, set, apply, construct, defineProperty, create, array, object js.Value } {
+ global := js.Global()
+ reflection := global.Get("Reflect")
+ object := global.Get("Object")
+ return struct { get, set, apply, construct, defineProperty, create, array, object js.Value }{
+  get:reflection.Get("get"), set:reflection.Get("set"),
+  apply:reflection.Get("apply"), construct:reflection.Get("construct"),
+  defineProperty:reflection.Get("defineProperty"), create:object.Get("create"),
+  array:global.Get("Array"), object:object,
+ }
+}()
+
+func checkedJSRecover() {
+ if recover()!=nil { panic(checkedJSFailure{}) }
+}
+
+// checkedJSPrimitive is intentionally not a recursive ValueOf replacement.
+// Explicit builders make aggregate construction visible to the caller's byte,
+// arity, lifetime and authority checks. No helper admits work or storage.
+func checkedJSPrimitive(value any) js.Value {
+ defer checkedJSRecover()
+ switch value:=value.(type) {
+ case js.Value:return value
+ case js.Func:return value.Value
+ case nil, bool, string,
+  int, int8, int16, int32, int64,
+  uint, uint8, uint16, uint32, uint64, uintptr,
+  float32, float64:
+  return js.ValueOf(value)
+ default:panic(checkedJSFailure{})
+ }
+}
+
+func checkedJSGet(value js.Value, property string) js.Value {
+ defer checkedJSRecover()
+ return checkedJSReflection.get.Invoke(value,property)
+}
+func checkedJSSet(value js.Value, property string, next any) {
+ defer checkedJSRecover()
+ nextValue:=checkedJSPrimitive(next)
+ result:=checkedJSReflection.set.Invoke(value,property,nextValue)
+ if result.Type()!=js.TypeBoolean || !result.Bool() { panic(checkedJSFailure{}) }
+}
+func checkedJSIndex(value js.Value, index int) js.Value {
+ defer checkedJSRecover()
+ if index<0 { panic(checkedJSFailure{}) }
+ return checkedJSReflection.get.Invoke(value,index)
+}
+func checkedJSLength(value js.Value) int {
+ defer checkedJSRecover()
+ length:=checkedJSReflection.get.Invoke(value,"length")
+ if length.Type()!=js.TypeNumber { panic(checkedJSFailure{}) }
+ n:=length.Float()
+ const maxSafeInteger=9007199254740991
+ if math.IsNaN(n)||math.IsInf(n,0)||n<0||n!=math.Trunc(n)||n>maxSafeInteger||n>float64(int(^uint(0)>>1)) { panic(checkedJSFailure{}) }
+ return int(n)
+}
+
+// checkedJSDefineData creates its descriptor without a recursive builder.
+// The captured native Object.create(null) returns a fresh, unexposed ordinary
+// null-prototype object. Reflect.set on that descriptor therefore cannot reach
+// an inherited setter. Only fixed own data fields are installed before the
+// descriptor is passed to captured Reflect.defineProperty. The target's
+// inherited setters are never used for the new data entry.
+func checkedJSDefineData(target js.Value, property any, value js.Value) {
+ defer checkedJSRecover()
+ var key js.Value
+ switch property:=property.(type){
+ case string:key=js.ValueOf(property)
+ case int:
+  if property<0{panic(checkedJSFailure{})}
+  key=js.ValueOf(property)
+ default:panic(checkedJSFailure{})
+ }
+ descriptor:=checkedJSReflection.create.Invoke(js.Null())
+ if descriptor.Type()!=js.TypeObject { panic(checkedJSFailure{}) }
+ for _,field:=range []struct{key string;value js.Value}{
+  {"value",value},
+  {"writable",js.ValueOf(true)},
+  {"enumerable",js.ValueOf(true)},
+  {"configurable",js.ValueOf(true)},
+ }{
+  result:=checkedJSReflection.set.Invoke(descriptor,field.key,field.value)
+  if result.Type()!=js.TypeBoolean||!result.Bool(){panic(checkedJSFailure{})}
+ }
+ // property is supplied only by the builders as a Go string/nonnegative int.
+ // No Go aggregate reaches Invoke conversion on this path.
+ result:=checkedJSReflection.defineProperty.Invoke(target,key,descriptor)
+ if result.Type()!=js.TypeBoolean||!result.Bool(){panic(checkedJSFailure{})}
+}
+
+// checkedJSArray accepts only primitive values, js.Value and js.Func. A nested
+// array/object must first be constructed explicitly by the respective helper.
+// These finite inputs still need the caller's existing precharge and limits.
+func checkedJSArray(values []any) js.Value {
+ defer checkedJSRecover()
+ prepared:=make([]js.Value,len(values))
+ for i,value:=range values { prepared[i]=checkedJSPrimitive(value) }
+ array:=checkedJSReflection.array.New(len(prepared))
+ for i,value:=range prepared { checkedJSDefineData(array,i,value) }
+ return array
+}
+func checkedJSObject(values map[string]any) js.Value {
+ defer checkedJSRecover()
+ prepared:=make(map[string]js.Value,len(values))
+ for key,value:=range values { prepared[key]=checkedJSPrimitive(value) }
+ object:=checkedJSReflection.object.New()
+ for key,value:=range prepared { checkedJSDefineData(object,key,value) }
+ return object
+}
+// checkedJSApply is the dispatch boundary for an already-built argument array.
+// The caller owns that ordinary native array and all referenced values. It must
+// finish argument construction and native probes before its final authority
+// fence, then call this helper without a new getter/builder step. Type checks
+// here inspect Go's js.Value tags only; the SDK still has fixed-arity transport
+// overhead. This does not attest an arbitrary object's Array-like behavior.
+func checkedJSApply(function, receiver, arguments js.Value) js.Value {
+ defer checkedJSRecover()
+ if function.Type()!=js.TypeFunction||arguments.Type()!=js.TypeObject { panic(checkedJSFailure{}) }
+ return checkedJSReflection.apply.Invoke(function,receiver,arguments)
+}
+func checkedJSConstruct(function, arguments js.Value) js.Value {
+ defer checkedJSRecover()
+ if function.Type()!=js.TypeFunction||arguments.Type()!=js.TypeObject { panic(checkedJSFailure{}) }
+ return checkedJSReflection.construct.Invoke(function,arguments)
+}
+func checkedJSCall(value js.Value, method string, args ...any) js.Value {
+ defer checkedJSRecover()
+ function:=checkedJSReflection.get.Invoke(value,method)
+ if function.Type()!=js.TypeFunction { panic(checkedJSFailure{}) }
+ arguments:=checkedJSArray(args)
+ return checkedJSApply(function,value,arguments)
+}
+func checkedJSInvoke(function js.Value, args ...any) js.Value {
+ defer checkedJSRecover()
+ if function.Type()!=js.TypeFunction { panic(checkedJSFailure{}) }
+ arguments:=checkedJSArray(args)
+ return checkedJSApply(function,js.Undefined(),arguments)
+}
+func checkedJSNew(function js.Value, args ...any) js.Value {
+ defer checkedJSRecover()
+ if function.Type()!=js.TypeFunction { panic(checkedJSFailure{}) }
+ arguments:=checkedJSArray(args)
+ return checkedJSConstruct(function,arguments)
+}

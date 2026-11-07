@@ -17,7 +17,10 @@ var retainedTaskMu sync.Mutex
 
 const retainedPhysicalTaskLimit = 128
 
-type retainedTaskLease struct{ done bool }
+type retainedTaskLease struct {
+	done        bool
+	reservation *mergeCallbackReservation
+}
 
 func beginRetainedTask() (*retainedTaskLease, error) {
 	retainedTaskMu.Lock()
@@ -25,7 +28,7 @@ func beginRetainedTask() (*retainedTaskLease, error) {
 	if !retainedTaskAdmission {
 		return nil, nil
 	}
-	if retainedTaskWorkers >= retainedPhysicalTaskLimit {
+	if retainedTaskWorkers+retainedTaskReservedIdle >= retainedPhysicalTaskLimit {
 		return nil, fmt.Errorf("nextgo: retained component physical task capacity exceeded")
 	}
 	retainedTaskWorkers++
@@ -42,6 +45,10 @@ func (lease *retainedTaskLease) Done() {
 	}
 	lease.done = true
 	retainedTaskWorkers--
+	if lease.reservation != nil && lease.reservation.active {
+		lease.reservation.idle++
+		retainedTaskReservedIdle++
+	}
 }
 
 type scopeListener struct {
@@ -118,7 +125,7 @@ func (s *Scope) retainedScopeTree() ([]*Scope, error) {
 			return nil, fmt.Errorf("nextgo: retained component scope limit exceeded")
 		}
 		seen[owner] = true
-		if !owner.live() || owner.mountOpen || owner.clientViewUsed || len(owner.keyedLists) != 0 || owner.selectionCleanup || owner.locationCleanup || owner.linkStatusCleanup {
+		if !owner.live() || owner.mountOpen || owner.clientViewUsed || owner.propsSource != nil || len(owner.keyedLists) != 0 || owner.selectionCleanup || owner.locationCleanup || owner.linkStatusCleanup {
 			return nil, fmt.Errorf("nextgo: component ownership is not supported by route retention")
 		}
 		listeners += len(owner.listeners)

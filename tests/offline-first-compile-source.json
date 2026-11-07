@@ -1,0 +1,1250 @@
+{
+  "version": 1,
+  "gate": "A_COMPILE_ONLY",
+  "baseCommit": "3d583dc7ff784ac7502449730bde091ebf1f808c",
+  "sourceTree": "ba24a854fab69ee810394bc193507ba22f2a953e",
+  "wholeGoSHA256": "2416f5f58de1385ad45f920236edb673af9e056dfb6a0677344983bbe3464aaa",
+  "GateBImplemented": false,
+  "overlay": [
+    {
+      "path": "client/interop_js.go",
+      "bytes": 7173,
+      "sha256": "ff1ded6733c68f01c80a4e26821017e2d8bf6d309178fbdb2e799d8e5460fa04",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/interop_js.go.txt"
+    },
+    {
+      "path": "client/interop_js_test.go",
+      "bytes": 14116,
+      "sha256": "0ada6ed184506128f1578b0374bc7e4384663dfc7fea7e5201178cf4f0af4ed2",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/interop_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_authority_js.go",
+      "bytes": 3844,
+      "sha256": "a6202c90556cd1cebe9f5b274444de29f3d5be1e1bfc589c9dd4b2b9c19dd262",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_authority_js.go.txt"
+    },
+    {
+      "path": "client/offline_authority_js_test.go",
+      "bytes": 10259,
+      "sha256": "cb86bdc5ac0ef45125b4924d31e27c61f9d8cd45354c4fca99befad545bef948",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_authority_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_diagnostics.go",
+      "bytes": 11394,
+      "sha256": "5bbb251724054095d85c182f5dc36cb4c36127d9b1430d000149794d8d2bfe74",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_diagnostics.go.txt"
+    },
+    {
+      "path": "client/offline_diagnostics_js.go",
+      "bytes": 8893,
+      "sha256": "92896eb31e1cdc396349cec7a816dc19c27c343ed7ad9d048ce3b9dcbeef4b53",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_diagnostics_js.go.txt"
+    },
+    {
+      "path": "client/offline_diagnostics_test.go",
+      "bytes": 8576,
+      "sha256": "d005b602092cf9134b63962d55dbf2625f9923d3f80925c3329524a78b45b3f7",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_diagnostics_test.go.txt"
+    },
+    {
+      "path": "client/offline_disable_control_js_test.go",
+      "bytes": 15785,
+      "sha256": "ff86331603590140916f4dedc2dfe38cd971984e87e2178bafb3b598c9dc3bd1",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_disable_control_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_disable_protocol_test.go",
+      "bytes": 1433,
+      "sha256": "723831ad1eecd0f20f6802defa1602a134fdcdda4238c3e4c4f0690eaa14ce97",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_disable_protocol_test.go.txt"
+    },
+    {
+      "path": "client/offline_disable_realm_js.go",
+      "bytes": 26894,
+      "sha256": "073fa142f122a96576b145a8f51f4e57147fa8c45c560695542b391ec571c8fa",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_disable_realm_js.go.txt"
+    },
+    {
+      "path": "client/offline_disable_realm_js_test.go",
+      "bytes": 32720,
+      "sha256": "3ae466950741b71e51633fbe989c483d43bd9ae5d22edb13a168f1fae3b79171",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_disable_realm_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_interop_js.go",
+      "bytes": 2236,
+      "sha256": "3152e75c6b561cbe212c0b7870693b025c7d485d9e131bdd8657aebb7fa33e47",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_interop_js.go.txt"
+    },
+    {
+      "path": "client/offline_interop_js_test.go",
+      "bytes": 16447,
+      "sha256": "a82e6ea048732c409aede985dfb7f104730168ce5c04c384e3e2f17417fad9b1",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_interop_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_js.go",
+      "bytes": 40091,
+      "sha256": "592aa44c4eaab4f520ff299bf2623a6cfcfb2e697c0e488cfaf403eb60ef58d2",
+      "baseBlob": "c0da829e287f009dcf64bf2cbf72530aab175a94",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_js.go.txt"
+    },
+    {
+      "path": "client/offline_js_test.go",
+      "bytes": 16067,
+      "sha256": "b6aadb41ab79187276220d0860824571b4176bf56f3d767285ea627178a70f54",
+      "baseBlob": "0b7556260f7ca4bf606bff5b811e749cd09a32b3",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_native_browser_js_test.go",
+      "bytes": 9697,
+      "sha256": "a94937ff68ea550e21dbefc9e18051d9c811deda43cac7a201a604c25c466ec9",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_native_browser_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_native_fixture_js_test.go",
+      "bytes": 15385,
+      "sha256": "4217e98b2cb69ef6a281281da20dee969cd6261ca9d64bf3f8b1cda205db5e97",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_native_fixture_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_native_js.go",
+      "bytes": 16319,
+      "sha256": "10cfc9fddea988f0fe42a27098cd19d79a4074b5f5591486e6bbe0028abca6ab",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_native_js.go.txt"
+    },
+    {
+      "path": "client/offline_native_js_test.go",
+      "bytes": 6221,
+      "sha256": "9a4c1bad7edcf8c3af5705068124a18935efd22b69ba64a1166f7cbd0ffa8727",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_native_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_native_realm_js_test.go",
+      "bytes": 36305,
+      "sha256": "20ae182ca2e3a30db7bd111e5962170d8b16aaa9925c2dfb6659cbaa6d68df65",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_native_realm_js_test.go.txt"
+    },
+    {
+      "path": "client/offline_protocol.go",
+      "bytes": 4320,
+      "sha256": "5003638bd1a70985436f89f48be35b893b0db5b28de59d83f157c0baad747bfb",
+      "baseBlob": "617c50a03c3536f8a86f8f6852ed2d1c2005a968",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_protocol.go.txt"
+    },
+    {
+      "path": "client/offline_realm_js.go",
+      "bytes": 26171,
+      "sha256": "ef271cf4b33dfa01daaaba813a8474c12778c79ff9d2651b0b1e14f6350f3455",
+      "baseBlob": "2d496a7083c5ce51dccadbfe97fad0ccfabf15aa",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_realm_js.go.txt"
+    },
+    {
+      "path": "client/offline_realm_js_test.go",
+      "bytes": 48932,
+      "sha256": "c2e69105d021493fbdad4938524d42f9e6ae9d25039b996adb931fd21c1c2248",
+      "baseBlob": "d6f1a30faaf1d6196e237ca616c090bd3a627d97",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/client/offline_realm_js_test.go.txt"
+    },
+    {
+      "path": "docs/offline-disable-recovery-qualification.md",
+      "bytes": 9600,
+      "sha256": "ca7db1b74eba833f10d2fb40cc205b7a74e24740fbd74a6687618493c91f555b",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/docs/offline-disable-recovery-qualification.md.txt"
+    },
+    {
+      "path": "examples/offline/components/offlinecontrols/client_js.go",
+      "bytes": 8975,
+      "sha256": "4b7d06c9e54f19413fe7627eaa0bd2f52c2102d67fabb912487c1f88e134f4ae",
+      "baseBlob": "4b515fc71d0446de938281cc08451c857a1e24af",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/examples/offline/components/offlinecontrols/client_js.go.txt"
+    },
+    {
+      "path": "internal/project/build.go",
+      "bytes": 32864,
+      "sha256": "4510c7789cf0b5d6ed267c80866b50add803e6c4fdf24f37e8e447551ee4bb9d",
+      "baseBlob": "01b493f6bb412c484634b4d679de77270c895c97",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/internal/project/build.go.txt"
+    },
+    {
+      "path": "internal/project/offline_native_bridge.go",
+      "bytes": 17214,
+      "sha256": "fec926b6daaa6229f8dc25803897fc1ae892e9dea6753ccaaca2b4446bf613d0",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/internal/project/offline_native_bridge.go.txt"
+    },
+    {
+      "path": "offline/worker/bridge.go",
+      "bytes": 20323,
+      "sha256": "83679616c8102cbb7be447a98d0d7656691f9ce86ed7c6ef8245c931cd243b40",
+      "baseBlob": "f00f56a4c27b7a2c94677c33fe6ebd38991d8e9b",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/bridge.go.txt"
+    },
+    {
+      "path": "offline/worker/bridge_recovery_test.go",
+      "bytes": 566,
+      "sha256": "8cd31e828ab27b35f044deb2146dc2057a700e306e36a584ebdfff378fde69e1",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/bridge_recovery_test.go.txt"
+    },
+    {
+      "path": "offline/worker/engine.go",
+      "bytes": 35445,
+      "sha256": "9a9276971e6d003e0dfaaa6075e5171472d12167c4a42a5c1654a64d1a9287b2",
+      "baseBlob": "7fe285cf2d04764c6e1d75ad49d8b2261e9a3cfc",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/engine.go.txt"
+    },
+    {
+      "path": "offline/worker/recovery.go",
+      "bytes": 2151,
+      "sha256": "d6d26660ff3ef47d8afac8acd91fb6b863a1853333a207ba1b1ff3615db81fe3",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/recovery.go.txt"
+    },
+    {
+      "path": "offline/worker/recovery_engine_test.go",
+      "bytes": 8222,
+      "sha256": "0d59070b78ef1fa1b020725527db160bf66e2c9b953d98732b8dfda7a8c26b76",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/recovery_engine_test.go.txt"
+    },
+    {
+      "path": "offline/worker/recovery_export_test.go",
+      "bytes": 304,
+      "sha256": "a181774f250de2629120c97b856f6f8459450e08e9463359693c32263ef8edd6",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/recovery_export_test.go.txt"
+    },
+    {
+      "path": "offline/worker/recovery_test.go",
+      "bytes": 4249,
+      "sha256": "f17359f9ac247ecf7b3f1662fdd591fe294f0a384ed7d95e82c34081b3c81c34",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/recovery_test.go.txt"
+    },
+    {
+      "path": "offline/worker/runtime_js.go",
+      "bytes": 3823,
+      "sha256": "437b63c84daf0aa2f9150a3d6c309008c531f1dc15e60f8c1564030b0b198c19",
+      "baseBlob": "2db8de60013d77d1580d6bd7dcb0820b50b8b3e8",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/runtime_js.go.txt"
+    },
+    {
+      "path": "offline/worker/testdata/recovery-message.mjs",
+      "bytes": 6219,
+      "sha256": "204c540abc29c3aa7635d24cba0d23c2a2099b17e67faeaf3bfd5762b5dd8f72",
+      "baseBlob": null,
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/offline/worker/testdata/recovery-message.mjs.txt"
+    },
+    {
+      "path": "tests/offline.spec.mjs",
+      "bytes": 84688,
+      "sha256": "1247523a355cb68fbdac85780d29939a28d0450acef422a9fbaf2bf1079de7fc",
+      "baseBlob": "14d98c899048910c02e76a6e4686707cfdd89070",
+      "mode": "100644",
+      "fixture": "tests/fixtures/offline-first-compile-overlay/tests/offline.spec.mjs.txt"
+    }
+  ],
+  "commands": [
+    {
+      "id": "compile-native-client",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/client.test",
+        "./client"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 600000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/client.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-mutation",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/mutation.test",
+        "./mutation"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/mutation.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-offline",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/offline.test",
+        "./offline"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/offline.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-offline-worker",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/offline-worker.test",
+        "./offline/worker"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/offline-worker.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-internal-offlinejson",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/internal-offlinejson.test",
+        "./internal/offlinejson"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/internal-offlinejson.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-ui",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/ui.test",
+        "./ui"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/ui.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-native-internal-project",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/native/internal-project.test",
+        "./internal/project"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/native/internal-project.test",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-cli",
+      "executable": "@GO@",
+      "argv": [
+        "build",
+        "-x",
+        "-trimpath",
+        "-buildvcs=false",
+        "-ldflags=-linkmode=internal",
+        "-o",
+        "@TASK@/dist/nextgo",
+        "./cmd/nextgo"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/nextgo",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-client",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/client.test.wasm",
+        "./client"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/client.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-mutation",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/mutation.test.wasm",
+        "./mutation"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/mutation.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-offline",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/offline.test.wasm",
+        "./offline"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/offline.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-offline-worker",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/offline-worker.test.wasm",
+        "./offline/worker"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/offline-worker.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-internal-offlinejson",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/internal-offlinejson.test.wasm",
+        "./internal/offlinejson"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/internal-offlinejson.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-ui",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-o",
+        "@TASK@/dist/core/ui.test.wasm",
+        "./ui"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/ui.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-core-offlinecontrols",
+      "executable": "@GO@",
+      "argv": [
+        "build",
+        "-x",
+        "-trimpath",
+        "-buildvcs=false",
+        "-o",
+        "@TASK@/dist/core/offlinecontrols.a",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 240000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/core/offlinecontrols.a",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devcore-client",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devcore/client.test.wasm",
+        "./client"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devcore/client.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devcore-mutation",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devcore/mutation.test.wasm",
+        "./mutation"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devcore/mutation.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devcore-ui",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devcore/ui.test.wasm",
+        "./ui"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devcore/ui.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devcore-offlinecontrols",
+      "executable": "@GO@",
+      "argv": [
+        "build",
+        "-x",
+        "-trimpath",
+        "-buildvcs=false",
+        "-tags=nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devcore/offlinecontrols.a",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 240000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devcore/offlinecontrols.a",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-module-client",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_module",
+        "-o",
+        "@TASK@/dist/module/client.test.wasm",
+        "./client"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/module/client.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-module-ui",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_module",
+        "-o",
+        "@TASK@/dist/module/ui.test.wasm",
+        "./ui"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/module/ui.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-module-offlinecontrols",
+      "executable": "@GO@",
+      "argv": [
+        "build",
+        "-x",
+        "-trimpath",
+        "-buildvcs=false",
+        "-tags=nextgo_module",
+        "-o",
+        "@TASK@/dist/module/offlinecontrols.a",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 240000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/module/offlinecontrols.a",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devmodule-client",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_module,nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devmodule/client.test.wasm",
+        "./client"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devmodule/client.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devmodule-ui",
+      "executable": "@GO@",
+      "argv": [
+        "test",
+        "-x",
+        "-c",
+        "-tags=nextgo_module,nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devmodule/ui.test.wasm",
+        "./ui"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 480000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devmodule/ui.test.wasm",
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "compile-devmodule-offlinecontrols",
+      "executable": "@GO@",
+      "argv": [
+        "build",
+        "-x",
+        "-trimpath",
+        "-buildvcs=false",
+        "-tags=nextgo_module,nextgo_devrefresh",
+        "-o",
+        "@TASK@/dist/devmodule/offlinecontrols.a",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 240000,
+      "stdoutLimitBytes": 1048576,
+      "stderrLimitBytes": 1048576,
+      "artifact": "@TASK@/dist/devmodule/offlinecontrols.a",
+      "executesTestOrAppBinary": false
+    }
+  ],
+  "metadataCommands": [
+    {
+      "id": "go-version",
+      "argv": [
+        "version"
+      ],
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "envOverrides": {}
+    },
+    {
+      "id": "go-environment",
+      "argv": [
+        "env",
+        "-json",
+        "GOOS",
+        "GOARCH",
+        "GOHOSTOS",
+        "GOHOSTARCH",
+        "GOROOT",
+        "GOVERSION",
+        "GOTOOLCHAIN",
+        "GOENV",
+        "GOWORK",
+        "CGO_ENABLED",
+        "CC",
+        "GOFLAGS",
+        "GOCACHE",
+        "GOMODCACHE",
+        "GOTMPDIR"
+      ],
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "envOverrides": {}
+    },
+    {
+      "id": "graph-native",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-test",
+        "-f",
+        "{{.ImportPath}}",
+        "./client",
+        "./mutation",
+        "./offline",
+        "./offline/worker",
+        "./internal/offlinejson",
+        "./ui",
+        "./internal/project"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "source-selection-native",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-test",
+        "-f",
+        "{{.ImportPath}}\t{{.Dir}}\t{{join .GoFiles \",\"}}\t{{join .TestGoFiles \",\"}}\t{{join .XTestGoFiles \",\"}}",
+        "./client",
+        "./mutation",
+        "./offline",
+        "./offline/worker",
+        "./internal/offlinejson",
+        "./ui",
+        "./internal/project"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "graph-core",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-test",
+        "-f",
+        "{{.ImportPath}}",
+        "./client",
+        "./mutation",
+        "./offline",
+        "./offline/worker",
+        "./internal/offlinejson",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "source-selection-core",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-test",
+        "-f",
+        "{{.ImportPath}}\t{{.Dir}}\t{{join .GoFiles \",\"}}\t{{join .TestGoFiles \",\"}}\t{{join .XTestGoFiles \",\"}}",
+        "./client",
+        "./mutation",
+        "./offline",
+        "./offline/worker",
+        "./internal/offlinejson",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "graph-devcore",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-test",
+        "-tags=nextgo_devrefresh",
+        "-f",
+        "{{.ImportPath}}",
+        "./client",
+        "./mutation",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "source-selection-devcore",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-test",
+        "-tags=nextgo_devrefresh",
+        "-f",
+        "{{.ImportPath}}\t{{.Dir}}\t{{join .GoFiles \",\"}}\t{{join .TestGoFiles \",\"}}\t{{join .XTestGoFiles \",\"}}",
+        "./client",
+        "./mutation",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "graph-module",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-test",
+        "-tags=nextgo_module",
+        "-f",
+        "{{.ImportPath}}",
+        "./client",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "source-selection-module",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-test",
+        "-tags=nextgo_module",
+        "-f",
+        "{{.ImportPath}}\t{{.Dir}}\t{{join .GoFiles \",\"}}\t{{join .TestGoFiles \",\"}}\t{{join .XTestGoFiles \",\"}}",
+        "./client",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "graph-devmodule",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-test",
+        "-tags=nextgo_module,nextgo_devrefresh",
+        "-f",
+        "{{.ImportPath}}",
+        "./client",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "source-selection-devmodule",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-test",
+        "-tags=nextgo_module,nextgo_devrefresh",
+        "-f",
+        "{{.ImportPath}}\t{{.Dir}}\t{{join .GoFiles \",\"}}\t{{join .TestGoFiles \",\"}}\t{{join .XTestGoFiles \",\"}}",
+        "./client",
+        "./ui",
+        "./examples/offline/components/offlinecontrols"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "js",
+        "GOARCH": "wasm",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 65536,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    },
+    {
+      "id": "graph-cli",
+      "executable": "@GO@",
+      "argv": [
+        "list",
+        "-deps",
+        "-f",
+        "{{.ImportPath}}",
+        "./cmd/nextgo"
+      ],
+      "cwd": "@FROZEN_SOURCE@",
+      "envOverrides": {
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "0"
+      },
+      "timeoutMS": 60000,
+      "stdoutLimitBytes": 262144,
+      "stderrLimitBytes": 1048576,
+      "artifact": null,
+      "executesTestOrAppBinary": false
+    }
+  ],
+  "debugArchiveException": "Installed SDK hashes/version/compiler receipts may expose compiler results; original archive provenance UNKNOWN/UNQUALIFIED; no release/toolchain-authenticity qualification.",
+  "futureObligationsUnchanged": {
+    "sourcePins": 207,
+    "rootsPerPhaseMaximum": 256,
+    "mandatoryReleaseRequirements": 600,
+    "GateBRequiredRoots": 886,
+    "nativeTagged": 4,
+    "browserCore": 60
+  },
+  "allRuntimeReadiness": false,
+  "overlayPublication": "37 exact reviewed UTF-8 postimages under explicit .txt fixture allowlist. Ordinary framework Go remains base3d; only owned materialized candidate is compiled. No fixture walk/glob/package execution.",
+  "overlayAggregateBytes": 613921,
+  "overlayAggregateMaximumBytes": 1048576
+}

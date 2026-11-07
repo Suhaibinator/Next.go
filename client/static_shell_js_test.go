@@ -273,3 +273,53 @@ func TestStaticShellSeedRejectsStaleFrameworkTreesAndPathMetadata(t *testing.T) 
 		t.Fatal("seed URL with query admitted")
 	}
 }
+
+func TestStaticShellMediaTypeParametersPreserveTransportAdmission(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		header string
+		accept bool
+	}{
+		{"plain", "application/json", true},
+		{"charset-token", "application/json; charset=utf-8", true},
+		{"charset-quoted", `application/json; charset="UTF-8"`, true},
+		{"equal-duplicates", "application/json; x=one; x=one", true},
+		{"conflicting-duplicates", "application/json; x=one; x=two", false},
+		{"extended-parameter", "application/json; title*=utf-8''caf%C3%A9", true},
+		{"continued-parameter", "application/json; title*0=hello; title*1=world", true},
+		{"trailing-semicolon", "application/json;", true},
+		{"unterminated-quote", `application/json; x="unterminated`, false},
+		{"missing-value", "application/json; charset=", false},
+		{"missing-equals", "application/json; charset", false},
+		{"wrong-subtype", "application/json-bogus", false},
+		{"wrong-type", "text/json", false},
+		{"multiple-types", "application/json, text/plain", false},
+		{"empty", "", false},
+		// The unchanged ordinary envelope decoder also requires the literal
+		// application/json substring. Preserve that existing outer behavior.
+		{"uppercase-type", "APPLICATION/JSON; charset=utf-8", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := staticShellEnvironment(t)
+			calls := 0
+			mockBrowserFetch(t, func([]js.Value) any {
+				calls++
+				return staticShellResponse(f.body, 200, tc.header, "https://site.test"+f.descriptor.EnvelopeURL)
+			})
+			data, _, fallback, err := fetchEnvelope(context.Background(), "https://site.test/app/workspace/next?q=one")
+			if calls != 1 || fallback {
+				t.Fatal("unexpected immutable transport or reload fallback", calls, fallback, err)
+			}
+			if tc.accept {
+				if err != nil || f.parses == 0 || data.URL != "https://site.test/app/workspace/next?q=one" {
+					t.Fatal("valid media parameters rejected or target not rebound", data.URL, f.parses, err)
+				}
+			} else if err == nil || f.parses != 0 {
+				t.Fatal("invalid media type reached DOM parsing", f.parses, err)
+			}
+			if currentURL != "https://site.test/app/about" || committedLocation.Pathname != "/app/about" {
+				t.Fatal("pending MIME admission published location")
+			}
+		})
+	}
+}

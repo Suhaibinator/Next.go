@@ -5,11 +5,11 @@ package client
 import (
 	"context"
 	"fmt"
-	"mime"
 	"strings"
 	"syscall/js"
 	"time"
 
+	"github.com/Suhaibinator/Next.go/internal/mediatype"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/paths"
 )
@@ -116,7 +116,7 @@ func fetchStaticShellEnvelope(ctx context.Context, target string) (data envelope
 	if err := ctx.Err(); err != nil {
 		return data, 0, true, false, err
 	}
-	mediaType, _, mediaErr := mime.ParseMediaType(response.Header.Get("Content-Type"))
+	mediaType, _, mediaErr := mediatype.ParseMediaType(response.Header.Get("Content-Type"))
 	if response.URL != fetchURL.Get("href").String() || !sameOriginResponse(response.URL) || response.StatusCode != 200 || mediaErr != nil || mediaType != "application/json" {
 		return data, 0, true, false, fmt.Errorf("invalid immutable static shell response")
 	}

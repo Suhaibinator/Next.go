@@ -1,0 +1,23 @@
+//go:build !js
+
+package worker
+
+import (
+	"context"
+	"os/exec"
+	"testing"
+	"time"
+)
+
+func TestBridgeRecoveredDisableNativeContext(t *testing.T) {
+	node, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("Node is required for the isolated bridge promise test")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, node, "testdata/recovery-message.mjs", "bridge.go").CombinedOutput()
+	if err != nil {
+		t.Fatalf("recovered Disable native adapter context: %v\n%s", err, output)
+	}
+}

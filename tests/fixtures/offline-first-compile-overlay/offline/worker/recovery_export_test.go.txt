@@ -1,0 +1,7 @@
+package worker
+
+// RecoveredDisableForTest is compiled only for tests. Production admission is
+// private to the native worker adapter; no URL-only public API gains this entry.
+func RecoveredDisableForTest(e *Engine, command Command, source string) Status {
+	return e.recoveredDisable(command, source)
+}

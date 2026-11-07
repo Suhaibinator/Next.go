@@ -1,0 +1,452 @@
+//go:build js && wasm && !nextgo_module
+
+package client
+
+import (
+ "context"
+ "strings"
+ "syscall/js"
+ "testing"
+ "time"
+
+ "github.com/Suhaibinator/Next.go/offline"
+)
+
+// TESTONLY state-machine model. These plain objects and authored functions are
+// never native branding/WindowProxy/browser/atomic-segment evidence. Production
+// has no facet setter, and none of these helpers is linked into its binary.
+type offlineNativeRealmTest struct {
+ r *offlineProofRealm
+ c *offlineController
+ state js.Value
+ cancel context.CancelFunc
+ functions []js.Func
+}
+func offlineNativeRealmModel(t *testing.T,operation OfflineDiagnosticOperation)*offlineNativeRealmTest{
+ t.Helper()
+ object:=func()js.Value{return js.Global().Get("Object").New()}
+ originalDoc,originalWin,originalController,originalRealm,originalFacet:=doc,win,documentOffline,offlineRealmInUse,offlineNativeFacet
+ if originalRealm!=nil{t.Fatal("native model requires an uncharged global realm")}
+ ctx,cancel:=context.WithCancel(context.Background())
+ descriptor:=offline.ClientDescriptor{Scope:"https://native.test/reader",WorkerURL:"https://native.test/reader/sw.js",OwnerPolicyID:strings.Repeat("c",64),RuntimeID:strings.Repeat("a",20),ConfigurationID:strings.Repeat("b",64)}
+ c:=&offlineController{descriptor:descriptor,state:OfflineState{Configured:true,Supported:true},busy:true}
+ c.diag=offlineDiagnosticBeginLocked(OfflineRecoveryDiagnostic{},operation,descriptor.RuntimeID,descriptor.ConfigurationID)
+ parent:=offlineRealmParent{c:c,descriptor:descriptor,document:object(),window:object(),container:object(),controller:object(),origin:"https://native.test"}
+ parent.native=offlineNativeParent{Window:parent.window,Document:parent.document,Navigator:object(),Container:parent.container,Controller:parent.controller,Location:object(),Root:object(),Origin:parent.origin}
+ r:=&offlineProofRealm{parent:parent,ctx:ctx,operation:operation,attemptRevision:c.diag.DiagnosticRevision,helperURL:"https://native.test/reader/helper",appendKnownNotIssued:true,frameCreated:true,childEstablished:true,navigationTerminal:true,frame:object(),host:parent.native.Root}
+ model:=&offlineNativeRealmTest{r:r,c:c,cancel:cancel,state:js.ValueOf(map[string]any{"calls":0,"reason":0,"attachThrow":false,"nativeThrow":false})}
+ offlineAuthorityMu.Lock();doc,win,documentOffline,offlineRealmInUse=parent.document,parent.window,c,r;offlineAuthorityMu.Unlock()
+ // Exact private receipt protocol; the fake's optional cancellation hook is
+ // explicitly outside any claim about the production native final segment.
+ factory:=js.Global().Get("Function").New("state",`return function(operation,nonce,refs,nodes,policy,payload,port){
+ if(state.onPrepare)state.onPrepare();
+ const receipt={version:1,nonce,operation,entered:false,reason:0,issued:false,returned:false,value:undefined};let used=false;
+ return {receipt,read(){return [receipt.version,receipt.nonce,receipt.operation,receipt.entered,receipt.reason,receipt.issued,receipt.returned,receipt.value]},run(authorize){
+  if(used)throw new Error('replay');used=true;
+  if(authorize(nonce,operation,receipt)!==true){receipt.reason=1;return receipt;}
+  receipt.entered=true;
+  if(state.afterEntry)state.afterEntry();
+  if(state.reason){receipt.reason=state.reason;return receipt;}
+  if(operation===11){receipt.returned=true;return receipt;}
+  receipt.issued=true;state.calls++;
+  if(operation===1&&state.appendLoad)state.appendLoad();
+  if(state.nativeThrow){receipt.reason=8;return receipt;}
+  receipt.value=state.values?state.values[operation]:state.value;receipt.returned=true;return receipt;
+ }};
+}`)
+ prepare:=factory.Invoke(model.state)
+ then:=js.Global().Get("Function").New("state","then",`return function(p,a,b){const result=Reflect.apply(then,p,[a,b]);if(state.attachThrow)throw new Error('after native attach');return result}`).Invoke(model.state,js.Global().Get("Promise").Get("prototype").Get("then"))
+ offlineNativeFacet=offlineNativeCapability{valid:true,prepare:prepare,then:then}
+ t.Cleanup(func(){
+  cancel()
+  // Explicit TESTONLY containment, after assertions, of the discarded fake
+  // platform. This is never a production retirement or retry capability.
+  for _,cell:=range r.disableNative{
+   if cell.authorizeOwned{cell.authorize.Release()};if cell.resolvedOwned{cell.resolved.Release()};if cell.rejectedOwned{cell.rejected.Release()}
+  }
+  for _,function:=range model.functions{function.Release()}
+  offlineAuthorityMu.Lock();doc,win,documentOffline,offlineRealmInUse=originalDoc,originalWin,originalController,originalRealm;offlineAuthorityMu.Unlock();offlineNativeFacet=originalFacet
+ })
+ return model
+}
+func(m *offlineNativeRealmTest)callback(fn func())js.Func{
+ callback:=js.FuncOf(func(js.Value,[]js.Value)any{fn();return nil});m.functions=append(m.functions,callback);return callback
+}
+func(m *offlineNativeRealmTest)gateCell(operation offlineNativeOperation)*offlineDisableNativeCell{
+ receipt:=js.Global().Get("Object").New()
+ cell:=&offlineDisableNativeCell{realm:m.r,operation:operation,nonce:"owned-cell",receiptIdentity:receipt,call:&offlineNativeCall{},charged:true,done:make(chan struct{},1)}
+ offlineAuthorityMu.Lock();m.r.disableNative=append(m.r.disableNative,cell);m.r.pending++;offlineAuthorityMu.Unlock()
+ return cell
+}
+func offlineNativeRealmAuthorize(cell *offlineDisableNativeCell)bool{
+ return cell.authorizeCall(js.Undefined(),[]js.Value{js.ValueOf(cell.nonce),js.ValueOf(int(cell.operation)),cell.receiptIdentity})==true
+}
+
+func TestOfflineNativeRealmEntryBindsExactCellAndRejectsReplay(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ cell:=model.gateCell(offlineNativeChildList)
+ wrong:=js.Global().Get("Object").New()
+ for _,args:=range [][]js.Value{
+  {js.ValueOf("foreign"),js.ValueOf(int(cell.operation)),cell.receiptIdentity},
+  {js.ValueOf(cell.nonce),js.ValueOf(int(offlineNativeChildLookup)),cell.receiptIdentity},
+  {js.ValueOf(cell.nonce),js.ValueOf(int(cell.operation)),wrong},
+ }{
+  if cell.authorizeCall(js.Undefined(),args)!=false || cell.entered{t.Fatal("foreign binding entered a charged cell")}
+ }
+ if !offlineNativeRealmAuthorize(cell) || !cell.entered{t.Fatal("exact prepared binding was refused")}
+ if offlineNativeRealmAuthorize(cell){t.Fatal("entered cell replayed")}
+}
+func TestOfflineNativeRealmBusinessGateRefusesRevocation(t *testing.T){
+ for _,revocation:=range []string{"cancel","replacement","descriptor","document","window","busy","revision","operation","quarantine","unlinked"}{
+  t.Run(revocation,func(t *testing.T){
+   model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable);cell:=model.gateCell(offlineNativeChildList)
+   if revocation=="cancel"{model.cancel()}else{
+    offlineAuthorityMu.Lock()
+    switch revocation{
+    case "replacement":documentOffline=&offlineController{}
+    case "descriptor":model.c.descriptor.Scope+="/changed"
+    case "document":doc=js.Undefined()
+    case "window":win=js.Undefined()
+    case "busy":model.c.busy=false
+    case "revision":model.c.diag.DiagnosticRevision++
+    case "operation":model.c.diag.Operation=OfflineDiagnosticUpdate
+    case "quarantine":model.r.quarantined=true
+    case "unlinked":model.r.disableNative=nil;model.r.pending=0
+    }
+    offlineAuthorityMu.Unlock()
+   }
+   if offlineNativeRealmAuthorize(cell) || cell.entered{t.Fatal("revoked business authority entered")}
+  })
+ }
+}
+func TestOfflineNativeRealmPhysicalGateUsesOriginalCustody(t *testing.T){
+ for _,operation:=range []offlineNativeOperation{offlineNativeRetireLive,offlineNativeRetireUnopened,offlineNativeRetireNeverConnected}{
+  t.Run(strconvNativeOperation(operation),func(t *testing.T){
+   model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable);model.cancel()
+   offlineAuthorityMu.Lock();documentOffline=&offlineController{};model.c.descriptor.Scope+="/replaced";model.c.busy=false;model.r.frameRetiring=true
+   model.r.childEstablished=operation==offlineNativeRetireLive
+   model.r.navigationTerminal=operation!=offlineNativeRetireNeverConnected
+   offlineAuthorityMu.Unlock()
+   cell:=model.gateCell(operation)
+   if !offlineNativeRealmAuthorize(cell){t.Fatal("logical cancellation/replacement revoked original physical custody")}
+  })
+ }
+}
+func strconvNativeOperation(operation offlineNativeOperation)string{switch operation{case offlineNativeRetireLive:return "live";case offlineNativeRetireUnopened:return "unopened";default:return "unused"}}
+func TestOfflineNativeRealmPhysicalGateRejectsOwedWork(t *testing.T){
+ for _,owed:=range []string{"navigation","callback","native","reply","listener","port","creation","quarantine","activity"}{
+  t.Run(owed,func(t *testing.T){
+   model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable);model.r.frameRetiring=true;model.r.navigationTerminal=true;model.r.childEstablished=false;cell:=model.gateCell(offlineNativeRetireUnopened)
+   offlineAuthorityMu.Lock()
+   switch owed{
+   case "navigation":model.r.navigationPending=true
+   case "callback":model.r.navigationCallbacks=1
+   case "native":model.r.pending++
+   case "reply":model.r.disableReplies=[]*offlineDisableReplyCell{{realm:model.r,charged:true}}
+   case "listener":model.r.listeners=[]*offlineRealmListener{{}}
+   case "port":model.r.ports=[]js.Value{js.Null()}
+   case "creation":model.r.creationPending=true
+   case "quarantine":model.r.quarantined=true
+   case "activity":model.r.activity=&refreshActivityLease{}
+   }
+   offlineAuthorityMu.Unlock()
+   if offlineNativeRealmAuthorize(cell) || cell.entered{t.Fatal("physical gate ignored outstanding work/original token")}
+  })
+ }
+}
+func TestOfflineNativeRealmPrechargesBeforePrepareAndJoinsCanceledPromise(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ model.state.Set("value",js.Global().Get("Promise").Call("resolve",true))
+ model.state.Set("onPrepare",model.callback(func(){
+  offlineAuthorityMu.Lock();owned:=model.r.pending==1 && len(model.r.disableNative)==1 && model.r.disableNative[0].charged && model.r.disableNative[0].authorizeOwned;offlineAuthorityMu.Unlock()
+  if !owned{t.Error("native preparation ran before exact owned callback charge")}
+ }))
+ model.state.Set("afterEntry",model.callback(func(){model.cancel()}))
+ settled,err:=model.r.nativeInvoke(model.r.nativeInput(offlineNativeChildList,offlineNativeRegistration{}),true)
+ if err!=ErrOfflineUnknown || !settled.invoked || !settled.returned || !settled.terminal || settled.rejected || model.state.Get("calls").Int()!=1{t.Fatalf("canceled issued Promise was abandoned or replayed: %+v %v",settled,err)}
+ offlineAuthorityMu.Lock();pending,quarantined:=model.r.pending,model.r.quarantined;offlineAuthorityMu.Unlock()
+ if pending!=0 || quarantined{t.Fatal("known physical terminal remained charged after logical cancellation")}
+}
+func TestOfflineNativeRealmUnknownAttachmentRetainsEvenLateTerminal(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ model.state.Set("value",js.Global().Get("Promise").Call("resolve",true));model.state.Set("attachThrow",true)
+ settled,err:=model.r.nativeInvoke(model.r.nativeInput(offlineNativeUnregisterRegistration,offlineNativeRegistration{}),true)
+ if err!=ErrOfflineUnknown || !settled.invoked || !settled.returned{t.Fatal("unknown attachment lost real native issue/return facts")}
+ offlineAuthorityMu.Lock();cell:=model.r.disableNative[0];offlineAuthorityMu.Unlock()
+ select{case <-cell.done:case <-time.After(time.Second):t.Fatal("attached native observer did not settle")}
+ offlineAuthorityMu.Lock();retained:=cell.charged && cell.terminal && cell.quarantined && model.r.quarantined && model.r.pending==1;lateTrue:=model.c.lastDisable.unregisterResolvedTrue;offlineAuthorityMu.Unlock()
+ if !retained || !lateTrue || cell.retire()!=ErrOfflineUnknown{t.Fatal("late settlement released unknown ownership or lost private native true")}
+}
+func TestOfflineNativeRealmKnownNonissueAllowsUnusedCleanupAfterCancel(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ model.r.childEstablished=false;model.r.navigationTerminal=false;model.r.navigationPending=true
+ model.state.Set("onPrepare",model.callback(func(){model.cancel()}))
+ settled,err:=model.r.nativeInvoke(model.r.nativeInput(offlineNativeAppendFrame,offlineNativeRegistration{}),false)
+ if err!=ErrOfflineUnknown || settled.invoked || !settled.receiptKnown || model.r.pending!=0 || !model.r.appendKnownNotIssued || model.r.quarantined{t.Fatal("business entry refusal became physical quarantine or issue")}
+ model.state.Set("onPrepare",js.Undefined())
+ model.r.frameRetiring=true
+ offlineAuthorityMu.Lock();documentOffline=&offlineController{};offlineAuthorityMu.Unlock()
+ retired,err:=model.r.nativeInvoke(model.r.nativeInput(offlineNativeRetireNeverConnected,offlineNativeRegistration{}),false)
+ if err!=nil || retired.invoked || !retired.returned || !retired.terminal || model.state.Get("calls").Int()!=0 || model.r.pending!=0{t.Fatal("known unused node check required business authority or fabricated remove")}
+}
+func TestOfflineNativeRealmNativeRefusalAndPartialDispatchQuarantine(t *testing.T){
+ for _,failure:=range []string{"identity","partial"}{t.Run(failure,func(t *testing.T){
+  model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+  if failure=="identity"{model.state.Set("reason",int(offlineNativeReasonFrameRefused))}else{model.state.Set("nativeThrow",true)}
+  settled,err:=model.r.nativeInvoke(model.r.nativeInput(offlineNativeChildList,offlineNativeRegistration{}),true)
+  if err!=ErrOfflineUnknown || !model.r.quarantined || model.r.pending!=1 || len(model.r.disableNative)!=1 || !model.r.disableNative[0].charged{t.Fatal("native refusal/partial return released quarantine")}
+  if failure=="partial" && (!settled.invoked || settled.returned){t.Fatal("partial native call flags were fabricated")}
+  if model.r.close()!=ErrOfflineUnknown{t.Fatal("unknown native work permitted frame/global retirement")}
+ })}
+}
+func TestOfflineNativeRealmParentTailContainsNoChildReferences(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ child:=js.Global().Get("Object").New()
+ model.r.frame,model.r.host,model.r.window,model.r.document,model.r.container,model.r.controller=child,child,child,child,child,child
+ model.r.child=offlineNativeChild{Window:child,Document:child,Navigator:child,Container:child,Controller:child,Root:child,Head:child,Body:child}
+ for _,operation:=range []offlineNativeOperation{offlineNativeAppendFrame,offlineNativeRetireUnopened,offlineNativeRetireNeverConnected,offlineNativeParentListRetired}{
+  input:=model.r.nativeInput(operation,offlineNativeRegistration{Registration:child,Active:child,Waiting:child,Installing:child})
+  for _,ref:=range []js.Value{input.Refs.ChildWindow,input.Refs.ChildDocument,input.Refs.ChildNavigator,input.Refs.ChildContainer,input.Refs.ChildController,input.Refs.Candidate,input.Refs.Active,input.Nodes.Root,input.Nodes.Head,input.Nodes.Body,input.Nodes.Waiting,input.Nodes.Installing}{if !ref.IsUndefined(){t.Fatal("non-child mode retained child/candidate identity")}}
+  if operation==offlineNativeParentListRetired && (!input.Refs.Frame.IsUndefined() || !input.Refs.Host.IsUndefined()){t.Fatal("retired parent query retained frame identity")}
+ }
+}
+func TestOfflineNativeRealmSnapshotPolicyChecksEveryOverlapAndSlot(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticUpdate)
+ candidate,worker:=js.Global().Get("Object").New(),js.Global().Get("Object").New()
+ entry:=offlineNativeRegistration{Registration:candidate,Scope:model.r.parent.descriptor.Scope,Active:js.Null(),Waiting:worker,Installing:js.Null(),WaitingURL:model.r.parent.descriptor.WorkerURL}
+ inventory,err:=model.r.inspectSnapshotEntries([]offlineNativeRegistration{entry})
+ if err!=nil || inventory.unproven || !inventory.exact.Equal(candidate){t.Fatal("UPDATE's owned waiting slot was not preserved with null active")}
+ for _,failure:=range []string{"foreign-overlap","prefix","duplicate","installing","empty"}{t.Run(failure,func(t *testing.T){
+  changed:=entry;entries:=[]offlineNativeRegistration{entry}
+  switch failure{case "foreign-overlap":changed.Scope="https://native.test/reader/sub";entries=append(entries,changed)
+  case "prefix":changed.Scope="https://native.test/reader2";entries=append(entries,changed)
+  case "duplicate":entries=append(entries,changed)
+  case "installing":changed.Installing=worker;changed.InstallingURL="https://foreign.test/sw.js";entries=[]offlineNativeRegistration{changed}
+  case "empty":changed.Waiting=js.Null();changed.WaitingURL="";entries=[]offlineNativeRegistration{changed}}
+  checked,e:=model.r.inspectSnapshotEntries(entries)
+  if failure=="empty"{if e!=nil || !checked.unproven{t.Fatal("empty slots became owned proof")}}else if e==nil{t.Fatal("foreign overlap/duplicate/non-target slot escaped native snapshot policy")}
+ })}
+}
+func TestOfflineNativeRealmMissingFacetDoesNotAllocateFreshRealm(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ offlineAuthorityMu.Lock();offlineRealmInUse=nil;offlineAuthorityMu.Unlock();offlineNativeFacet=offlineNativeCapability{}
+ r,err:=model.c.newProofRealm(model.r.ctx,model.r.parent.container,model.r.parent.controller)
+ if err!=ErrOfflineUnsupported || r!=nil || offlineRealmInUse!=nil{t.Fatal("missing native facet allocated a fresh recovery resource")}
+}
+
+func TestOfflineNativeRealmFinalInputsIgnoreAuthoredRemovalGetters(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticUpdate)
+ objects:=js.Global().Get("Object")
+ candidate,worker,frame:=objects.New(),objects.New(),objects.New()
+ state:=js.ValueOf(map[string]any{"reads":0,"removed":false})
+ getter:=js.Global().Get("Function").New("state",`return function(){state.reads++;state.removed=true;throw new Error('authored getter removed helper')}`).Invoke(state)
+ for _,pair:=range []struct{value js.Value;key string}{{candidate,"active"},{candidate,"scope"},{worker,"scriptURL"},{frame,"src"}}{
+  objects.Call("defineProperty",pair.value,pair.key,map[string]any{"get":getter,"configurable":true})
+ }
+ model.r.frame,model.r.host=frame,model.r.parent.native.Root
+ snapshot:=offlineNativeRegistration{Registration:candidate,Scope:model.r.parent.descriptor.Scope,Active:worker,Waiting:js.Null(),Installing:js.Null(),ActiveURL:model.r.parent.descriptor.WorkerURL}
+ inventory,err:=model.r.inspectSnapshotEntries([]offlineNativeRegistration{snapshot})
+ input:=model.r.nativeInput(offlineNativeUpdateRegistration,snapshot)
+ if err!=nil || inventory.unproven || !input.Refs.Candidate.Equal(candidate) || !input.Refs.Active.Equal(worker) || state.Get("reads").Int()!=0 || state.Get("removed").Bool(){t.Fatal("typed final inputs reopened authored candidate/worker/frame getters")}
+}
+func TestOfflineNativeRealmDeniedTerminalUsesUnopenedPhysicalMode(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ object:=js.Global().Get("Object")
+ frame:=object.New()
+ state:=js.ValueOf(map[string]any{"childReads":0})
+ getter:=js.Global().Get("Function").New("state",`return function(){state.childReads++;throw new Error('CSP denied child')}`).Invoke(state)
+ object.Call("defineProperty",frame,"contentDocument",map[string]any{"get":getter})
+ object.Call("defineProperty",frame,"contentWindow",map[string]any{"get":getter})
+ model.r.frame,model.r.host=frame,model.r.parent.native.Root
+ // This TESTONLY terminal models the original exact trusted-load join. It
+ // does not claim that a real CSP navigation or native load occurred here.
+ model.r.childEstablished=false;model.r.navigationTerminal=true;model.r.appendIssued=true;model.r.appendKnownNotIssued=false
+ model.cancel()
+ offlineAuthorityMu.Lock();documentOffline=&offlineController{};offlineAuthorityMu.Unlock()
+ model.state.Set("onPrepare",model.callback(func(){
+  offlineAuthorityMu.Lock();cell:=model.r.disableNative[0];operation:=cell.operation;offlineAuthorityMu.Unlock()
+  if operation!=offlineNativeRetireUnopened{t.Error("denied original terminal did not choose unopened mode")}
+ }))
+ if err:=model.r.retireFrame();err!=nil{t.Fatal("original denied terminal could not retire after cancellation/replacement",err)}
+ if !model.r.retired || !model.r.frame.IsUndefined() || model.r.childEstablished || state.Get("childReads").Int()!=0 || model.state.Get("calls").Int()!=1{t.Fatal("unopened retirement accessed child or fabricated removal count")}
+}
+func TestOfflineNativeRealmLiveRetirementDropsEveryChildReference(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ object:=js.Global().Get("Object")
+ child,frame:=object.New(),object.New()
+ state:=js.ValueOf(map[string]any{"childReads":0})
+ getter:=js.Global().Get("Function").New("state",`return function(){state.childReads++;throw new Error('child after removal')}`).Invoke(state)
+ for _,key:=range []string{"navigator","document","closed","location"}{object.Call("defineProperty",child,key,map[string]any{"get":getter})}
+ model.r.frame,model.r.host=frame,model.r.parent.native.Root
+ model.r.window,model.r.document,model.r.container,model.r.controller=child,child,child,child
+ model.r.child=offlineNativeChild{Window:child,Document:child,Navigator:child,Container:child,Controller:child,Root:child,Head:child,Body:child}
+ model.r.childEstablished=true;model.r.navigationTerminal=true;model.r.appendIssued=true
+ model.state.Set("value",frame)
+ if err:=model.r.retireFrame();err!=nil{t.Fatal(err)}
+ if model.r.childEstablished || !model.r.child.Window.IsUndefined() || !model.r.child.Document.IsUndefined() || !model.r.child.Navigator.IsUndefined() || !model.r.child.Container.IsUndefined() || !model.r.child.Controller.IsUndefined() || !model.r.child.Root.IsUndefined() || !model.r.child.Head.IsUndefined() || !model.r.child.Body.IsUndefined(){t.Fatal("retired live owner retained native child references")}
+ tail:=model.r.nativeInput(offlineNativeParentListRetired,offlineNativeRegistration{})
+ if !tail.Refs.ChildWindow.IsUndefined() || !tail.Refs.ChildDocument.IsUndefined() || !tail.Refs.Frame.IsUndefined() || state.Get("childReads").Int()!=0{t.Fatal("post-retirement preparation reopened child getters")}
+}
+
+func TestOfflineNativeRealmParentEmptySlotsCorroborateOwnedChild(t *testing.T){
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ objects:=js.Global().Get("Object")
+ parent,candidate,foreign,worker:=objects.New(),objects.New(),objects.New(),objects.New()
+ scope,url:=model.r.parent.descriptor.Scope,model.r.parent.descriptor.WorkerURL
+ parentRow:=offlineJSArray([]any{parent,scope,js.Null(),js.Null(),js.Null(),"","",""})
+ childRow:=offlineJSArray([]any{candidate,scope,worker,js.Null(),js.Null(),url,"",""})
+ foreignRow:=offlineJSArray([]any{foreign,scope+"/foreign",worker,js.Null(),js.Null(),"https://foreign.test/sw.js","",""})
+ inspect:=js.Global().Get("Function").New("parent","candidate","foreign","p","c","f",`return function(inventory){return inventory.map(function(registration){if(registration===parent)return p;if(registration===candidate)return c;if(registration===foreign)return f;throw new Error('unknown fake registration')})}`).Invoke(parent,candidate,foreign,parentRow,childRow,foreignRow)
+ offlineNativeFacet.inspect=inspect
+ values:=objects.New()
+ values.Set("2",js.Global().Get("Promise").Call("resolve",offlineJSArray([]any{parent})))
+ values.Set("3",js.Global().Get("Promise").Call("resolve",offlineJSArray([]any{candidate})))
+ model.state.Set("values",values)
+ if err:=model.r.proof(model.r.ctx,candidate);err!=nil{t.Fatal("empty parent corroboration blocked exact owned fresh-child proof",err)}
+ // Parent emptiness is never upgraded to mutation ownership. The populated
+ // exact native controller and a separate owned child remain mandatory.
+ checked,err:=model.r.inspectInventory(offlineJSArray([]any{parent}))
+ if err!=nil || !checked.unproven || !checked.exact.Equal(parent){t.Fatal("parent empty slots were relabeled owned")}
+ before:=model.state.Get("calls").Int()
+ values.Set("2",js.Global().Get("Promise").Call("resolve",offlineJSArray([]any{parent,foreign})))
+ if err:=model.r.proof(model.r.ctx,candidate);err==nil{t.Fatal("later foreign parent overlap escaped full inventory")}
+ if model.state.Get("calls").Int()!=before+1{t.Fatal("foreign parent overlap proceeded to child proof")}
+}
+
+func TestOfflineNativeRealmCleanupKeepsLegacyRPCQualificationSeparate(t *testing.T){
+ for _,legacyReached:=range []bool{false,true}{
+  name:="denied-before-legacy";if legacyReached{name="legacy-reached"}
+  t.Run(name,func(t *testing.T){
+   model:=offlineNativeRealmModel(t,OfflineDiagnosticUpdate)
+   model.r.retired=true;model.r.childEstablished=false
+   model.r.frame,model.r.host,model.r.window,model.r.document,model.r.container,model.r.controller=js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined(),js.Undefined()
+   model.r.child=offlineNativeChild{}
+   model.r.legacyRPCUnqualified=legacyReached
+   model.c.diag.Update=OfflineDiagnosticNative{Covered:true}
+   if legacyReached{model.c.diag.Update=OfflineDiagnosticNative{Covered:true,Issued:1,Returned:1,Terminal:1,Outcome:OfflineDiagnosticResolvedOther,ExactReceiver:true}}
+   before:=model.c.diag.Update
+   if err:=model.r.close();err!=nil{t.Fatal(err)}
+   if offlineRealmInUse!=nil || model.c.diag.CleanupKnown==legacyReached{t.Fatal("whole cleanup qualification ignored actual legacy RPC reachability")}
+   if model.c.diag.Update!=before || model.c.diag.Coverage!=OfflineDiagnosticCoverageUnknown || model.c.diag.Status.Covered{t.Fatal("unqualified legacy RPC erased known native UPDATE receipt or fabricated whole/RPC coverage")}
+  })
+ }
+}
+
+// Actual constructor publication is exercised below. The source-only native
+// model remains TESTONLY; a supported capture here is not platform branding.
+func offlineNativeRealmPublicationModel(t *testing.T)*offlineNativeRealmTest{
+ t.Helper()
+ model:=offlineNativeRealmModel(t,OfflineDiagnosticDisable)
+ offlineAuthorityMu.Lock()
+ model.c.descriptor.WorkerURL="https://native.test"+offline.WorkerScriptPath
+ offlineRealmInUse=nil
+ offlineAuthorityMu.Unlock()
+ p:=model.r.parent.native
+ model.state.Set("parentCaptures",0)
+ parent:=js.FuncOf(func(_ js.Value,args []js.Value)any{
+  model.state.Set("parentCaptures",model.state.Get("parentCaptures").Int()+1)
+  if len(args)!=2 || !args[0].Equal(p.Window) || !args[1].Equal(p.Document){t.Error("parent capture changed exact associated window/document")}
+  return offlineJSArray([]any{p.Window,p.Document,p.Navigator,p.Container,p.Controller,p.Location,p.Origin,p.Root})
+ })
+ model.functions=append(model.functions,parent)
+ offlineNativeFacet.parent=parent.Value
+ return model
+}
+func offlineNativeRealmAllCovered(d OfflineRecoveryDiagnostic)bool{
+ return d.Coverage==OfflineDiagnosticCoverageComplete && d.Update.Covered && d.Unregister.Covered && d.Register.Covered && d.Status.Covered && d.DisableRecovered.Covered
+}
+func TestOfflineNativeFreshDisablePublicationCoversSupportedDeniedTerminal(t *testing.T){
+ model:=offlineNativeRealmPublicationModel(t)
+ realm,err:=model.c.newProofRealm(model.r.ctx,model.r.parent.container,model.r.parent.controller)
+ if err!=nil || realm==nil{t.Fatal("supported exact parent did not publish a fresh realm",err)}
+ t.Cleanup(func(){realm.activity.Done()})
+ offlineAuthorityMu.Lock();published:=offlineRealmInUse==realm;before:=model.c.diag;offlineAuthorityMu.Unlock()
+ if !published || !offlineNativeRealmAllCovered(before) || model.state.Get("parentCaptures").Int()!=1 || realm.pending!=0 || len(realm.disableNative)!=0 || len(realm.disableReplies)!=0{t.Fatal("coverage was absent at actual supported realm publication or fabricated resource work")}
+ // Drive the real owned load/error listener and open/cleanup state machine
+ // through an explicit TESTONLY denied-child model. No worker dispatch occurs.
+ frame:=js.Global().Get("Object").New()
+ model.state.Set("value",frame)
+ offlineNativeFacet.frame=js.Global().Get("Function").New("frame","return function(){return frame}").Invoke(frame)
+ offlineNativeFacet.listen=js.Global().Get("Function").New("state","return function(target,event,callback){state[event]=callback}").Invoke(model.state)
+ offlineNativeFacet.remove=js.Global().Get("Function").New("state","return function(target,event,callback){if(state[event]!==callback)throw new Error('listener binding');delete state[event]}").Invoke(model.state)
+ offlineNativeFacet.child=js.Global().Get("Function").New("throw new Error('denied child capture')")
+ model.state.Set("appendLoad",js.Global().Get("Function").New("state","frame","return function(){state.load({isTrusted:true,target:frame})}").Invoke(model.state,frame))
+ if err=realm.open(realm.ctx);err==nil{t.Fatal("denied child was accepted as an established helper")}
+ if !realm.navigationTerminal || realm.childEstablished || realm.navigationPending{t.Fatal("denied cleanup lost the original trusted modeled load or published child references")}
+ if err=realm.close();err!=nil{t.Fatal("known denied terminal failed checked unopened cleanup",err)}
+ offlineAuthorityMu.Lock();after:=model.c.diag;released:=offlineRealmInUse==nil;offlineAuthorityMu.Unlock()
+ if !released || !offlineNativeRealmAllCovered(after) || !after.CleanupKnown || after.Update.Issued!=0 || after.Unregister.Issued!=0 || after.Register.Issued!=0 || after.Status.Issued || after.DisableRecovered.Issued{t.Fatal("audited denied branch did not retain known zero worker/native mutation evidence")}
+ if !after.Frame.BalanceKnown || after.Frame.ListenerAdds!=2 || after.Frame.ListenerRemoves!=2 || model.state.Get("calls").Int()!=2{t.Fatal("denied path did not use the actual two owned listeners and append/unopened-removal receipts")}
+}
+func TestOfflineNativeFreshDisableCoverageRequiresSupportedAssociatedParent(t *testing.T){
+ for _,failure:=range []string{"missing-facet","capture-throw","association","second-owner"}{t.Run(failure,func(t *testing.T){
+  model:=offlineNativeRealmPublicationModel(t)
+  if failure=="missing-facet"{offlineNativeFacet=offlineNativeCapability{}}else if failure=="capture-throw"{
+   offlineNativeFacet.parent=js.Global().Get("Function").New("state","return function(){state.parentCaptures++;throw new Error('native capture refused')}").Invoke(model.state)
+  }else{
+   p:=model.r.parent.native
+   parent:=js.FuncOf(func(js.Value,[]js.Value)any{
+    model.state.Set("parentCaptures",model.state.Get("parentCaptures").Int()+1)
+    container:=p.Container
+    if failure=="association"{container=js.Global().Get("Object").New()}else{offlineAuthorityMu.Lock();documentOffline=&offlineController{};offlineAuthorityMu.Unlock()}
+    return offlineJSArray([]any{p.Window,p.Document,p.Navigator,container,p.Controller,p.Location,p.Origin,p.Root})
+   })
+   model.functions=append(model.functions,parent);offlineNativeFacet.parent=parent.Value
+  }
+  realm,err:=model.c.newProofRealm(model.r.ctx,model.r.parent.container,model.r.parent.controller)
+  if realm!=nil{t.Cleanup(func(){realm.activity.Done()})}
+  offlineAuthorityMu.Lock();d,unlinked:=model.c.diag,offlineRealmInUse==nil;offlineAuthorityMu.Unlock()
+  if err==nil || realm!=nil || !unlinked || d.Coverage!=OfflineDiagnosticCoverageUnknown || d.Update.Covered || d.Unregister.Covered || d.Register.Covered || d.Status.Covered || d.DisableRecovered.Covered{t.Fatal("unavailable/unassociated/unpublished native path fabricated complete coverage or known zero")}
+  if failure=="missing-facet" && model.state.Get("parentCaptures").Int()!=0{t.Fatal("missing facet reached native parent capture")}
+ })}
+}
+func TestOfflineNativeFreshDisableUnknownInvalidatesPublishedCoverage(t *testing.T){
+ model:=offlineNativeRealmPublicationModel(t)
+ realm,err:=model.c.newProofRealm(model.r.ctx,model.r.parent.container,model.r.parent.controller)
+ if err!=nil || realm==nil{t.Fatal(err)}
+ t.Cleanup(func(){
+  // TESTONLY containment of the deliberately unknown fake native dispatch.
+  for _,cell:=range realm.disableNative{if cell.authorizeOwned{cell.authorize.Release()};if cell.resolvedOwned{cell.resolved.Release()};if cell.rejectedOwned{cell.rejected.Release()}}
+  realm.activity.Done()
+ })
+ if !offlineNativeRealmAllCovered(model.c.diag){t.Fatal("supported realm did not establish the coverage invalidation precondition")}
+ frame:=js.Global().Get("Object").New()
+ offlineAuthorityMu.Lock();realm.frameCreated=true;realm.navigationPending=true;realm.frame=frame;realm.host=realm.parent.native.Root;offlineAuthorityMu.Unlock()
+ model.state.Set("nativeThrow",true)
+ settled,err:=realm.nativeInvoke(realm.nativeInput(offlineNativeAppendFrame,offlineNativeRegistration{}),false)
+ offlineAuthorityMu.Lock();d:=model.c.diag;held:=offlineRealmInUse==realm && realm.quarantined && realm.pending==1 && len(realm.disableNative)==1 && realm.disableNative[0].charged;offlineAuthorityMu.Unlock()
+ if err!=ErrOfflineUnknown || !settled.invoked || settled.returned || !held{t.Fatal("unknown actual modeled append did not retain exact charged ownership")}
+ if d.Coverage!=OfflineDiagnosticCoverageUnknown || d.Update.Covered || d.Unregister.Covered || d.Register.Covered || d.Status.Covered || d.DisableRecovered.Covered || d.CleanupKnown{t.Fatal("native unknown exposed covered zero/counts from prior complete publication")}
+ if realm.close()!=ErrOfflineUnknown{t.Fatal("unknown append permitted physical/global release")}
+}
+
+func TestOfflineNativePublicUpdateRecordsActualFinalRegistryWithoutExtraQueries(t *testing.T){
+ x:=freshOfflineRealmFixture(t)
+ x.beforeUpdate=func(){
+  offlineAuthorityMu.Lock();known:=x.f.c.diag.Registry.FinalInventoryKnown;offlineAuthorityMu.Unlock()
+  if known{t.Error("pre-update proof was relabeled final registry evidence")}
+ }
+ x.beforeChildRead=func(){
+  if x.updates==1 && x.childReads==3{
+   offlineAuthorityMu.Lock();known:=x.f.c.diag.Registry.FinalInventoryKnown;offlineAuthorityMu.Unlock()
+   if known{t.Error("final registry was recorded before the actual post-update native child read returned")}
+  }
+ }
+ if err:=CheckOfflineUpdate(context.Background());err!=nil{t.Fatal(err)}
+ d:=OfflineRecoveryObservation()
+ if !d.Available || !d.LogicalReturned || d.Operation!=OfflineDiagnosticUpdate || !d.Registry.InitialInventoryKnown || !d.Registry.FinalInventoryKnown || d.Registry.FinalAbsent || !d.Registry.ParentPostRetirementInventoryKnown || d.Registry.ParentPostRetirementAbsent{t.Fatal("successful public UPDATE omitted actual child-final/parent-retired presence",d.Registry)}
+ want:="parent-list|parent-target|child-list|child-target|parent-list|child-list|update|parent-list|child-list|status|remove|parent-list|status"
+ if strings.Join(x.trace,"|")!=want || x.parentReads!=4 || x.childReads!=3 || x.lookups!=1 || x.updates!=1 || x.created!=1 || x.removed!=1 || offlineRealmInUse!=nil{t.Fatal("registry diagnostic added or skipped native proof queries/physical work",x.trace)}
+ if !x.f.registration.Get("active").IsNull(){t.Fatal("read-only parent empty slots were upgraded into owned mutation proof")}
+ if !d.Update.Covered || d.Update.Issued!=1 || d.Update.Returned!=1 || d.Update.Terminal!=1 || !d.Update.ExactReceiver || d.Update.Outcome!=OfflineDiagnosticResolvedOther{t.Fatal("final registry hook changed the actual native UPDATE receipt",d.Update)}
+ if d.Coverage!=OfflineDiagnosticCoverageUnknown || d.Status.Covered || d.CleanupKnown{t.Fatal("final registry presence qualified legacy UPDATE RPC or whole cleanup")}
+ if !d.Frame.BalanceKnown || d.Frame.ListenerAdds!=2 || d.Frame.ListenerRemoves!=2 || x.f.registers!=0 || x.f.unregisters!=0{t.Fatal("final registry observation changed frame accounting or crossed registration dispatch boundaries")}
+}
+func TestOfflineNativePublicUpdateFailedFinalProofDoesNotInventPresence(t *testing.T){
+ x:=freshOfflineRealmFixture(t)
+ x.beforeChildRead=func(){if x.updates==1 && x.childReads==3{x.childEntries=nil}}
+ if err:=CheckOfflineUpdate(context.Background());err==nil{t.Fatal("missing post-update child registry entry succeeded")}
+ d:=OfflineRecoveryObservation()
+ if !d.Registry.InitialInventoryKnown || d.Registry.FinalInventoryKnown || d.Registry.FinalAbsent || d.Registry.ParentPostRetirementInventoryKnown{t.Fatal("failed post-update proof inherited initial/expected final presence",d.Registry)}
+ if x.parentReads!=3 || x.childReads!=3 || x.lookups!=1 || x.updates!=1 || x.created!=1 || x.removed!=1 || len(x.f.commands)!=0 || offlineRealmInUse!=nil{t.Fatal("failed final proof retried, dispatched legacy status, or skipped valid-helper cleanup",x.trace)}
+}

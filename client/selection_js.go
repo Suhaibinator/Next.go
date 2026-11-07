@@ -105,6 +105,11 @@ func selectionNodes(root js.Value) (map[string]Selection, error) {
 	return result, nil
 }
 func installSelections(snapshot map[string]Selection) {
+	notify := installSelectionsSilent(snapshot)
+	notify()
+}
+
+func installSelectionsSilent(snapshot map[string]Selection) func() {
 	previous := selections
 	selections = snapshot
 	// Retained layout/slot roots need fresh metadata even when their body stays.
@@ -129,9 +134,11 @@ func installSelections(snapshot map[string]Selection) {
 			ids = append(ids, id)
 		}
 	}
-	for _, id := range ids {
-		if observer, ok := selectionObservers[id]; ok {
-			dispatchSelection(observer)
+	return func() {
+		for _, id := range ids {
+			if observer, ok := selectionObservers[id]; ok {
+				dispatchSelection(observer)
+			}
 		}
 	}
 }

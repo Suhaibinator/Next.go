@@ -1,0 +1,150 @@
+//go:build js && wasm
+
+package client
+
+import (
+	"encoding/json"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+// Pure helper vectors own their local value exclusively; only the final getter
+// vector installs shared owner state, under offlineAuthorityMu.
+func offlineDiagnosticTestAttempt() OfflineRecoveryDiagnostic {
+	return offlineDiagnosticBeginLocked(OfflineRecoveryDiagnostic{},OfflineDiagnosticDisable,strings.Repeat("a",20),strings.Repeat("b",64))
+}
+func offlineDiagnosticTestACK(state, code string) OfflineDiagnosticACK {
+	return OfflineDiagnosticACK{State:state,Error:code,Supported:true,RuntimeID:strings.Repeat("a",20),ConfigurationID:strings.Repeat("b",64)}
+}
+func offlineDiagnosticTestJSON(t *testing.T, d OfflineRecoveryDiagnostic) map[string]json.RawMessage {
+	t.Helper()
+	raw, err := json.Marshal(d)
+	if err != nil { t.Fatal(err) }
+	if len(raw) > OfflineRecoveryObservationLimit { t.Fatal("unbounded observation") }
+	var result map[string]json.RawMessage
+	if err := json.Unmarshal(raw,&result); err != nil { t.Fatal(err) }
+	return result
+}
+
+func TestOfflineRecoveryDiagnosticsUnknownIsNull(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	fields := offlineDiagnosticTestJSON(t,d)
+	if len(fields) != 18 { t.Fatalf("closed header field count = %d",len(fields)) }
+	for _, name := range []string{"update","unregister","register"} {
+		var value map[string]json.RawMessage
+		if err := json.Unmarshal(fields[name],&value); err != nil { t.Fatal(err) }
+		for _, key := range []string{"issued","returned","terminal","exactReceiver"} { if string(value[key]) != "null" { t.Fatalf("%s.%s fabricated known evidence",name,key) } }
+	}
+	var rpc map[string]json.RawMessage
+	if err := json.Unmarshal(fields["disableRecovered"],&rpc); err != nil { t.Fatal(err) }
+	if string(rpc["channelsCreated"]) != "null" || string(rpc["ack"]) != "null" { t.Fatal("unobserved channel became zero or ACK") }
+}
+
+func TestOfflineRecoveryDiagnosticsAdmissionRevisionWrap(t *testing.T) {
+	previous := offlineDiagnosticTestAttempt()
+	previous.DiagnosticRevision = ^uint32(0)
+	d := offlineDiagnosticBeginLocked(previous,OfflineDiagnosticUpdate,previous.RuntimeID,previous.ConfigurationID)
+	if d.DiagnosticRevision != 0 || d.Operation != OfflineDiagnosticUpdate || d.Coverage != OfflineDiagnosticCoverageUnknown { t.Fatal("admission revision did not wrap independently of coverage") }
+	copy := d
+	offlineDiagnosticFinishLocked(&copy,true)
+	if d.LogicalReturned || !copy.LogicalReturned { t.Fatal("snapshot does not have value semantics") }
+}
+
+func TestOfflineRecoveryDiagnosticsUncertaintyCannotBecomeKnownZero(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	offlineDiagnosticFreshDisableCoverageLocked(&d)
+	offlineDiagnosticNativeReceiptLocked(&d,OfflineDiagnosticMethodUnregister,false,true,false,true,OfflineDiagnosticNativeDispatchThrow)
+	offlineDiagnosticFreshDisableCoverageLocked(&d)
+	offlineDiagnosticNativeCoverageLocked(&d,OfflineDiagnosticMethodUnregister,true)
+	if d.Coverage != OfflineDiagnosticCoverageUnknown || d.Unregister.Covered { t.Fatal("coverage was restored after unknown delivery") }
+	fields := offlineDiagnosticTestJSON(t,d)
+	var native map[string]json.RawMessage
+	if err := json.Unmarshal(fields["unregister"],&native); err != nil { t.Fatal(err) }
+	if string(native["issued"]) != "null" { t.Fatal("unknown native call became observed zero") }
+}
+
+func TestOfflineRecoveryDiagnosticsActualNativeOutcomes(t *testing.T) {
+	for _, outcome := range []OfflineDiagnosticOutcome{OfflineDiagnosticResolvedTrue,OfflineDiagnosticResolvedFalse,OfflineDiagnosticResolvedOther,OfflineDiagnosticRejected} {
+		d := offlineDiagnosticTestAttempt()
+		offlineDiagnosticFreshDisableCoverageLocked(&d)
+		offlineDiagnosticNativeReceiptLocked(&d,OfflineDiagnosticMethodUnregister,true,true,true,true,OfflineDiagnosticNone)
+		offlineDiagnosticNativeTerminalLocked(&d,OfflineDiagnosticMethodUnregister,outcome)
+		if d.Unregister.Issued != 1 || d.Unregister.Returned != 1 || d.Unregister.Terminal != 1 || d.Unregister.Outcome != outcome { t.Fatal("native result was fabricated or collapsed") }
+	}
+	d := offlineDiagnosticTestAttempt()
+	offlineDiagnosticNativeCoverageLocked(&d,OfflineDiagnosticMethodUpdate,true)
+	if d.Coverage != OfflineDiagnosticCoverageUnknown || d.Status.Covered { t.Fatal("UPDATE dispatch evidence claimed old RPC coverage") }
+}
+
+func TestOfflineRecoveryDiagnosticsFirstACKAndDeliveredDuplicates(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	offlineDiagnosticFreshDisableCoverageLocked(&d)
+	offlineDiagnosticRPCReceiptLocked(&d,OfflineDiagnosticRPCDisableRecovered,true,true,true,true,OfflineDiagnosticNone)
+	first := offlineDiagnosticTestACK("disabled","")
+	offlineDiagnosticRPCEventLocked(&d,OfflineDiagnosticRPCDisableRecovered,OfflineDiagnosticTrustedEvent)
+	offlineDiagnosticRPCValidReplyLocked(&d,OfflineDiagnosticRPCDisableRecovered,first)
+	second := offlineDiagnosticTestACK("failed","client-capacity")
+	offlineDiagnosticRPCEventLocked(&d,OfflineDiagnosticRPCDisableRecovered,OfflineDiagnosticTrustedEvent)
+	offlineDiagnosticRPCValidReplyLocked(&d,OfflineDiagnosticRPCDisableRecovered,second)
+	if d.DisableRecovered.ACK != first || d.DisableRecovered.DuplicateTerminals != 1 || d.DisableRecovered.TrustedEvents != 2 { t.Fatal("duplicate replaced first valid ACK or disappeared") }
+	offlineDiagnosticRPCValidReplyLocked(&d,OfflineDiagnosticRPCDisableRecovered,second)
+	if !d.Overflow || d.sanitized().Available { t.Fatal("duplicate saturation did not invalidate evidence") }
+}
+
+func TestOfflineRecoveryDiagnosticsLifecycleRequiresActualReturns(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	offlineDiagnosticFreshDisableCoverageLocked(&d)
+	for _, event := range []OfflineDiagnosticRPCEvent{OfflineDiagnosticChannelCreated,OfflineDiagnosticListenerAdded,OfflineDiagnosticPortStarted,OfflineDiagnosticListenerRemoved,OfflineDiagnosticPort1Closed} {
+		offlineDiagnosticRPCEventLocked(&d,OfflineDiagnosticRPCStatus,event)
+	}
+	if d.Status.Port2CloseReturned || !d.Status.Port1CloseReturned || d.Status.ListenerAdds != 1 || d.Status.ListenerRemoves != 1 { t.Fatal("one close return invented another resource terminal") }
+	offlineDiagnosticFrameEventLocked(&d,true,true)
+	offlineDiagnosticFrameEventLocked(&d,false,false)
+	offlineDiagnosticFrameEventLocked(&d,false,true)
+	if d.Frame.BalanceKnown { t.Fatal("later frame removal hid an unknown earlier removal") }
+}
+
+func TestOfflineRecoveryDiagnosticsClosedBoundsAndRegistry(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	offlineDiagnosticRegistryLocked(&d,OfflineDiagnosticRegistryFinal,false,true)
+	if d.Registry.FinalAbsent { t.Fatal("unknown inventory became absence") }
+	offlineDiagnosticRegistryLocked(&d,OfflineDiagnosticRegistryFinal,true,true)
+	if !d.Registry.FinalAbsent || !d.Registry.FinalInventoryKnown { t.Fatal("actual absence was lost") }
+	d.DisableRecovered.Terminal, d.DisableRecovered.BindingExact = true,true
+	d.DisableRecovered.ACK = offlineDiagnosticTestACK("disabled",strings.Repeat("x",33))
+	if d.sanitized().Available { t.Fatal("unbounded or open protocol error accepted") }
+	d = offlineDiagnosticTestAttempt()
+	d.RuntimeID = strings.Repeat("A",20)
+	if d.sanitized().Available { t.Fatal("protocol identity was truncated or normalized") }
+	d = offlineDiagnosticTestAttempt()
+	for i := 0; i < 9; i++ { offlineDiagnosticRPCEventLocked(&d,OfflineDiagnosticRPCStatus,OfflineDiagnosticTrustedEvent) }
+	if !d.Overflow || d.Status.TrustedEvents != 8 { t.Fatal("counter wrapped or exceeded finite bound") }
+}
+
+func TestOfflineRecoveryDiagnosticsSnapshotContainsOnlyScalars(t *testing.T) {
+	var walk func(reflect.Type)
+	walk = func(kind reflect.Type) {
+		switch kind.Kind() {
+		case reflect.Bool,reflect.String,reflect.Uint8,reflect.Uint32:
+		case reflect.Struct:
+			for i := 0; i < kind.NumField(); i++ { walk(kind.Field(i).Type) }
+		default: t.Fatalf("snapshot contains forbidden %s",kind)
+		}
+	}
+	walk(reflect.TypeOf(OfflineRecoveryDiagnostic{}))
+}
+
+func TestOfflineRecoveryDiagnosticsReadonlyCurrentOwnerCopy(t *testing.T) {
+	d := offlineDiagnosticTestAttempt()
+	offlineAuthorityMu.Lock()
+	previous := documentOffline
+	documentOffline = &offlineController{diag:d}
+	offlineAuthorityMu.Unlock()
+	defer func() { offlineAuthorityMu.Lock(); documentOffline = previous; offlineAuthorityMu.Unlock() }()
+	copy := OfflineRecoveryObservation()
+	copy.DiagnosticRevision++
+	copy.RuntimeID = "changed"
+	actual := OfflineRecoveryObservation()
+	if actual.DiagnosticRevision != d.DiagnosticRevision || actual.RuntimeID != d.RuntimeID { t.Fatal("readonly snapshot mutated owner or advanced admission") }
+}

@@ -133,8 +133,8 @@ func TestModuleHostRegistrationRunInstallsExistingABIOnce(t *testing.T) {
 		t.Fatal("registration installed the host before Run")
 	}
 	Run()
-	if *installs != 1 || bridge().Get("version").Int() != 5 {
-		t.Fatal("Run did not install one existing ABI5 host", *installs)
+	if *installs != 1 || bridge().Get("version").Int() != 6 {
+		t.Fatal("Run did not install one existing ABI6 host", *installs)
 	}
 	location, ready := CurrentLocation()
 	if !ready || location.URL != "https://site.test/" || currentURL != "" {
@@ -142,11 +142,11 @@ func TestModuleHostRegistrationRunInstallsExistingABIOnce(t *testing.T) {
 	}
 	var snapshot moduleState
 	if err := json.Unmarshal([]byte(bridge().Call("state").String()), &snapshot); err != nil || snapshot.Location.URL != location.URL || snapshot.Ready {
-		t.Fatal("ABI5 native-document location and router readiness diverged", snapshot, err)
+		t.Fatal("ABI6 native-document location and router readiness diverged", snapshot, err)
 	}
 	for _, name := range []string{"register", "skipTransition", "script", "actionView", "mutation", "actionFence", "state", "observeLinkStatus", "unobserveLinkStatus", "navigate", "prefetch", "refresh", "back", "forward", "return", "invalidate", "opener", "returnFocus"} {
 		if bridge().Get(name).Type() != js.TypeFunction {
-			t.Fatalf("ABI5 method %q changed or disappeared", name)
+			t.Fatalf("ABI6 method %q changed or disappeared", name)
 		}
 	}
 }

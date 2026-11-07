@@ -1,0 +1,185 @@
+package worker_test
+
+import (
+	"bytes"
+	"encoding/json"
+	"testing"
+
+	"github.com/Suhaibinator/Next.go/offline"
+	"github.com/Suhaibinator/Next.go/offline/worker"
+)
+
+type recoveredModelBackend struct {
+	base             *modelBackend
+	pair             any
+	clientCalls      int
+	changeAfterFirst bool
+}
+
+func (b *recoveredModelBackend) Call(op string, arg any) (json.RawMessage, error) {
+	if op != "clients" {
+		return b.base.Call(op, arg)
+	}
+	b.clientCalls++
+	if b.pair != nil {
+		return modelJSON(b.pair)
+	}
+	raw, err := b.base.Call(op, arg)
+	if b.changeAfterFirst && b.clientCalls == 1 {
+		// A second read would authenticate one set but persist another. The
+		// recovered transition must retain the exact originally returned pair.
+		b.base.browser.clients = []string{"replacement"}
+		b.base.browser.visible = []string{"replacement"}
+	}
+	return raw, err
+}
+
+func recoveredModelMessage(t *testing.T, e *worker.Engine, bundle modelBundle, sender string) worker.Status {
+	t.Helper()
+	raw, err := json.Marshal(map[string]string{"url": "https://example.test/guide", "id": sender})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return worker.RecoveredDisableForTest(e, bundle.command("disable-recovered", "recovery-1"), string(raw))
+}
+
+func TestRecoveredDisableUsesOneNativePairAndRetainsRealHelper(t *testing.T) {
+	browser := newModelBrowser()
+	bundle := newModelBundle(t, "recovery", offline.Budget{})
+	_, base := enableModel(t, browser, bundle)
+	browser.clients = []string{"parent", "helper", "other-tab", "last-tab"}
+	browser.visible = append([]string{}, browser.clients...)
+	backend := &recoveredModelBackend{base: base, changeAfterFirst: true}
+	engine, err := worker.NewEngine(bundle.raw, backend)
+	if err != nil {
+		t.Fatal(err)
+	}
+	beforeRemoves := browser.opCount("remove")
+	status := recoveredModelMessage(t, engine, bundle, "parent")
+	if status.Error != "" || status.Enabled || status.State != "disabled" || !status.DeferredCleanup {
+		t.Fatalf("native-bound disable failed: %+v", status)
+	}
+	if backend.clientCalls != 1 {
+		t.Fatalf("read clients %d times", backend.clientCalls)
+	}
+	var retained []string
+	if err := json.Unmarshal(browser.index(t)["retained"], &retained); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"parent", "helper", "other-tab", "last-tab"}
+	if !bytes.Equal(mustJSON(t, retained), mustJSON(t, want)) {
+		t.Fatalf("did not retain original pair including helper: %v", retained)
+	}
+	if browser.opCount("remove") != beforeRemoves {
+		t.Fatal("disabled clients lost charged payload storage")
+	}
+	asset := bundle.catalog.Spec().Assets[0]
+	retainedAsset := worker.Request{URL: asset.URL, Method: "GET", Mode: "no-cors", Destination: "script", ClientID: "helper"}
+	if got := browser.cachedBody(t, engine.Fetch(retainedAsset)); !bytes.Equal(got, bundle.bodies[asset.URL].bytes) {
+		t.Fatal("the retained helper lost its charged runtime bytes")
+	}
+	// Helper removal alone proves no client erasure. Explicit reconciliation
+	// must preserve bytes while that exact retained ID remains visible.
+	browser.clients = nil
+	browser.visible = []string{"helper"}
+	if got := modelMessage(engine, bundle, "disable"); got.Error != "" || !got.DeferredCleanup || browser.opCount("remove") != beforeRemoves {
+		t.Fatalf("visible helper was exempted from retained accounting: %+v", got)
+	}
+	browser.visible = nil
+	if got := modelMessage(engine, bundle, "disable"); got.Error != "" || got.DeferredCleanup || len(browser.caches) != 0 {
+		t.Fatalf("explicit reconciliation after all retained IDs closed failed: %+v", got)
+	}
+}
+
+func mustJSON(t *testing.T, value any) []byte {
+	t.Helper()
+	raw, err := json.Marshal(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
+}
+
+func TestRecoveredDisableRefusesBeforeStorageMutation(t *testing.T) {
+	for _, test := range []struct {
+		name, sender, code string
+		pair               any
+	}{
+		{"wrong-native-worker", "parent", "sender-uncontrolled", map[string]any{"controlled": 1, "clientIDs": []string{"other"}, "visibleIDs": []string{"parent", "other"}}},
+		{"helper-counts-over-cap", "parent", "client-capacity", map[string]any{"controlled": 5, "clientIDs": []string{"parent", "helper", "a", "b", "c"}, "visibleIDs": []string{"parent", "helper", "a", "b", "c"}}},
+		{"sequential-pair-inconsistent", "parent", "clients-unavailable", map[string]any{"controlled": 2, "clientIDs": []string{"parent", "helper"}, "visibleIDs": []string{"parent"}}},
+		{"duplicate-controlled", "parent", "clients-unavailable", map[string]any{"controlled": 2, "clientIDs": []string{"parent", "parent"}, "visibleIDs": []string{"parent"}}},
+		{"duplicate-visible", "parent", "clients-unavailable", map[string]any{"controlled": 1, "clientIDs": []string{"parent"}, "visibleIDs": []string{"parent", "parent"}}},
+		{"count-mismatch", "parent", "clients-unavailable", map[string]any{"controlled": 2, "clientIDs": []string{"parent"}, "visibleIDs": []string{"parent"}}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			browser := newModelBrowser()
+			bundle := newModelBundle(t, test.name, offline.Budget{})
+			_, base := enableModel(t, browser, bundle)
+			backend := &recoveredModelBackend{base: base, pair: test.pair}
+			engine, err := worker.NewEngine(bundle.raw, backend)
+			if err != nil {
+				t.Fatal(err)
+			}
+			before := mustModelJSON(t, browser.index(t))
+			writes, removes, puts, creates := browser.opCount("writeRecord"), browser.opCount("remove"), browser.opCount("put"), browser.opCount("create")
+			status := recoveredModelMessage(t, engine, bundle, test.sender)
+			if status.Error != test.code {
+				t.Fatalf("refusal %+v, want %s", status, test.code)
+			}
+			if backend.clientCalls != 1 {
+				t.Fatalf("read clients %d times", backend.clientCalls)
+			}
+			if browser.opCount("writeRecord") != writes || browser.opCount("remove") != removes || browser.opCount("put") != puts || browser.opCount("create") != creates || mustModelJSON(t, browser.index(t)) != before {
+				t.Fatal("native sender/capacity refusal changed durable storage")
+			}
+			if got := modelMessage(engine, bundle, "status"); !got.Enabled || got.Error != "" {
+				t.Fatalf("refusal changed enabled pack: %+v", got)
+			}
+		})
+	}
+}
+
+func TestRecoveredDisableCannotUseLegacyURLOnlyEntry(t *testing.T) {
+	browser := newModelBrowser()
+	bundle := newModelBundle(t, "legacy-entry", offline.Budget{})
+	engine, _ := enableModel(t, browser, bundle)
+	before := len(browser.calls)
+	got := engine.Message(bundle.command("disable-recovered", "recovery-1"), "https://example.test/guide")
+	if got.Error != "unsupported-command" || len(browser.calls) != before {
+		t.Fatalf("URL-only entry admitted recovery or touched backend: %+v", got)
+	}
+}
+
+func TestRecoveredDisablePreservesOwnerIdentityAndRoleRefusals(t *testing.T) {
+	for _, test := range []struct {
+		name, code string
+		mutate     func(*worker.Command)
+		active     bool
+	}{
+		{"owner", "invalid-message", func(c *worker.Command) { c.OwnerPolicyID = "another" }, true},
+		{"runtime", "identity-changed", func(c *worker.Command) { c.RuntimeID = "another" }, true},
+		{"configuration", "identity-changed", func(c *worker.Command) { c.ConfigurationID = "another" }, true},
+		{"request", "invalid-message", func(c *worker.Command) { c.RequestID = "bad request" }, true},
+		{"waiting", "waiting-worker", func(*worker.Command) {}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			browser := newModelBrowser()
+			bundle := newModelBundle(t, test.name, offline.Budget{})
+			_, base := enableModel(t, browser, bundle)
+			base.active = test.active
+			backend := &recoveredModelBackend{base: base, pair: map[string]any{"controlled": 1, "clientIDs": []string{"parent"}, "visibleIDs": []string{"parent"}}}
+			engine, err := worker.NewEngine(bundle.raw, backend)
+			if err != nil {
+				t.Fatal(err)
+			}
+			command := bundle.command("disable-recovered", "recovery-1")
+			test.mutate(&command)
+			writes, removes := browser.opCount("writeRecord"), browser.opCount("remove")
+			got := worker.RecoveredDisableForTest(engine, command, `{"url":"https://example.test/guide","id":"parent"}`)
+			if got.Error != test.code || backend.clientCalls != 0 || browser.opCount("writeRecord") != writes || browser.opCount("remove") != removes {
+				t.Fatalf("authority refusal changed work: %+v", got)
+			}
+		})
+	}
+}
