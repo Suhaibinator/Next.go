@@ -28,8 +28,12 @@ const test = base.extend({
 });
 const ready = page => expect(page.locator('body')).toHaveAttribute('data-nextgo-hydration', 'ready');
 async function fontsDecoded(page) {
-  const proof = await page.evaluate(async () => {
-    await document.fonts.ready;
+  // Read native readiness synchronously in no-JavaScript pages; keep the wait
+  // in the test host without depending on page-created Promise callbacks.
+  await expect.poll(() => page.evaluate(() => [...document.fonts]
+    .filter(face => face.family.includes('Nextgo Fixture'))
+    .map(face => face.status)), {timeout: 15_000}).toEqual(['loaded', 'loaded']);
+  const proof = await page.evaluate(() => {
     const fonts = [...document.fonts].filter(face => face.family.includes('Nextgo Fixture')).map(face => ({family: face.family.replaceAll('"', ''), status: face.status}));
     const canvas = document.createElement('canvas'), context = canvas.getContext('2d');
     // Probe at one font unit per pixel: some Linux font backends grid-fit
