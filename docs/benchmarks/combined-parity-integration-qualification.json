@@ -271,10 +271,13 @@
     "Full CLI native/race package reruns used excluded dist/.integration-tmp and passed on both SDKs; combined native results are84 broad package passes plus1 corrected CLI package, not a single all-green broad run."
   ],
   "publication": {
-    "state": "blocked-pending-explicit-user-authorization",
-    "branchCreated": false,
-    "PRCreated": false,
-    "reason": "Automatic approval review rejected GitHub tree write: parity goal did not specifically authorize external code publication. No workaround attempted after rejection."
+    "state": "user-authorized-draft-pr-created-remote-ci-unobserved",
+    "branchCreated": true,
+    "PRCreated": true,
+    "PR": "https://github.com/Suhaibinator/Next.go/pull/9",
+    "candidateCommit": "a56c4f22e5422de42607ab36b91c143f6a13f0bf",
+    "candidateTree": "8fca38935d004f1ec6acdd94580020b7a9aa1d3e",
+    "history": "Initial automatic review rejected publication; user subsequently explicitly approved. Published tree verified byte-exact against reviewed staged tree."
   },
   "open": [
     "All79 capability rows and G01-G11 remain open",

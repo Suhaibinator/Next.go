@@ -12,10 +12,11 @@ offline, cross-engine, cloud or release matrices. Production Go 1.27 widget core
 is **8,014,494 raw / 2,132,794 gzip-9 bytes**; compatibility Go 1.24 is
 **6,823,989 / 1,800,023**. Both fail both reference byte budgets.
 
-Remote publication is blocked pending explicit user authorization: automatic
-approval review rejected the GitHub tree write. No branch or PR was created.
-Local implementation and qualification continue; all 79 capabilities and
-G01–G11 remain in scope and no release gate is complete.
+The user explicitly authorized external publication after automatic approval
+review initially rejected the write. [Draft PR #9](https://github.com/Suhaibinator/Next.go/pull/9)
+publishes the exact reviewed candidate at `a56c4f22e5422de42607ab36b91c143f6a13f0bf`.
+Remote CI results are pending and are not inferred from local checks. All 79
+capabilities and G01–G11 remain in scope; no release gate is complete.
 
 Research baseline refreshed **November 7, 2026 (UTC)**: the [official latest-release page](https://github.com/vercel/next.js/releases/latest) redirects to stable **v16.4.5** ([release](https://github.com/vercel/next.js/releases/tag/v16.4.5), commit `4e5335a00314be7fbb2aace5e9be56a88e64e5a8`). The original October 22 inventory used v16.4.2; the October 23/25 checkpoint used v16.4.3. Both patch deltas are retained below without removing any capability or gate. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
 

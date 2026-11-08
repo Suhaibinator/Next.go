@@ -533,8 +533,8 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "9800a871d806a104ca128cfb76e66f5c742b564b0e5fa6393137393588c0ae88",
-      "bytes": 276355,
+      "sha256": "eb49e77457ab457033b58f94516614225c96a03d3bd74c640252562a2eddc339",
+      "bytes": 276481,
       "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
       "previousPins": [
         {
@@ -545,6 +545,11 @@
         {
           "sha256": "2f749950c92921eba4453e5af6e65ab420f7b6b6d9a7fb9dd73355a5431d6d90",
           "bytes": 275614,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
+        },
+        {
+          "sha256": "9800a871d806a104ca128cfb76e66f5c742b564b0e5fa6393137393588c0ae88",
+          "bytes": 276355,
           "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
         }
       ]
@@ -2905,7 +2910,7 @@
     "sourceBaseTree": "1b8d017edfdd5b77beb868e1ac483c55266376b8",
     "kind": "READ_ONLY_FIXED_SCALARS_IN_TWO_EXISTING_EVALUATIONS",
     "filteredTraceSummarySHA256": "abfd2d435c1b8a98b31be472779ff1aba72614836000fc27e12fb676b2a1df8a",
-    "actualTraceFinding": "A initially reaches500 after return then moves to309 about11–19ms later; mechanism and exact saved history state remain unobserved.",
+    "actualTraceFinding": "A initially reaches500 after return then moves to309 about11\u201319ms later; mechanism and exact saved history state remain unobserved.",
     "primaryAssertion": "Original {window,nested,same} fields are sampled FIRST and compared exactly with {...saved,same:true}. No500 weakening.",
     "changes": [
       "Existing outgoing click evaluation returns fixed before/after numbers and booleans around same single native click.",
@@ -4317,7 +4322,7 @@
     "hardMemoryLimitEstablished": false,
     "priorSnapshot": "priorRevokedRetirementSourceFormattingQualification"
   },
-  "priorWindowScrollSourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282→1282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
+  "priorWindowScrollSourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282\u21921282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
   "priorWindowScrollFinalSourceReadinessReview": {
     "status": "REVOKED_RETIREMENT_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
     "priorSnapshot": "priorRevokedRetirementFinalSourceReadinessReview",
@@ -5814,7 +5819,7 @@
     ]
   },
   "priorA95CIReadyReadinessMeaning": "PRIVATE_SOURCE_ONLY_READY_FALSE: measured193pin union now fits the approved finite193 input guard. Independent logs192 and all other caps remainunchanged. Full external union source review and separate rootCI readiness decision remainpending; no runtime/size/fix/cause/79/11 claim.",
-  "priorA95CIReadySourceInputScope": "PRIVATE exacta95 nine-path MIME+finitecommanddrain+safeworkspaceretirement source. Observerhelper/spec/sixNodegroups exacta95; deliberate runner/ci.test merges preserved.193pins=179unchangeda95rows+3rebound+11new, inputselfexcluded. ONLY root-approved inputfileguard192→193 added versus privatev1; independentlogs192/allothercaps unchanged. Only2MIMEGo modified,1280others exact,noaddedGo. Readyfalse pending fullpeer/rootdecision; allhistories preserved.",
+  "priorA95CIReadySourceInputScope": "PRIVATE exacta95 nine-path MIME+finitecommanddrain+safeworkspaceretirement source. Observerhelper/spec/sixNodegroups exacta95; deliberate runner/ci.test merges preserved.193pins=179unchangeda95rows+3rebound+11new, inputselfexcluded. ONLY root-approved inputfileguard192\u2192193 added versus privatev1; independentlogs192/allothercaps unchanged. Only2MIMEGo modified,1280others exact,noaddedGo. Readyfalse pending fullpeer/rootdecision; allhistories preserved.",
   "priorA95CIReadyCombinedSourceInput": {
     "status": "PRIVATE_A95_REBASE_FINITE193_GUARD_SOURCE_ONLY_PENDING_FULL_PEER_READY_FALSE",
     "integrationBaseCommit": "a95d78a311540bd81a5758dd549c89163b74db02",
@@ -5998,7 +6003,7 @@
       "sixPureNodeGroupSectionByteExactA95": true
     },
     "deliberateOverlapMerge": {
-      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192→193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
+      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192\u2192193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
       "ciTest": "Actuala95file+3runnerexportnames+exactold9drainsection; reverse recovers completea95ci.test."
     },
     "newPureNodeGroupsRelativeA95": {
@@ -6909,7 +6914,7 @@
       "sixPureNodeGroupSectionByteExactA95": true
     },
     "deliberateOverlapMerge": {
-      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192→193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
+      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192\u2192193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
       "ciTest": "Actuala95file+3runnerexportnames+exactold9drainsection; reverse recovers completea95ci.test."
     },
     "newPureNodeGroupsRelativeA95": {
@@ -9949,7 +9954,7 @@
     "existingFourScalarPolicyErrorAndOuterNativeObserverByteExact": true
   },
   "combinedParityIntegrationSource": {
-    "status": "LOCAL_COMBINED_SOURCE_PARTIAL_QUALIFICATION_REMOTE_UNOBSERVED",
+    "status": "SOURCE_REBOUND_LOCAL_FOCUSED_AND_WASM_PASS_FULL_NATIVE_AND_REMOTE_PENDING",
     "upstreamBaseCommit": "d788b8c3fe8bb4645cc28968f25b93a242e6db83",
     "localQualificationBase": "747c43a9d427c17893636a230a5bff5eb55151e0",
     "previousQualification": "nativeCadenceAndRetainedAftermathQualification",
@@ -9965,8 +9970,7 @@
       "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
       "allGoTestsByteExact": false,
       "producerExpectedFullGoGuardEnforced": true,
-      "guardExecutedForThisNewSource": true
-    },
-    "localQualificationReport": "docs/benchmarks/combined-parity-integration-qualification.json"
+      "guardExecutedForThisNewSource": false
+    }
   }
 }
