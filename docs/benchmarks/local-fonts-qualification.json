@@ -1,0 +1,259 @@
+{
+  "version": 1,
+  "status": "working-tree bounded font snapshot qualification; full goal open",
+  "timezone": "America/Los_Angeles",
+  "source": {
+    "base": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "files": {
+      "assets/assets.go": "d96a8cdff80f84b458e1532601f1af8520b57e9cf58b42ae35bf6cc0b6312240",
+      "assets/local_fonts.go": "97446f874a69603ac0fad0e19989e0e86397ff2281f732fdceddb0fb9c77f268",
+      "assets/local_fonts_test.go": "ac0e4ab2e5d301c444c8ee0ed74d616824ae9233725dfae0fd4ed77a9a0faa0c",
+      "cmd/nextgo/export.go": "18b95e6394f0f99b9819b7fe580071b3ecbd75324c190209f2b730e92cd01cdd",
+      "cmd/nextgo/export_test.go": "6395987e18e136feb6d19900028537590f66ce011ef5db9951a6052cdbd3cdcb",
+      "nextgo.go": "30d9a04bbb70ca215c84ba95f5beee5a813b76db534befea97ceb65debfc9f19",
+      "examples/demo/localfonts/fonts.go": "26819abb152e6c72fd9d2e5aa4a230e2d99785e143c66a7df3bbfcfe6f5a4231",
+      "examples/demo/localfonts/fixture.woff": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e",
+      "examples/demo/localfonts/fixture.woff2": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196",
+      "examples/demo/app/local-fonts/page.go": "2c0954d8bf91d9a8096835d346b45f113a506e93c237fa724f7ec8d953b72744",
+      "examples/demo/public/local-fonts.css": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e",
+      "examples/demo/app/config.go": "cd50126d7c9b092693f959cec67219590f8e30b0411bd2e497c14786cdde1474",
+      "examples/demo/routes/nextgo_gen.go": "b17b859377b7a96b41d205f90dd01de02c50ea406fad312345e0382045e07b23",
+      "tests/deployment/local_fonts_test.go": "7a9f7909ef15259c9bb4533f7313bde82f563daf1517c905b442238997e79cbc",
+      "tests/local-fonts.config.mjs": "5108330f659a6ca917d64a8e121c32949a293bab5550bcbfc9cc16c969ba9196",
+      "tests/local-fonts.spec.mjs": "a99726422aa5251522067f2cebba8c8344db6c9ec6f2f2d8a06b8ff7206046f8",
+      "tests/fonts/generate.py": "ba9312239ed89efb09253a884787ad0d9885ac31a3c8424c4730922d8a8dc409",
+      ".github/workflows/ci.yml": "5e0a97a5692494b89501aa9aa18b02787e62d59636d04c913f759b6ebd7acdb7"
+    }
+  },
+  "fontManifest": {
+    "version": 1,
+    "stylesheet": "/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+    "faces": [
+      {
+        "Family": "Nextgo Fixture",
+        "Source": "/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+        "Format": "woff2",
+        "Weight": "400",
+        "Style": "normal",
+        "Display": "swap",
+        "SizeAdjust": null,
+        "AscentOverride": null,
+        "DescentOverride": null,
+        "LineGapOverride": null
+      },
+      {
+        "Family": "Nextgo Fixture WOFF",
+        "Source": "/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+        "Format": "woff",
+        "Weight": "400",
+        "Style": "normal",
+        "Display": "swap",
+        "SizeAdjust": null,
+        "AscentOverride": null,
+        "DescentOverride": null,
+        "LineGapOverride": null
+      }
+    ],
+    "assets": [
+      {
+        "url": "/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+        "contentType": "font/woff",
+        "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e",
+        "bytes": 964
+      },
+      {
+        "url": "/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+        "contentType": "text/css; charset=utf-8",
+        "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65",
+        "bytes": 385
+      },
+      {
+        "url": "/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+        "contentType": "font/woff2",
+        "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196",
+        "bytes": 592
+      }
+    ]
+  },
+  "results": [
+    {
+      "sdk": "go1.27.3",
+      "platform": "linux/amd64",
+      "binarySHA256": "ed6f7ab967d249cb15e290fd6dba05478d9f66ba35682c9cbe27303a5cc4e54c",
+      "binaryBytes": 50049184,
+      "testSHA256": "06382fbd96cb5a704880451ce96342791ccad2be8838a5feb7b81bb7af4bde9b",
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T08:02:59.099Z",
+          "duration": 14093.88,
+          "expected": 9,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "profiles": [
+          "Chromium desktop"
+        ],
+        "processCleanupProofs": 9,
+        "noJSDecodeProofs": 3,
+        "applicationJavaScriptForFonts": false
+      },
+      "hostAssetCases": 18,
+      "containerAssetCases": 18,
+      "caseAccounting": "same 18 resource cases repeated on host/container; four method/validator checks per asset and six document/CSP/dependency checks",
+      "scopes": [
+        "ordinary",
+        "mounted French trailing-slash"
+      ],
+      "transports": [
+        "http",
+        "buffered",
+        "streaming"
+      ]
+    },
+    {
+      "sdk": "go1.24.13",
+      "platform": "linux/amd64",
+      "binarySHA256": "ad2b9155661d5ce9c416e1cff3be721a475d846936475cb453e7edd60e159718",
+      "binaryBytes": 44888248,
+      "testSHA256": "153f498a2c2d5af42f6734f8496bfb23923e57178e55c7c55cc2b80b375299c3",
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T08:11:02.122Z",
+          "duration": 11775.517,
+          "expected": 9,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "profiles": [
+          "Chromium desktop"
+        ],
+        "processCleanupProofs": 9,
+        "noJSDecodeProofs": 3,
+        "applicationJavaScriptForFonts": false
+      },
+      "hostAssetCases": 18,
+      "containerAssetCases": 18,
+      "caseAccounting": "same 18 resource cases repeated on host/container; four method/validator checks per asset and six document/CSP/dependency checks",
+      "scopes": [
+        "ordinary",
+        "mounted French trailing-slash"
+      ],
+      "transports": [
+        "http",
+        "buffered",
+        "streaming"
+      ]
+    }
+  ],
+  "verification": {
+    "fullNativeRaceGo1_27": {
+      "status": "passed",
+      "testedPackages": 80
+    },
+    "fullVetGo1_27": "passed",
+    "nativeRaceAndVetGo1_24": "assets, cmd/nextgo and affected demo packages passed",
+    "headerFuzz": {
+      "targetSeconds": 3,
+      "observedSeconds": 4,
+      "executions": 6805,
+      "corpusInputs": 3,
+      "status": "passed"
+    },
+    "export": "native and navigation resource head checks reject runtime font URLs, including encoded scoped paths; body/title/description namespace text remains exportable; prior generation preserved",
+    "defaultMaxFileBytes": 4194304,
+    "defaultMaxTotalBytes": 33554432
+  },
+  "ci": {
+    "sdkSelectors": [
+      "1.24.x",
+      "stable"
+    ],
+    "browserProfiles": 12,
+    "browserCases": 36,
+    "remoteStatus": "not run"
+  },
+  "container": {
+    "base": "scratch with prebuilt static server/test binaries",
+    "uid": "65532:65532",
+    "readOnly": true,
+    "network": "none",
+    "capabilities": "ALL dropped",
+    "noNewPrivileges": true,
+    "memoryBytes": 268435456,
+    "pidsLimit": 128,
+    "browserInsideContainer": false
+  },
+  "priorAttempts": [
+    "Test fixture import shadowed by a local variable; alias corrected before successful builds.",
+    "Initial native transport assertion expected a strong ETag after negotiated gzip; identity requests now verify raw hashes and lengths; compression remains allowed to weaken validators.",
+    "One broad suite overlapped exporter edits and correctly rejected changed compiler inputs; frozen rerun passed.",
+    "An intermediate standalone cmd test used sandbox umask 0077 and hit the pre-existing publication permission assertion; frozen runs use umask 022."
+  ],
+  "limits": [
+    "User selected local machine qualification; actual hosted serverless remains open.",
+    "Two original tiny fixtures prove header admission and browser decoding, not arbitrary font sanitization or complete WOFF/WOFF2 conformance.",
+    "Only Chromium desktop ran locally; Firefox/WebKit/touch CI definition and remote evidence remain pending under current network policy.",
+    "Runtime font handlers are not yet captured for static/CDN publication; static export fails closed for their resources.",
+    "No downloading, subsetting, metric inference, font collections, broad glyph coverage, layout-shift/performance/security/soak qualification.",
+    "No production-maturity, immutable release or full Next.js parity claim; all 79 capabilities and 11 gates remain."
+  ],
+  "logs": {
+    "native-race-frozen-go1.27.log": {
+      "path": ".nextgo-test-results/local-fonts/native-race-frozen-go1.27.log",
+      "sha256": "81e994fe14e6d8595419c18f26a0eb8a79e498b7d82a1a9519b1056e746c6314",
+      "bytes": 21700
+    },
+    "native-vet-frozen-go1.27.log": {
+      "path": ".nextgo-test-results/local-fonts/native-vet-frozen-go1.27.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "font-fuzz-frozen.log": {
+      "path": ".nextgo-test-results/local-fonts/font-fuzz-frozen.log",
+      "sha256": "a0cd297fcde6c5449ab8b267c6c6abd50b67cd97d21c4073359db5dd50b03154",
+      "bytes": 351
+    },
+    "frozen-go1.24.log": {
+      "path": ".nextgo-test-results/local-fonts/frozen-go1.24.log",
+      "sha256": "227dbafca2c5fac0bed4b702e2e209f2f7ce31694163219941f0739461ff0d0a",
+      "bytes": 330
+    },
+    "vet-frozen-go1.24.log": {
+      "path": ".nextgo-test-results/local-fonts/vet-frozen-go1.24.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "chromium-final.log": {
+      "path": ".nextgo-test-results/local-fonts/chromium-final.log",
+      "sha256": "6ccb445b910b7470e994b6e5a91ae4ce8e5fabc4805edd5db524005e8246da68",
+      "bytes": 2519
+    },
+    "chromium-go1.24.log": {
+      "path": ".nextgo-test-results/local-fonts/chromium-go1.24.log",
+      "sha256": "755cebd70e85701c95017dca7c34cb222c44ed49456488d30587f7d7282953b1",
+      "bytes": 2523
+    },
+    "deployment-host-frozen-go1.27.log": {
+      "path": ".nextgo-test-results/local-fonts/deployment-host-frozen-go1.27.log",
+      "sha256": "c52d395ff3cababf18346d2c7a842eedc282ace8850ca07554cd78fd1000a64b",
+      "bytes": 2988
+    },
+    "deployment-host-final-go1.24.log": {
+      "path": ".nextgo-test-results/local-fonts/deployment-host-final-go1.24.log",
+      "sha256": "c50e3a3e8dc29f01bc2a20a12ede89ec42e1556d729c94d6db29cc1711b5e510",
+      "bytes": 2988
+    },
+    "deployment-container.log": {
+      "path": ".nextgo-test-results/local-fonts/deployment-container.log",
+      "sha256": "78f28c992dd18c76ec88fb6f5ecafb0cc007bf77e8c1331e4cd7ebad9b688446",
+      "bytes": 2927
+    },
+    "deployment-container-go1.24.log": {
+      "path": ".nextgo-test-results/local-fonts/deployment-container-go1.24.log",
+      "sha256": "fbb963a829a3b0ba0919a70df1d55140555da82af80cebd8e38987d29bbc0dcc",
+      "bytes": 2927
+    }
+  }
+}

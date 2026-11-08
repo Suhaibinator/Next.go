@@ -1,0 +1,2210 @@
+{
+  "format": "nextgo-compiled-routing-qualification-v1",
+  "recordedAtUTC": "2026-11-07T18:40:17.325229+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "files": {
+      "route_index.go": "6ae49061edde8d2570267e20ad4bd81e4fe30611d75b2eb65ee5c973273860ef",
+      "route_index_test.go": "731dbc7e7c100ede97e2094321b3e28f14c773e1538f3353e057416a8a9ba423",
+      "nextgo.go": "86c7d562ae70a8999e05682d342e7bf414fabd72fd89abc999f2d9b1864c9d27",
+      "prerender.go": "160a930f60ff287380d505863ec48cdfc5a0126f0f4937a1b3ffa472132aa26d",
+      "internal/routing/routing.go": "6e0441b07750513f4d364c52a2bfb2eab8b256e2dc74395d929498d8ce765b63",
+      "internal/routing/index.go": "8b4f3f9ad90dbd4cbc797ceda05726628698adc6fb8963a450e59358582c20e6",
+      "internal/routing/index_test.go": "b687c18cb8f17e6774607d5c6b78897cd4d4e743187543ed89cbd188d6defa38",
+      "internal/routing/index_bench_test.go": "14d69b6cd06bbeae30af93e6d0e4957bd7a3837a30cc5558a84c0c29e0614e3b",
+      "internal/navigation/manifest.go": "f53dcddc07b8322fd028ba6243a59515f165391a8a595bebb2dcf5b3fbbfdd83",
+      "internal/navigation/index_test.go": "f41915a5fc8f100b066e9a1c96551b33419c25bf6a09110c97e64b1d414562c3",
+      "client/runtime_js.go": "24e8f4f0754759052997f43b4856a60c23860f9f1cb99f7caa72e64fa129ada5",
+      "scripts/test-wasm.sh": "e29be79334f7a5accbdbe041f8b3962138d3cd35e581ad0863a98a9c3a3ca45b",
+      ".github/workflows/ci.yml": "63362159e68a7d372ffccbf636b82eb370df33954db3a3822e9cee03d4792049",
+      "docs/ROUTING_PERFORMANCE.md": "7ef463ae6d20967517ca900e528bf2c778e954129a6ece97569c5bd3905dcca0",
+      "examples/root-layouts/app/api/health/route.go": "7871ca11dccff20865dca0feb9ce963087d1fae90067309ad10c98861f83d7e3"
+    },
+    "allRepositoryGoFiles": {
+      "count": 1245,
+      "manifestEncoding": "sorted compact JSON path -> SHA-256 plus newline",
+      "sha256": "8ceb874b665f243a5c1e39bf8eab27acdcda8d1cec75802a693ce98cff5da29c"
+    }
+  },
+  "baseline": {
+    "nextjs": "16.4.5",
+    "officialStableURL": "https://github.com/vercel/next.js/releases/tag/v16.4.5"
+  },
+  "environment": {
+    "Go": [
+      "1.24.13",
+      "1.27.3"
+    ],
+    "os": "Linux amd64",
+    "CPU": "AMD EPYC 9V74 80-Core Processor (shared managed host)",
+    "nativeTestGOMAXPROCS": 2,
+    "benchmarkAndWasmGOMAXPROCS": 1,
+    "GOFLAGS": "-p=2",
+    "GOTOOLCHAIN": "local",
+    "umask": "022",
+    "deploymentCGO": false,
+    "node": "24.22.1",
+    "playwright": "1.64.1",
+    "browser": "Chromium 156.0.8078.79"
+  },
+  "contract": {
+    "API": "existing route grammar/registration/parameter APIs; no new application JS",
+    "index": "immutable trie with literal fast path and explicit DFS stack; one request decode, selected route parameter map only",
+    "priority": "existing lexicographic static/parameter/required/optional specificity",
+    "validation": "canonical shape, catch-all peer and optional-parent indexes, preserving earliest conflict/error text",
+    "manifest": "private compiled route snapshot; unchanged wire JSON and configuration ID",
+    "scope": "ordinary native page/API dispatcher and initialized Go/WASM route classification; configured handler, document-rule and rewrite ownership unchanged",
+    "properties": [
+      "all ordered triples from 21-pattern conflict corpus",
+      "linear matcher/validator reference comparison",
+      "percent, Unicode and malformed paths",
+      "literal-to-parameter backtracking",
+      "10000-segment dynamic/static paths without recursive lookup",
+      "input and concurrent result ownership",
+      "3000-route real App selection",
+      "Go/WASM execution of routing and manifest tests"
+    ]
+  },
+  "validation": {
+    "go1.27": {
+      "nativeRacePackages": 80,
+      "wasmPackageRunsAcrossFourTargets": 11,
+      "nativeVet": "passed",
+      "wasmVetAllFourTargets": "passed",
+      "generatedHelperChecks": 14,
+      "evidence": [
+        {
+          "path": ".nextgo-test-results/routing-index/race-go1.27.log",
+          "bytes": 23969,
+          "sha256": "aa5ada3f2a2edbd301431acd66dbd060d49b13a8fe66d8870aad48d16288dd18"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/vet-go1.27.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/wasm-go1.27.log",
+          "bytes": 611,
+          "sha256": "8bdb2e7fc29bb359946394d54be2b88dfd573d5499c2d76c7bf35aed3049ceea"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/wasm-vet-all-go1.27.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/generated-check-go1.27.log",
+          "bytes": 5294,
+          "sha256": "f82b37563ba6c5bf222600f9799bfa432598bd146f4354d17a1725d1645556db"
+        }
+      ],
+      "browser": {
+        "roots": {
+          "passed": 19,
+          "stats": {
+            "startTime": "2026-11-07T18:33:52.654Z",
+            "duration": 27064.774,
+            "expected": 19,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/roots-go1.27.json",
+            "bytes": 90350,
+            "sha256": "23d05a3c2a90ad3d8b59286e6cc918fb6ea775ff29eb86d0d8b8313658a47096"
+          }
+        },
+        "private": {
+          "passed": 12,
+          "stats": {
+            "startTime": "2026-11-07T18:34:20.149Z",
+            "duration": 11630.938,
+            "expected": 12,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/private-go1.27.json",
+            "bytes": 72352,
+            "sha256": "c145512bc311ed87db2f39d55562db4588af05b0ff7a2f8bf3198d7ce3132622"
+          }
+        },
+        "fonts": {
+          "passed": 12,
+          "stats": {
+            "startTime": "2026-11-07T18:34:32.390Z",
+            "duration": 11057.48,
+            "expected": 12,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fonts-go1.27.json",
+            "bytes": 83871,
+            "sha256": "2f68a740ec115dbfb89f6304bca2a89c988c1d38d43f8517b5815196488e0dac"
+          }
+        },
+        "client-only": {
+          "passed": 22,
+          "stats": {
+            "startTime": "2026-11-07T18:34:43.884Z",
+            "duration": 30192.116,
+            "expected": 22,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/client-only-go1.27.json",
+            "bytes": 107771,
+            "sha256": "a7b9edf107ab0003219d8420e3dc2fb8de303186b9b7797d0637a71ef5792d99"
+          }
+        }
+      },
+      "deployment": {
+        "host": {
+          "leafCases": 156,
+          "byTest": {
+            "TestClientOnlyExecutable": 54,
+            "TestLocalFontsExecutable": 18,
+            "TestPrivateRoutesExecutable": 42,
+            "TestRootLayoutsExecutable": 42
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/deployment-host-go1.27.log",
+            "bytes": 24817,
+            "sha256": "572c2578e94c882f7cd805389eac9affcf1e2dd7d13327af08101c1c4d860771"
+          }
+        },
+        "container": {
+          "leafCases": 156,
+          "byTest": {
+            "TestClientOnlyExecutable": 54,
+            "TestLocalFontsExecutable": 18,
+            "TestPrivateRoutesExecutable": 42,
+            "TestRootLayoutsExecutable": 42
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/deployment-container-go1.27.log",
+            "bytes": 24817,
+            "sha256": "43f23192e26d9468c38bdde7a591826ee9ab1584951f616f94d431a6c1ee2555"
+          }
+        }
+      },
+      "fuzz": {
+        "match": {
+          "requestedSeconds": 5,
+          "executions": 28350,
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fuzz-match-go1.27.log",
+            "bytes": 440,
+            "sha256": "78296787e4bcbf79892ef2421522b319f172bf80aee04a56e07e36b5a01a208e"
+          }
+        },
+        "validation": {
+          "requestedSeconds": 5,
+          "executions": 40844,
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fuzz-validation-go1.27.log",
+            "bytes": 441,
+            "sha256": "1fd7230dd8f85648e3a9ebea0bcef14b073bbb2fe67acd30c75eea3869542cbb"
+          }
+        }
+      },
+      "artifacts": {
+        "demo": {
+          "server": {
+            "path": ".nextgo-test-results/routing-index/demo-go1.27/server",
+            "bytes": 50155680,
+            "sha256": "c70268cfff5a0f7ac8f6e22c439832e0761c0bfb5538bcac00b71fc964841e90"
+          },
+          "static": {
+            "sha256": "a494e3092a049cf99c4c729eeae9ede3d7bc2b475e6f1e635e9ed26f4cac1471",
+            "bytes": 35975112,
+            "files": [
+              {
+                "path": ".nextgo-export.json",
+                "bytes": 966,
+                "sha256": "1664681c2a145a82905e66d8f97ded614125107d8431e430dc895f796e0b6764"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/app.wasm",
+                "bytes": 8700207,
+                "sha256": "ec7d7ec1d754a6ca0aeb4050590ba16e48c4eb33dd2515c8a59dfda1e7804064"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/boot.js",
+                "bytes": 2592,
+                "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/module-2641f2a3c790dd36d6ea151fd4f249f58e852fa37911a6ac8361873179b24741.wasm",
+                "bytes": 5293060,
+                "sha256": "2641f2a3c790dd36d6ea151fd4f249f58e852fa37911a6ac8361873179b24741"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/module-40cc86a082aec59efe888e46b7fd463969a417e1517d3d5ae9a7be1d804b2e91.wasm",
+                "bytes": 5404230,
+                "sha256": "40cc86a082aec59efe888e46b7fd463969a417e1517d3d5ae9a7be1d804b2e91"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/module-71049958b3adc76518aef8dfa5a5817abac13bcbd3a4d7a3d4babf62e4645736.wasm",
+                "bytes": 5408590,
+                "sha256": "71049958b3adc76518aef8dfa5a5817abac13bcbd3a4d7a3d4babf62e4645736"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/module-be168fc28af12394df1eb6c32e598c8cc8048702e9be46510a04b897b7e690ad.wasm",
+                "bytes": 5540086,
+                "sha256": "be168fc28af12394df1eb6c32e598c8cc8048702e9be46510a04b897b7e690ad"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/module-c4eee5cf5330918661a9b9431bee5007fcf5c009ad2cb59bfef40069d02f2514.wasm",
+                "bytes": 5511970,
+                "sha256": "c4eee5cf5330918661a9b9431bee5007fcf5c009ad2cb59bfef40069d02f2514"
+              },
+              {
+                "path": "lambda-assets/_nextgo/0f26b1df383a7881e98e/wasm_exec.js",
+                "bytes": 16992,
+                "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.mp4",
+                "bytes": 2125,
+                "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.vtt",
+                "bytes": 96,
+                "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.wav",
+                "bytes": 9678,
+                "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.webm",
+                "bytes": 1098,
+                "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+              },
+              {
+                "path": "lambda-assets/assets/link-status.css",
+                "bytes": 81,
+                "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+              },
+              {
+                "path": "lambda-assets/assets/local-fonts.css",
+                "bytes": 211,
+                "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+              },
+              {
+                "path": "lambda-assets/assets/media.css",
+                "bytes": 54,
+                "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+              },
+              {
+                "path": "lambda-assets/assets/metadata-stream.css",
+                "bytes": 377,
+                "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+              },
+              {
+                "path": "lambda-assets/assets/social-image.css",
+                "bytes": 188,
+                "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+              },
+              {
+                "path": "lambda-assets/assets/style.css",
+                "bytes": 8625,
+                "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-demo.js",
+                "bytes": 157,
+                "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-early-second.js",
+                "bytes": 84,
+                "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-early.js",
+                "bytes": 81,
+                "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-module.js",
+                "bytes": 167,
+                "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/_public.json",
+                "bytes": 2579,
+                "sha256": "75d9feae943f7d2d09e972650b3ffff81a71a5a56d8cdc802ad5a5867ea0de2d"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/about.json",
+                "bytes": 4069,
+                "sha256": "20acf8b7946b4a011a827b1f07310b73dc45e5656834fe5d65880f6b14f479d9"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/client-only.json",
+                "bytes": 7203,
+                "sha256": "f88fd70f7e116bf16b453c78d4aa8775a8e401d3014fef2924b53a2c7800ae36"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/local-fonts.json",
+                "bytes": 4475,
+                "sha256": "f7993a37187a8d04d163febfb7a3dde0f4a26c19287ed1b8520ba889b7928b1e"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/routing-private.json",
+                "bytes": 3657,
+                "sha256": "292a3c0ea93369f97322b2ab364594ac890d6387aad859fcee082bde7f6179d6"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+                "bytes": 964,
+                "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+                "bytes": 385,
+                "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+                "bytes": 592,
+                "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+              },
+              {
+                "path": "lambda-features/_public/index.html",
+                "bytes": 8401,
+                "sha256": "5b8e8ce7c6ad286381ee9adcef93c1e6ae9cf8345d7bcb5599a2287f77f6d6e8"
+              },
+              {
+                "path": "lambda-features/about/index.html",
+                "bytes": 9644,
+                "sha256": "36388f9294b9392439d2f203dcb7e636bc453f6a5a0bdd6b3feb5570030f2aff"
+              },
+              {
+                "path": "lambda-features/client-only/index.html",
+                "bytes": 12015,
+                "sha256": "4d01f6a14246aea1c517658f23eb0eb2134b8767c059f72c314221a6c34e90e9"
+              },
+              {
+                "path": "lambda-features/local-fonts/index.html",
+                "bytes": 10100,
+                "sha256": "8e2710ad633be87849bac395fc75c8bdbed77fdde723ea9483283a8d6e9ab350"
+              },
+              {
+                "path": "lambda-features/routing-private/index.html",
+                "bytes": 9313,
+                "sha256": "ec0d209c5cadc0b7f7d519f07888a24475d5be6cf2b561def51fb182d1b79b88"
+              }
+            ]
+          }
+        },
+        "roots": {
+          "server": {
+            "path": ".nextgo-test-results/routing-index/roots-go1.27/server",
+            "bytes": 18964640,
+            "sha256": "ccaf1ce7badd8ce1acc518f3167a34079c30d4cff71003b098de0014ad21b3e1"
+          },
+          "static": {
+            "sha256": "80d22185d44e9a1384b4384f5ab8a87c446902ebfaa0a45633b4ce1e377a2a93",
+            "bytes": 6644975,
+            "files": [
+              {
+                "path": ".nextgo-export.json",
+                "bytes": 294,
+                "sha256": "8ff0de30d984c383e524bfc0aae0cd380e758868c9b3a1a5c7d106780661d653"
+              },
+              {
+                "path": "lambda-assets/_nextgo/51c64b2fea8f42a5216e/app.wasm",
+                "bytes": 6589917,
+                "sha256": "03517eda0df5a750fde73c6859e5a968a9eff40de30face7aeabf88cb59fd324"
+              },
+              {
+                "path": "lambda-assets/_nextgo/51c64b2fea8f42a5216e/boot.js",
+                "bytes": 2592,
+                "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+              },
+              {
+                "path": "lambda-assets/_nextgo/51c64b2fea8f42a5216e/wasm_exec.js",
+                "bytes": 16992,
+                "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+              },
+              {
+                "path": "lambda-assets/assets/style.css",
+                "bytes": 270,
+                "sha256": "4435ee0058d5c90aa1ae23b206d30842e1a932caeba73042da5f24fd6018dc57"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/dashboard/settings.json",
+                "bytes": 1834,
+                "sha256": "816b89e0f4a3a5b2ab618fe2eb5a7218228d609cf43685403f785f4d83c1ab66"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/dashboard.json",
+                "bytes": 1809,
+                "sha256": "70fad9ec6d60380920dd27c985fca73634600efd98d3f511163eec75987b1e08"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/guide.json",
+                "bytes": 2290,
+                "sha256": "0a4114c66cd2383df11bb47992409840b9317befdecfec8315b33c35dad41be1"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/index.json",
+                "bytes": 2259,
+                "sha256": "db001dba12732306e15e07c0e5251722672ab1e0a258560212710e9a7bfadefb"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/masked.json",
+                "bytes": 2300,
+                "sha256": "77c81b9d91272f3e608af3abdb15252f1cef8b9e1d55eb848822e0e164f95835"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/plain.json",
+                "bytes": 611,
+                "sha256": "b6e38144be7368aee1cc1122b11791db4d2d1e75012cf3888372b50d51374ac4"
+              },
+              {
+                "path": "lambda-features/dashboard/index.html",
+                "bytes": 3942,
+                "sha256": "7dceb8750c7874a3e7b4858181db4505ffffabc1d9413de37739c64cec0ec8c4"
+              },
+              {
+                "path": "lambda-features/dashboard/settings/index.html",
+                "bytes": 3968,
+                "sha256": "bdc3e96af1795797726e33f9c40e08514336feffed945d8201d8edfbe8bcddcc"
+              },
+              {
+                "path": "lambda-features/guide/index.html",
+                "bytes": 4285,
+                "sha256": "a9caedb3a4796f2d6523c3a2a68ba5fce7220f76e3b0b6c731e24cb4c148f257"
+              },
+              {
+                "path": "lambda-features/index.html",
+                "bytes": 4270,
+                "sha256": "66b8be935916220073d5f55b4c8f046fdecd6d7496f9fef24cd5920db30f8b6e"
+              },
+              {
+                "path": "lambda-features/masked/index.html",
+                "bytes": 4314,
+                "sha256": "d83ada09f2f5954008edcdad49c6f5075d8ac16b05a7197f0eb5fb7170ba566b"
+              },
+              {
+                "path": "lambda-features/plain/index.html",
+                "bytes": 3028,
+                "sha256": "55ca562d39326906abada904a66fd03008f39df6a57dfc5b7da6f6b51737bb9e"
+              }
+            ]
+          }
+        },
+        "deploymentTests": {
+          "path": ".nextgo-test-results/routing-index/deployment-go1.27.test",
+          "bytes": 20851356,
+          "sha256": "1f8b3ce56742ef4f6dae9376905d7dae9cc507bad3057162b869575a6020529f"
+        }
+      }
+    },
+    "go1.24": {
+      "nativeRacePackages": 80,
+      "wasmPackageRunsAcrossFourTargets": 11,
+      "nativeVet": "passed",
+      "wasmVetAllFourTargets": "passed",
+      "generatedHelperChecks": 14,
+      "evidence": [
+        {
+          "path": ".nextgo-test-results/routing-index/race-go1.24.log",
+          "bytes": 23969,
+          "sha256": "8d6e4afaa37416983332fdfabbed932e16380b08f6f501a3512b9d1649e1eff9"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/vet-go1.24.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/wasm-go1.24.log",
+          "bytes": 611,
+          "sha256": "0f5420b03c27828027a2004b7b904e86579a98b496c7676faeaa3400f1d6b7e0"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/wasm-vet-all-go1.24.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/generated-check-go1.24.log",
+          "bytes": 5294,
+          "sha256": "f82b37563ba6c5bf222600f9799bfa432598bd146f4354d17a1725d1645556db"
+        }
+      ],
+      "browser": {
+        "roots": {
+          "passed": 19,
+          "stats": {
+            "startTime": "2026-11-07T18:35:15.066Z",
+            "duration": 25072.098,
+            "expected": 19,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/roots-go1.24.json",
+            "bytes": 90348,
+            "sha256": "a893f34876907fdac719af1d3c28744310c1d47c77a9566b5c121b408056b4be"
+          }
+        },
+        "private": {
+          "passed": 12,
+          "stats": {
+            "startTime": "2026-11-07T18:35:40.580Z",
+            "duration": 12664.459,
+            "expected": 12,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/private-go1.24.json",
+            "bytes": 72354,
+            "sha256": "c3a1aedd4d1d9ed497c99ba312f97290be4ce214baa225a5ca79e3048e2a040b"
+          }
+        },
+        "fonts": {
+          "passed": 12,
+          "stats": {
+            "startTime": "2026-11-07T18:35:53.656Z",
+            "duration": 12663.657,
+            "expected": 12,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fonts-go1.24.json",
+            "bytes": 83875,
+            "sha256": "705270a5933aa33b98b53c32fcaa11b5e8ce9f5eb91b4090d588d9935234b893"
+          }
+        },
+        "client-only": {
+          "passed": 22,
+          "stats": {
+            "startTime": "2026-11-07T18:36:07.036Z",
+            "duration": 36111.733,
+            "expected": 22,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/client-only-go1.24.json",
+            "bytes": 107771,
+            "sha256": "bf7523d1de6b59f6f36b74673233ce48548f7eff38fb08ef2375b372d49350ba"
+          }
+        }
+      },
+      "deployment": {
+        "host": {
+          "leafCases": 156,
+          "byTest": {
+            "TestClientOnlyExecutable": 54,
+            "TestLocalFontsExecutable": 18,
+            "TestPrivateRoutesExecutable": 42,
+            "TestRootLayoutsExecutable": 42
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/deployment-host-go1.24.log",
+            "bytes": 24817,
+            "sha256": "18c9134ce11a2737db2d6ea48e603a2392955d36b2a6ccef46c07180c14ec243"
+          }
+        },
+        "container": {
+          "leafCases": 156,
+          "byTest": {
+            "TestClientOnlyExecutable": 54,
+            "TestLocalFontsExecutable": 18,
+            "TestPrivateRoutesExecutable": 42,
+            "TestRootLayoutsExecutable": 42
+          },
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/deployment-container-go1.24.log",
+            "bytes": 24817,
+            "sha256": "83d5a3a00c097d94db1c71690c12f14235c2401bbf3573d5b0b5a775e27fe03c"
+          }
+        }
+      },
+      "fuzz": {
+        "match": {
+          "requestedSeconds": 5,
+          "executions": 36879,
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fuzz-match-go1.24.log",
+            "bytes": 374,
+            "sha256": "d069e07ce2e8359d01b675ca377b56aca464a69240c5debf80946ca5901324fb"
+          }
+        },
+        "validation": {
+          "requestedSeconds": 5,
+          "executions": 151530,
+          "evidence": {
+            "path": ".nextgo-test-results/routing-index/fuzz-validation-go1.24.log",
+            "bytes": 374,
+            "sha256": "0bf34a08d3ff0ded8bf85ebd11f21b076f6fe012dda2f3cf42965e1b4283144b"
+          }
+        }
+      },
+      "artifacts": {
+        "demo": {
+          "server": {
+            "path": ".nextgo-test-results/routing-index/demo-go1.24/server",
+            "bytes": 45011128,
+            "sha256": "1f7d4f29cf309605099885c699aef87066478644c3b7b987f9ff4bb58adac798"
+          },
+          "static": {
+            "sha256": "7042b5eb10e29afcd28c1acbb1ddd23f00122400f251cecc97ba0a2da616ab5c",
+            "bytes": 29047397,
+            "files": [
+              {
+                "path": ".nextgo-export.json",
+                "bytes": 966,
+                "sha256": "bd0cd004e65f0b3ff917a7bb8dbd09501874669902f1513ce7cc7aecb62e8d87"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/app.wasm",
+                "bytes": 7678689,
+                "sha256": "f76f127dd64ec00c9b4629b95143fc874b812eee1271ca9a80885c322ccefda4"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/boot.js",
+                "bytes": 2592,
+                "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/module-412dfb96a69a599c236f98d549927689b0a4651d561b0196eae09e75b9070e69.wasm",
+                "bytes": 4359619,
+                "sha256": "412dfb96a69a599c236f98d549927689b0a4651d561b0196eae09e75b9070e69"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/module-6f47c6c9909d1371e462fb81d09b830012e8056d5752ea0a224342a4aec0ce93.wasm",
+                "bytes": 4258401,
+                "sha256": "6f47c6c9909d1371e462fb81d09b830012e8056d5752ea0a224342a4aec0ce93"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/module-890c9970a3c295aec7f9fb3b6c718348e11b933fcb7f8a63864ab7bf4b59d112.wasm",
+                "bytes": 4333597,
+                "sha256": "890c9970a3c295aec7f9fb3b6c718348e11b933fcb7f8a63864ab7bf4b59d112"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/module-aa65f3c9d8fd9ccb9a9c53d99194f85e9ba464df5732ffdfe790a8e706b13476.wasm",
+                "bytes": 4097746,
+                "sha256": "aa65f3c9d8fd9ccb9a9c53d99194f85e9ba464df5732ffdfe790a8e706b13476"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/module-c76c135933e91bafe07ccccb8e34cb5850006d86b372c07e8883f152703ab333.wasm",
+                "bytes": 4202376,
+                "sha256": "c76c135933e91bafe07ccccb8e34cb5850006d86b372c07e8883f152703ab333"
+              },
+              {
+                "path": "lambda-assets/_nextgo/6fc666a6ff14ffad4120/wasm_exec.js",
+                "bytes": 16992,
+                "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.mp4",
+                "bytes": 2125,
+                "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.vtt",
+                "bytes": 96,
+                "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.wav",
+                "bytes": 9678,
+                "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+              },
+              {
+                "path": "lambda-assets/assets/embeds-demo.webm",
+                "bytes": 1098,
+                "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+              },
+              {
+                "path": "lambda-assets/assets/link-status.css",
+                "bytes": 81,
+                "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+              },
+              {
+                "path": "lambda-assets/assets/local-fonts.css",
+                "bytes": 211,
+                "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+              },
+              {
+                "path": "lambda-assets/assets/media.css",
+                "bytes": 54,
+                "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+              },
+              {
+                "path": "lambda-assets/assets/metadata-stream.css",
+                "bytes": 377,
+                "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+              },
+              {
+                "path": "lambda-assets/assets/social-image.css",
+                "bytes": 188,
+                "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+              },
+              {
+                "path": "lambda-assets/assets/style.css",
+                "bytes": 8625,
+                "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-demo.js",
+                "bytes": 157,
+                "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-early-second.js",
+                "bytes": 84,
+                "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-early.js",
+                "bytes": 81,
+                "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+              },
+              {
+                "path": "lambda-assets/assets/vendor-module.js",
+                "bytes": 167,
+                "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/_public.json",
+                "bytes": 2579,
+                "sha256": "d0ae78c2d4604552f87fc1ebe06044d533dfb51b7b066cb590b1c55214f5185f"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/about.json",
+                "bytes": 4069,
+                "sha256": "f4c1d95f186b848e9decf0cca0d7eb6b34335070cfcf75f57469791cfd8062bc"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/client-only.json",
+                "bytes": 7203,
+                "sha256": "59075a3048970a0bbf0f7f4d66e9f3e3572f34ceb8856dedd4be883089b13555"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/local-fonts.json",
+                "bytes": 4475,
+                "sha256": "c883e90338ca2e5db740b14b1c61bc13da236b0cd2e12a6924fb9dbc3470ab07"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/routing-private.json",
+                "bytes": 3657,
+                "sha256": "7071d5d91cb5e4aea7acf34dcbf50a1113a91d5576894db239ef63311f8efcc2"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+                "bytes": 964,
+                "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+                "bytes": 385,
+                "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+              },
+              {
+                "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+                "bytes": 592,
+                "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+              },
+              {
+                "path": "lambda-features/_public/index.html",
+                "bytes": 8401,
+                "sha256": "c515c5a88291f901fc618df7f4480c63f787793fadda1eb3caa25cc259eccc4a"
+              },
+              {
+                "path": "lambda-features/about/index.html",
+                "bytes": 9644,
+                "sha256": "c1df4a570ae179c75288f703f30f2340145069fe0a107403b479aa56c1f6e0fc"
+              },
+              {
+                "path": "lambda-features/client-only/index.html",
+                "bytes": 12015,
+                "sha256": "496309dafb37cc20947d4970dd6b70e8d3e2012e977f4063879a594f8d3db167"
+              },
+              {
+                "path": "lambda-features/local-fonts/index.html",
+                "bytes": 10100,
+                "sha256": "50d1654ef64d04cd1b3d3ce71d00b1703492034b899e7515664747e70e4d74e0"
+              },
+              {
+                "path": "lambda-features/routing-private/index.html",
+                "bytes": 9313,
+                "sha256": "b12f5854494558b335c5f1014e5cf2e91e2ccda3a87024fd73a9f45c5b0c21f7"
+              }
+            ]
+          }
+        },
+        "roots": {
+          "server": {
+            "path": ".nextgo-test-results/routing-index/roots-go1.24/server",
+            "bytes": 16629944,
+            "sha256": "3c43ea27398ecf538d849f96df6640fb9290412ee14771272bc9b9d41b7327cb"
+          },
+          "static": {
+            "sha256": "9ecef6217372e4df3c071328350a20f3595553993983df8baaec72adf93446bc",
+            "bytes": 5403921,
+            "files": [
+              {
+                "path": ".nextgo-export.json",
+                "bytes": 294,
+                "sha256": "3edd8706f9a0354b115b2598b10610e790d54800e59ae57cf2704e755064731d"
+              },
+              {
+                "path": "lambda-assets/_nextgo/a4aa14324b5589c13d67/app.wasm",
+                "bytes": 5348863,
+                "sha256": "022b63a4d917659fa03ab0ed754f711d97e5ad41e189ffe68f3e66105d993c97"
+              },
+              {
+                "path": "lambda-assets/_nextgo/a4aa14324b5589c13d67/boot.js",
+                "bytes": 2592,
+                "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+              },
+              {
+                "path": "lambda-assets/_nextgo/a4aa14324b5589c13d67/wasm_exec.js",
+                "bytes": 16992,
+                "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+              },
+              {
+                "path": "lambda-assets/assets/style.css",
+                "bytes": 270,
+                "sha256": "4435ee0058d5c90aa1ae23b206d30842e1a932caeba73042da5f24fd6018dc57"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/dashboard/settings.json",
+                "bytes": 1834,
+                "sha256": "863c695e141c5d4190bee64766df2209cc1748816147e56a31b719c02aa0b110"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/dashboard.json",
+                "bytes": 1809,
+                "sha256": "637e05482df4d3b31b04b13dbff095254a5d09bf409de67eb823d6fc0605bb96"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/guide.json",
+                "bytes": 2290,
+                "sha256": "a6980c9cb07c96ec6df0b64c4a7ab5f8462e0601215f49bcf180dec96307fb8b"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/index.json",
+                "bytes": 2259,
+                "sha256": "57b4768f8505bd40890014bcac326efe8c6463c950158789dc9294422c18ec36"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/masked.json",
+                "bytes": 2300,
+                "sha256": "c8a666e8e46a9ee1b515b6dba4a7704a25593e02452fa4dfed9760855231f1d4"
+              },
+              {
+                "path": "lambda-features/_nextgo/data/plain.json",
+                "bytes": 611,
+                "sha256": "1b1ad37854461d7b72d1d44f6fc8f5a20fd24e0dafdc0e38bda4ae30151de9d0"
+              },
+              {
+                "path": "lambda-features/dashboard/index.html",
+                "bytes": 3942,
+                "sha256": "147941b03783dd0147aafc1672f2c3c9facfdfe785d9a7a95b5910eb074cf911"
+              },
+              {
+                "path": "lambda-features/dashboard/settings/index.html",
+                "bytes": 3968,
+                "sha256": "248f5d5bc52e662c83ff37e6317acef4f23139f207a4ccb5ba324c21130b51a0"
+              },
+              {
+                "path": "lambda-features/guide/index.html",
+                "bytes": 4285,
+                "sha256": "20f26b3ea7223f808b302e155d9c2f75356d9da5e024695a3f03653bd4743ead"
+              },
+              {
+                "path": "lambda-features/index.html",
+                "bytes": 4270,
+                "sha256": "bb87c4c76570660112255bd522587ef2577990e9addc9df6056f580ddcf3c3d4"
+              },
+              {
+                "path": "lambda-features/masked/index.html",
+                "bytes": 4314,
+                "sha256": "fab73919432a757e1f8e8863051d917cf8bf704f11852ebe37dcdd236d69bd5d"
+              },
+              {
+                "path": "lambda-features/plain/index.html",
+                "bytes": 3028,
+                "sha256": "214622133fb7d2a3a8e161b02873c4c014f1132c5196ec43c741ad990dd517aa"
+              }
+            ]
+          }
+        },
+        "deploymentTests": {
+          "path": ".nextgo-test-results/routing-index/deployment-go1.24.test",
+          "bytes": 19260931,
+          "sha256": "f6509beb979e55b0d4389b47aedd64e87f101de122125851a06d64ba88aa2369"
+        }
+      }
+    }
+  },
+  "benchmarks": {
+    "go1.27": {
+      "pairedEvidence": {
+        "path": ".nextgo-test-results/routing-index/bench-go1.27.log",
+        "bytes": 6293,
+        "sha256": "0d06afa290d8564a8a5af0e3bb6c647fa6d397a3616c49c21e6e088cf6e988a5"
+      },
+      "originalStandaloneBaselineEvidence": {
+        "path": ".nextgo-test-results/routing-index/baseline-go1.27.log",
+        "bytes": 2543,
+        "sha256": "449e83e3fff74d8fb662fe5cdfc09315cd2ca7548bde0ddf3256f40023c357a9"
+      },
+      "originalStandaloneBaselineSource": {
+        "path": ".nextgo-test-results/routing-index/baseline/routing_test.go",
+        "bytes": 831,
+        "sha256": "2e5dd53fd0d95634d29f3fb5761156908c399d0d0749b591d37a2c2ccf26d514"
+      },
+      "samples": {
+        "BenchmarkRouteDispatch/linear/10": {
+          "samples": [
+            {
+              "iterations": 19960,
+              "nsPerOp": 5927.0,
+              "bytesPerOp": 4048,
+              "allocationsPerOp": 81
+            },
+            {
+              "iterations": 18712,
+              "nsPerOp": 5670.0,
+              "bytesPerOp": 4048,
+              "allocationsPerOp": 81
+            },
+            {
+              "iterations": 21163,
+              "nsPerOp": 5574.0,
+              "bytesPerOp": 4048,
+              "allocationsPerOp": 81
+            }
+          ],
+          "median": {
+            "nsPerOp": 5670.0,
+            "bytesPerOp": 4048,
+            "allocationsPerOp": 81
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/10": {
+          "samples": [
+            {
+              "iterations": 273230,
+              "nsPerOp": 396.2,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 280852,
+              "nsPerOp": 385.6,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 274380,
+              "nsPerOp": 379.1,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 385.6,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/100": {
+          "samples": [
+            {
+              "iterations": 2044,
+              "nsPerOp": 55964.0,
+              "bytesPerOp": 37888,
+              "allocationsPerOp": 801
+            },
+            {
+              "iterations": 2205,
+              "nsPerOp": 54370.0,
+              "bytesPerOp": 37888,
+              "allocationsPerOp": 801
+            },
+            {
+              "iterations": 2205,
+              "nsPerOp": 56503.0,
+              "bytesPerOp": 37888,
+              "allocationsPerOp": 801
+            }
+          ],
+          "median": {
+            "nsPerOp": 55964.0,
+            "bytesPerOp": 37888,
+            "allocationsPerOp": 801
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/100": {
+          "samples": [
+            {
+              "iterations": 309906,
+              "nsPerOp": 477.3,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 286632,
+              "nsPerOp": 425.1,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 305437,
+              "nsPerOp": 409.7,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 425.1,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/1000": {
+          "samples": [
+            {
+              "iterations": 198,
+              "nsPerOp": 583664.0,
+              "bytesPerOp": 376288,
+              "allocationsPerOp": 8001
+            },
+            {
+              "iterations": 204,
+              "nsPerOp": 606212.0,
+              "bytesPerOp": 376288,
+              "allocationsPerOp": 8001
+            },
+            {
+              "iterations": 204,
+              "nsPerOp": 582122.0,
+              "bytesPerOp": 376288,
+              "allocationsPerOp": 8001
+            }
+          ],
+          "median": {
+            "nsPerOp": 583664.0,
+            "bytesPerOp": 376288,
+            "allocationsPerOp": 8001
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/1000": {
+          "samples": [
+            {
+              "iterations": 299268,
+              "nsPerOp": 403.9,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 275870,
+              "nsPerOp": 393.3,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 273918,
+              "nsPerOp": 391.7,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 393.3,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/3000": {
+          "samples": [
+            {
+              "iterations": 82,
+              "nsPerOp": 1860805.0,
+              "bytesPerOp": 1128288,
+              "allocationsPerOp": 24001
+            },
+            {
+              "iterations": 86,
+              "nsPerOp": 1819422.0,
+              "bytesPerOp": 1128288,
+              "allocationsPerOp": 24001
+            },
+            {
+              "iterations": 90,
+              "nsPerOp": 1891026.0,
+              "bytesPerOp": 1128288,
+              "allocationsPerOp": 24001
+            }
+          ],
+          "median": {
+            "nsPerOp": 1860805.0,
+            "bytesPerOp": 1128288,
+            "allocationsPerOp": 24001
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/3000": {
+          "samples": [
+            {
+              "iterations": 269965,
+              "nsPerOp": 414.3,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 253780,
+              "nsPerOp": 446.0,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 258914,
+              "nsPerOp": 395.9,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 414.3,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteValidation/linear/10": {
+          "samples": [
+            {
+              "iterations": 3936,
+              "nsPerOp": 31235.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            },
+            {
+              "iterations": 4718,
+              "nsPerOp": 30895.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            },
+            {
+              "iterations": 4472,
+              "nsPerOp": 30684.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            }
+          ],
+          "median": {
+            "nsPerOp": 30895.0,
+            "bytesPerOp": 21600,
+            "allocationsPerOp": 500
+          }
+        },
+        "BenchmarkRouteValidation/indexed/10": {
+          "samples": [
+            {
+              "iterations": 31251,
+              "nsPerOp": 3932.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            },
+            {
+              "iterations": 31370,
+              "nsPerOp": 3738.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            },
+            {
+              "iterations": 31328,
+              "nsPerOp": 3764.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            }
+          ],
+          "median": {
+            "nsPerOp": 3764.0,
+            "bytesPerOp": 2616,
+            "allocationsPerOp": 53
+          }
+        },
+        "BenchmarkRouteValidation/compile/10": {
+          "samples": [
+            {
+              "iterations": 13249,
+              "nsPerOp": 8963.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            },
+            {
+              "iterations": 13352,
+              "nsPerOp": 8800.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            },
+            {
+              "iterations": 13458,
+              "nsPerOp": 8965.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            }
+          ],
+          "median": {
+            "nsPerOp": 8963.0,
+            "bytesPerOp": 7136,
+            "allocationsPerOp": 135
+          }
+        },
+        "BenchmarkRouteValidation/linear/100": {
+          "samples": [
+            {
+              "iterations": 45,
+              "nsPerOp": 3082417.0,
+              "bytesPerOp": 2160000,
+              "allocationsPerOp": 50000
+            },
+            {
+              "iterations": 46,
+              "nsPerOp": 3098990.0,
+              "bytesPerOp": 2160000,
+              "allocationsPerOp": 50000
+            },
+            {
+              "iterations": 46,
+              "nsPerOp": 3603458.0,
+              "bytesPerOp": 2160000,
+              "allocationsPerOp": 50000
+            }
+          ],
+          "median": {
+            "nsPerOp": 3098990.0,
+            "bytesPerOp": 2160000,
+            "allocationsPerOp": 50000
+          }
+        },
+        "BenchmarkRouteValidation/indexed/100": {
+          "samples": [
+            {
+              "iterations": 3453,
+              "nsPerOp": 38805.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            },
+            {
+              "iterations": 3142,
+              "nsPerOp": 38427.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            },
+            {
+              "iterations": 3264,
+              "nsPerOp": 38337.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            }
+          ],
+          "median": {
+            "nsPerOp": 38427.0,
+            "bytesPerOp": 28296,
+            "allocationsPerOp": 509
+          }
+        },
+        "BenchmarkRouteValidation/compile/100": {
+          "samples": [
+            {
+              "iterations": 1299,
+              "nsPerOp": 89011.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            },
+            {
+              "iterations": 1179,
+              "nsPerOp": 92492.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            },
+            {
+              "iterations": 1284,
+              "nsPerOp": 90711.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            }
+          ],
+          "median": {
+            "nsPerOp": 90711.0,
+            "bytesPerOp": 69584,
+            "allocationsPerOp": 1227
+          }
+        },
+        "BenchmarkRouteValidation/linear/1000": {
+          "samples": [
+            {
+              "iterations": 1,
+              "nsPerOp": 308217461.0,
+              "bytesPerOp": 216000000,
+              "allocationsPerOp": 5000000
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 309961424.0,
+              "bytesPerOp": 216000000,
+              "allocationsPerOp": 5000000
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 311500888.0,
+              "bytesPerOp": 216000000,
+              "allocationsPerOp": 5000000
+            }
+          ],
+          "median": {
+            "nsPerOp": 309961424.0,
+            "bytesPerOp": 216000000,
+            "allocationsPerOp": 5000000
+          }
+        },
+        "BenchmarkRouteValidation/indexed/1000": {
+          "samples": [
+            {
+              "iterations": 292,
+              "nsPerOp": 406969.0,
+              "bytesPerOp": 324760,
+              "allocationsPerOp": 5020
+            },
+            {
+              "iterations": 292,
+              "nsPerOp": 460124.0,
+              "bytesPerOp": 324760,
+              "allocationsPerOp": 5020
+            },
+            {
+              "iterations": 289,
+              "nsPerOp": 414391.0,
+              "bytesPerOp": 324760,
+              "allocationsPerOp": 5020
+            }
+          ],
+          "median": {
+            "nsPerOp": 414391.0,
+            "bytesPerOp": 324760,
+            "allocationsPerOp": 5020
+          }
+        },
+        "BenchmarkRouteValidation/compile/1000": {
+          "samples": [
+            {
+              "iterations": 127,
+              "nsPerOp": 945346.0,
+              "bytesPerOp": 770800,
+              "allocationsPerOp": 12049
+            },
+            {
+              "iterations": 128,
+              "nsPerOp": 971839.0,
+              "bytesPerOp": 770800,
+              "allocationsPerOp": 12049
+            },
+            {
+              "iterations": 124,
+              "nsPerOp": 933126.0,
+              "bytesPerOp": 770800,
+              "allocationsPerOp": 12049
+            }
+          ],
+          "median": {
+            "nsPerOp": 945346.0,
+            "bytesPerOp": 770800,
+            "allocationsPerOp": 12049
+          }
+        },
+        "BenchmarkRouteValidation/linear/3000": {
+          "samples": [
+            {
+              "iterations": 1,
+              "nsPerOp": 2797781367.0,
+              "bytesPerOp": 1944000000,
+              "allocationsPerOp": 45000000
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 2787223495.0,
+              "bytesPerOp": 1944000000,
+              "allocationsPerOp": 45000000
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 2804263166.0,
+              "bytesPerOp": 1944000000,
+              "allocationsPerOp": 45000000
+            }
+          ],
+          "median": {
+            "nsPerOp": 2797781367.0,
+            "bytesPerOp": 1944000000,
+            "allocationsPerOp": 45000000
+          }
+        },
+        "BenchmarkRouteValidation/indexed/3000": {
+          "samples": [
+            {
+              "iterations": 97,
+              "nsPerOp": 1243931.0,
+              "bytesPerOp": 865976,
+              "allocationsPerOp": 15029
+            },
+            {
+              "iterations": 100,
+              "nsPerOp": 1229572.0,
+              "bytesPerOp": 865976,
+              "allocationsPerOp": 15029
+            },
+            {
+              "iterations": 100,
+              "nsPerOp": 1222996.0,
+              "bytesPerOp": 865976,
+              "allocationsPerOp": 15029
+            }
+          ],
+          "median": {
+            "nsPerOp": 1229572.0,
+            "bytesPerOp": 865976,
+            "allocationsPerOp": 15029
+          }
+        },
+        "BenchmarkRouteValidation/compile/3000": {
+          "samples": [
+            {
+              "iterations": 55,
+              "nsPerOp": 2772967.0,
+              "bytesPerOp": 2094384,
+              "allocationsPerOp": 36067
+            },
+            {
+              "iterations": 50,
+              "nsPerOp": 2721502.0,
+              "bytesPerOp": 2094384,
+              "allocationsPerOp": 36067
+            },
+            {
+              "iterations": 55,
+              "nsPerOp": 2752383.0,
+              "bytesPerOp": 2094384,
+              "allocationsPerOp": 36067
+            }
+          ],
+          "median": {
+            "nsPerOp": 2752383.0,
+            "bytesPerOp": 2094384,
+            "allocationsPerOp": 36067
+          }
+        }
+      },
+      "3000RouteMedianComparisons": {
+        "lookupNs": {
+          "linear": 1860805.0,
+          "compiled": 414.3
+        },
+        "validationNs": {
+          "linear": 2797781367.0,
+          "indexed": 1229572.0
+        },
+        "indexConstructionNs": 2752383.0,
+        "validationAllocatedBytes": {
+          "linear": 1944000000,
+          "indexed": 865976
+        },
+        "lookupAllocations": {
+          "linear": 24001,
+          "compiled": 3
+        }
+      }
+    },
+    "go1.24": {
+      "pairedEvidence": {
+        "path": ".nextgo-test-results/routing-index/bench-go1.24.log",
+        "bytes": 6293,
+        "sha256": "3d5c7b6c8dae0a339408975a1ccd6f66fa8dda1fc5d20ea5883b518f1c4de544"
+      },
+      "originalStandaloneBaselineEvidence": {
+        "path": ".nextgo-test-results/routing-index/baseline-go1.24.log",
+        "bytes": 2543,
+        "sha256": "a144db46feb4d8d9c3da0ef4460843c45a96620a1e246e932ed1d56e03b73938"
+      },
+      "originalStandaloneBaselineSource": {
+        "path": ".nextgo-test-results/routing-index/baseline/routing_test.go",
+        "bytes": 831,
+        "sha256": "2e5dd53fd0d95634d29f3fb5761156908c399d0d0749b591d37a2c2ccf26d514"
+      },
+      "samples": {
+        "BenchmarkRouteDispatch/linear/10": {
+          "samples": [
+            {
+              "iterations": 18493,
+              "nsPerOp": 6471.0,
+              "bytesPerOp": 4528,
+              "allocationsPerOp": 101
+            },
+            {
+              "iterations": 18232,
+              "nsPerOp": 6409.0,
+              "bytesPerOp": 4528,
+              "allocationsPerOp": 101
+            },
+            {
+              "iterations": 18850,
+              "nsPerOp": 6321.0,
+              "bytesPerOp": 4528,
+              "allocationsPerOp": 101
+            }
+          ],
+          "median": {
+            "nsPerOp": 6409.0,
+            "bytesPerOp": 4528,
+            "allocationsPerOp": 101
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/10": {
+          "samples": [
+            {
+              "iterations": 284334,
+              "nsPerOp": 365.6,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 319875,
+              "nsPerOp": 385.6,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 278650,
+              "nsPerOp": 376.7,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 376.7,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/100": {
+          "samples": [
+            {
+              "iterations": 1560,
+              "nsPerOp": 68910.0,
+              "bytesPerOp": 42688,
+              "allocationsPerOp": 1001
+            },
+            {
+              "iterations": 1705,
+              "nsPerOp": 65168.0,
+              "bytesPerOp": 42688,
+              "allocationsPerOp": 1001
+            },
+            {
+              "iterations": 1854,
+              "nsPerOp": 66701.0,
+              "bytesPerOp": 42688,
+              "allocationsPerOp": 1001
+            }
+          ],
+          "median": {
+            "nsPerOp": 66701.0,
+            "bytesPerOp": 42688,
+            "allocationsPerOp": 1001
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/100": {
+          "samples": [
+            {
+              "iterations": 310504,
+              "nsPerOp": 385.5,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 276217,
+              "nsPerOp": 393.0,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 314746,
+              "nsPerOp": 390.2,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 390.2,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/1000": {
+          "samples": [
+            {
+              "iterations": 171,
+              "nsPerOp": 713548.0,
+              "bytesPerOp": 424291,
+              "allocationsPerOp": 10001
+            },
+            {
+              "iterations": 170,
+              "nsPerOp": 686190.0,
+              "bytesPerOp": 424290,
+              "allocationsPerOp": 10001
+            },
+            {
+              "iterations": 171,
+              "nsPerOp": 700614.0,
+              "bytesPerOp": 424291,
+              "allocationsPerOp": 10001
+            }
+          ],
+          "median": {
+            "nsPerOp": 700614.0,
+            "bytesPerOp": 424291,
+            "allocationsPerOp": 10001
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/1000": {
+          "samples": [
+            {
+              "iterations": 256192,
+              "nsPerOp": 403.9,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 256074,
+              "nsPerOp": 410.2,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 265150,
+              "nsPerOp": 410.4,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 410.2,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteDispatch/linear/3000": {
+          "samples": [
+            {
+              "iterations": 63,
+              "nsPerOp": 2273585.0,
+              "bytesPerOp": 1272298,
+              "allocationsPerOp": 30001
+            },
+            {
+              "iterations": 49,
+              "nsPerOp": 2187313.0,
+              "bytesPerOp": 1272295,
+              "allocationsPerOp": 30001
+            },
+            {
+              "iterations": 66,
+              "nsPerOp": 2285517.0,
+              "bytesPerOp": 1272298,
+              "allocationsPerOp": 30001
+            }
+          ],
+          "median": {
+            "nsPerOp": 2273585.0,
+            "bytesPerOp": 1272298,
+            "allocationsPerOp": 30001
+          }
+        },
+        "BenchmarkRouteDispatch/compiled/3000": {
+          "samples": [
+            {
+              "iterations": 251217,
+              "nsPerOp": 447.9,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 257298,
+              "nsPerOp": 437.0,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            },
+            {
+              "iterations": 242648,
+              "nsPerOp": 447.4,
+              "bytesPerOp": 384,
+              "allocationsPerOp": 3
+            }
+          ],
+          "median": {
+            "nsPerOp": 447.4,
+            "bytesPerOp": 384,
+            "allocationsPerOp": 3
+          }
+        },
+        "BenchmarkRouteValidation/linear/10": {
+          "samples": [
+            {
+              "iterations": 3253,
+              "nsPerOp": 34943.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            },
+            {
+              "iterations": 3344,
+              "nsPerOp": 35606.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            },
+            {
+              "iterations": 3511,
+              "nsPerOp": 35096.0,
+              "bytesPerOp": 21600,
+              "allocationsPerOp": 500
+            }
+          ],
+          "median": {
+            "nsPerOp": 35096.0,
+            "bytesPerOp": 21600,
+            "allocationsPerOp": 500
+          }
+        },
+        "BenchmarkRouteValidation/indexed/10": {
+          "samples": [
+            {
+              "iterations": 29977,
+              "nsPerOp": 4007.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            },
+            {
+              "iterations": 28352,
+              "nsPerOp": 4196.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            },
+            {
+              "iterations": 29128,
+              "nsPerOp": 4024.0,
+              "bytesPerOp": 2616,
+              "allocationsPerOp": 53
+            }
+          ],
+          "median": {
+            "nsPerOp": 4024.0,
+            "bytesPerOp": 2616,
+            "allocationsPerOp": 53
+          }
+        },
+        "BenchmarkRouteValidation/compile/10": {
+          "samples": [
+            {
+              "iterations": 12498,
+              "nsPerOp": 10197.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            },
+            {
+              "iterations": 12404,
+              "nsPerOp": 9409.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            },
+            {
+              "iterations": 12325,
+              "nsPerOp": 9301.0,
+              "bytesPerOp": 7136,
+              "allocationsPerOp": 135
+            }
+          ],
+          "median": {
+            "nsPerOp": 9409.0,
+            "bytesPerOp": 7136,
+            "allocationsPerOp": 135
+          }
+        },
+        "BenchmarkRouteValidation/linear/100": {
+          "samples": [
+            {
+              "iterations": 38,
+              "nsPerOp": 3426352.0,
+              "bytesPerOp": 2160012,
+              "allocationsPerOp": 50000
+            },
+            {
+              "iterations": 39,
+              "nsPerOp": 5984972.0,
+              "bytesPerOp": 2160020,
+              "allocationsPerOp": 50000
+            },
+            {
+              "iterations": 38,
+              "nsPerOp": 3421796.0,
+              "bytesPerOp": 2160015,
+              "allocationsPerOp": 50000
+            }
+          ],
+          "median": {
+            "nsPerOp": 3426352.0,
+            "bytesPerOp": 2160015,
+            "allocationsPerOp": 50000
+          }
+        },
+        "BenchmarkRouteValidation/indexed/100": {
+          "samples": [
+            {
+              "iterations": 3333,
+              "nsPerOp": 40808.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            },
+            {
+              "iterations": 3033,
+              "nsPerOp": 42698.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            },
+            {
+              "iterations": 3123,
+              "nsPerOp": 40534.0,
+              "bytesPerOp": 28296,
+              "allocationsPerOp": 509
+            }
+          ],
+          "median": {
+            "nsPerOp": 40808.0,
+            "bytesPerOp": 28296,
+            "allocationsPerOp": 509
+          }
+        },
+        "BenchmarkRouteValidation/compile/100": {
+          "samples": [
+            {
+              "iterations": 1192,
+              "nsPerOp": 89302.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            },
+            {
+              "iterations": 1314,
+              "nsPerOp": 89152.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            },
+            {
+              "iterations": 1294,
+              "nsPerOp": 92650.0,
+              "bytesPerOp": 69584,
+              "allocationsPerOp": 1227
+            }
+          ],
+          "median": {
+            "nsPerOp": 89302.0,
+            "bytesPerOp": 69584,
+            "allocationsPerOp": 1227
+          }
+        },
+        "BenchmarkRouteValidation/linear/1000": {
+          "samples": [
+            {
+              "iterations": 1,
+              "nsPerOp": 344534215.0,
+              "bytesPerOp": 216001632,
+              "allocationsPerOp": 5000068
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 342873888.0,
+              "bytesPerOp": 216001632,
+              "allocationsPerOp": 5000068
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 349879832.0,
+              "bytesPerOp": 216001632,
+              "allocationsPerOp": 5000068
+            }
+          ],
+          "median": {
+            "nsPerOp": 344534215.0,
+            "bytesPerOp": 216001632,
+            "allocationsPerOp": 5000068
+          }
+        },
+        "BenchmarkRouteValidation/indexed/1000": {
+          "samples": [
+            {
+              "iterations": 273,
+              "nsPerOp": 432633.0,
+              "bytesPerOp": 324761,
+              "allocationsPerOp": 5020
+            },
+            {
+              "iterations": 272,
+              "nsPerOp": 422860.0,
+              "bytesPerOp": 324761,
+              "allocationsPerOp": 5020
+            },
+            {
+              "iterations": 277,
+              "nsPerOp": 452216.0,
+              "bytesPerOp": 324761,
+              "allocationsPerOp": 5020
+            }
+          ],
+          "median": {
+            "nsPerOp": 432633.0,
+            "bytesPerOp": 324761,
+            "allocationsPerOp": 5020
+          }
+        },
+        "BenchmarkRouteValidation/compile/1000": {
+          "samples": [
+            {
+              "iterations": 121,
+              "nsPerOp": 949517.0,
+              "bytesPerOp": 770803,
+              "allocationsPerOp": 12049
+            },
+            {
+              "iterations": 124,
+              "nsPerOp": 965055.0,
+              "bytesPerOp": 770804,
+              "allocationsPerOp": 12049
+            },
+            {
+              "iterations": 122,
+              "nsPerOp": 965826.0,
+              "bytesPerOp": 770803,
+              "allocationsPerOp": 12049
+            }
+          ],
+          "median": {
+            "nsPerOp": 965055.0,
+            "bytesPerOp": 770803,
+            "allocationsPerOp": 12049
+          }
+        },
+        "BenchmarkRouteValidation/linear/3000": {
+          "samples": [
+            {
+              "iterations": 1,
+              "nsPerOp": 3123069537.0,
+              "bytesPerOp": 1944014496,
+              "allocationsPerOp": 45000604
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 3063334127.0,
+              "bytesPerOp": 1944014304,
+              "allocationsPerOp": 45000596
+            },
+            {
+              "iterations": 1,
+              "nsPerOp": 3180010828.0,
+              "bytesPerOp": 1944014640,
+              "allocationsPerOp": 45000610
+            }
+          ],
+          "median": {
+            "nsPerOp": 3123069537.0,
+            "bytesPerOp": 1944014496,
+            "allocationsPerOp": 45000604
+          }
+        },
+        "BenchmarkRouteValidation/indexed/3000": {
+          "samples": [
+            {
+              "iterations": 100,
+              "nsPerOp": 1265849.0,
+              "bytesPerOp": 865981,
+              "allocationsPerOp": 15029
+            },
+            {
+              "iterations": 100,
+              "nsPerOp": 1273507.0,
+              "bytesPerOp": 865981,
+              "allocationsPerOp": 15029
+            },
+            {
+              "iterations": 100,
+              "nsPerOp": 1423871.0,
+              "bytesPerOp": 865981,
+              "allocationsPerOp": 15029
+            }
+          ],
+          "median": {
+            "nsPerOp": 1273507.0,
+            "bytesPerOp": 865981,
+            "allocationsPerOp": 15029
+          }
+        },
+        "BenchmarkRouteValidation/compile/3000": {
+          "samples": [
+            {
+              "iterations": 49,
+              "nsPerOp": 2836705.0,
+              "bytesPerOp": 2094393,
+              "allocationsPerOp": 36067
+            },
+            {
+              "iterations": 50,
+              "nsPerOp": 2827042.0,
+              "bytesPerOp": 2094397,
+              "allocationsPerOp": 36067
+            },
+            {
+              "iterations": 46,
+              "nsPerOp": 2827512.0,
+              "bytesPerOp": 2094394,
+              "allocationsPerOp": 36067
+            }
+          ],
+          "median": {
+            "nsPerOp": 2827512.0,
+            "bytesPerOp": 2094394,
+            "allocationsPerOp": 36067
+          }
+        }
+      },
+      "3000RouteMedianComparisons": {
+        "lookupNs": {
+          "linear": 2273585.0,
+          "compiled": 447.4
+        },
+        "validationNs": {
+          "linear": 3123069537.0,
+          "indexed": 1273507.0
+        },
+        "indexConstructionNs": 2827512.0,
+        "validationAllocatedBytes": {
+          "linear": 1944014496,
+          "indexed": 865981
+        },
+        "lookupAllocations": {
+          "linear": 30001,
+          "compiled": 3
+        }
+      }
+    }
+  },
+  "bundleBudgets": {
+    "go1.27": {
+      "application": "examples/demo",
+      "status": "FAILED_BOTH_EXISTING_REFERENCE_BUDGETS",
+      "rawCoreBytes": 8700207,
+      "goGzip9CoreBytes": 2241402,
+      "limits": {
+        "rawBytes": 6291456,
+        "goGzip9Bytes": 1677722
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 8700207,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 2241402,
+          "limit": 1677722
+        }
+      ],
+      "evidence": {
+        "path": "docs/benchmarks/compiled-routing-bundle-analysis-go1.27.json",
+        "bytes": 26973,
+        "sha256": "df5119cf85f1f4a76db983f070fafe4acd5579bf8814f92fb639e77851692df1"
+      }
+    },
+    "go1.24": {
+      "application": "examples/demo",
+      "status": "FAILED_BOTH_EXISTING_REFERENCE_BUDGETS",
+      "rawCoreBytes": 7678689,
+      "goGzip9CoreBytes": 1921088,
+      "limits": {
+        "rawBytes": 6291456,
+        "goGzip9Bytes": 1677722
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 7678689,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 1921088,
+          "limit": 1677722
+        }
+      ],
+      "evidence": {
+        "path": "docs/benchmarks/compiled-routing-bundle-analysis-go1.24.json",
+        "bytes": 26975,
+        "sha256": "579d8e6ab2b2ec85b65ca5537da78093ee5eec8ef1c9853d229e55f82d0ed733"
+      }
+    }
+  },
+  "benchmarkLimits": [
+    "Each paired benchmark ran three times, GOMAXPROCS=1, 100ms target duration, on one shared managed Linux CPU. SDK runs were serial and no other build/test workload ran during measurement.",
+    "10/100/1000/3000 patterns use distinct static record prefixes and one dynamic parameter; lookup selects the final prefix, deliberately stressing the linear scan.",
+    "Standalone pre-change baseline and same-package paired references are separate evidence; compiler optimization/call context can change allocations/timing.",
+    "Allocation bytes are cumulative per operation, not retained memory or peak RSS.",
+    "No HTTP rendering/full startup/concurrent load/device/cloud/Next.js comparison or production threshold approval is inferred."
+  ],
+  "container": {
+    "base": "existing qualified scratch image, current demo/root/test executables mounted read-only",
+    "uid": 65532,
+    "readOnly": true,
+    "network": "none",
+    "dropCapabilities": "ALL",
+    "noNewPrivileges": true,
+    "pidsLimit": 128,
+    "memoryBytes": 268435456
+  },
+  "security": "No current audit or advisory verdict; official database and official-source archive fallback remain inaccessible. See security-qualification-blockers.json.",
+  "limits": [
+    "Local system Chromium only; broader defined Firefox/WebKit/touch CI matrix has not run here.",
+    "Runtime API and Linux-container behavior is local, with no actual hosted cloud/CDN/TLS qualification.",
+    "Reference WASM budgets fail on both SDKs.",
+    "All 79 capabilities and 11 release gates remain tracked; none accepted, waived or closed by this checkpoint."
+  ]
+}

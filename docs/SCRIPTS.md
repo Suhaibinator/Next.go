@@ -92,3 +92,90 @@ The optional demo configuration `NEXTGO_DEMO_CSP=true` installs a nonce policy; 
 Automatic dependency ordering, arbitrary data/custom script attributes, separate first-load notification semantics, nonblocking early orchestration, early load-error callbacks, consent integration, worker execution, comprehensive third-party adapter lifecycle and complete performance/security/device qualification remain unfinished. [The parity inventory](PARITY.md) retains those limits and every production gate.
 
 The capability baseline follows the official [Next.js Script reference](https://nextjs.org/docs/app/api-reference/components/script) and [CSP guide](https://nextjs.org/docs/app/guides/content-security-policy). The worker strategy is documented there as experimental and unavailable in App Router; it remains an explicit qualification rather than an implemented Go capability.
+
+## Bounded vendor data attributes
+
+Construct an immutable set with `scripts.NewDataAttributes(map[string]string{
+"data-site": "example.test", "data-label": "Public chart"})`, handle its error,
+and assign the result to `Script.Data`. The descriptor remains comparable in Go.
+The constructor snapshots the map; `Values()` returns an independent copy.
+Empty settings keep the existing descriptor wire shape.
+
+Only lowercase ASCII `data-*` names are accepted, and the framework reserves
+`data-nextgo*`. There are at most 16 attributes, names are at most 64 bytes,
+individual values are at most 1024 UTF-8 bytes without control characters, and
+canonical encoded settings are at most 4096 bytes. The complete encoded script
+declaration must fit 8192 bytes, matching the existing wire-parser bound.
+Unknown fields, duplicate properties, null/non-string values and invalid direct
+conversions are rejected. Settings are public trusted vendor inputs; do not put
+secrets in them. Library-specific interpretation belongs to the selected trusted
+library.
+
+Parser-time early scripts receive escaped attributes in deterministic order.
+Managed after-interactive/idle loads set the attributes before attaching the
+source. Eager and lazy Go callers share the same document loader. Settings form
+part of dependency identity and the early configuration digest: another caller
+cannot silently change a loaded URL's vendor configuration. The optional field
+preserved module ABI 6 at its checkpoint. The combined imports/authority
+contract now uses ABI 7; publish paired framework generations as described in
+[compatibility](COMPATIBILITY.md). Native ESM imports have a separate descriptor
+and reject this unsupported per-script control.
+
+The frozen-source qualification passes 80 native race packages and vet,
+12 WASM package runs across four targets, four WASM vet targets and 16 generated
+examples per SDK. The new portable scripts tests run directly under WASM.
+Fresh artifacts pass 104 Chromium cases over HTTP, buffered/streaming local
+Lambda and static hosting, 336 ordinary host/restricted-container executable
+cases and 168 race-enabled executable cases. All Go inputs remain unchanged
+through the campaign. The 104 browser fixture proofs confirm owned physical
+transport teardown, unchanged artifacts and zero source-service requests.
+
+Fresh bundle analysis exactly matches both qualified native binaries. The
+production Go 1.27 core is 6,937,167 raw / 1,861,229 gzip-9 bytes, failing both
+reference budgets. Go 1.24 is 5,729,355 / 1,530,997 for this fixture and remains
+compatibility-only with known standard-library advisories. Production-SDK
+advisory conversion exits are zero for the tested native/core/module source
+scopes against the authenticated official database; the full source audit is
+still open.
+
+A focused parser test caught null being accepted into a string map by the
+standard JSON decoder. The implementation now checks raw value types before
+conversion; that correction preceded the frozen-source campaign.
+[Source/artifact pins and qualification](benchmarks/script-data-qualification.json)
+retain the complete scope. The remote workflow requires 208 cross-engine
+browser checks and 84 host/container executable cases per SDK; remote results
+for this increment are unobserved. Full browser/device/library/security/resource
+and hosted-cloud qualification remain open. Earlier checkpoint records retain
+their original inputs and counts.
+
+## Pending lazy-host request admission
+
+The document script host now reserves at most 256 pending RPC requests before
+scheduling parsing/load workers. It rejects malformed argument counts/types and
+overlong declarations as Promise failures. Failed parsing/loading and ordinary
+completion release the reservation. Development refresh counts each admitted
+request synchronously and waits for it to settle; frozen admission rejects new
+requests. The existing 256 consumer bound and 64 dependency/128 alias limits
+remain separate. This is a pending Go-work bound, not a JavaScript sandbox or
+a guarantee that removing a script element aborts browser execution.
+
+Both SDKs pass focused saturation/recovery and refresh-drain tests plus the
+full 12 WASM package runs across four targets, four WASM vets and 16 generated
+examples. Fresh artifacts pass 104 Chromium cases across HTTP, both local
+Lambda modes and static hosting, 336 ordinary host/restricted-container cases
+and 168 race executable cases. All browser transport teardown/artifact proofs
+pass. Current advisory conversions are zero in the tested production-SDK
+scopes; compatibility-SDK known findings remain.
+
+Only three JS/WASM-tagged Go inputs changed after the script-data checkpoint.
+The rebuilt native CLIs and normal/race deployment harnesses match that
+checkpoint byte-for-byte. Its 80 native race packages/vet per SDK are retained
+as the unchanged-native-input baseline; a new broad native run is not claimed.
+Browser-containing executables/static output are rebuilt and tested. Fresh
+bundle analysis matches both current server hashes: Go 1.27 core is 6,938,726
+raw / 1,861,976 gzip-9 bytes, failing both reference budgets; Go 1.24 is
+5,730,998 / 1,530,264 for this fixture and remains compatibility-only.
+[Source scope and qualification](benchmarks/script-admission-qualification.json)
+retain exact pins. Hosted cloud, complete resource/soak behavior, independent
+source security review and remote cross-engine/device qualification remain
+open.

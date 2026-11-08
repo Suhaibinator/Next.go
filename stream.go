@@ -92,6 +92,9 @@ func (a *App) respondStream(w http.ResponseWriter, r *http.Request, p Page, head
 	if a.paths.TrailingSlash {
 		b.WriteString(` data-nextgo-trailing-slash="true"`)
 	}
+	if root := a.requestDocumentRoot(r); root != "" {
+		b.WriteString(` data-nextgo-root="` + root + `"`)
+	}
 	if a.config.Dev {
 		b.WriteString(` data-nextgo-dev="true" data-nextgo-dev-generation="` + html.EscapeString(a.config.DevGeneration) + `"`)
 	}

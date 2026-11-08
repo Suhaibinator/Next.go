@@ -30,7 +30,10 @@ type Build struct {
 	ZoneRuntimeIDs               map[string]string
 	Zones                        *ZonesManifest
 	DevRefresh                   *DevRefreshBuild
+	RuntimeModules               []RuntimeModule // Names and immutable files from this compilation.
 }
+
+type RuntimeModule struct{ Component, File string }
 
 func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Build, error) {
 	build, err := compileApplication(ctx, root, dev, output, true, dev)
@@ -373,7 +376,11 @@ func compileApplicationTarget(ctx context.Context, root string, dev bool, output
 		return nil, err
 	}
 	success = true
-	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p, DevRefresh: refreshMetadata}, nil
+	runtimeModules := make([]RuntimeModule, len(modules))
+	for i, module := range modules {
+		runtimeModules[i] = RuntimeModule{Component: module.Name, File: module.File}
+	}
+	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p, DevRefresh: refreshMetadata, RuntimeModules: runtimeModules}, nil
 }
 
 func runtimeBuildID(wasm []byte, fingerprint string, support []byte, loader string) string {
@@ -634,6 +641,7 @@ func fingerprintExceptContext(parent context.Context, root, skip string) (string
 }
 
 const bootstrap = `(async () => {
+  globalThis.__nextgoImportModule = source => import(source);
   // Capture native restores even while the Go runtime is still loading.
   addEventListener('pagehide', event => {
     if (event.persisted && document.body?.hasAttribute('data-nextgo-draft')) {

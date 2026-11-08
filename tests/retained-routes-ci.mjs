@@ -221,7 +221,7 @@ async function init(){
   for(const path of ['tests/retained-routes.spec.mjs','tests/retained-owner-scroll-observation.mjs','tests/retained-routes.config.mjs','tests/retained-routes-fixture.mjs','tests/retained-routes-native-identity.mjs','tests/retained-routes-native-identity.test.mjs','tests/retained-routes-fixture.test.mjs','tests/static-shell-ci-build.mjs','tests/retained-routes-ci.mjs','tests/retained-routes-ci.test.mjs','tests/retained-process-group-census.mjs','tests/retained-process-group-census.test.mjs','tests/retained-command-group-drain.mjs','tests/retained-command-group-drain.test.mjs','tests/retained-routes-target.mjs','.github/workflows/retained-routes-browser.yml','.github/workflows/retained-routes-source.yml','tests/merge-config.mjs','tests/merge-fixture.mjs','tests/merge-spec.mjs','tests/retained-routes-assets.mjs','tests/retained-routes-assets.test.mjs','scripts/test-wasm.sh','ui/utf8.go','ui/ui.go','ui/stream.go','ui/request_region.go','ui/utf8_test.go','retention_utf8_test.go','package.json','package-lock.json','go.mod'])check(seen.has(path),'missing producer/test/dependency pin: '+path);
   const currentKey=contract.combinedSourceInput?.currentQualification;
   check(typeof currentKey==='string'&&currentKey.length<=128&&Object.hasOwn(contract,currentKey),'current full-Go qualification required');
-  check(contract[currentKey]?.GoSource?.files===1287,'expected1287 Go source files required');
+  check(contract[currentKey]?.GoSource?.files===1417,'expected1417 combined Go source files required');
   await validateFullGoSource(source,before,contract[currentKey].GoSource);
   await writeJSON(join(root,'inputs.json'),contract,1<<20);
   await writeJSON(join(root,'campaign.json'),{version:1,status:'INITIALIZED',scope:contract.scope,nativeTarget:target.goArch,resourceEnvelope:target.goArch==='amd64'?'container: cpu2 memory4GiB no-extra-swap pids768 shm512MiB':'standard public ubuntu-24.04-arm hosted job; container hard limits not asserted',sourceCommit:process.env.GITHUB_SHA,run:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,sdkRequested:process.env.GO_VERSION,inputContractSHA256:sha(await readBounded(join(source,'tests','retained-routes-ci-inputs.json'),1<<20)),sourceContentSHA256:sha(Buffer.from(JSON.stringify(content(before)))),steps:[],unqualified:['serverless mock Runtime modes','other architectures/platforms and separate SDK/arch cells','cross-platform/resource/security release gates','full V10/79 capabilities/11 gates']},8<<20);
@@ -451,17 +451,17 @@ function exactKeys(value,names){
 function validateLazyModuleProof(value,prefix,origin){
   check(typeof prefix==='string'&&/^\/_nextgo\/[a-f0-9]{20}\/$/.test(prefix),'actual merge asset-probe build prefix required');
   check(origin==='http://127.0.0.1:4188','hash-pinned native fixture origin required');
-  check(exactKeys(value,['version','abi','records'])&&value.version===1&&value.abi===6&&Array.isArray(value.records)&&value.records.length===2&&Buffer.byteLength(JSON.stringify(value))<=4096,'two bounded actual ABI6 module records required');
+  check(exactKeys(value,['version','abi','records'])&&value.version===1&&value.abi===7&&Array.isArray(value.records)&&value.records.length===2&&Buffer.byteLength(JSON.stringify(value))<=4096,'two bounded actual ABI7 module records required');
   let identity;
   for(const [index,record]of value.records.entries()){
     check(exactKeys(record,['phase','url','status','mime','bytes','sha256','complete','wasmMagic','hostABI','buildPrefix']),'exact actual module record schema required');
-    check(record.phase===['initial','held-recovery'][index]&&record.status===200&&record.mime==='application/wasm'&&record.complete===true&&record.wasmMagic==='0061736d01000000'&&record.hostABI===6&&record.buildPrefix===prefix,'actual successful module response/host/build evidence required');
+    check(record.phase===['initial','held-recovery'][index]&&record.status===200&&record.mime==='application/wasm'&&record.complete===true&&record.wasmMagic==='0061736d01000000'&&record.hostABI===7&&record.buildPrefix===prefix,'actual successful module response/host/build evidence required');
     check(Number.isSafeInteger(record.bytes)&&record.bytes>=8&&record.bytes<=8<<20&&hex(record.sha256),'bounded decoded module size/hash required');
     check(typeof record.url==='string'&&record.url.length<=256,'bounded module URL required');
     const url=new URL(record.url);check(url.href===record.url&&url.origin===origin&&!url.username&&!url.password&&!url.search&&!url.hash&&url.pathname===prefix+'module-'+record.sha256+'.wasm','actual content-addressed module must match its own app build and decoded SHA');
     const current={sha256:record.sha256,bytes:record.bytes};if(identity)check(current.sha256===identity.sha256&&current.bytes===identity.bytes,'both actual downloads must have identical content');else identity=current;
   }
-  return {...identity,abi:6,buildPrefix:prefix,downloads:2};
+  return {...identity,abi:7,buildPrefix:prefix,downloads:2};
 }
 function validateLazyModuleMatrix(items,prefix,origin){
   check(Array.isArray(items)&&items.length===4,'one actual lazy module proof per merge profile required');

@@ -1,0 +1,324 @@
+{
+  "format": "nextgo-existing-runtime-analysis-qualification-v1",
+  "recordedAtUTC": "2026-11-07T20:16:07.356253+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "goFiles": 1248,
+    "goManifestSha256": "55dc8f64a5dbfd27ab2f7c5e56d23d4acf3e5052ee2ad2e16a2b3639ee7856c0",
+    "goManifestPath": ".nextgo-test-results/artifact-analysis/go-source-manifest.json",
+    "changedGoSinceAWSRIE": [
+      "cmd/nextgo/analyze.go",
+      "cmd/nextgo/analyze_test.go",
+      "cmd/nextgo/main.go",
+      "internal/project/analyze_artifacts.go",
+      "internal/project/analyze_artifacts_test.go"
+    ],
+    "files": {
+      "cmd/nextgo/analyze.go": "fa54eb37f07cd4b5e85e81a8fe4374090cb34063d5c5c50567f771521bc760ab",
+      "cmd/nextgo/analyze_test.go": "c59b731e92d88b3d4aed3149d3dc314a15f96818de71f7a019ad31045277c2e7",
+      "cmd/nextgo/main.go": "428966db124a12b0eb0717796d0969c031f3a3ef2e610a90dd111c158e7d2dce",
+      "internal/project/analyze_artifacts.go": "00bbdf17bbb05021db39a27ed5d13c96f7b8b07a8d0ea19926568865489520ef",
+      "internal/project/analyze_artifacts_test.go": "22feeba798fb9983bdda1c6fbc02ba6dba9f834b29a663dd33546d8ea0f88510",
+      ".github/workflows/ci.yml": "c80152f7a120af5c0934f10ad9b30519edc2018e7661eabfbe7da4b41ccc5fe1",
+      "docs/BUNDLE_ANALYSIS.md": "766a70ea45be89ab49167659092dfe8395af2cbd06853558bfdf5a4f7d9f2380"
+    }
+  },
+  "inputQualification": "compiled-routing-qualification.json; unchanged existing static demo publications",
+  "beforeAfterStaticFileCount": 72,
+  "beforeAfterManifestSha256": "36387dd8f1cfcc34405536f75682fecb892d97c9f93fdff32f0867c041ab380f",
+  "inputsUnchanged": true,
+  "matrix": [
+    {
+      "SDK": "go1.27.3",
+      "CLI": {
+        "path": ".nextgo-test-results/artifact-analysis/nextgo-go1.27",
+        "sha256": "7522af8fe7d38f6f4c8cf244973089d15ceb41216d8ad23ba135d9a7b06f5903"
+      },
+      "report": "existing-runtime-analysis-go1.27.json",
+      "reportSha256": "d81a0a79abe1bcff77c5dc084a7c67d1e6ddf90d2e35132ce5a5594789d4c098",
+      "hostContainerByteEquality": true,
+      "assetCount": 8,
+      "core": {
+        "file": "app.wasm",
+        "kind": "core",
+        "bytes": 8700207,
+        "gzip9Bytes": 2241402,
+        "sha256": "ec7d7ec1d754a6ca0aeb4050590ba16e48c4eb33dd2515c8a59dfda1e7804064",
+        "sections": [
+          {
+            "id": 0,
+            "name": "custom:go:buildid",
+            "payloadBytes": 114,
+            "framingBytes": 6
+          },
+          {
+            "id": 1,
+            "name": "type",
+            "payloadBytes": 59,
+            "framingBytes": 6
+          },
+          {
+            "id": 2,
+            "name": "import",
+            "payloadBytes": 718,
+            "framingBytes": 6
+          },
+          {
+            "id": 3,
+            "name": "function",
+            "payloadBytes": 4408,
+            "framingBytes": 6
+          },
+          {
+            "id": 4,
+            "name": "table",
+            "payloadBytes": 5,
+            "framingBytes": 6
+          },
+          {
+            "id": 5,
+            "name": "memory",
+            "payloadBytes": 3,
+            "framingBytes": 6
+          },
+          {
+            "id": 6,
+            "name": "global",
+            "payloadBytes": 41,
+            "framingBytes": 6
+          },
+          {
+            "id": 7,
+            "name": "export",
+            "payloadBytes": 33,
+            "framingBytes": 6
+          },
+          {
+            "id": 9,
+            "name": "element",
+            "payloadBytes": 8716,
+            "framingBytes": 6
+          },
+          {
+            "id": 10,
+            "name": "code",
+            "payloadBytes": 5737219,
+            "framingBytes": 6
+          },
+          {
+            "id": 11,
+            "name": "data",
+            "payloadBytes": 2948740,
+            "framingBytes": 6
+          },
+          {
+            "id": 0,
+            "name": "custom:producers",
+            "payloadBytes": 71,
+            "framingBytes": 6
+          }
+        ]
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 8700207,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 2241402,
+          "limit": 1677722
+        }
+      ]
+    },
+    {
+      "SDK": "go1.24.13",
+      "CLI": {
+        "path": ".nextgo-test-results/artifact-analysis/nextgo-go1.24",
+        "sha256": "c29a2724ca25e15b14d0ab9d1cf2eb8276da049dc2747f0b4d7cfcde8e5c473a"
+      },
+      "report": "existing-runtime-analysis-go1.24.json",
+      "reportSha256": "72122138f12b1d284745f334ba731ca1608a9429d05e489640c0b993db903b94",
+      "hostContainerByteEquality": true,
+      "assetCount": 8,
+      "core": {
+        "file": "app.wasm",
+        "kind": "core",
+        "bytes": 7678689,
+        "gzip9Bytes": 1921088,
+        "sha256": "f76f127dd64ec00c9b4629b95143fc874b812eee1271ca9a80885c322ccefda4",
+        "sections": [
+          {
+            "id": 0,
+            "name": "custom:go:buildid",
+            "payloadBytes": 114,
+            "framingBytes": 6
+          },
+          {
+            "id": 1,
+            "name": "type",
+            "payloadBytes": 64,
+            "framingBytes": 6
+          },
+          {
+            "id": 2,
+            "name": "import",
+            "payloadBytes": 718,
+            "framingBytes": 6
+          },
+          {
+            "id": 3,
+            "name": "function",
+            "payloadBytes": 4130,
+            "framingBytes": 6
+          },
+          {
+            "id": 4,
+            "name": "table",
+            "payloadBytes": 5,
+            "framingBytes": 6
+          },
+          {
+            "id": 5,
+            "name": "memory",
+            "payloadBytes": 3,
+            "framingBytes": 6
+          },
+          {
+            "id": 6,
+            "name": "global",
+            "payloadBytes": 41,
+            "framingBytes": 6
+          },
+          {
+            "id": 7,
+            "name": "export",
+            "payloadBytes": 33,
+            "framingBytes": 6
+          },
+          {
+            "id": 9,
+            "name": "element",
+            "payloadBytes": 8160,
+            "framingBytes": 6
+          },
+          {
+            "id": 10,
+            "name": "code",
+            "payloadBytes": 5025001,
+            "framingBytes": 6
+          },
+          {
+            "id": 11,
+            "name": "data",
+            "payloadBytes": 2640267,
+            "framingBytes": 6
+          },
+          {
+            "id": 0,
+            "name": "custom:producers",
+            "payloadBytes": 73,
+            "framingBytes": 6
+          }
+        ]
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 7678689,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 1921088,
+          "limit": 1677722
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "native-go1.27": {
+      "testedPackages": 80,
+      "race": true,
+      "vetExit": 0,
+      "testLogSha256": "032cc18c9ca3fa852df08c74f9c12e10bd89103927d01633959f297c8b861e62",
+      "vetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cli-go1.27": {
+      "exitCode": 1,
+      "stderrSha256": "0bf8e68cd173722f4f77ccc820a3902209efa9ae74d25adbd0feaf5120789851",
+      "reason": "two unchanged reference budget violations; complete report retained"
+    },
+    "container-go1.27": {
+      "exitCode": 1,
+      "stderrSha256": "0bf8e68cd173722f4f77ccc820a3902209efa9ae74d25adbd0feaf5120789851",
+      "reason": "two unchanged reference budget violations; complete report retained"
+    },
+    "native-go1.24": {
+      "testedPackages": 80,
+      "race": true,
+      "vetExit": 0,
+      "testLogSha256": "01f65799bdaedf530c63e707465b5f739d0e4ad45941333fbf5acc1b0268aa2b",
+      "vetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cli-go1.24": {
+      "exitCode": 1,
+      "stderrSha256": "0bf8e68cd173722f4f77ccc820a3902209efa9ae74d25adbd0feaf5120789851",
+      "reason": "two unchanged reference budget violations; complete report retained"
+    },
+    "container-go1.24": {
+      "exitCode": 1,
+      "stderrSha256": "0bf8e68cd173722f4f77ccc820a3902209efa9ae74d25adbd0feaf5120789851",
+      "reason": "two unchanged reference budget violations; complete report retained"
+    }
+  },
+  "advisories": {
+    "databaseQualification": "govulncheck-local-database-qualification.json",
+    "checker": "v1.9.0",
+    "scope": "current native ./... source; unchanged WASM/application artifacts retain previous checks",
+    "go1.27": {
+      "conversionExit": 0,
+      "jsonSha256": "0e35d6687de6610701257558330dd43174c4005adf6affc924d1761ced4498a6",
+      "textSha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+    },
+    "go1.24": {
+      "conversionExit": 3,
+      "jsonSha256": "4c3e2e2bf7b35d4da812e5423a8ad702db64bc8bc2ab44f740e315e2dbad2dd8",
+      "textSha256": "20ef791164af888427e8402669502fb857827aa85bb13a6399c54aa59bf8bac8",
+      "status": "known findings; compatibility-only, not production recommendation"
+    }
+  },
+  "host": {
+    "CGO": false,
+    "PATH": "/no-go-sdk",
+    "environment": "empty apart from PATH and GOMAXPROCS=2"
+  },
+  "container": {
+    "base": "existing scratch qualification image",
+    "uid": 65532,
+    "readOnly": true,
+    "network": "none",
+    "capDrop": "ALL",
+    "noNewPrivileges": true,
+    "memoryBytes": 268435456,
+    "pids": 64,
+    "mounts": "only pinned CLI and runtime namespace, read-only",
+    "sourceSDKNodeAbsent": true
+  },
+  "limits": [
+    "Measures files, does not authenticate live deployment or infer native pairing, source, routes, registrations.",
+    "No compiler/browser/runtime behavior changes; previous production/browser checks are not rerun or relabeled as a new application build.",
+    "Go gzip-9 differs by SDK and from actual CDN encoding.",
+    "Native full race results may include cache hits for unchanged packages.",
+    "CI YAML/bash verified locally; new remote jobs unrun.",
+    "Both core budgets still fail; no approval or waiver.",
+    "Full independent source audit and G01-G11 remain open."
+  ]
+}

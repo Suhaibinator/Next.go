@@ -28,8 +28,9 @@ const MaxManifestIcons = 16
 const MaxImageBytes = 1 << 20
 const MaxImageDimension = 2048
 const MaxImagePixels = 4 << 20
+const MaxAltBytes = 1024
 
-var names = []string{"robots.txt", "sitemap.xml", "favicon.ico", "icon.png", "apple-icon.png", "manifest.webmanifest"}
+var names = []string{"robots.txt", "sitemap.xml", "favicon.ico", "icon.png", "apple-icon.png", "manifest.webmanifest", "opengraph-image.png", "twitter-image.png", "opengraph-image.alt.txt", "twitter-image.alt.txt", "opengraph-image.jpg", "opengraph-image.jpeg", "opengraph-image.gif", "twitter-image.jpg", "twitter-image.jpeg", "twitter-image.gif"}
 
 // Names returns the complete, fixed static filename convention.
 func Names() []string { return append([]string(nil), names...) }
@@ -51,6 +52,10 @@ type Sources struct {
 	Robots   func(context.Context) (seo.RobotsOptions, error)
 	Sitemap  func(context.Context) ([]seo.SitemapEntry, error)
 	Manifest func(context.Context) (Manifest, error)
+	// Social producers return explicitly public PNG bytes. They run once at
+	// startup, with the same byte/pixel validation as static PNG conventions.
+	OpenGraphImage func(context.Context) ([]byte, error)
+	TwitterImage   func(context.Context) ([]byte, error)
 }
 
 type Options struct{ BasePath string }
@@ -115,10 +120,25 @@ func New(ctx context.Context, sources Sources, options Options) (set *Set, err e
 		{"robots.txt", sources.Robots != nil},
 		{"sitemap.xml", sources.Sitemap != nil},
 		{"manifest.webmanifest", sources.Manifest != nil},
+		{"opengraph-image.png", sources.OpenGraphImage != nil},
+		{"twitter-image.png", sources.TwitterImage != nil},
 	} {
 		if _, exists := files[source.name]; exists && source.present {
 			return nil, fmt.Errorf("metadatafiles: static and Go definitions conflict for %s", source.name)
 		}
+	}
+	declarations := make([]string, 0, len(files)+2)
+	for name := range files {
+		declarations = append(declarations, name)
+	}
+	if sources.OpenGraphImage != nil {
+		declarations = append(declarations, "opengraph-image.png")
+	}
+	if sources.TwitterImage != nil {
+		declarations = append(declarations, "twitter-image.png")
+	}
+	if err := CheckSocialNames(declarations); err != nil {
+		return nil, err
 	}
 	put := func(name string, data []byte) error {
 		if _, exists := files[name]; exists {
@@ -188,6 +208,24 @@ func New(ctx context.Context, sources Sources, options Options) (set *Set, err e
 			return nil, err
 		}
 	}
+	for _, producer := range []struct {
+		name  string
+		build func(context.Context) ([]byte, error)
+	}{{"opengraph-image.png", sources.OpenGraphImage}, {"twitter-image.png", sources.TwitterImage}} {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if producer.build == nil {
+			continue
+		}
+		data, err := producer.build(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("metadatafiles: %s producer: %w", producer.name, err)
+		}
+		if err := put(producer.name, data); err != nil {
+			return nil, err
+		}
+	}
 	set = &Set{byName: map[string]resource{}, byPath: map[string]string{}}
 	total := 0
 	for _, name := range names {
@@ -209,6 +247,9 @@ func New(ctx context.Context, sources Sources, options Options) (set *Set, err e
 		set.entries = append(set.entries, entry)
 		set.byName[name] = resource{entry, append([]byte(nil), data...)}
 		set.byPath[entry.Path] = name
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	h := sha256.New()
 	for _, entry := range set.entries {
@@ -309,7 +350,7 @@ func Validate(name string, data []byte, options ...Options) (Entry, error) {
 	case "manifest.webmanifest":
 		entry.ContentType = "application/manifest+json"
 		_, err = ParseManifest(data, opts)
-	case "icon.png", "apple-icon.png":
+	case "icon.png", "apple-icon.png", "opengraph-image.png", "twitter-image.png":
 		entry.ContentType = "image/png"
 		entry.Width, entry.Height, err = validatePNG(data)
 		if err == nil {
@@ -318,6 +359,15 @@ func Validate(name string, data []byte, options ...Options) (Entry, error) {
 	case "favicon.ico":
 		entry.ContentType = "image/x-icon"
 		entry.Width, entry.Height, entry.Sizes, err = validateICO(data)
+	case "opengraph-image.jpg", "opengraph-image.jpeg", "twitter-image.jpg", "twitter-image.jpeg":
+		entry.ContentType = "image/jpeg"
+		entry.Width, entry.Height, err = validateJPEG(data)
+	case "opengraph-image.gif", "twitter-image.gif":
+		entry.ContentType = "image/gif"
+		entry.Width, entry.Height, err = validateGIF(data)
+	case "opengraph-image.alt.txt", "twitter-image.alt.txt":
+		entry.ContentType = "text/plain; charset=utf-8"
+		err = validateSocialAlt(data)
 	}
 	if err != nil {
 		return Entry{}, fmt.Errorf("metadatafiles: %s: %w", name, err)

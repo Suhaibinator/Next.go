@@ -48,7 +48,7 @@ func TestManagedMetadataDiscoveryAndCopySnapshot(t *testing.T) {
 
 func TestManagedMetadataNativeProducersAreParseOnly(t *testing.T) {
 	files := map[string]string{"app/page.go": "package app"}
-	for file, function := range map[string]string{"robots": "Robots", "sitemap": "Sitemap", "manifest": "Manifest"} {
+	for file, function := range map[string]string{"robots": "Robots", "sitemap": "Sitemap", "manifest": "Manifest", "opengraph-image": "OpenGraphImage", "twitter-image": "TwitterImage"} {
 		files["app/"+file+".go"] = "//go:build !js\n\npackage app\nfunc " + function + "(){}\n"
 	}
 	// The generator's typed Sources assignments, not parser execution, check
@@ -59,7 +59,7 @@ func TestManagedMetadataNativeProducersAreParseOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(p.MetadataFiles) != 3 {
+	if len(p.MetadataFiles) != 5 {
 		t.Fatal(p.MetadataFiles)
 	}
 	for _, file := range p.MetadataFiles {
@@ -71,17 +71,21 @@ func TestManagedMetadataNativeProducersAreParseOnly(t *testing.T) {
 
 func TestManagedMetadataDiscoveryRejectsUnsafeInputsAndConflicts(t *testing.T) {
 	for name, files := range map[string]map[string]string{
-		"static-go":           {"app/robots.txt": "User-agent: *", "app/robots.go": "//go:build !js\n\npackage app\nfunc Robots(){}"},
-		"wrong-case-static":   {"app/ROBOTS.TXT": "User-agent: *"},
-		"wrong-case-go":       {"app/Robots.go": "package app"},
-		"invalid-manifest":    {"app/manifest.webmanifest": `{"start_url":"javascript:bad"}`},
-		"invalid-sitemap":     {"app/sitemap.xml": `<!DOCTYPE urlset SYSTEM "https://never-fetch.invalid/"><urlset/>`},
-		"invalid-raster":      {"app/icon.png": "<svg/>"},
-		"no-native-tag":       {"app/robots.go": "package app\nfunc Robots(){}"},
-		"missing-function":    {"app/robots.go": "//go:build !js\n\npackage app\nvar Robots=1"},
-		"nested-module":       {"app/go.mod": "module nested\n", "app/robots.txt": "User-agent: *"},
-		"exact-page-conflict": {"app/robots.txt": "User-agent: *", "app/group_meta/robots.txt/page.go": "package robots"},
-		"exact-api-conflict":  {"app/robots.go": "//go:build !js\n\npackage app\nfunc Robots(){}", "app/robots.txt/route.go": "package robots"},
+		"orphan-alt":              {"app/opengraph-image.alt.txt": "Public card"},
+		"social-case":             {"app/OpenGraph-image.go": "package app"},
+		"social-native-tag":       {"app/twitter-image.go": "package app\nfunc TwitterImage(){}"},
+		"social-missing-function": {"app/twitter-image.go": "//go:build !js\n\npackage app\nvar TwitterImage=1"},
+		"static-go":               {"app/robots.txt": "User-agent: *", "app/robots.go": "//go:build !js\n\npackage app\nfunc Robots(){}"},
+		"wrong-case-static":       {"app/ROBOTS.TXT": "User-agent: *"},
+		"wrong-case-go":           {"app/Robots.go": "package app"},
+		"invalid-manifest":        {"app/manifest.webmanifest": `{"start_url":"javascript:bad"}`},
+		"invalid-sitemap":         {"app/sitemap.xml": `<!DOCTYPE urlset SYSTEM "https://never-fetch.invalid/"><urlset/>`},
+		"invalid-raster":          {"app/icon.png": "<svg/>"},
+		"no-native-tag":           {"app/robots.go": "package app\nfunc Robots(){}"},
+		"missing-function":        {"app/robots.go": "//go:build !js\n\npackage app\nvar Robots=1"},
+		"nested-module":           {"app/go.mod": "module nested\n", "app/robots.txt": "User-agent: *"},
+		"exact-page-conflict":     {"app/robots.txt": "User-agent: *", "app/group_meta/robots.txt/page.go": "package robots"},
+		"exact-api-conflict":      {"app/robots.go": "//go:build !js\n\npackage app\nfunc Robots(){}", "app/robots.txt/route.go": "package robots"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			files["app/page.go"] = "package app"

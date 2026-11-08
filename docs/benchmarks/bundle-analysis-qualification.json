@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "date": "2026-11-06",
+  "timezone": "America/Los_Angeles",
+  "status": "working-tree scoped qualification; full goal open",
+  "source": {
+    "base": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "files": {
+      "cmd/nextgo/analyze.go": "8ba98940cf8d184efd45f11e5476b4784793e2e9bb19de02b7ed591b5938b3b7",
+      "cmd/nextgo/analyze_test.go": "35962759eb2ecddff8778faeabfd38e97d2d4ce10c0b48cf8082efd795e212f8",
+      "cmd/nextgo/main.go": "45594a87834c80c17b359b62a7ccb114809f04126ec84b31a94274eea3bcd58e",
+      "internal/project/analyze.go": "c2f6f6758ac373fa87c9efb44f6182bb45f0cb8f04e3a50fc0be2863bb4fbfc6",
+      "internal/project/analyze_sections.go": "36439c94345f804a60f79493236c2dd38fe317e55bf7e0a1c4d374181294b1e6",
+      "internal/project/analyze_test.go": "ff324e703628d5558c5471acc6f6491c7f231da5c4152b6b6ac19eb85eebd732",
+      "internal/project/build.go": "49f0c0124f66029261fc8cee8f5ceb6bf20ce3af208a08edb7cfce134a0a057b",
+      ".github/workflows/ci.yml": "4f037b742fdcf039204d6158ffda55b1e9208f68d373b13e380fcc06036c7b40"
+    }
+  },
+  "feature": "Go-native production build analysis; no browser JavaScript or runtime handler added",
+  "tests": {
+    "sourceGroups": 7,
+    "focusedNativeRace": {
+      "go1_24_13": "passed",
+      "go1_27_3": "passed again within final full native race run; earlier focused log retained separately"
+    },
+    "fullNativeRace": {
+      "sdk": "go1.27.3 linux/amd64",
+      "testedPackages": 80,
+      "status": "passed"
+    },
+    "vet": {
+      "go1_24_13": "cmd/nextgo and internal/project passed",
+      "go1_27_3": "full repository passed"
+    },
+    "parserFuzz": {
+      "sdk": "go1.27.3",
+      "seconds": 3,
+      "executions": 49835,
+      "workers": 2,
+      "status": "passed"
+    },
+    "actualCLI": {
+      "go1_24_13": "production demo report retained; budgets disabled",
+      "go1_27_3": "production demo report retained before expected exit 1; two reference budget violations",
+      "stdoutWithOutFlag": "empty in both CLI runs"
+    },
+    "settings": {
+      "GOMAXPROCS": 2,
+      "GOFLAGS": "-p=2",
+      "umask": "022",
+      "TMPDIR": "owned ignored directory inside checkout to avoid sandbox /tmp/.git marker"
+    }
+  },
+  "reports": [
+    {
+      "path": "docs/benchmarks/bundle-analysis-go1.24.13-linux-amd64.json",
+      "sha256": "1c430acd191edd1a4bb701bef961a0071ba3a3582290311c1c54a6855ae24321",
+      "sdk": "go1.24.13",
+      "analyzerGo": "go1.24.13",
+      "coreRawBytes": 7650369,
+      "coreGoGzip9Bytes": 1912367,
+      "nativeSHA256": "54ab738c997cbb408d37bf8cc65ded6ffde5c09992060bc504c14ebc551d2474",
+      "assets": 8,
+      "components": 24,
+      "routes": 91
+    },
+    {
+      "path": "docs/benchmarks/bundle-analysis-go1.27.3-linux-amd64.json",
+      "sha256": "a8cafd9d6d7ac946ce444a8c2bbc052ce78a2721becc166031d5b9a3c3e28569",
+      "sdk": "go1.27.3",
+      "analyzerGo": "go1.27.3",
+      "coreRawBytes": 8670847,
+      "coreGoGzip9Bytes": 2231618,
+      "nativeSHA256": "bebad3d99c4d31cce40592aefa8f0e2666b132aef1529c6841937523d7b51d4f",
+      "assets": 8,
+      "components": 24,
+      "routes": 91
+    }
+  ],
+  "deploymentRegression": {
+    "sdk": "go1.27.3 linux/amd64",
+    "leafCases": 54,
+    "transports": [
+      "http",
+      "buffered",
+      "streaming"
+    ],
+    "scopes": [
+      "ordinary",
+      "mounted French trailing-slash"
+    ],
+    "host": "passed",
+    "container": "passed; repeats same 54 cases",
+    "containerPolicy": {
+      "image": "scratch with prebuilt static server/test binaries",
+      "uid": "65532:65532",
+      "readOnly": true,
+      "network": "none",
+      "capabilities": "ALL dropped",
+      "noNewPrivileges": true,
+      "pidsLimit": 128,
+      "memoryBytes": 268435456
+    },
+    "nativeSHA256": "1d8fca6687cc1fa68060f51a607c9dbcbd8802d152ca094374fed81e7a1d9868",
+    "testSHA256": "b90cdd14c61e900c9c78301357e54410486749e24d2a64c86558cfe874601d56",
+    "analysisAndDeploymentBuilds": "independent builds; deployment hashes are not the analysis-report native hashes"
+  },
+  "constraints": [
+    "User requested local machine qualification for now; actual hosted-serverless qualification is deferred, not waived.",
+    "No new cross-engine/container browser claim; network policy still prevents required browser/image downloads.",
+    "Analysis reports are separate measurement builds; their native hashes cannot be attributed to a different deployment binary.",
+    "Go gzip-9 measurements differ from Node/zlib and actual HTTP encoding; both SDK cores exceed the illustrative reference size budgets.",
+    "No per-route component inference, linked-package attribution, timing, CPU, RSS, field data, real-device or Next.js comparison.",
+    "Independent security review and immutable release evidence remain open.",
+    "No capability or release gate closed and no user waiver inferred."
+  ],
+  "logs": {
+    "focused.log": {
+      "path": ".nextgo-test-results/analyze/focused.log",
+      "bytes": 1128,
+      "sha256": "c2494218b93a4f122e5ddccd8e92c85203b26c647d50f70c3bfb562469a922ef"
+    },
+    "focused-go1.24.log": {
+      "path": ".nextgo-test-results/analyze/focused-go1.24.log",
+      "bytes": 1128,
+      "sha256": "420261de676785fea117b2bd5ebf158ad4858d785b2da8f9d0b16b00dbe48d79"
+    },
+    "vet-go1.24.log": {
+      "path": ".nextgo-test-results/analyze/vet-go1.24.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "native-race-go1.27.log": {
+      "path": ".nextgo-test-results/analyze/native-race-go1.27.log",
+      "bytes": 21539,
+      "sha256": "dd6a52636af99f5142281b53d3aee7045dbfb673a911570f8a573e1d55aa5ef5"
+    },
+    "native-vet-go1.27.log": {
+      "path": ".nextgo-test-results/analyze/native-vet-go1.27.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sections-fuzz.log": {
+      "path": ".nextgo-test-results/analyze/sections-fuzz.log",
+      "bytes": 368,
+      "sha256": "8354763644c327ebe3cbddd1f73f3f8f9f40bfc7bc17e8686af81b81d986691f"
+    },
+    "budget-stderr.log": {
+      "path": ".nextgo-test-results/analyze/budget-stderr.log",
+      "bytes": 75,
+      "sha256": "0bf8e68cd173722f4f77ccc820a3902209efa9ae74d25adbd0feaf5120789851"
+    },
+    "budget-stdout.log": {
+      "path": ".nextgo-test-results/analyze/budget-stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "compiler-go1.24.log": {
+      "path": ".nextgo-test-results/analyze/compiler-go1.24.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout-go1.24.log": {
+      "path": ".nextgo-test-results/analyze/stdout-go1.24.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "deployment-container.log": {
+      "path": ".nextgo-test-results/analyze/deployment-container.log",
+      "bytes": 8327,
+      "sha256": "3d7a5cd196444a9e7bb9e34d7bbf44c4b1920bfc45c8473c50a88dc89de78ff0"
+    },
+    "deployment-host.log": {
+      "path": ".nextgo-test-results/analyze/deployment-host.log",
+      "bytes": 8388,
+      "sha256": "9aa718d2f4440ca83a5799c20c92675eafc56e46ffd4b872179fca1e076c6f0f"
+    }
+  }
+}

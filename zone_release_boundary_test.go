@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/Suhaibinator/Next.go/actions"
+	"github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/internal/actionwire"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/publicorigin"
@@ -145,7 +146,14 @@ func TestZoneReleaseBoundaryRejectsBeforeFactories(t *testing.T) {
 		},
 		"remove-peer-boundary": func(c *Config) { c.DocumentPaths = nil },
 		"images":               func(c *Config) { c.Images = http.NotFoundHandler() },
+		"managed-fonts":        func(c *Config) { c.LocalFonts = []*assets.LocalFonts{{}} },
 		"metadata-static":      func(c *Config) { c.MetadataFiles.Static = fstest.MapFS{} },
+		"metadata-social": func(c *Config) {
+			c.MetadataFiles.OpenGraphImage = func(context.Context) ([]byte, error) {
+				t.Fatal("unsupported social producer executed")
+				return nil, nil
+			}
+		},
 		"metadata-producer": func(c *Config) {
 			c.MetadataFiles.Robots = func(context.Context) (seo.RobotsOptions, error) {
 				t.Fatal("unsupported producer executed")

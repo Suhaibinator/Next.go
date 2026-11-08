@@ -5,9 +5,11 @@ to the browser Fetch API. Navigation, prefetch and the example's server-action
 component avoid importing `net/http`. Applications may still use Go's
 `net/http`, but doing so links its dependencies into their WASM bundle.
 
-These are measurements of this framework before and after one change. They are
-not comparisons against Next.js, production field results, or evidence of full
-framework performance parity.
+The [local matched-app comparison](FRAMEWORK_COMPARISON.md) adds a small
+production Go/WASM versus stable Next.js 16.4.5 experiment. It retains exact
+artifacts and controls, and does not establish framework-wide performance
+parity, representative production behavior or G05 completion. The historical
+measurements below compare Go framework checkpoints rather than Next.js.
 
 The latest controlled build/startup sample is the
 [ASCII-validator comparison](#ascii-validator-build-comparison-october-25-2026-utc).

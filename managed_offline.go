@@ -58,6 +58,9 @@ func freezeManagedOfflineConfig(c *Config) error {
 	if c.Offline == nil || c.OfflineBuild == nil {
 		return fmt.Errorf("nextgo: managed offline requires both policy and compiler inventory")
 	}
+	if len(c.fontFiles) > 0 {
+		return fmt.Errorf("nextgo: managed offline inventory does not support managed local fonts")
+	}
 	if c.Dev || c.Phase != PhaseProduction || c.PrerenderBuildMode || c.Draft != nil || c.Locales != nil || c.localeScope != nil || c.Zone().ID != "" || c.AssetPrefix != "" || c.TrailingSlash || len(c.EarlyScripts) != 0 || len(c.Rewrites) != 0 || len(c.Redirects) != 0 || c.Images != nil || c.metadataSet.Digest() != "" {
 		return fmt.Errorf("nextgo: unsupported managed offline configuration")
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/Suhaibinator/Next.go/actions"
 	"github.com/Suhaibinator/Next.go/cache"
 	"github.com/Suhaibinator/Next.go/examples/demo/access"
+	"github.com/Suhaibinator/Next.go/examples/demo/localfonts"
 	"github.com/Suhaibinator/Next.go/examples/demo/media"
 	"github.com/Suhaibinator/Next.go/examples/demo/mutations"
 	"github.com/Suhaibinator/Next.go/examples/demo/preview"
@@ -120,6 +121,7 @@ func Configure(config *nextgo.Config) {
 			config.Handlers[path] = handler
 		}
 	}
+	config.LocalFonts = append(config.LocalFonts, localfonts.Set())
 	for i := range config.Routes {
 		// Link feedback demonstrates a real complete public navigation-cache hit.
 		if config.Routes[i].Pattern == "/link-status/one" {

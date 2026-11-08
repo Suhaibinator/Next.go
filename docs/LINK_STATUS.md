@@ -51,11 +51,10 @@ JavaScript application logic or server loaders enter the browser import graph.
 
 This is a bounded part of loading feedback. Independent route/slot loading,
 segment reset/retry, late access/status interrupts and complete production parity
-remain open. The current paired module ABI is 6; rebuild the core and every
-module together. Resource invalidation epochs introduced in ABI 4 and link-status
-forwarding introduced in ABI 5 remain mandatory. ABI 6 adds recognized document
-revocation before module observer dispatch. This ABI-6 source increment remains
-unqualified; the scoped ABI-5 results below do not qualify it.
+remain open. The link-status checkpoint introduced paired module ABI 5. Current bundles use
+ABI 7 for [native module imports](MODULE_IMPORTS.md) and document-authority revocation; rebuild the core and
+every module together. Resource invalidation epochs introduced in ABI 4 remain
+mandatory.
 
 ## Scoped verification
 

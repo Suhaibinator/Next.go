@@ -568,14 +568,18 @@ Full-document requests flush the initial shell and later inert templates. Go/WAS
 
 `seo.Metadata` supports canonical links, robots, language alternates, icons, Open Graph and Twitter fields. `metadata.go` providers merge ancestor contributions automatically, share request Memo data, and support trusted `BaseURL` resolution. `TitleTemplate` formats explicit descendant titles; `AbsoluteTitle` bypasses it. Typed `Language`, `Direction` and `Viewport` settings cover document attributes, zoom/fit/widget policy, color scheme and media-conditioned theme colors. These settings render before WASM and update during navigation; `/locale?lang=ar` demonstrates explicit translated views. `seo.Merge(parent, child)` remains a pure value merge; `seo.ResolveContribution` adds title formatting. [Metadata conventions](docs/METADATA.md) describe precedence, validation, cache/privacy rules and current limits. `seo.Sitemap`, `seo.SitemapIndex` and `seo.Robots` create validated handlers for `Config.Handlers`. Managed prefix/domain routing now supplies locale defaults and trusted URL helpers; see [locale conventions](docs/LOCALES.md). Metadata streaming, broader metadata-file conventions, automatic font download/subsetting and broader script integration remain outstanding. Local font/stylesheet resources are available through the assets API below.
 
-Managed app-root metadata discovers six explicit public files (`robots.txt`,
+Managed app-root metadata recognizes sixteen explicit public filenames (`robots.txt`,
 `sitemap.xml`, `favicon.ico`, `icon.png`, `apple-icon.png`,
-`manifest.webmanifest`) and optional native `Robots`, `Sitemap` and `Manifest`
-startup factories. They publish global mounted public bytes, independent of
+`manifest.webmanifest`, `opengraph-image.png`, `twitter-image.png` and their
+matching `.alt.txt` files, plus `.jpg`/`.jpeg`/`.gif` social-image variants), with native `Robots`, `Sitemap`, `Manifest`,
+`OpenGraphImage` and `TwitterImage` startup factories. They publish global mounted public bytes, independent of
 request cookies, locale negotiation and asset CDN prefixes. These paths bypass
 page middleware, rewrites and draft binding; declare only public bytes. Typed head defaults
-can inherit, override or clear icon/manifest groups. Export validates the
-declared version-2 inventory before publication. See
+can inherit, override or clear icon/manifest and social-image groups. Automatic
+social tags require a trusted `Metadata.BaseURL`; files remain public without
+origin inference. Go producers may use `socialimage.Render` for public PNG
+cards. Export validates the declared inventory, including complete PNG rasters,
+before staged publication. See
 [metadata format/trust limits](metadatafiles/README.md) and the styled
 [metadata example](examples/metadata-site/README.md).
 
@@ -611,6 +615,14 @@ page.Resources = append(page.Resources, assets.Stylesheet(fontCSS), font.Preload
 ```
 
 `NewFontStyles` validates local WOFF/WOFF2 faces and creates content-addressed CSS; the font bytes themselves must exist at the public source URL. Font weights/styles/display and metric overrides can be configured. `Page.Resources` is validated with metadata before rendering/caching. Native head/resource tests and the Chromium stylesheet navigation/cleanup regression pass; font acquisition and real font-loading/layout-shift qualification remain separate. This does not download/subset fonts or implement a third-party script loader.
+
+`assets.NewLocalFonts` additionally snapshots public font bytes with their
+declarations, derives immutable font/CSS URLs and exposes an owned manifest.
+Declare the snapshot in `Config.LocalFonts`, then use `Stylesheet()` and
+chosen manifest face preloads in `Page.Resources`. Managed delivery uses the
+same bounded hashed inventory through HTTP, Lambda and verified staged static
+export, including base/locale mounts. The `/local-fonts` example embeds original
+WOFF/WOFF2 fixtures. Undeclared runtime resources still reject export. See [frozen fonts and limits](assets/README.md#frozen-local-font-files).
 
 Optional `nextgo.assets.json` commands run declared CSS/asset tools during
 development, build and export. Watched input snapshots and validated staged
@@ -843,6 +855,27 @@ reads a bounded public route/layout/slot/component graph and last-good build
 state. Access is loopback-only; it is read-only and absent from production.
 It exposes neither source nor environment/props. See
 [inspection policy and limits](docs/DEV_INSPECTION.md).
+
+`go run ./cmd/nextgo analyze -out analysis.json ./examples/demo` builds one
+production generation and records native/runtime hashes, raw and Go gzip-9
+sizes, WASM sections, eager/lazy registrations and static route summaries.
+Optional core/per-lazy byte limits return a nonzero status after retaining the
+complete JSON report. This is artifact measurement, with compiler diagnostics
+on stderr; it does not measure per-route loading, startup, RSS or Web Vitals.
+See [bundle analysis and CI limits](docs/BUNDLE_ANALYSIS.md).
+
+`nextgo analyze -runtime-dir <published-runtime-namespace>` measures existing
+runtime files without compiling or executing application code. It works without
+the source checkout or Go SDK, retains budget-failure reports, and reports only
+facts available from the measured files.
+
+Go components can adapt a trusted imperative browser library with
+`Scope.Widget`: dependency loading, an owned subtree, startup cancellation,
+registered destructors and exact SSR fallback restoration. The
+[uPlot example](examples/widgets) exercises eager/lazy Go components and
+HTTP/Lambda/static delivery. Native [ESM imports](docs/MODULE_IMPORTS.md) expose
+default/named exports and live bindings from Go, shared with lazy components.
+See the [lifecycle contract and limits](docs/WIDGETS.md).
 
 ### Experimental public state refresh
 

@@ -8,6 +8,7 @@ import (
 	"github.com/Suhaibinator/Next.go/internal/paths"
 	"github.com/Suhaibinator/Next.go/internal/routing"
 
+	"github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/metadatafiles"
 )
 
@@ -48,6 +49,7 @@ type ExportConfig struct {
 	Scopes      []StaticExportScope     `json:"scopes"`
 	Domain      string                  `json:"domain,omitempty"`
 	Metadata    []metadatafiles.Entry   `json:"metadata,omitempty"`
+	Fonts       []assets.FontAsset      `json:"fonts,omitempty"`
 }
 
 // StaticExportOptions selects one configured public host. Domain routing must
@@ -110,6 +112,10 @@ func (a *App) StaticExportConfig(options ...StaticExportOptions) (ExportConfig, 
 		}
 	}
 	result.Domain = domain
+	if len(a.config.fontEntries) > 0 {
+		result.Version = 4 // Version 4 combines managed fonts and static shells.
+		result.Fonts = append([]assets.FontAsset(nil), a.config.fontEntries...)
+	}
 	if a.locales == nil {
 		result.Scopes = []StaticExportScope{{Configuration: a.configurationID}}
 	} else {
@@ -131,7 +137,7 @@ func (a *App) StaticExportConfig(options ...StaticExportOptions) (ExportConfig, 
 		if err != nil {
 			return ExportConfig{}, err
 		}
-		result.Version, result.StaticShell = 3, declaration
+		result.Version, result.StaticShell = 4, declaration
 	}
 	return result, nil
 }

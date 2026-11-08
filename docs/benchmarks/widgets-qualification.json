@@ -1,0 +1,377 @@
+{
+  "format": "nextgo-widget-qualification-v1",
+  "recordedAtUTC": "2026-11-07T21:53:23.279328+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "finalGoFiles": 1279,
+    "finalGoManifestSha256": "5e6ba60119baa879aea2daa1e7fdd97322176fbe2f76b484bb8550375aee6858",
+    "finalGoManifestPath": ".nextgo-test-results/widgets/final-go-source-manifest.json",
+    "nativeSnapshotManifestSha256": "32df3bf8872bd5aad5a9fd68ec5eac5c262c9a239fe87e9bee68c0c99ce4c2f5",
+    "postNativeGoChanges": [
+      "examples/widgets/widgetpage/page.go",
+      "tests/deployment/widgets_test.go"
+    ],
+    "postNativeChangesScope": "example logical stylesheet URL and deployment-test asset path only; fresh two-SDK artifacts, targeted vet, all browser and executable cases qualify corrections; framework Go unchanged",
+    "files": {
+      ".github/workflows/ci.yml": "3e4d7fb42b81019f7b07b950741cba3d35f366969ca528feb53a360911a5cfb2",
+      "client/scope_js.go": "5396b679f202a892a3d6e58da0aa7af5cf599605a871e335280bbed41c5b62ba",
+      "client/widget_js.go": "ac84aabd1600530062eee082ff51cb7531534e865afee5e8985abcb069ea1986",
+      "client/widget_js_test.go": "6868617fbc5b55558d39ff1380cacbb178ac3301f280fbec766afe2ffa52c3ba",
+      "docs/WIDGETS.md": "a490b7b778c5f0f32edc744cfe30c2a96498829a60d334b90075ac44055ff295",
+      "examples/widgets/README.md": "4ffb3dc73758c96746b828521f6448b9843c6d611363dc8c1b0879d3fabb0756",
+      "examples/widgets/actionrefs/nextgo_gen.go": "244e238b5e1b98684aec45aa457c397494d96cdfbe21383b2f083badb4329de9",
+      "examples/widgets/actionrefs/nextgo_gen_js.go": "c5c77c3f0c1130c35c63b75a5f6bf6ed7143523143d3254d883e0677050b3d36",
+      "examples/widgets/actionrefs/nextgo_gen_server.go": "896c371805e73cd9ccf5cfb375883045def3190b67054e657517149d85fe5f1a",
+      "examples/widgets/app/about/page.go": "b489599e5abbab52150e7787c2310d9a0282f8842d8b721da99731c03f147141",
+      "examples/widgets/app/api/health/route.go": "bc3b10eda9e34848f1a9b1a0e9dcdf451c9cd7116ed5b9b6ddd7f3248093963b",
+      "examples/widgets/app/config.go": "0f8e86894eb0afbb770aafcaf91999c7ce93f2b728c8a6fa7c6a6ce6d72a758d",
+      "examples/widgets/app/failure/page.go": "3da976bde7944bb350e2bb072091e274c4878bed81145364f24d4051b5d61adb",
+      "examples/widgets/app/favicon.ico": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+      "examples/widgets/app/late/page.go": "3bba50bcfd22d81a2cca3f60d2f513e51c6a455e13bbd1eaaac4fd6f1dc9fd23",
+      "examples/widgets/app/lazy-late/page.go": "b4159521500645deab4d87df3bc32192be7a8c08ec5c7073206956f239c3ae13",
+      "examples/widgets/app/lazy/page.go": "f6dc25331c7bfb804eedd6e3a6b66c4185fcb6d2c7cd2ed4b3df5769054dcbba",
+      "examples/widgets/app/page.go": "e47f187f0e9d02fb3fc7c606454f519e27f913169325d8d3ef279d76d0b9873e",
+      "examples/widgets/components/chart/client_js.go": "b9bdde3ccdf6a65eff4493fdc25769ae484a209fe7b5a24f3cd3d5e6b50a93f7",
+      "examples/widgets/components/chart/props.go": "26a732158fd1e7a748db55feb1e34a079f901624c5279314cf84c86fea91fa43",
+      "examples/widgets/components/chart/server.go": "dcdc91d8ab1c5280b72b48e0582ef6f28963032d0ef2a647db58d968c11d4cbc",
+      "examples/widgets/components/chartlazy/client_js.go": "975afbc806521fbb551cc88bb41d472bdeda66f530c1e97fe3a73ea78c4d2270",
+      "examples/widgets/components/chartlazy/component.json": "76ef0c496a10e1efc9f6ec4c657746dc476e422a4cf88a41042e20c265947b04",
+      "examples/widgets/components/chartlazy/props.go": "b4b49abd0dcde6180805495a1c2d6117767a5f59df8bab0f04f5a8175d93f1e5",
+      "examples/widgets/components/chartlazy/server.go": "458a408d2368b5e89f0f231644b3499f26e4a277d50b17444ba061a7fc368f47",
+      "examples/widgets/public/style.css": "77bdc802a9fdf13288fa0a7a274a0e7bfcb6018cd987ea4f568a0c953acd3718",
+      "examples/widgets/public/vendor/uPlot-1.6.32.iife.min.js": "19c8d4c6ad88929a79f4ae49d6f7161566dfd0ba3d15cc495e974f787eb78f1f",
+      "examples/widgets/public/vendor/uPlot-1.6.32.min.css": "df630c6a8d6f8eeaff264b50f73ce5b114f646ffd9a0bb74f049b0a00135fa04",
+      "examples/widgets/public/vendor/uPlot-LICENSE.txt": "8f989229699b4fe2f1a0432d0e9edc338a8a911e250e2d1b01ecd770a5f5b1bd",
+      "examples/widgets/routes/nextgo_gen.go": "e2009275f0927104dc458a78033f6c405ca3c0a4d7566f22bf81fc6cffd6bbbe",
+      "examples/widgets/widgetpage/page.go": "e59532a9fa8d5adb94049e9a5153bfa3b2730c124674cb5261866ef79c15a909",
+      "package.json": "4354c518417a7609b32ed4b43549301928f3d7290563ec8bd316a53e1eaa44e9",
+      "scripts/test-wasm.sh": "50d372109c07b6e9616f23b631a5b66c1848e4ed154fe9b23e22b5a99211ee06",
+      "tests/deployment/widgets_test.go": "fde4f0ac93ea0077431bd7ede4d22f0d390125b0dcf21ebc528ac37902004915",
+      "tests/widgets-vendor.json": "ec6b8889d55ae9b872b5981a7aaa60722b13a11d3644ca67931aa29d79c4d656",
+      "tests/widgets.config.mjs": "c37604f560379cef7f1520fa5c571be0f85aa8966aed0f24cc388084f1e5c02e",
+      "tests/widgets.spec.mjs": "00c6b942edf78ac1183e8720bb6d076292782c1aab35376b2e60fe5a349abe22"
+    }
+  },
+  "baseline": {
+    "nextjs": "16.4.5",
+    "officialLatestRedirect": "https://github.com/vercel/next.js/releases/tag/v16.4.5"
+  },
+  "contract": {
+    "API": [
+      "Scope.Widget",
+      "Widget.Close",
+      "Widget.Ready",
+      "Widget.Settled",
+      "WidgetOptions"
+    ],
+    "dependencies": "up to 16 copied checked descriptors, ordered LoadScript/RetryScript, existing shared host for lazy modules",
+    "ownership": "exclusive child scope, plain bounded SSR fallback, exact node restoration, reserved parent root and runtime widget registry while startup remains physical",
+    "bounds": {
+      "livePerRuntime": 128,
+      "physicalStartupPerRuntime": 64
+    },
+    "cancellation": "known cleanup registered late runs immediately; canceled startup retains its slot and ownership until completion; Goexit/panic startup closes known resources",
+    "limits": [
+      "trusted library code is not sandboxed",
+      "constructors must observe context; cleanup and ready callbacks must return promptly",
+      "no arbitrary async shutdown or partial-resource handle inference",
+      "no document-wide aggregate budget across independent WASM runtimes"
+    ]
+  },
+  "verification": {
+    "1.27": {
+      "nativeRacePackages": 80,
+      "nativeRaceLogSha256": "5db6513349cd274d34c0227c54984afc5871f684a7c768eadd7ee6f95adce12d",
+      "nativeVetExit": 0,
+      "WasmVetTargets": 4,
+      "WasmVetExit": 0,
+      "WasmPackageRuns": 11,
+      "WasmTargets": 4,
+      "WasmTestLogSha256": "beca29acd4c107112081c87b2835f8659d093876ed6ebb69b6374fa056384525",
+      "exampleAndDeploymentVetExit": 0,
+      "exampleVetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deploymentVetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "1.24": {
+      "nativeRacePackages": 80,
+      "nativeRaceLogSha256": "0184355803e9ac06c02c46973cf6bebb0819fd4f4c72c15451a9b0a154de8fa8",
+      "nativeVetExit": 0,
+      "WasmVetTargets": 4,
+      "WasmVetExit": 0,
+      "WasmPackageRuns": 11,
+      "WasmTargets": 4,
+      "WasmTestLogSha256": "f5bd166de0fbc87cd38d802dd1af5a157f0ac0ca581cfc86c494a3e2ad545898",
+      "exampleAndDeploymentVetExit": 0,
+      "exampleVetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "deploymentVetLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "packageScriptsJSON": "valid after adding missing separator/removing trailing comma in the new npm script; runtime/browser code unchanged"
+  },
+  "browser": {
+    "1.27": {
+      "passed": 36,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "projects": [
+        "widgets-buffered-chromium",
+        "widgets-http-chromium",
+        "widgets-static-chromium",
+        "widgets-streaming-chromium"
+      ],
+      "reportSha256": "b6f33c209586d6676e6d8f0d96726e57ec9c7babbe338d33d1fb39828bfa853a",
+      "cleanupProofs": 36,
+      "sourceRequests": 0,
+      "transports": [
+        "http",
+        "buffered",
+        "streaming",
+        "static"
+      ]
+    },
+    "1.24": {
+      "passed": 36,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "projects": [
+        "widgets-buffered-chromium",
+        "widgets-http-chromium",
+        "widgets-static-chromium",
+        "widgets-streaming-chromium"
+      ],
+      "reportSha256": "351f9fe784661a5ffcbda0af4f811cd70459ac8e75beb1c1ceb9872c2f228e96",
+      "cleanupProofs": 36,
+      "sourceRequests": 0,
+      "transports": [
+        "http",
+        "buffered",
+        "streaming",
+        "static"
+      ]
+    }
+  },
+  "deployment": {
+    "normalCases": 216,
+    "raceCases": 108,
+    "logs": {
+      "host-go1.27": {
+        "passedCases": 54,
+        "logSha256": "b305219be850aa1941eaa8fa48f98ea5d403d05222b2b93a57603e8afd271aab"
+      },
+      "container-go1.27": {
+        "passedCases": 54,
+        "logSha256": "36ba71f5507439e92800cf0fa098244cb8489deb8844a4fbf9393488e776e2a1"
+      },
+      "race-deployment-go1.27": {
+        "passedCases": 54,
+        "logSha256": "a1b163686e18f1ca14efb89d0e3395bfeb6d4ff59660897da43f78ef1ce32707"
+      },
+      "host-go1.24": {
+        "passedCases": 54,
+        "logSha256": "fced7f7d9c2861fbf59f1ebd01ab177734b4ca58bc970f4411d6b5d76f7f766e"
+      },
+      "container-go1.24": {
+        "passedCases": 54,
+        "logSha256": "c616f1cc2bd57a18fc0b94ff1fcddc3f13eb488c4c8f5c64a081583c819bdb3d"
+      },
+      "race-deployment-go1.24": {
+        "passedCases": 54,
+        "logSha256": "a91251b48033ef88aefd6f4a5504c4d34ed0a20ed257709833c09ca43bd9d539"
+      }
+    },
+    "container": {
+      "image": "existing scratch qualification base with only read-only test/server file overrides",
+      "UID": "65532:65532",
+      "readOnly": true,
+      "network": "none",
+      "capDrop": "ALL",
+      "noNewPrivileges": true,
+      "pids": 128,
+      "memoryBytes": 268435456,
+      "SDKSourceNodeAbsent": true
+    },
+    "nativeLaunchEnvironment": "ordinary host conformance launched with env -i and explicit PATH/GOMAXPROCS/TMPDIR/pins; existing controllers execute standalone binaries outside checkout"
+  },
+  "artifacts": {
+    "server-go1.27": {
+      "path": ".nextgo-test-results/widgets/go1.27/server",
+      "sha256": "d1b6d6664d438d3c4f87d33b6c9e6f0519278452d2de269389da969f74e40358"
+    },
+    "test-go1.27": {
+      "path": ".nextgo-test-results/widgets/deployment-go1.27.test",
+      "sha256": "7bb119c79f010b15195f635085d774f0834966c53b0b51af83449547da846c0a"
+    },
+    "server-go1.24": {
+      "path": ".nextgo-test-results/widgets/go1.24/server",
+      "sha256": "f610ab84105beb50eaad6da640f2abe7d6eed8435fa2771508dbe9b6865a3ee6"
+    },
+    "test-go1.24": {
+      "path": ".nextgo-test-results/widgets/deployment-go1.24.test",
+      "sha256": "db3ff6cca5038d743ea6bdbeb3f676642abc356a60b605b7baff6240c75e9b0d"
+    }
+  },
+  "bundle": {
+    "1.27": {
+      "report": "widgets-bundle-analysis-go1.27.json",
+      "reportSha256": "5cf936f5c56d824419179621df91e02b02e790bf474e986ccbcc68c2cc73a780",
+      "nativeExactlyMatchesQualifiedArtifact": true,
+      "referenceBudgetExit": 1
+    },
+    "1.24": {
+      "report": "widgets-bundle-analysis-go1.24.json",
+      "reportSha256": "76a7c2e0166407cdbe3cb96a96427d0b553cee64300e593955d4e3a030c96ea8",
+      "nativeExactlyMatchesQualifiedArtifact": true,
+      "referenceBudgetExit": 0
+    }
+  },
+  "vendor": {
+    "manifest": "../../tests/widgets-vendor.json",
+    "manifestSha256": "ec6b8889d55ae9b872b5981a7aaa60722b13a11d3644ca67931aa29d79c4d656",
+    "packageVersion": "uplot@1.6.32",
+    "npmTarballIntegrityVerified": true,
+    "license": "MIT, unchanged license retained",
+    "bytesOutsideRuntimeAnalysis": 54016,
+    "npmAudit": {
+      "exit": 0,
+      "knownVulnerabilities": 0,
+      "reportSha256": "846fc260eb0bf70e6b21419d4cab9fcc61c224c7362324d4cbc8aebf8355f9bd"
+    }
+  },
+  "advisories": {
+    "checker": "govulncheck v1.9.0",
+    "databaseQualification": "govulncheck-local-database-qualification.json",
+    "observedLatestOfficialDBHead": "e22db6528018f9725b3230c4e6429c791f40bb15",
+    "sourceResults": {
+      "1.27": {
+        "native": {
+          "conversionExit": 0,
+          "reachableAdvisoryIDs": [],
+          "jsonSha256": "33d24dc0df37f81e1abf5ba096e139af008461d175ee7e601fc8e62afaac16af",
+          "textSha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+        },
+        "wasm-core": {
+          "conversionExit": 0,
+          "reachableAdvisoryIDs": [],
+          "jsonSha256": "b041cdb20665f0e18a801ba50ca9dec415f63e4b37989de4cf3d2fbd4c259a69",
+          "textSha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+        },
+        "wasm-module": {
+          "conversionExit": 0,
+          "reachableAdvisoryIDs": [],
+          "jsonSha256": "b041cdb20665f0e18a801ba50ca9dec415f63e4b37989de4cf3d2fbd4c259a69",
+          "textSha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+        }
+      },
+      "1.24": {
+        "native": {
+          "conversionExit": 3,
+          "reachableAdvisoryIDs": [
+            "GO-2026-4601",
+            "GO-2026-4602",
+            "GO-2026-4603",
+            "GO-2026-4865",
+            "GO-2026-4870",
+            "GO-2026-4918",
+            "GO-2026-4946",
+            "GO-2026-4947",
+            "GO-2026-4970",
+            "GO-2026-4971",
+            "GO-2026-4976",
+            "GO-2026-4980",
+            "GO-2026-4982",
+            "GO-2026-5026",
+            "GO-2026-5037",
+            "GO-2026-5039",
+            "GO-2026-5856",
+            "GO-2026-5972",
+            "GO-2026-6088",
+            "GO-2026-6089",
+            "GO-2026-6090",
+            "GO-2026-6091",
+            "GO-2026-6218",
+            "GO-2026-6599",
+            "GO-2026-6600",
+            "GO-2026-6603",
+            "GO-2026-6604",
+            "GO-2026-6605",
+            "GO-2026-6607",
+            "GO-2026-6608",
+            "GO-2026-6609",
+            "GO-2026-6610",
+            "GO-2026-6611",
+            "GO-2026-6612",
+            "GO-2026-6613",
+            "GO-2026-6617",
+            "GO-2026-6809"
+          ],
+          "jsonSha256": "f810864224ce883fb82e26e7c928fd1577b1ee0411d8007fc28d4e5ae1e553dd",
+          "textSha256": "2942a7b8df9155b31dea848617f41ee565ec111a40e3ca486906c103abf6e35f"
+        },
+        "wasm-core": {
+          "conversionExit": 3,
+          "reachableAdvisoryIDs": [
+            "GO-2026-4601"
+          ],
+          "jsonSha256": "84c280308b3c700441c467b4e3d87b35e7684e905d6af7adb9f5f8c56a0e0a19",
+          "textSha256": "40d4e48e1b2ce3eb87e12cab21cc9f6a623de5e3bd26a85606efd4a7b7df8410"
+        },
+        "wasm-module": {
+          "conversionExit": 3,
+          "reachableAdvisoryIDs": [
+            "GO-2026-4601"
+          ],
+          "jsonSha256": "84c280308b3c700441c467b4e3d87b35e7684e905d6af7adb9f5f8c56a0e0a19",
+          "textSha256": "40d4e48e1b2ce3eb87e12cab21cc9f6a623de5e3bd26a85606efd4a7b7df8410"
+        }
+      }
+    },
+    "qualification": "known advisories only; Go1.24 remains compatibility-only; independent full source audit not completed"
+  },
+  "CI": {
+    "job": "widgets",
+    "definedCasesPerSDK": 144,
+    "profilesPerSDK": 16,
+    "localExecutedChromiumCasesPerSDK": 36,
+    "remoteRun": false
+  },
+  "failedAttempts": {
+    "health-export-build-attempt.log": {
+      "sha256": "3a8546be0f19b283c31463fd123ded0934453598aeef154d66c2e315af08725d",
+      "path": ".nextgo-test-results/widgets/health-export-build-attempt.log"
+    },
+    "missing-artifact-browser-attempt.log": {
+      "sha256": "8e7a039f5d338b063c25e2e76761044911af6c48e177e48eec08fb47f3f12536",
+      "path": ".nextgo-test-results/widgets/missing-artifact-browser-attempt.log"
+    },
+    "table-selector-attempt.log": {
+      "sha256": "d0af1bae866063e893faf34d585cb1fa1d873af6b41f8b619737a49aa87e2eda",
+      "path": ".nextgo-test-results/widgets/table-selector-attempt.log"
+    },
+    "short-status-polling-attempt.log": {
+      "sha256": "3401e9f3381a6b59d7120f8dc0fcc10344575272018a39b78f2629c21ca44657",
+      "path": ".nextgo-test-results/widgets/short-status-polling-attempt.log"
+    },
+    "pre-resolved-stylesheet-attempt.log": {
+      "sha256": "afd5d68f651ec3fc25102d96795482fad2a5e8cb6a339aea8af58a13c84b547f",
+      "path": ".nextgo-test-results/widgets/pre-resolved-stylesheet-attempt.log"
+    },
+    "public-asset-prefix-attempt-go1.27.log": {
+      "sha256": "d41c5485b808b69253816b299eaf4bbcc54ee97fe617025fd5144b3ec6ca1d63",
+      "path": ".nextgo-test-results/widgets/public-asset-prefix-attempt-go1.27.log"
+    },
+    "public-asset-prefix-attempt-go1.24.log": {
+      "sha256": "b8586c6c46f30c43af74b2675827c062b75559440ef59b08cbdd1840d6729d6e",
+      "path": ".nextgo-test-results/widgets/public-asset-prefix-attempt-go1.24.log"
+    }
+  },
+  "releaseLimits": [
+    "All 79 capabilities and G01-G11 remain retained/open, with no waiver.",
+    "Go1.27 widget core still fails both reference budgets; Go1.24 size does not waive its known SDK findings.",
+    "Current local browser qualification is Chromium only; configured Firefox/WebKit/touch and remote CI unrun.",
+    "No strict-CSP, broad library/ESM/framework adapters, responsive updates, async resource shutdown, long soak, full device/CDN/hosted-cloud qualification.",
+    "Earlier matched Next.js performance comparison remains the pre-widget checkpoint identified by its source pins."
+  ]
+}

@@ -27,7 +27,7 @@ var scriptLoads = map[string]*scriptLoad{}
 var scriptAliases = map[string]string{}
 var scriptSources = map[string]string{}
 var scriptSlots = make(chan struct{}, 4)
-var scriptWaiters int
+var scriptWaiters, scriptHostWaiters int
 
 func scriptNonce() (value string) {
 	defer func() { _ = recover() }()
@@ -53,6 +53,9 @@ func resolveScript(input scripts.Script) (scripts.Script, error) {
 	return s.Check()
 }
 func checkScriptIdentity(s scripts.Script) error {
+	if importedModules[s.Src] != nil {
+		return fmt.Errorf("scripts: source already belongs to the module import loader")
+	}
 	key := s.Key()
 	if old, ok := scriptAliases[s.ID]; ok && old != key {
 		return fmt.Errorf("scripts: ID already names another dependency")
@@ -224,6 +227,13 @@ func downloadScript(state *scriptLoad) error {
 		node.Set("nonce", nonce)
 	}
 	d := state.declaration
+	values, err := d.Data.Values()
+	if err != nil {
+		return err
+	}
+	for name, value := range values {
+		node.Call("setAttribute", name, value)
+	}
 	for _, attr := range [][2]string{{"type", d.Type}, {"integrity", d.Integrity}, {"crossorigin", d.CrossOrigin}, {"referrerpolicy", d.ReferrerPolicy}} {
 		if attr[1] != "" {
 			node.Call("setAttribute", attr[0], attr[1])
@@ -443,14 +453,28 @@ func scriptHostPromise(args []js.Value) any {
 	var executor js.Func
 	executor = js.FuncOf(func(_ js.Value, promiseArgs []js.Value) any {
 		resolve, reject := promiseArgs[0], promiseArgs[1]
+		if len(args) != 2 || args[0].Type() != js.TypeString || args[1].Type() != js.TypeBoolean {
+			reject.Invoke("scripts: invalid host request")
+			return nil
+		}
+		if scriptHostWaiters >= maxScriptWaiters {
+			reject.Invoke("scripts: host waiter limit reached")
+			return nil
+		}
+		raw, retry := args[0].String(), args[1].Bool()
+		if len(raw) > 8192 {
+			reject.Invoke("scripts: declaration exceeds 8 KiB")
+			return nil
+		}
 		activity, err := beginRefreshActivity()
 		if err != nil {
 			reject.Invoke(err.Error())
 			return nil
 		}
-		raw, retry := args[0].String(), args[1].Bool()
+		scriptHostWaiters++
 		go func() {
 			defer activity.Done()
+			defer func() { scriptHostWaiters-- }()
 			s, err := scripts.Parse(raw)
 			if err == nil {
 				err = loadScript(context.Background(), s, retry)

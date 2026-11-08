@@ -1,11 +1,35 @@
 import {test as base, expect} from '@playwright/test';
 import {startMetadataStream} from './serve-metadata-stream.mjs';
 import {holdRequests} from './link-status-gates.mjs';
+import {startClientOnlyDeployment} from './client-only-deployment-fixture.mjs';
 
 // The existing fixture starts a pinned production executable and forwards its
 // actual responses. This route never calls its optional JSON data source.
 const test = base.extend({
-  native: async ({page}, use, info) => {
+  deploymentMode: ['native', {option: true}],
+  native: async ({page, deploymentMode}, use, info) => {
+    if (deploymentMode !== 'native') {
+      const fixture = await startClientOnlyDeployment(deploymentMode);
+      try {await use(fixture);} finally {
+        const errors = [];
+        try {await page.close();} catch (error) {errors.push(error);}
+        try {await fixture.close();} catch (error) {errors.push(error);}
+        const proof = fixture.snapshot();
+        await info.attach('client-only-deployment-proof', {body: JSON.stringify(proof), contentType: 'application/json'});
+        if (deploymentMode === 'static') expect(proof.closed).toBe(true);
+        else {
+          expect(proof.source).toEqual([]);
+          for (const [key, value] of Object.entries(proof.cleanup)) expect(value, key).toBe(key === 'runtimeGatewayClosed' ? deploymentMode !== 'http' : true);
+          if (proof.runtime) {
+            expect(proof.runtime.joined).toBe(true); expect(proof.runtime.exit).toEqual({code: 0, signal: null});
+            expect(proof.runtime.failures).toEqual([]); expect(proof.runtime.droppedReports + proof.runtime.droppedFailures).toBe(0);
+            expect(proof.runtime.reports.some(report => report.path === fixture.path && report.statusCode === 200)).toBe(true);
+          }
+        }
+        if (errors.length) throw new AggregateError(errors, 'client-only deployment cleanup failed');
+      }
+      return;
+    }
     const startupAbort = new AbortController();
     const onPageClose = () => startupAbort.abort(new Error('Owned client-only page closed during startup'));
     page.once('close', onPageClose);
@@ -13,6 +37,7 @@ const test = base.extend({
     try {fixture = await startMetadataStream({signal: startupAbort.signal});}
     catch (error) {if (error.metadataFixtureProof) await info.attach('client-only-startup-failure-proof', {body: JSON.stringify(error.metadataFixtureProof), contentType: 'application/json'}); throw error;}
     finally {page.off('close', onPageClose);}
+    fixture.path = '/client-only';
     try {await use(fixture);} finally {
       const errors = [];
       try {await page.close();} catch (error) {errors.push(error);}
@@ -55,7 +80,7 @@ test('delayed WASM and lazy bytes preserve useful fallbacks while Go mounts expl
   const core = await holdRequests(page, '**/app.wasm', () => true);
   const lazy = await holdRequests(page, moduleURL, () => true);
   try {
-    await page.goto(native.origin + '/client-only', {waitUntil: 'domcontentloaded'}); await core.waitForEntry();
+    await page.goto(native.origin + native.path, {waitUntil: 'domcontentloaded'}); await core.waitForEntry();
     await expect(page.getByRole('heading', {level: 1})).toHaveText('Choose browser rendering explicitly.');
     await expect(page.locator('[data-client-panel-fallback]')).toHaveCount(4);
     await expect(page.locator('[data-client-panel]')).toHaveCount(0);
@@ -84,7 +109,7 @@ for (const failure of ['error', 'panic']) test(`${failure} after eager and lazy 
   const core = await holdRequests(page, '**/app.wasm', () => true);
   const lazy = await holdRequests(page, moduleURL, () => true);
   try {
-    await page.goto(native.origin + '/client-only?fail=' + failure, {waitUntil: 'domcontentloaded'}); await core.waitForEntry(); await captureFallbacks(page);
+    await page.goto(native.origin + native.path + '?fail=' + failure, {waitUntil: 'domcontentloaded'}); await core.waitForEntry(); await captureFallbacks(page);
     await page.evaluate(() => {
       globalThis.clientBoundaryRollbacks = clientBoundaryOriginals.filter(saved => JSON.parse(saved.root.getAttribute('data-nextgo-props')).failure).map(saved => {
         const capture = {...saved, views: [], overflow: false};
@@ -127,7 +152,7 @@ for (const failure of ['error', 'panic']) test(`${failure} after eager and lazy 
 
 test('Go navigation disposes eager and lazy browser-view listeners and remounts independent state on return', async ({page, native}) => {
   let modules = 0; page.on('request', request => {if (moduleURL.test(request.url())) modules++;});
-  await page.goto(native.origin + '/client-only'); await ready(page);
+  await page.goto(native.origin + native.path); await ready(page);
   await increment(page, 'eager').click(); await expect(count(page, 'eager')).toHaveText('4');
   await increment(page, 'lazy').click(); await expect(count(page, 'lazy')).toHaveText('6');
   await page.evaluate(() => {
@@ -145,7 +170,7 @@ test('Go navigation disposes eager and lazy browser-view listeners and remounts 
 test('a superseded lazy download never replaces detached fallbacks and the returned page mounts normally', async ({page, native}) => {
   const lazy = await holdRequests(page, moduleURL, () => true);
   try {
-    await page.goto(native.origin + '/client-only'); await lazy.waitForEntry();
+    await page.goto(native.origin + native.path); await lazy.waitForEntry();
     await expect(root(page, 'eager')).toHaveAttribute('data-nextgo-hydrated', 'true');
     await expect(root(page, 'lazy')).toHaveAttribute('data-nextgo-hydrated', 'loading');
     await page.evaluate(() => {
@@ -157,4 +182,24 @@ test('a superseded lazy download never replaces detached fallbacks and the retur
     await expect(count(page, 'lazy')).toHaveText('5'); await increment(page, 'lazy').click(); await expect(count(page, 'lazy')).toHaveText('6');
     expect(await page.evaluate(() => clientBoundaryDocument === document && clientBoundaryAbandoned.every(saved => !saved.root.isConnected && saved.root.querySelector('[data-client-panel-fallback]') === saved.fallback && saved.root.querySelector('[data-client-panel-draft]') === saved.input && !saved.root.querySelector('[data-client-panel]')))).toBe(true);
   } finally {await lazy.close();}
+});
+
+test.describe('without JavaScript', () => {
+  test.use({javaScriptEnabled: false});
+  test('native and exported HTML retain four useful fallbacks and an ordinary island', async ({page, native}) => {
+    const wasmRequests = [];
+    page.on('request', request => {if (/\.wasm(?:\?|$)/.test(request.url())) wasmRequests.push(request.url());});
+    const response = await page.goto(native.origin + native.path);
+    expect(response.status()).toBe(200);
+    if (native.mode === 'buffered' || native.mode === 'streaming') expect(response.headers()['x-nextgo-fixture-lambda-mode']).toBe(native.mode);
+    await expect(page.getByRole('heading', {level: 1})).toHaveText('Choose browser rendering explicitly.');
+    await expect(page.locator('[data-client-panel-fallback]')).toHaveCount(4);
+    await expect(page.locator('[data-client-panel]')).toHaveCount(0);
+    await expect(companion(page).locator('[data-count]')).toHaveText('2');
+    const draft = root(page, 'eager').locator('[data-client-panel-draft]');
+    await draft.fill('Useful without WebAssembly'); await expect(draft).toHaveValue('Useful without WebAssembly');
+    expect(wasmRequests).toEqual([]);
+    await page.locator('[data-client-only-exit]').click();
+    await expect(page).toHaveTitle('Architecture — Next.go');
+  });
 });

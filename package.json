@@ -39,7 +39,14 @@
     "test:refresh-production:browser": "node scripts/test-browser.mjs --config tests/refresh-production.config.mjs",
     "test:offline": "node scripts/test-browser.mjs --config tests/offline.config.mjs",
     "test:metadata-clear": "node scripts/test-browser.mjs --config tests/metadata-clear.config.mjs",
-    "test:client-only": "node scripts/test-browser.mjs --config tests/client-only.config.mjs"
+    "test:client-only": "node scripts/test-browser.mjs --config tests/client-only.config.mjs",
+    "test:client-only:deployment": "node scripts/test-browser.mjs --config tests/client-only-deployment.config.mjs",
+    "test:local-fonts": "node scripts/test-browser.mjs --config tests/local-fonts.config.mjs",
+    "test:social-metadata": "node scripts/test-browser.mjs --config tests/social-metadata.config.mjs",
+    "test:social-variants": "node scripts/test-browser.mjs --config tests/social-variants.config.mjs",
+    "test:private-routes": "node scripts/test-browser.mjs --config tests/private-routes.config.mjs",
+    "test:root-layouts": "node scripts/test-browser.mjs --config tests/root-layouts.config.mjs",
+    "test:widgets": "node scripts/test-browser.mjs --config tests/widgets.config.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

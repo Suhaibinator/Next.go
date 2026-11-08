@@ -2,7 +2,9 @@
 
 The same generated application can run as a self-hosted HTTP server or an AWS
 Lambda custom runtime. Native tests exercise the Lambda protocol against a local
-mock Runtime API. **Real AWS deployment, IAM, cold-start latency, and platform
+mock Runtime API and the [official AWS emulator](AWS_RIE.md). The latter passes
+both modes on the host and in restricted Linux containers with pinned binaries.
+**Real AWS deployment, IAM, cold-start latency, and platform
 limits have not been validated in a cloud account.** CI configuration is included;
 its remote results must be checked before treating a revision as release-ready.
 
@@ -17,6 +19,11 @@ and [current stable downloads](https://go.dev/dl/?mode=json).
 
 Go 1.24 remains the framework's minimum language and compatibility-test target;
 it is outside upstream support and is not the recommended production SDK.
+The [current advisory record](SECURITY_QUALIFICATION.md) reports reachable
+standard-library findings on Go 1.24.13 and no known findings for the tested
+Go 1.27.3 scopes against the verified official snapshot. Compatibility results
+are not security approval; no source-audit or release gate is closed.
+
 Update the production SDK pin deliberately as supported patches arrive, then
 rerun native, matching-toolchain WASM, executable and browser qualification.
 The generated WASM bundle and `wasm_exec.js` must come from the same SDK; publish

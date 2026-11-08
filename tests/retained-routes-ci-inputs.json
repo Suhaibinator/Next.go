@@ -89,9 +89,16 @@
     },
     {
       "path": "client/lazy_js.go",
-      "sha256": "3d39e2551bf0c055cc9dc475fec9a22a2d6208f19804cd54f2b44aa0016efcec",
-      "bytes": 17658,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "f702beccc79073fbdb0aa4b451523d07038c2360670633826be417b08c108829",
+      "bytes": 17705,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "3d39e2551bf0c055cc9dc475fec9a22a2d6208f19804cd54f2b44aa0016efcec",
+          "bytes": 17658,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "client/lazy_privacy_js_test.go",
@@ -191,9 +198,16 @@
     },
     {
       "path": "client/module_host_registration_js_test.go",
-      "sha256": "89764660fa52dc11b8be113b1cbe02ae20fbeed89236a2564815e0832b3e9c8d",
-      "bytes": 8979,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "a0dfae977b4e3c2b79a9e670bbb09aab6577f554e03aa3ab486fd2577b78f4cb",
+      "bytes": 8996,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "89764660fa52dc11b8be113b1cbe02ae20fbeed89236a2564815e0832b3e9c8d",
+          "bytes": 8979,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "client/module_js.go",
@@ -359,9 +373,16 @@
     },
     {
       "path": "client/resource_rpc_core_js_test.go",
-      "sha256": "cd3aaecb07bf4e79d0e79685c68578891c71923e5b2da731748aff7233c49a03",
-      "bytes": 5320,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "0b1e7fcd988ff8c1cf009fd13d87da791022e6fede36c79a9df1e6d6ce3ff24c",
+      "bytes": 5322,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "cd3aaecb07bf4e79d0e79685c68578891c71923e5b2da731748aff7233c49a03",
+          "bytes": 5320,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "client/retained_devrefresh_js_test.go",
@@ -431,15 +452,29 @@
     },
     {
       "path": "client/runtime_js.go",
-      "sha256": "2029a96cf57665440b2e582b367f497806fbc98e5a12910de33a3aca6133e748",
-      "bytes": 56862,
-      "origin": "Exact reviewed dual-browser source composition; presentation; uncompiled and unexecuted"
+      "sha256": "3ae2bc9a6e58a7ba9d7e9fef93157847144365e739c4860e23dd06f47d8d5cfb",
+      "bytes": 57626,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "2029a96cf57665440b2e582b367f497806fbc98e5a12910de33a3aca6133e748",
+          "bytes": 56862,
+          "origin": "Exact reviewed dual-browser source composition; presentation; uncompiled and unexecuted"
+        }
+      ]
     },
     {
       "path": "client/scope_js.go",
-      "sha256": "2ddb92640baaf98ba88047f6f319af13c0333762432e10c116162aa867d4b832",
-      "bytes": 8939,
-      "origin": "Exact reviewed dual-browser source composition; presentation; uncompiled and unexecuted"
+      "sha256": "bf3b8afa850d8dbfeecac6a27b0a796f3416251cd5d23d5d9ba411ff7ba7f9dc",
+      "bytes": 9053,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "2ddb92640baaf98ba88047f6f319af13c0333762432e10c116162aa867d4b832",
+          "bytes": 8939,
+          "origin": "Exact reviewed dual-browser source composition; presentation; uncompiled and unexecuted"
+        }
+      ]
     },
     {
       "path": "client/selection_js.go",
@@ -479,9 +514,16 @@
     },
     {
       "path": "cmd/nextgo/main.go",
-      "origin": "New actual-ZIP LOCAL retained-Lambda qualification helper or exact published3cc CLI packaging source; runtime evidence pending",
-      "bytes": 3782,
-      "sha256": "b8bec97716e7b82356b4007d95d8343cb3225921d07c66b406e7c64171712692"
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "bytes": 4067,
+      "sha256": "bee7a9c25333944ac011bc43a81a5f780006674c2f07631b0dc91971a1c80ace",
+      "previousPins": [
+        {
+          "sha256": "b8bec97716e7b82356b4007d95d8343cb3225921d07c66b406e7c64171712692",
+          "bytes": 3782,
+          "origin": "New actual-ZIP LOCAL retained-Lambda qualification helper or exact published3cc CLI packaging source; runtime evidence pending"
+        }
+      ]
     },
     {
       "path": "docs/LAMBDA_PACKAGING.md",
@@ -490,11 +532,23 @@
       "sha256": "d0964294ba1c6fbe8f7036d329d6ad19819664518714f74e81cab96e957fdcc9"
     },
     {
-  "path": "docs/PARITY.md",
-  "sha256": "b80bd8d9091290214bc6b232ff93e0a3790cb50c288c4a112d81db8ce3a919d4",
-  "bytes": 222973,
-  "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
-},
+      "path": "docs/PARITY.md",
+      "sha256": "9800a871d806a104ca128cfb76e66f5c742b564b0e5fa6393137393588c0ae88",
+      "bytes": 276355,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "b80bd8d9091290214bc6b232ff93e0a3790cb50c288c4a112d81db8ce3a919d4",
+          "bytes": 222973,
+          "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
+        },
+        {
+          "sha256": "2f749950c92921eba4453e5af6e65ab420f7b6b6d9a7fb9dd73355a5431d6d90",
+          "bytes": 275614,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
+        }
+      ]
+    },
     {
       "path": "docs/RETAINED_ROUTES.md",
       "sha256": "d38cdd03d3b2ad5001583d7af2f2bf94c31430aae94328157a6edf2c507d7a51",
@@ -731,9 +785,16 @@
     },
     {
       "path": "internal/devrefresh/protocol.go",
-      "sha256": "e0a067099210b892e638a5eaf49a6696205d968df758a3b8af3782a0327a5e2c",
+      "sha256": "7593485957feeb78f52853b161658f49b874cb124a4435a5817dc737469bc730",
       "bytes": 8155,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "e0a067099210b892e638a5eaf49a6696205d968df758a3b8af3782a0327a5e2c",
+          "bytes": 8155,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "internal/mediatype/LICENSE",
@@ -779,9 +840,16 @@
     },
     {
       "path": "internal/navigation/manifest.go",
-      "sha256": "55536216a73cf2f510bf72df11f7c393426c2534d9dac65ef7c87817f97ad170",
-      "bytes": 3064,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "sha256": "d93c74b7cbe9d142b7907e67a18d7862b0f9909c1f5961ebc788b40ef1352835",
+      "bytes": 5207,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "55536216a73cf2f510bf72df11f7c393426c2534d9dac65ef7c87817f97ad170",
+          "bytes": 3064,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "internal/navigation/merge.go",
@@ -809,9 +877,16 @@
     },
     {
       "path": "internal/project/build.go",
-      "origin": "New actual-ZIP LOCAL retained-Lambda qualification helper or exact published3cc CLI packaging source; runtime evidence pending",
-      "bytes": 32839,
-      "sha256": "ac585d92eb956751fc1796279ddae2ff60382a13119c92627718910a43e2bd93"
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "bytes": 33255,
+      "sha256": "5a12d50fbb1f0eef031bf7f7674dba413956c54a831a84e08190c30d1dab1dd1",
+      "previousPins": [
+        {
+          "sha256": "ac585d92eb956751fc1796279ddae2ff60382a13119c92627718910a43e2bd93",
+          "bytes": 32839,
+          "origin": "New actual-ZIP LOCAL retained-Lambda qualification helper or exact published3cc CLI packaging source; runtime evidence pending"
+        }
+      ]
     },
     {
       "path": "internal/project/lambda.go",
@@ -845,15 +920,29 @@
     },
     {
       "path": "managed_offline.go",
-      "sha256": "9ed14408b0e40a6dbd1d8d999024fd253c959db04a3aa270cdc5e00ab7346e65",
-      "bytes": 26144,
-      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+      "sha256": "14fae7951570853c33a448bed53e10dad3ffe9ffd49204f8c35079c6cff12b18",
+      "bytes": 26268,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "9ed14408b0e40a6dbd1d8d999024fd253c959db04a3aa270cdc5e00ab7346e65",
+          "bytes": 26144,
+          "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+        }
+      ]
     },
     {
       "path": "managed_offline_test.go",
-      "sha256": "f475898bff33bdd83adfcb739cc2e8f61246cde68c92f2af2af2d8e72d7fbfaa",
-      "bytes": 33957,
-      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+      "sha256": "9e3e3339657651fb3c36590f53433765c5594778ba3273ed30d5bcb1b81eb65b",
+      "bytes": 34122,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "f475898bff33bdd83adfcb739cc2e8f61246cde68c92f2af2af2d8e72d7fbfaa",
+          "bytes": 33957,
+          "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+        }
+      ]
     },
     {
       "path": "merge_test.go",
@@ -863,9 +952,16 @@
     },
     {
       "path": "nextgo.go",
-      "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7",
-      "bytes": 47304,
-      "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+      "sha256": "0c8d4302b0867e1cbb3210725b48831dcb74088af1a2d56aa45d7dcfc5b6c124",
+      "bytes": 48288,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7",
+          "bytes": 47304,
+          "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+        }
+      ]
     },
     {
       "path": "offline/descriptor.go",
@@ -887,9 +983,16 @@
     },
     {
       "path": "package.json",
-      "sha256": "0089316df33e56aba74a510282ad2a9744590f5f54e3d3e41c54181eec45eb6e",
-      "bytes": 3782,
-      "origin": "exactImmutableRootb7e"
+      "sha256": "4354c518417a7609b32ed4b43549301928f3d7290563ec8bd316a53e1eaa44e9",
+      "bytes": 4485,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "0089316df33e56aba74a510282ad2a9744590f5f54e3d3e41c54181eec45eb6e",
+          "bytes": 3782,
+          "origin": "exactImmutableRootb7e"
+        }
+      ]
     },
     {
       "path": "retention.go",
@@ -911,9 +1014,16 @@
     },
     {
       "path": "scripts/test-wasm.sh",
-      "sha256": "845ec2936a078eaf8d598be08b5ad6781b38ab8168673debdcbe7b12ee124265",
-      "bytes": 1628,
-      "origin": "actual10pathM2producer"
+      "sha256": "5e8341eb618f7d883a00e16d7a797929b59bee39ea105828d14e3d771d817f1c",
+      "bytes": 1735,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "845ec2936a078eaf8d598be08b5ad6781b38ab8168673debdcbe7b12ee124265",
+          "bytes": 1628,
+          "origin": "actual10pathM2producer"
+        }
+      ]
     },
     {
       "path": "tests/action-view-failure-diagnostics.mjs",
@@ -977,9 +1087,16 @@
     },
     {
       "path": "tests/merge-spec.mjs",
-      "sha256": "a5d990c8c3eb4abb282d51dc7522a3d310e2a31386eb0e9c620601f98c684295",
+      "sha256": "55a5a387d4f2e537eee36137aaf3e5ff8bda2f934d961fd9ac99c99ff77dd49b",
       "bytes": 47138,
-      "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "a5d990c8c3eb4abb282d51dc7522a3d310e2a31386eb0e9c620601f98c684295",
+          "bytes": 47138,
+          "origin": "actual93pathformattedframeworkPlusReviewedDocs"
+        }
+      ]
     },
     {
       "path": "tests/offline-registration-proof-diagnostics.mjs",
@@ -1043,15 +1160,34 @@
     },
     {
       "path": "tests/retained-routes-ci.mjs",
-      "sha256": "cda00d0b0fe5afbd6c72136b8c1a96ec9d3e94b904c526a8f2dd5cf36abb2367",
-      "bytes": 70770,
-      "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
+      "sha256": "17e492ca774b048637192c0bd54f2bdbfbec776475b6c846b0a27510a831aaca",
+      "bytes": 70779,
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "cda00d0b0fe5afbd6c72136b8c1a96ec9d3e94b904c526a8f2dd5cf36abb2367",
+          "bytes": 70770,
+          "origin": "Current6ef checked-target/action diagnostic composition postimage; source/format provenance only, runtime unqualified"
+        },
+        {
+          "sha256": "8682f834800ba2eb4c2ddf40e34afd762594e07e855cdb327e1de5fe1dd651ae",
+          "bytes": 70779,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
+        }
+      ]
     },
     {
       "path": "tests/retained-routes-ci.test.mjs",
-      "sha256": "f778f75ea4cde767d0ddfd4e7ff0e5c9781c5619273a92f1b3cce36a86cdfc95",
+      "sha256": "8699b9b70233717f69d5e8e44973f9e44bcf8ec8eb22e534340cc197485d5944",
       "bytes": 43138,
-      "origin": "Private source-only a95 MIME/drain/workspace rebase; deliberate observer-aware overlap merge;193pin admission conflict"
+      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "previousPins": [
+        {
+          "sha256": "f778f75ea4cde767d0ddfd4e7ff0e5c9781c5619273a92f1b3cce36a86cdfc95",
+          "bytes": 43138,
+          "origin": "Private source-only a95 MIME/drain/workspace rebase; deliberate observer-aware overlap merge;193pin admission conflict"
+        }
+      ]
     },
     {
       "path": "tests/retained-routes-fixture.mjs",
@@ -2103,7 +2239,7 @@
         "nativeBrowserCauseAndFix": "UNKNOWN"
       }
     },
-      {
+    {
       "kind": "published-b4-typed-error-and-expected-full-Go-foundation-for-isolated-native-debug",
       "commit": "b4efe93f0c760c93fdaba6868138d48033501899",
       "tree": "a63f28301a77a1b07e6fdf08f7d84cb4f869d2f5",
@@ -2314,7 +2450,7 @@
       "runtimeQualificationInherited": false,
       "allOrdinaryGoUnchanged": true
     },
-    "currentQualification": "nativeCadenceAndRetainedAftermathQualification",
+    "currentQualification": "combinedParityIntegrationSource",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
@@ -2769,7 +2905,7 @@
     "sourceBaseTree": "1b8d017edfdd5b77beb868e1ac483c55266376b8",
     "kind": "READ_ONLY_FIXED_SCALARS_IN_TWO_EXISTING_EVALUATIONS",
     "filteredTraceSummarySHA256": "abfd2d435c1b8a98b31be472779ff1aba72614836000fc27e12fb676b2a1df8a",
-    "actualTraceFinding": "A initially reaches500 after return then moves to309 about11\u201319ms later; mechanism and exact saved history state remain unobserved.",
+    "actualTraceFinding": "A initially reaches500 after return then moves to309 about11–19ms later; mechanism and exact saved history state remain unobserved.",
     "primaryAssertion": "Original {window,nested,same} fields are sampled FIRST and compared exactly with {...saved,same:true}. No500 weakening.",
     "changes": [
       "Existing outgoing click evaluation returns fixed before/after numbers and booleans around same single native click.",
@@ -4181,7 +4317,7 @@
     "hardMemoryLimitEstablished": false,
     "priorSnapshot": "priorRevokedRetirementSourceFormattingQualification"
   },
-  "priorWindowScrollSourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282\u21921282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
+  "priorWindowScrollSourceInputScope": "CURRENT exact73df180pininput plusonly2existingrootformattedretirementGo andthismetadata. ImmediateGo1282→1282:1production+1existingtestmodified,noaddedpath,178selectedrowsunchanged+2rebound. Cumulativerelative533bGo1282=1278unchangedexisting+3modifiedexisting(2production1test)+1addedheadertest. Header2-only/dc95/old173unchangedrow/all1281unchanged scopes arehistorical underpriorRevokedRetirement* andearlierpriorHeaderAuthority*. ExistingheaderGo,Lambda21code/workflows,allnative/mockcasecontractsunchanged. Prioractual15PASS/1BvisibilityfirstRED isnotnewcorrectionPASSandprovesnoscrollfix.",
   "priorWindowScrollFinalSourceReadinessReview": {
     "status": "REVOKED_RETIREMENT_INDEPENDENT_SOURCE_PREFLIGHT_REVIEW_PASS_NOT_RUNTIME_QUALIFIED",
     "priorSnapshot": "priorRevokedRetirementFinalSourceReadinessReview",
@@ -5678,7 +5814,7 @@
     ]
   },
   "priorA95CIReadyReadinessMeaning": "PRIVATE_SOURCE_ONLY_READY_FALSE: measured193pin union now fits the approved finite193 input guard. Independent logs192 and all other caps remainunchanged. Full external union source review and separate rootCI readiness decision remainpending; no runtime/size/fix/cause/79/11 claim.",
-  "priorA95CIReadySourceInputScope": "PRIVATE exacta95 nine-path MIME+finitecommanddrain+safeworkspaceretirement source. Observerhelper/spec/sixNodegroups exacta95; deliberate runner/ci.test merges preserved.193pins=179unchangeda95rows+3rebound+11new, inputselfexcluded. ONLY root-approved inputfileguard192\u2192193 added versus privatev1; independentlogs192/allothercaps unchanged. Only2MIMEGo modified,1280others exact,noaddedGo. Readyfalse pending fullpeer/rootdecision; allhistories preserved.",
+  "priorA95CIReadySourceInputScope": "PRIVATE exacta95 nine-path MIME+finitecommanddrain+safeworkspaceretirement source. Observerhelper/spec/sixNodegroups exacta95; deliberate runner/ci.test merges preserved.193pins=179unchangeda95rows+3rebound+11new, inputselfexcluded. ONLY root-approved inputfileguard192→193 added versus privatev1; independentlogs192/allothercaps unchanged. Only2MIMEGo modified,1280others exact,noaddedGo. Readyfalse pending fullpeer/rootdecision; allhistories preserved.",
   "priorA95CIReadyCombinedSourceInput": {
     "status": "PRIVATE_A95_REBASE_FINITE193_GUARD_SOURCE_ONLY_PENDING_FULL_PEER_READY_FALSE",
     "integrationBaseCommit": "a95d78a311540bd81a5758dd549c89163b74db02",
@@ -5862,7 +5998,7 @@
       "sixPureNodeGroupSectionByteExactA95": true
     },
     "deliberateOverlapMerge": {
-      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192\u2192193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
+      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192→193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
       "ciTest": "Actuala95file+3runnerexportnames+exactold9drainsection; reverse recovers completea95ci.test."
     },
     "newPureNodeGroupsRelativeA95": {
@@ -6773,7 +6909,7 @@
       "sixPureNodeGroupSectionByteExactA95": true
     },
     "deliberateOverlapMerge": {
-      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192\u2192193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
+      "runner": "Exactold9runner+observer mandatorypin+one approved input-files192→193 guard delta; reversing both reconstructs entireold9. Independentlogs192/allothercaps exact.",
       "ciTest": "Actuala95file+3runnerexportnames+exactold9drainsection; reverse recovers completea95ci.test."
     },
     "newPureNodeGroupsRelativeA95": {
@@ -9811,5 +9947,26 @@
     "sourcePostimagesExactToThreeReviewedComponents": true,
     "newOfflineDisableObservationSourceUnexecuted": true,
     "existingFourScalarPolicyErrorAndOuterNativeObserverByteExact": true
+  },
+  "combinedParityIntegrationSource": {
+    "status": "LOCAL_COMBINED_SOURCE_PARTIAL_QUALIFICATION_REMOTE_UNOBSERVED",
+    "upstreamBaseCommit": "d788b8c3fe8bb4645cc28968f25b93a242e6db83",
+    "localQualificationBase": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "previousQualification": "nativeCadenceAndRetainedAftermathQualification",
+    "sourcePins": 207,
+    "readyMeaning": "Source identity authorizes structural campaign initialization only; no runtime/measurement/publisher success or old source qualification is inherited. Existing independent offline publisher admission is unchanged.",
+    "runtimeQualified": false,
+    "remoteCampaignObserved": false,
+    "sourceChanges": "Private ABI 7 combines imports and authority; export config 4 combines fonts and static shell; complete Go inputs rebound; historical records retained.",
+    "GoSource": {
+      "files": 1417,
+      "bytes": 6719448,
+      "sha256": "91463b553a7d63538fd3647f1a7b7f3a688e7a1a9022833e7861f13e5098438f",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "allGoTestsByteExact": false,
+      "producerExpectedFullGoGuardEnforced": true,
+      "guardExecutedForThisNewSource": true
+    },
+    "localQualificationReport": "docs/benchmarks/combined-parity-integration-qualification.json"
   }
 }

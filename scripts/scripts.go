@@ -24,17 +24,23 @@ const (
 
 type Script struct {
 	// Asset resolves Src beneath the framework public-asset mount. Otherwise Src is a browser URL.
-	Asset          bool     `json:"asset,omitempty"`
-	ID             string   `json:"id"`
-	Src            string   `json:"src"`
-	Strategy       Strategy `json:"strategy,omitempty"`
-	Type           string   `json:"type,omitempty"`
-	Integrity      string   `json:"integrity,omitempty"`
-	CrossOrigin    string   `json:"crossOrigin,omitempty"`
-	ReferrerPolicy string   `json:"referrerPolicy,omitempty"`
+	Asset          bool           `json:"asset,omitempty"`
+	ID             string         `json:"id"`
+	Src            string         `json:"src"`
+	Strategy       Strategy       `json:"strategy,omitempty"`
+	Type           string         `json:"type,omitempty"`
+	Integrity      string         `json:"integrity,omitempty"`
+	CrossOrigin    string         `json:"crossOrigin,omitempty"`
+	ReferrerPolicy string         `json:"referrerPolicy,omitempty"`
+	Data           DataAttributes `json:"data,omitempty"`
 }
 
 func (s Script) Check() (Script, error) {
+	data, err := s.Data.Check()
+	if err != nil {
+		return s, err
+	}
+	s.Data = data
 	if s.ID == "" || len(s.ID) > 64 {
 		return s, fmt.Errorf("scripts: require a 1..64 byte ID")
 	}
@@ -105,6 +111,10 @@ func (s Script) Check() (Script, error) {
 	case "", "no-referrer", "no-referrer-when-downgrade", "origin", "origin-when-cross-origin", "same-origin", "strict-origin", "strict-origin-when-cross-origin", "unsafe-url":
 	default:
 		return s, fmt.Errorf("scripts: invalid referrer policy")
+	}
+	raw, err := json.Marshal(s)
+	if err != nil || len(raw) > 8192 {
+		return s, fmt.Errorf("scripts: encoded declaration exceeds 8 KiB")
 	}
 	return s, nil
 }

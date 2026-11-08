@@ -67,3 +67,18 @@ func TestEarlyRendererAndNonceContextAreExplicit(t *testing.T) {
 		t.Fatal("unsafe resolved URL accepted")
 	}
 }
+
+func TestEarlyDataAttributesAreEscapedAndPreserveDeclarationIdentity(t *testing.T) {
+	data, err := NewDataAttributes(map[string]string{"data-z": `" <vendor> & café`, "data-a": ""})
+	if err != nil {
+		t.Fatal(err)
+	}
+	markup, err := EarlyHTML([]Script{{ID: "vendor", Src: "/v.js", Strategy: BeforeInteractive, Data: data}}, nil, "")
+	if err != nil || !strings.Contains(markup, ` data-a="" data-z="&#34; &lt;vendor&gt; &amp; café"`) || strings.Contains(markup, `data-z="" <vendor>`) {
+		t.Fatal("data escaped its attribute or lost deterministic order", markup, err)
+	}
+	declaration, err := ui.HTML(Node(Script{ID: "v", Src: "/v.js", Data: data}))
+	if err != nil || strings.Contains(declaration, "<script") || !strings.Contains(declaration, "data-nextgo-script=") {
+		t.Fatal("custom data made SSR executable", declaration, err)
+	}
+}

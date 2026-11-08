@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	nextgo "github.com/Suhaibinator/Next.go"
+	assetapi "github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/project"
 	"github.com/Suhaibinator/Next.go/metadatafiles"
@@ -24,7 +25,7 @@ import (
 
 const shellExportTestBuild = "0123456789abcdef0123"
 
-func shellExportFixture(t *testing.T, deployment nextgo.PathConfig, mode *atomic.Int32) (string, string, nextgo.ExportConfig) {
+func shellExportFixture(t *testing.T, deployment nextgo.PathConfig, mode *atomic.Int32, fonts ...*assetapi.LocalFonts) (string, string, nextgo.ExportConfig) {
 	t.Helper()
 	assets := t.TempDir()
 	for name, value := range map[string]string{"_nextgo/" + shellExportTestBuild + "/app.wasm": "wasm", "_nextgo/" + shellExportTestBuild + "/boot.js": "boot", "public/style.css": "body{}"} {
@@ -36,7 +37,7 @@ func shellExportFixture(t *testing.T, deployment nextgo.PathConfig, mode *atomic
 			t.Fatal(err)
 		}
 	}
-	app, err := nextgo.New(nextgo.Config{Phase: nextgo.PhaseStaticExport, BuildID: shellExportTestBuild, BasePath: deployment.BasePath, AssetPrefix: deployment.AssetPrefix, TrailingSlash: deployment.TrailingSlash, StaticShell: &nextgo.StaticShell{Pattern: "/workspace/*rest?", Component: "workspace"}, Routes: []nextgo.Route{
+	app, err := nextgo.New(nextgo.Config{Phase: nextgo.PhaseStaticExport, LocalFonts: fonts, BuildID: shellExportTestBuild, BasePath: deployment.BasePath, AssetPrefix: deployment.AssetPrefix, TrailingSlash: deployment.TrailingSlash, StaticShell: &nextgo.StaticShell{Pattern: "/workspace/*rest?", Component: "workspace"}, Routes: []nextgo.Route{
 		{Pattern: "/", Page: func(*nextgo.Context) (nextgo.Page, error) {
 			return nextgo.Page{Title: "Home", Body: ui.Text("Ordinary home")}, nil
 		}},
@@ -216,7 +217,7 @@ func TestStaticShellExportConfigurationStrictVersionShapes(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, test := range []struct{ field, value string }{
-		{"version", "1"}, {"version", "2"}, {"version", "4"}, {"version", "null"}, {"staticShell", "null"}, {"paths", "null"}, {"scopes", "null"}, {"unknown", "true"},
+		{"version", "1"}, {"version", "2"}, {"version", "5"}, {"version", "null"}, {"staticShell", "null"}, {"paths", "null"}, {"scopes", "null"}, {"unknown", "true"},
 		{"staticShell", `{"version":1,"pattern":"/workspace/*rest?","component":"workspace","seedPath":"/different"}`},
 		{"staticShell", `{"version":1,"pattern":"/*rest?","component":"workspace","seedPath":"/"}`},
 	} {

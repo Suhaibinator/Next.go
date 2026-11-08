@@ -1,0 +1,3343 @@
+{
+  "format": "nextgo-upstream-documentation-catalog-v1",
+  "recordedAtUTC": "2026-11-07T22:32:12.545161+00:00",
+  "status": "source-catalog-not-semantic-parity-qualification",
+  "upstream": {
+    "repository": "https://github.com/vercel/next.js",
+    "tag": "v16.4.5",
+    "commit": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+    "source": "https://codeload.github.com/vercel/next.js/tar.gz/refs/tags/v16.4.5",
+    "tagVerifiedWith": "git ls-remote refs/tags/v16.4.5",
+    "latestReleaseRedirectReconfirmed": true
+  },
+  "scope": {
+    "mdxDocuments": 474,
+    "app": 298,
+    "pages": 167,
+    "architecture": 5,
+    "community": 3,
+    "root": 1,
+    "frontmatterExperimental": 37,
+    "interpretation": "All .mdx documentation files in the named tag; frontmatter labels are retained, absence of an experimental label is not a blanket stability assertion. A catalog and selected document review do not qualify every behavior or establish semantic coverage."
+  },
+  "documents": [
+    {
+      "path": "docs/01-app/01-getting-started/01-installation.mdx",
+      "bytes": 16143,
+      "sha256": "e1a5d7738e2ca0e0b3400e8e290e4ee5919e860a3d729ed564574e6ad55fcd40",
+      "title": "Installation",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/02-project-structure.mdx",
+      "bytes": 27126,
+      "sha256": "bd37023ff68fe1ce3915575dd9225b79341020d4c2a02cc8fcee67a60e43c5cc",
+      "title": "Project structure and organization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/03-layouts-and-pages.mdx",
+      "bytes": 12408,
+      "sha256": "64403c4edbbb609faabb80ec4e529bab24fe1b6709e7d36b382ef4020df63b4f",
+      "title": "Layouts and Pages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/04-linking-and-navigating.mdx",
+      "bytes": 17604,
+      "sha256": "46d7a0901380c739e25bfe31714ea1a72755e791d925ae236f3dba1ad93bbb2b",
+      "title": "Linking and Navigating",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/05-server-and-client-components.mdx",
+      "bytes": 19706,
+      "sha256": "c08524a1483abbdaf1821081cf0480cdbccbbee42b5036f0933755894e435a17",
+      "title": "Server and Client Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/06-fetching-data.mdx",
+      "bytes": 23611,
+      "sha256": "41e6419f94adc6134b00e6827f3775c75dc8fee443ff31ee385b9db36fa3ed5d",
+      "title": "Fetching Data",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/07-mutating-data.mdx",
+      "bytes": 17794,
+      "sha256": "7175ac53d2b3bcaadc5dbf0b7985895ba37ddec1ef524ec7fe942d93788137c8",
+      "title": "Mutating Data",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/08-caching.mdx",
+      "bytes": 31804,
+      "sha256": "7386db58479db41fc13e392fc50f088ae8acffaf39b1004d54e409d00a2468b7",
+      "title": "Caching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/09-revalidating.mdx",
+      "bytes": 8667,
+      "sha256": "2a8bcb04befb4a6a29630d911d3b488de1777ccdf18e3fac79431fbc20430599",
+      "title": "Revalidating",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/10-error-handling.mdx",
+      "bytes": 12168,
+      "sha256": "8ab610e2048a546b7bd00766fe16c2484fcf691d34da1f7774fabfc0abfc326b",
+      "title": "Error Handling",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/11-css.mdx",
+      "bytes": 12368,
+      "sha256": "26732dd6853d66b3edb7e7cda65e46c3ff150525377f51f187e4a075d253eeda",
+      "title": "CSS",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/12-images.mdx",
+      "bytes": 7245,
+      "sha256": "f7d5576fd4ef10597b72e2d9d8064408593abc3b9631783c108d5810572194ad",
+      "title": "Image Optimization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/13-fonts.mdx",
+      "bytes": 8705,
+      "sha256": "31841f92ea277df1ff74493fcd2f4d7c5ebff598e71a88a19eef1de326913dfc",
+      "title": "Font Optimization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/14-metadata-and-og-images.mdx",
+      "bytes": 12247,
+      "sha256": "76c7b626838fc34d8657b742d178baf4fa857543016b7a0c8c537b75253f9110",
+      "title": "Metadata and OG images",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/15-route-handlers.mdx",
+      "bytes": 8268,
+      "sha256": "765cccdd91d78ffc971e0f4964ad5aacfc49b8df77bc86159e8d6ab51f11c143",
+      "title": "Route Handlers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/16-proxy.mdx",
+      "bytes": 3590,
+      "sha256": "273cb9b62df2da774e38d8089deadcbb7c51a1a4823d99a6a8fd7e09b6ba7c95",
+      "title": "Proxy",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/17-deploying.mdx",
+      "bytes": 6594,
+      "sha256": "fa62ecddd3bbd49279369c7da7ac711334f0c16c180fffab0ae75b333c2d1c69",
+      "title": "Deploying",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/18-upgrading.mdx",
+      "bytes": 2397,
+      "sha256": "ad60e823e50a3f2843f66635d3ce62b3f931543b5d67a55810fdab9b816b9e87",
+      "title": "Upgrading",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/01-getting-started/index.mdx",
+      "bytes": 742,
+      "sha256": "0f042cec3080eed568ade7f740aa930ac2d6c7cbeae20e8dd515c039dfdc56ba",
+      "title": "Getting Started",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/adopting-partial-prefetching.mdx",
+      "bytes": 25767,
+      "sha256": "f22482da868deb7cbb91202e89b1be0b410e68131264ec958ca5a732a1ee560f",
+      "title": "Adopting Partial Prefetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/ai-agents.mdx",
+      "bytes": 18944,
+      "sha256": "55d2141b00f4cb8978c857f857381fe65508c012ca6780f74f0ec959c580fcec",
+      "title": "How Next.js supports AI coding agents",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/analytics.mdx",
+      "bytes": 6998,
+      "sha256": "175d7177af40c6287022f870850680c23193c36e36cdd60559bccd3b1d1d6ede",
+      "title": "How to add analytics to your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/authentication-with-cache-components.mdx",
+      "bytes": 16785,
+      "sha256": "0dd75422a3ad8ec43de1d3ae5031d759612c989f214ddad4a9ed2df5e030e0c7",
+      "title": "How to implement authentication with Cache Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/authentication.mdx",
+      "bytes": 56141,
+      "sha256": "7980519fd0489e401b7834254181138ea8438143ee96ea661109bf8a62b11ae7",
+      "title": "How to implement authentication in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/backend-for-frontend.mdx",
+      "bytes": 29656,
+      "sha256": "302433c403018fa3648f5043a8bc3d8749ce23e0068f551257f92f7f635ade54",
+      "title": "How to use Next.js as a backend for your frontend",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/building.mdx",
+      "bytes": 22331,
+      "sha256": "bb9e2396c9e1651081438773e7537e91d59cba3c3cef1cdc7159a6601098e4da",
+      "title": "Building your application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/caching-without-cache-components.mdx",
+      "bytes": 16126,
+      "sha256": "0fbf6ac3672a1c9f195945abbf294c5f64e04a3706319b149bc901d9bd447062",
+      "title": "Caching and Revalidating (Previous Model)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/cdn-caching.mdx",
+      "bytes": 9797,
+      "sha256": "3bb51aed2bc7a2cdece6133ce9e47cac72b4732992d5384ac48daa011226576e",
+      "title": "Using a CDN with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/ci-build-caching.mdx",
+      "bytes": 4956,
+      "sha256": "ee9052c3222d16db39247580feae0e471868b33d91c26fd1ca3b4c194299d16c",
+      "title": "How to configure Continuous Integration (CI) build caching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/client-side-data-fetching/index.mdx",
+      "bytes": 6763,
+      "sha256": "ceaef2cbe371fec7f4e46173d322a28c80ca2960d9e7cd07b7e58589826c7cb4",
+      "title": "Client-side data fetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/client-side-data-fetching/swr.mdx",
+      "bytes": 15981,
+      "sha256": "de98ecde7415d13d9840c6334687a822b7f7a2bf93fdd5636a22b005a3bd217f",
+      "title": "How to fetch client-side data with SWR",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/client-side-data-fetching/tanstack-query.mdx",
+      "bytes": 23593,
+      "sha256": "cae11060adb19ef151326b02fa3e857fbaef8f89703eb189bbfd61c63fb3c377",
+      "title": "How to fetch client-side data with TanStack Query",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/content-security-policy.mdx",
+      "bytes": 21130,
+      "sha256": "c5de325cbd9f711cd7fac87e36781c132c7b86def73aab7516c3e107b0ed21e8",
+      "title": "How to set a Content Security Policy (CSP) for your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/css-in-js.mdx",
+      "bytes": 10881,
+      "sha256": "6cec131a4b8867f7a97587276e56c4efc917514f8655d44824a51eea10979358",
+      "title": "How to use CSS-in-JS libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/custom-server.mdx",
+      "bytes": 6208,
+      "sha256": "93072193193787746840503151132c9f87f84e1744b55e318bf14a5952fad8ce",
+      "title": "How to set up a custom server in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/data-security.mdx",
+      "bytes": 23848,
+      "sha256": "54ee97dcf636bcd2f8300925ee181747431d6c635ae4e948e3dbf8db3ee7eeee",
+      "title": "How to think about data security in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/debugging.mdx",
+      "bytes": 8406,
+      "sha256": "94897f28e44f3f172f59608d782cadc516ceca5694a8e45857e21c64a9b4cc63",
+      "title": "How to use debugging tools with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/deploying-to-platforms.mdx",
+      "bytes": 9766,
+      "sha256": "b4484e687861ac1154351b5e44172e131c630e544c0a13a14eb1c1ae6142f497",
+      "title": "Deploying Next.js to different platforms",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/draft-mode.mdx",
+      "bytes": 13082,
+      "sha256": "a163ae964d4a5d212e04ed9ef4572f43a30290249732a37fc76c073386698653",
+      "title": "How to preview content with Draft Mode in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/environment-variables.mdx",
+      "bytes": 11492,
+      "sha256": "089542c335bc9da8799e86a1696a3941a3b46d0cbedc01ebd234c3a1a2c587c2",
+      "title": "How to use environment variables in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/forms.mdx",
+      "bytes": 14961,
+      "sha256": "f9de75b295b6edf1c4c01b3c882f4b9faa8b04154175d95a33fffd82471f97d0",
+      "title": "How to create forms with Server Actions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/how-revalidation-works.mdx",
+      "bytes": 9263,
+      "sha256": "2804d52758106772e5f58b811eb0550d9ed848d3ccc9b303ac6178c89f92bba4",
+      "title": "How revalidation works in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/incremental-static-regeneration-cache-components.mdx",
+      "bytes": 14055,
+      "sha256": "ca89dc444c620d2546ea04fa880160cc1ad197af35e4191059a3bbe0d69e8389",
+      "title": "Incremental Static Regeneration with Cache Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/incremental-static-regeneration.mdx",
+      "bytes": 21558,
+      "sha256": "e667e91bf205582e4219380547e1260d86763f0bcc37319166691002b4e298bc",
+      "title": "How to implement Incremental Static Regeneration (ISR)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/index.mdx",
+      "bytes": 113,
+      "sha256": "060f6e32179a5ffad68405a4163a8469b216a7227851f8c536f70fcf7c62153f",
+      "title": "Guides",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/instant-navigation.mdx",
+      "bytes": 31190,
+      "sha256": "0a342ffee663fe4a9b775df17b0e195aa02469acca8c5cf5022ea2803bfbeb91",
+      "title": "Ensuring instant navigations",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/instrumentation.mdx",
+      "bytes": 4183,
+      "sha256": "b3799683bee889e5f32a46da8f721c7113656262277f4149e98b6bdfbf327021",
+      "title": "How to set up instrumentation",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/interactive-apps.mdx",
+      "bytes": 37298,
+      "sha256": "cbbc01cc2debefcaf4242bb3a55d5d88be7ee23bd811e8d1808f555721ed1d0a",
+      "title": "Building interactive apps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/internationalization.mdx",
+      "bytes": 11287,
+      "sha256": "1982a5b21ede0ade4ba9ca9285925320ef08f17497b43c0bcda98327b9bbb1a8",
+      "title": "Internationalization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/json-ld.mdx",
+      "bytes": 3262,
+      "sha256": "a187a9ac8a9598f240819ec650af142477cb4b76df05923c8120bc7f1fca733a",
+      "title": "How to implement JSON-LD in your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/keeping-pages-static.mdx",
+      "bytes": 19253,
+      "sha256": "db7b7102908ec2873ed2904cbbdd522e263b8b87d19e55c73b253e4b5cd1ecfa",
+      "title": "Keeping pages static",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/lazy-loading.mdx",
+      "bytes": 10617,
+      "sha256": "0a8f49a0cd5e2cff43d8e29b7aa4d1a75e3b0ccf6d98789bddcfb01d4a554d1b",
+      "title": "How to lazy load Client Components and libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/local-development.mdx",
+      "bytes": 13126,
+      "sha256": "65b5d46564310fbb45f33582c7948cfe97d440c83c70aac148a9aea0a64046d4",
+      "title": "How to optimize your local development environment",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/mcp.mdx",
+      "bytes": 6990,
+      "sha256": "a14fe0468f3ce7f35fbd0ba4e7c995bf202ae9ee416ac8131b768b2a6b24111e",
+      "title": "Connecting coding agents to the Next.js MCP server",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/mdx.mdx",
+      "bytes": 23641,
+      "sha256": "0e9abbc31fc14991f9642d2b5f456bd582371ba1c8eeca27b370d78f97d3970f",
+      "title": "How to use markdown and MDX in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/memory-usage.mdx",
+      "bytes": 7841,
+      "sha256": "11d31cb1485bb69f2c48b77e85a4dfdc66a6cd179d8de139b6b9316cd688bfd2",
+      "title": "How to optimize memory usage",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/migrating-to-cache-components.mdx",
+      "bytes": 43052,
+      "sha256": "ca227619da1dfb620cee598d79514127dbdd00ee0b2f7163985cff221551b887",
+      "title": "Migrating to Cache Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/migrating/app-router-migration.mdx",
+      "bytes": 38241,
+      "sha256": "5d630312a65741a11ade532ec42a20fa83ded1bcaef2cb32f9e16d58d5b755dc",
+      "title": "How to migrate from Pages to the App Router",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/migrating/from-create-react-app.mdx",
+      "bytes": 22188,
+      "sha256": "bff478dd72a0cbaa3a2e36e8a605406eda5ed780175ea9da407ac0bd88d2aed8",
+      "title": "How to migrate from Create React App to Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/migrating/from-vite.mdx",
+      "bytes": 23052,
+      "sha256": "c69c71e6f176c7e8080e4e4fb6d0e2cf15549933a2c42a15a7da8dde24abd300",
+      "title": "How to migrate from Vite to Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/migrating/index.mdx",
+      "bytes": 94,
+      "sha256": "b3a332f3d75eccc8ecf76ade66c9ec9a9e8097a96ed15b3bc501f3ef75c7edab",
+      "title": "Migrating",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/multi-tenant.mdx",
+      "bytes": 365,
+      "sha256": "b0e0a42f633c3b29c408a989cb7de597f64d41a0ce4519b0e97d4fd7647f442a",
+      "title": "How to build multi-tenant apps in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/multi-zones.mdx",
+      "bytes": 7201,
+      "sha256": "990eeb72add06b08fb47268d352e02bf6c5e813d4d58ee3c885d8fe4389c0ef2",
+      "title": "How to build micro-frontends using multi-zones and Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/offline-support.mdx",
+      "bytes": 15380,
+      "sha256": "4e02b06634daa9245e2afa0065333ebdbc9bf5a98f5cfc7c2987b925985d06d5",
+      "title": "Handling connectivity drops",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/02-guides/open-telemetry.mdx",
+      "bytes": 15744,
+      "sha256": "9c370822d273dd7c8fc36176a72d4eec669c05565e0497b07aab75ed54db8779",
+      "title": "How to set up instrumentation with OpenTelemetry",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/optimizing-prefetching.mdx",
+      "bytes": 24555,
+      "sha256": "85e5bfa4a5e7df299159e4c832f02d9e0075c1f5ea5a140b0ba1a2ee2149411b",
+      "title": "Optimizing prefetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/optimizing-the-static-shell.mdx",
+      "bytes": 32231,
+      "sha256": "4960d9336fb472cb798f9e715a6e3a581d9fefb3f71f9f14d1c79c1b493f9ee2",
+      "title": "Optimizing the static shell",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/package-bundling.mdx",
+      "bytes": 13026,
+      "sha256": "eb1ada9e3312afed6b37b78b9e7d3299b3f4ded473b4a2ed59406b55e71c4cab",
+      "title": "Optimizing package bundling",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/ppr-platform-guide.mdx",
+      "bytes": 7322,
+      "sha256": "3b8bed730fc64bb72040458b6c71474f708fb0de23f28d020b4f8d627122bf84",
+      "title": "Implementing Partial Prerendering on your platform",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/prefetching.mdx",
+      "bytes": 14669,
+      "sha256": "10314eef8048006630fa8ccf064c90237692f3e1b9b1a472f1893cf9511afc4f",
+      "title": "Prefetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/preserving-ui-state.mdx",
+      "bytes": 20680,
+      "sha256": "0471d82eb03027330f1e11891e66cc200d7885653659712373c994880af5e293",
+      "title": "How Next.js preserves UI state with Activity",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/preventing-flash-before-hydration.mdx",
+      "bytes": 21802,
+      "sha256": "92e6624673ed3962d650fa1d6559148c1ef249c3fab6d04114dea151dccbe0eb",
+      "title": "How to prevent flash before hydration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/production-checklist.mdx",
+      "bytes": 13392,
+      "sha256": "e107a49e3894b84732ad9a164fff87697caf483cbf3ae99a2ff607dd4ae2eccd",
+      "title": "How to optimize your Next.js application for production",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/progressive-web-apps.mdx",
+      "bytes": 21935,
+      "sha256": "eda3756c50f7f948e97ae3f3382cdd17e0c7e2dc1e37f0d8b725444cd1cce7b6",
+      "title": "How to build a Progressive Web Application (PWA) with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/public-static-pages.mdx",
+      "bytes": 9644,
+      "sha256": "d3d2dcf2a62a1db827cfba7fc8f38f2c4edf0328e58214c826bd60bb5bd172a7",
+      "title": "Building public pages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/redirecting.mdx",
+      "bytes": 22070,
+      "sha256": "d09ec914918542c9593618339d1cd166e3405b5945a17dd223266b90b2571cdc",
+      "title": "How to handle redirects in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/rendering-philosophy.mdx",
+      "bytes": 7897,
+      "sha256": "b3027a333c7e9ae3c797a03a45940fff0642bcd3b6daac3da3e430e270e9f648",
+      "title": "Next.js Rendering Philosophy",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/sass.mdx",
+      "bytes": 3290,
+      "sha256": "03ac896a264701cd819059ee7b7b2f81339f3b991d9b0af6fbd2dbfc374339cf",
+      "title": "How to use Sass",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/scripts.mdx",
+      "bytes": 12070,
+      "sha256": "551d6c3143d6acf703deda459e0ed1431e3a9ad6a8e076718ddfd6cfb038a481",
+      "title": "How to load and optimize scripts",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/self-hosting.mdx",
+      "bytes": 20709,
+      "sha256": "eb015f52b85a2ade0d1ff1da816ffb9e376894ec5daabced28556882c2a65ec3",
+      "title": "How to self-host your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/server-actions.mdx",
+      "bytes": 12763,
+      "sha256": "3b5d4db7e730c89df837872ebb506be4511869a265678086dab68a475de91d0d",
+      "title": "Server Actions and Mutations",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/server-and-client-boundary.mdx",
+      "bytes": 14826,
+      "sha256": "923b8c2e85612fc89fa024b2a47626fdb8d75ad50f4825bcb83fcfb3bc3c5e59",
+      "title": "The Server and Client Boundary",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/single-page-applications.mdx",
+      "bytes": 22555,
+      "sha256": "ef1198f0a19acf2479787b7e03da429396aaf4964dc07083d578747197ce1099",
+      "title": "How to build single-page applications with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/static-exports.mdx",
+      "bytes": 12923,
+      "sha256": "857d9950350613e144a7f5d86874521c24a1ccc3eee5b34b79d3d40fa54df180",
+      "title": "How to create a static export of your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/streaming.mdx",
+      "bytes": 37991,
+      "sha256": "bc4aa47baa6fe5867933bbcd69631569e25f3ed5c3720bf1f2b86f4f449b3136",
+      "title": "Streaming",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/tailwind-v3-css.mdx",
+      "bytes": 3992,
+      "sha256": "3936e53118f745fd121ea145b9e09ffde6d91fa40cae126fd4cb2163bf00d153",
+      "title": "How to install Tailwind CSS v3 in your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/testing/cypress.mdx",
+      "bytes": 8740,
+      "sha256": "3917f7a3bee30955709ee795118a2680ca0d9577e7ed83fe33e6cd3eb50e357f",
+      "title": "How to set up Cypress with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/testing/index.mdx",
+      "bytes": 1804,
+      "sha256": "b37c5e75a29822b99527cd03ecaa7324f0451b958759bffe9c2547f3477300e0",
+      "title": "Testing",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/testing/jest.mdx",
+      "bytes": 13613,
+      "sha256": "518410c94b6551ad62c4589621faecdb2f28f01c406b158ed0624fe8756e4dbb",
+      "title": "How to set up Jest with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/testing/playwright.mdx",
+      "bytes": 5322,
+      "sha256": "900a9d4fd28a8908ea26ec1b229998edeb2c9f8ca7af94cf27868fb5471b3ddd",
+      "title": "How to set up Playwright with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/testing/vitest.mdx",
+      "bytes": 6285,
+      "sha256": "0698c4235cbb5db5c663e07f6d6b793b53466509a2a18e945ac3cd30a20d21f8",
+      "title": "How to set up Vitest with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/third-party-libraries.mdx",
+      "bytes": 17094,
+      "sha256": "0f1d0024cd9edb675fe40ba8ba75c1096a07fb4bf6a1afc68a686b0a30967bf9",
+      "title": "How to optimize third-party libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/agent-upgrade.mdx",
+      "bytes": 7517,
+      "sha256": "ee320a31a32ab91ed5c0d106b01a35687c02692e921d3a84186596057aa5450a",
+      "title": "Upgrade with a coding agent",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/codemods.mdx",
+      "bytes": 21529,
+      "sha256": "be578e1c30d37e8e0969710177e9a1dd46e78a87c44ade4b977007a672f20121",
+      "title": "Codemods",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/index.mdx",
+      "bytes": 213,
+      "sha256": "5e57167c46ddb5c405ffaeebd965f333ae93a0c1ddb886b82146ebe83dfd7ab6",
+      "title": "Upgrade Guides",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/version-14.mdx",
+      "bytes": 2352,
+      "sha256": "f30bf98660497fee9dd497c584993eacc35709f65b36c22b58b118a91b84ee09",
+      "title": "How to upgrade to version 14",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/version-15.mdx",
+      "bytes": 19669,
+      "sha256": "b649b159eb19c323f898c3ca998e36900454db58bd7990562f3960de349035b4",
+      "title": "How to upgrade to version 15",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/upgrading/version-16.mdx",
+      "bytes": 44299,
+      "sha256": "103cf2711b8a6d80e07b09b3583165ae454b8c11cb8066d6f4dec9198924de6f",
+      "title": "How to upgrade to version 16",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/videos.mdx",
+      "bytes": 17585,
+      "sha256": "9f71bf7d95cf9bdb11ec89d09d5290f2d921a503b1eeb8f92edfafd5f0b81307",
+      "title": "How to use and optimize videos",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/02-guides/view-transitions.mdx",
+      "bytes": 19256,
+      "sha256": "3440ce44701facac7c4d85116e3eac1838f9f0e4e7ee6f9eb9ec97131f9bda20",
+      "title": "Designing view transitions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/index.mdx",
+      "bytes": 5299,
+      "sha256": "b51aecee0b8d3e745396aba664ddc98166ad8b3ccd91a52bca160af445125dc7",
+      "title": "Directives",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/use-cache-private.mdx",
+      "bytes": 7305,
+      "sha256": "aa75a7fe133edf58514560ab8a723c25367d9cea3e86a7bc11b4538879e0653e",
+      "title": "'use cache: private'",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/use-cache-remote.mdx",
+      "bytes": 23584,
+      "sha256": "2c6b680c2adcfc1228984b43f2528a68773ffd416a594b18a2e58d153835cb42",
+      "title": "'use cache: remote'",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/use-cache.mdx",
+      "bytes": 30495,
+      "sha256": "802afd5c163ebb1315c268e16d1b2fc2e213e2a8c9b112ee33ec416257c0380a",
+      "title": "use cache",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/use-client.mdx",
+      "bytes": 3898,
+      "sha256": "12eb4f6e112bff41a0518717bbe107e10587f27d12a7d56da56d10976018b793",
+      "title": "use client",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/01-directives/use-server.mdx",
+      "bytes": 6631,
+      "sha256": "6494effb96fa7f6c245b22162ce17d423d01a275fd0062e994726abdc7f846cc",
+      "title": "use server",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/font.mdx",
+      "bytes": 31665,
+      "sha256": "242ee77b487e3584f4d8c85ea268df8628319026294038bab9924a66efba5ce1",
+      "title": "Font Module",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/form.mdx",
+      "bytes": 14350,
+      "sha256": "da9edff05edc14638f839d764ab30a224184aa26dfd1b76d1b403c10297b2b49",
+      "title": "Form Component",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/image.mdx",
+      "bytes": 61330,
+      "sha256": "680fba398e5a5ec2c56d092bea180fae185c8afba998b3707de41b322768164c",
+      "title": "Image Component",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/index.mdx",
+      "bytes": 332,
+      "sha256": "e8c37a832f5ef119300fd93768e404185dd68112a380c3aa9083ce4227323b43",
+      "title": "Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/link.mdx",
+      "bytes": 37423,
+      "sha256": "e2a12de1d1e8b7e59a7046d4674862d2a2ff9e8641596f121ff9a584aa3e7daa",
+      "title": "Link Component",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/02-components/script.mdx",
+      "bytes": 13661,
+      "sha256": "831d200eea0419fe2290e80f826197d1b0f24c723cc7c17519437e254a87a3ac",
+      "title": "Script Component",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.mdx",
+      "bytes": 9430,
+      "sha256": "0f3b7b862f4c4bec9da16ab39df1d8b800194fb0346efeeee1eb4f5575c381cb",
+      "title": "favicon, icon, and apple-icon",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/index.mdx",
+      "bytes": 1283,
+      "sha256": "fb00034fe3cc6ac73d580e2a67bcb4db06c849428eac5d8ce6b871610d6efdf1",
+      "title": "Metadata Files API Reference",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/manifest.mdx",
+      "bytes": 2216,
+      "sha256": "a4842e4d553204ebda72bd025fc279cc2d5882795d6e73168ccb91a0e13a6e95",
+      "title": "manifest.json",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/opengraph-image.mdx",
+      "bytes": 16658,
+      "sha256": "375540f4bc3ffa85f96342b2af89121ec74e5b1656ff14a96a34df75f14caa13",
+      "title": "opengraph-image and twitter-image",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/robots.mdx",
+      "bytes": 4780,
+      "sha256": "e8003da970452a059001ea1817f82b7744059a00396fb99c2be68684454a17cd",
+      "title": "robots.txt",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/01-metadata/sitemap.mdx",
+      "bytes": 11672,
+      "sha256": "c259e4972b7bbd31e2462d5538bdb29e91e26578046205e445808650d92c4a8c",
+      "title": "sitemap.xml",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/dynamicParams.mdx",
+      "bytes": 1021,
+      "sha256": "2807b629d4d5119fce4891023fe60167089bc2cc29c2492de7a5f2cb3e052165",
+      "title": "dynamicParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/ensureStatic.mdx",
+      "bytes": 13303,
+      "sha256": "ad971f3152521a2ce691d8335f3ddcbf9a61eab9fdca22cfbd1665e8081e7c6c",
+      "title": "ensureStatic",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/index.mdx",
+      "bytes": 3851,
+      "sha256": "c94d68b493138a4594504592db1f6f9c90af2ca1274531a114090e2615b8dc3c",
+      "title": "Route Segment Config",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.mdx",
+      "bytes": 9502,
+      "sha256": "223066808fd711d47f520b3ec4396c1bdd58e24aeb63680da6a7e81666464056",
+      "title": "instant",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/maxDuration.mdx",
+      "bytes": 869,
+      "sha256": "8dc352abbb9718d27c800bbee04adbf13bfbc4c4d25737b9b571e4acc1952bfd",
+      "title": "maxDuration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/preferredRegion.mdx",
+      "bytes": 1967,
+      "sha256": "07f85f82b8e7a5ec2ae15e890b55508106b2e06bc3dfe5ac057b3fc3c5e80093",
+      "title": "preferredRegion (deprecated)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/prefetch.mdx",
+      "bytes": 5010,
+      "sha256": "d9cbaeafb888ef6fc283725741fb61f5771a5c83f545b8e57e222a20abf72c57",
+      "title": "prefetch",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/runtime.mdx",
+      "bytes": 1105,
+      "sha256": "9112003193848f622f3b1d490e0a0b018f676ae317c2c716d98073b2d829b268",
+      "title": "runtime",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/default.mdx",
+      "bytes": 3474,
+      "sha256": "42cd5f6c5b7fb94c390bf9345dd898b355781c9149b9956af0f972ca6468369e",
+      "title": "default.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/dynamic-routes.mdx",
+      "bytes": 15338,
+      "sha256": "387f5dfd9a0400c38ed4ee143df7917abf1ef2a3c258c9eca2aa41bf02249130",
+      "title": "Dynamic Route Segments",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/error.mdx",
+      "bytes": 11222,
+      "sha256": "c3d3493c85b2a34354add83092933a5978d5b663b8bf062c3201221383fff73a",
+      "title": "error.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/forbidden.mdx",
+      "bytes": 1427,
+      "sha256": "b5146bf154801a21046c292f269a7b3a2f0ca31632e8dcbfb53b48e5b318408e",
+      "title": "forbidden.js",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/index.mdx",
+      "bytes": 103,
+      "sha256": "c2d6b6819b377c0dec52d95dbcac07098326a74f06ddfd416885c4b45b13a3d8",
+      "title": "File-system conventions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/instrumentation-client.mdx",
+      "bytes": 9821,
+      "sha256": "23cfad44265fc8d5deba6eee3878d7644c6318cb56e1a17901f7bb09134009ed",
+      "title": "instrumentation-client.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/instrumentation.mdx",
+      "bytes": 5116,
+      "sha256": "6f93844115bbb591d17d22612cbc90b1a2659bb76cdbb8243646bfeaa95fbcf8",
+      "title": "instrumentation.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/intercepting-routes.mdx",
+      "bytes": 3890,
+      "sha256": "304ad389c7ee2b16abbf0796af164df0fb65a0689bbb9dea893f8cbd3d008ab4",
+      "title": "Intercepting Routes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/layout.mdx",
+      "bytes": 21144,
+      "sha256": "d55bc17f7925ed4088accbeb69ff1baf309a73ba6f15138e49e2a22840efc967",
+      "title": "layout.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/loading.mdx",
+      "bytes": 9812,
+      "sha256": "6b75c97f5da4f4e3cd984df82cd785bc28746ddd0d6188d83913dd16166b3af0",
+      "title": "loading.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/mdx-components.mdx",
+      "bytes": 1575,
+      "sha256": "d5b53495414e56fd956152db53be8a38d2b6f6f211bcc9014eee751c85a9e302",
+      "title": "mdx-components.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/middleware.mdx",
+      "bytes": 814,
+      "sha256": "10418779f6d770c7bd606a771ba7ddb7d7461603e17d6a5cf279f24081689823",
+      "title": "middleware.js",
+      "upstreamVersionLabel": "draft"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/not-found.mdx",
+      "bytes": 8520,
+      "sha256": "4b852d5c12d091e48b166f2d65cf79a952263cbc4e438fa174c572c11932fd9c",
+      "title": "not-found.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/page.mdx",
+      "bytes": 8774,
+      "sha256": "63cbb7aa79f3c375ce838bf35ac317f6a26749cf9ddf547eb841f04b986e607b",
+      "title": "page.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/parallel-routes.mdx",
+      "bytes": 16038,
+      "sha256": "17530d18eabd81b1fb2767200113b4bad7f5576cc56efa65cba705fa7fde8770",
+      "title": "Parallel Routes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/proxy.mdx",
+      "bytes": 31175,
+      "sha256": "79c6a5e4d8a3badc09969c2658558326367b30268967e47f3c09ca2d2d8b776d",
+      "title": "proxy.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/public-folder.mdx",
+      "bytes": 1801,
+      "sha256": "0fe9e444b26e8b80767d49285722f6469bb592ec6d44f893a1fb918bf2e1c618",
+      "title": "public Folder",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/route-groups.mdx",
+      "bytes": 1627,
+      "sha256": "8c926fb6917138bfd3b0f922cdb91f47d8946decd493f81335518061fe70626b",
+      "title": "Route Groups",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/route.mdx",
+      "bytes": 20046,
+      "sha256": "aa1f5391ab94df15292a00acae5ced04ef4d41a5ef66ceb2d8e1465387578231",
+      "title": "route.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/src-folder.mdx",
+      "bytes": 2032,
+      "sha256": "831a58369287d4ab12ff2040d3494bf7d8a6c4d774d6cbf98a020f7c75497bc4",
+      "title": "src Folder",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/template.mdx",
+      "bytes": 5255,
+      "sha256": "a50a9809bff735f77e58c2810caa5a76ae37591c761566fe224abf1f8833802a",
+      "title": "template.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/03-file-conventions/unauthorized.mdx",
+      "bytes": 2833,
+      "sha256": "b8803d2a5608cf4fa22c3f2d75d8eec845dcf7dd5b730287b5ebde9439d1aecd",
+      "title": "unauthorized.js",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/after.mdx",
+      "bytes": 11536,
+      "sha256": "652ec34062df89a58a813361f4d5ec1e798c8d6913b95ed167b7bc446629808a",
+      "title": "after",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/cacheLife.mdx",
+      "bytes": 22058,
+      "sha256": "ab4dcc142ab5db5823e2c14c9b6256e895050f34e70c1731d894f20269c99bb3",
+      "title": "cacheLife",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/cacheTag.mdx",
+      "bytes": 6542,
+      "sha256": "d18dcc42d93567062253c04b68e06beb5a1aa3af865be56dd9ca60a755fc217b",
+      "title": "cacheTag",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/catchError.mdx",
+      "bytes": 12381,
+      "sha256": "7de636f151e78d66873e984888da5374aac1c693a01d9c3f17fbc3e785e73700",
+      "title": "catchError",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/connection.mdx",
+      "bytes": 3021,
+      "sha256": "fbdaa87ab251935ed17e59390f093dec953c069c200f5039292c93382cdd7b38",
+      "title": "connection",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/cookies.mdx",
+      "bytes": 12361,
+      "sha256": "f474ad3776772829116dd50c752dff267e1f29e38244071f461bb2a8c9a1da9b",
+      "title": "cookies",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/draft-mode.mdx",
+      "bytes": 5426,
+      "sha256": "9871c55531a8e87919da9d688f9bad68e4ce7c13e84911d19714ff332ca990b6",
+      "title": "draftMode",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/fetch.mdx",
+      "bytes": 6416,
+      "sha256": "30bc67649cbf64eca5f4666cfe631eede1d185747f0d4c1027a9e91d4422f765",
+      "title": "fetch",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/forbidden.mdx",
+      "bytes": 8976,
+      "sha256": "c21c0c5614391de41516ff702b214d8488513a9c0e2aed0a697553ee27d42dd0",
+      "title": "forbidden",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/generate-image-metadata.mdx",
+      "bytes": 7452,
+      "sha256": "d365ad571603a1d942d10b0d026c2b9816d6f3f5a1535144e515a8b946d6fb47",
+      "title": "generateImageMetadata",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/generate-metadata.mdx",
+      "bytes": 49181,
+      "sha256": "68e0ff80fa633a99fe65ac1b6f1d7f7ededa666adc0a407a1ab43f43cf7ebe1a",
+      "title": "generateMetadata",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/generate-sitemaps.mdx",
+      "bytes": 3167,
+      "sha256": "b6f6575ce735232da5f8fe86d67989e01c928110449010fa8a24a90b18b0f681",
+      "title": "generateSitemaps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/generate-static-params.mdx",
+      "bytes": 18825,
+      "sha256": "d4a61ed98915e71d0c8258d62786a319dfb963f52f335f934643bbacaaa81050",
+      "title": "generateStaticParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/generate-viewport.mdx",
+      "bytes": 9160,
+      "sha256": "71e48552d71f26dc117859afdd044625d5275729e29f8c6916862011b16aa818",
+      "title": "generateViewport",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/headers.mdx",
+      "bytes": 4213,
+      "sha256": "2512b0ee174877876c8e2a8d9fd8fb71e2afb82957e1ddd8267b506ee68df8c7",
+      "title": "headers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/image-response.mdx",
+      "bytes": 5818,
+      "sha256": "f2964c5304a141881e662a488379c78a5e7c12fdffd148b3fb124e169eca5fe9",
+      "title": "ImageResponse",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/index.mdx",
+      "bytes": 331,
+      "sha256": "6d709b6b25e09c8fb68a1258d3aded9321e9891a889a350a2286e0ef49b7cf3c",
+      "title": "Functions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/io.mdx",
+      "bytes": 4393,
+      "sha256": "59bc1c80aea5ac5a2999186d49afa9f28da665fe697aaf08b93ac080e99affd8",
+      "title": "io",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/navigation.mdx",
+      "bytes": 10473,
+      "sha256": "2f4fe59b368a068d63f8e81f6e575fc1795ef0050c6c6b4d39edab3634c8dece",
+      "title": "navigation",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/next-request.mdx",
+      "bytes": 6210,
+      "sha256": "5703ad6d9fbba8b40c0d42256e110406e241b4ff2e392f939c553b1798159474",
+      "title": "NextRequest",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/next-response.mdx",
+      "bytes": 6506,
+      "sha256": "e81511b6a34d05b2e410b1c22c39db9931f408d6903bfd5fd65253b9c35f3631",
+      "title": "NextResponse",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/next-root-params.mdx",
+      "bytes": 15877,
+      "sha256": "7daac9e6ffae7c0191fd7580343e1c8c862c5825b811a4008c19d2d02a619d64",
+      "title": "next/root-params",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/not-found.mdx",
+      "bytes": 7667,
+      "sha256": "151d0eef2ad6f7da8ee8b66f748a405e7a39c31e17af5648e1584837cc9a9a89",
+      "title": "notFound",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/permanentRedirect.mdx",
+      "bytes": 3444,
+      "sha256": "fc8ea61831b3b39b46870def4c12124b0801c2775ee37afe3309f0eaa11512e2",
+      "title": "permanentRedirect",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/prefetch.mdx",
+      "bytes": 10083,
+      "sha256": "780299cbafd32e2f9693a54dfd5bd48a71cfcbda12e22913244047ea60949036",
+      "title": "prefetch",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/redirect.mdx",
+      "bytes": 8252,
+      "sha256": "02f3e597f18660993cb3c27968789c2c379a72a5d1029508a0e4ea1b11453ecc",
+      "title": "redirect",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/refresh.mdx",
+      "bytes": 1417,
+      "sha256": "5f68766c2734ae0f095aa11b652483d62e94f90a5a76e788eef2feb234bee2dd",
+      "title": "refresh",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/revalidatePath.mdx",
+      "bytes": 8072,
+      "sha256": "82b4f0888f1d1113c2e0e1a867983a88ce02bbf9419570e3710fe7fe4ccd2c02",
+      "title": "revalidatePath",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/revalidateTag.mdx",
+      "bytes": 6086,
+      "sha256": "82045b5b9bb7f68ba5ef6d01981a12b84d9e2b694fcaf9545bf5c7f944d0c045",
+      "title": "revalidateTag",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/unauthorized.mdx",
+      "bytes": 10274,
+      "sha256": "4f2d55eeefbe5a82b0ec8a3a681157f2b019bd078eb2a5f76e05b1e5165304ca",
+      "title": "unauthorized",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/unstable_cache.mdx",
+      "bytes": 4189,
+      "sha256": "121b25ad05a74605e89a223b2b8a8a4da7e6528dd7aebe60b84974e46655db9f",
+      "title": "unstable_cache",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/unstable_noStore.mdx",
+      "bytes": 1726,
+      "sha256": "cf7ac7fbef7d107146458418f84db16dc6128a631a9ae455281e321e196a835f",
+      "title": "unstable_noStore",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/unstable_rethrow.mdx",
+      "bytes": 3005,
+      "sha256": "ca49203054c8090dca639731630d732847ab6191f6acfba7aec7863bcae3359e",
+      "title": "unstable_rethrow",
+      "upstreamVersionLabel": "unstable"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/updateTag.mdx",
+      "bytes": 4990,
+      "sha256": "e92deeebe7b7cfcba512f594032fd8809e342bcafb3dac24f3636803124d4cc3",
+      "title": "updateTag",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-link-status.mdx",
+      "bytes": 6817,
+      "sha256": "3942c543d6826db9ce1e38b5b3cecf8b6e8b362ad5c519f580ea26f9a98b18c1",
+      "title": "useLinkStatus",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-offline.mdx",
+      "bytes": 4959,
+      "sha256": "1083b0e3ac604d1627a0d3723e9916cc209d523ccbddce13dd8ad39da71a6ffd",
+      "title": "useOffline",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-params.mdx",
+      "bytes": 3487,
+      "sha256": "069e1cf28d2f8701efd6ee85e80396f182a956641720a4bb74765a0b79d0559f",
+      "title": "useParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-pathname.mdx",
+      "bytes": 7385,
+      "sha256": "b319f3ef319a721764ae4ba22ca247bf2fc7313c47bec79a040baa089ef2f99e",
+      "title": "usePathname",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-report-web-vitals.mdx",
+      "bytes": 8797,
+      "sha256": "2aa45d980f53c788cd790dc1570ab41462d04195cdfa4f4b7b843834765a3712",
+      "title": "useReportWebVitals",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-router.mdx",
+      "bytes": 8637,
+      "sha256": "974155c3f4fa1a539b1a5fd924faaf49289b9f34742611caeaa3c0955368d0eb",
+      "title": "useRouter",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-search-params.mdx",
+      "bytes": 14012,
+      "sha256": "4bc634b7383bec0236d97d61c501ca837f73d2f9b1282cffaecfacd16708df6a",
+      "title": "useSearchParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-selected-layout-segment.mdx",
+      "bytes": 7884,
+      "sha256": "366e68c685f5683fa9c9e6ccd873af50ea098e494788dda67724db3d5d66ea2c",
+      "title": "useSelectedLayoutSegment",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/use-selected-layout-segments.mdx",
+      "bytes": 5559,
+      "sha256": "934f1bf5088f8dfbd56359337d20b6d1e2d7bead93c14fd64328a9466ab20689",
+      "title": "useSelectedLayoutSegments",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/04-functions/userAgent.mdx",
+      "bytes": 3218,
+      "sha256": "8e66df6a6f4016f381f027163675c2b61cc31203534f5c8d226524ed9ae7cb37",
+      "title": "userAgent",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/adapterPath.mdx",
+      "bytes": 3100,
+      "sha256": "68d9eb4252b2e89e720b596714b8272d37a0e9764e9c1fcf7324ef2170d0d8e4",
+      "title": "adapterPath",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/agentFeedback.mdx",
+      "bytes": 5057,
+      "sha256": "a0819eba35a326b9e30ea34d48d28f6525fba5e0419176859fc485795c902e07",
+      "title": "agentFeedback",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/agentRules.mdx",
+      "bytes": 2947,
+      "sha256": "38eb6c17e6c7b1de979057a5877b1868e8429d5cdb0936b971777bdb80bfc9a0",
+      "title": "agentRules",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/agentUpgrade.mdx",
+      "bytes": 3566,
+      "sha256": "c4fa6f824a3d172a70d6fdeb96b974f11ee8219a376c9151936c6cce64603a06",
+      "title": "agentUpgrade",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/allowedDevOrigins.mdx",
+      "bytes": 2929,
+      "sha256": "f2c9cb2b0ab737bf84a3abb88b970c44ede0cc9ef36d87fc945b0020ac5ce231",
+      "title": "allowedDevOrigins",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/appDir.mdx",
+      "bytes": 795,
+      "sha256": "eb0fb158c8508bd47a49bfd207a9cb638dec5bd4d6b85ba98ab35c09082fdba0",
+      "title": "appDir",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/assetPrefix.mdx",
+      "bytes": 3557,
+      "sha256": "39267f0385627fa670aa657a2259bc417b7c51a273188064946b13940a8a917e",
+      "title": "assetPrefix",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/authInterrupts.mdx",
+      "bytes": 1042,
+      "sha256": "ba5c966a8e32f057aceb4efb33c4ac80e208b61d9200ada15097b7a8985e5c8f",
+      "title": "authInterrupts",
+      "upstreamVersionLabel": "canary"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/basePath.mdx",
+      "bytes": 2164,
+      "sha256": "083c853ad4fd8cfbdca1bda686037da145ef5880102d38e69647419953416d2e",
+      "title": "basePath",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/cacheComponents.mdx",
+      "bytes": 5294,
+      "sha256": "b46dff46ec6feac9863ae271bed23d600c370295a8b4950e11b9811237e156f8",
+      "title": "cacheComponents",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/cacheHandlers.mdx",
+      "bytes": 26850,
+      "sha256": "ab409cf5df13986c0a5d8ac253465050aa4cd977a25ade6146d229f0c8a45c00",
+      "title": "cacheHandlers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/cacheLife.mdx",
+      "bytes": 3688,
+      "sha256": "3ac2eaa3ce7cba04674df663ab0b037461947fea8b1ffa805ea34e0ed4b69d78",
+      "title": "cacheLife",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/cacheMaxMemorySize.mdx",
+      "bytes": 1887,
+      "sha256": "f43d93cdc987b5949a98922ced32ef4f181ce221a2d84959c3c58bb935fe0e6b",
+      "title": "cacheMaxMemorySize",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/compress.mdx",
+      "bytes": 1628,
+      "sha256": "d58690e03460b8c5c3921127ebff34d1c4da0e1fad45309a40dcca008d26966f",
+      "title": "compress",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/crossOrigin.mdx",
+      "bytes": 1231,
+      "sha256": "2bf4727fd6c1f3562d659c855a9fc56a79922c186f5d784e5d0a072d4b2a921a",
+      "title": "crossOrigin",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/cssChunking.mdx",
+      "bytes": 9296,
+      "sha256": "591fc260f59fd06ca5614a2748ad627fda329987e950af3b04e2021e3ddd8105",
+      "title": "cssChunking",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/deploymentId.mdx",
+      "bytes": 4443,
+      "sha256": "b40a8f8f130bd3ea9027e96df75e8fee392555b517e9c4b1a53bfcb0160b2ead",
+      "title": "deploymentId",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/devIndicators.mdx",
+      "bytes": 3438,
+      "sha256": "ed3ba6042be0ab58ba89437f5dd9422fbb173a2aa61868d9afea490671c5f958",
+      "title": "devIndicators",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/distDir.mdx",
+      "bytes": 1320,
+      "sha256": "0e292aa5b58fc6c56eee0887b6b658256ac7790703f0afe696829ad4af3ead7c",
+      "title": "distDir",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/enablePrerenderSourceMaps.mdx",
+      "bytes": 2141,
+      "sha256": "c25d864db3540af523205d6e483141aeaac9e476dfc0b7afb39523b5bc1e5758",
+      "title": "enablePrerenderSourceMaps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/env.mdx",
+      "bytes": 2346,
+      "sha256": "0cab75fd6cf6961051b9de06de2d5c9243d01438da98474fb8577d1ee1ec3f88",
+      "title": "env",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/expireTime.mdx",
+      "bytes": 1036,
+      "sha256": "c5ad35d419024528bd2ff5364234d77ec036f0c393616c40b02bfaa2ef846ec3",
+      "title": "expireTime",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/exportPathMap.mdx",
+      "bytes": 4325,
+      "sha256": "5bbdf408cd0f645662b46a6eea9dfb89f07e29219a982903a484692a90c31cad",
+      "title": "exportPathMap",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/exposeTestingApiInProductionBuild.mdx",
+      "bytes": 2725,
+      "sha256": "bc1662c230d4b8f8b5c8b2be52dc2fa97044d0b56c5c46caba2568be60ea70b8",
+      "title": "exposeTestingApiInProductionBuild",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/generateBuildId.mdx",
+      "bytes": 1245,
+      "sha256": "a2567a2c01d64ede68f83f2d8d5580af52f0d4a3c385c915406cf1d3bc5f4a6b",
+      "title": "generateBuildId",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/generateEtags.mdx",
+      "bytes": 730,
+      "sha256": "a44bb9b0c542664594f320cda236935682b60aa869957b2092a1cfc0ea7f65dc",
+      "title": "generateEtags",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/headers.mdx",
+      "bytes": 18319,
+      "sha256": "0edc1f028b6450b6e46eaf6dc3f4ca0646e5f80f63c93765ca701d2a755fbda9",
+      "title": "headers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/htmlLimitedBots.mdx",
+      "bytes": 1952,
+      "sha256": "14f3e8eb9ba0bb09af6b0bc10e8a93bd21561e235a40d097acae7f44272d7588",
+      "title": "htmlLimitedBots",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/httpAgentOptions.mdx",
+      "bytes": 889,
+      "sha256": "ac4e712801ed11cc6af054bf1e718793b7abc502fcba3d7e42eac1afefa8a4e7",
+      "title": "httpAgentOptions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/images.mdx",
+      "bytes": 8830,
+      "sha256": "9faee81f35a9bf7320526804d77a750b59e05d0776fb1bcd1d336afa7ca94897",
+      "title": "images",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/incrementalCacheHandlerPath.mdx",
+      "bytes": 7957,
+      "sha256": "c44f63bd88a878d7c6692d1545c4ac3d6b839f61df95af68def63dd9b2081869",
+      "title": "Custom Next.js Cache Handler",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/index.mdx",
+      "bytes": 4664,
+      "sha256": "8e59695965aa5e631f2eea55a36a3a09095e800ab61952a1386feeb8c71c16ce",
+      "title": "next.config.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/inlineCss.mdx",
+      "bytes": 3697,
+      "sha256": "562704ea32419b342eacee3832cf854af1b434f90411bc01bd3219f365f60288",
+      "title": "inlineCss",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/instrumentationClientInject.mdx",
+      "bytes": 2886,
+      "sha256": "16ffa1c48a9bb7050d26fab3b5d519679c36a27107a52b59f75d09ba98e36325",
+      "title": "instrumentationClientInject",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/logging.mdx",
+      "bytes": 5069,
+      "sha256": "d74baeec1b03ddf3e28f243dd613eccd37f0b4502e9a02b2c68f2705c76d0556",
+      "title": "logging",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/mdxRs.mdx",
+      "bytes": 469,
+      "sha256": "10df4d1bf13a879a4a9c0e196eccc592d258d14baf1a51b330b0b73f4e362d2b",
+      "title": "mdxRs",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/onDemandEntries.mdx",
+      "bytes": 886,
+      "sha256": "a2ae74ffcfb18d3b2acfdb351e44d390a6d6764e8b1d76335820e398501c1c02",
+      "title": "onDemandEntries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/optimizePackageImports.mdx",
+      "bytes": 1384,
+      "sha256": "c93fc1c9205326ccdcdbd47f1e7a9aaad2d070f3be4dd9d75331cc2a6359c7b1",
+      "title": "optimizePackageImports",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/output.mdx",
+      "bytes": 8426,
+      "sha256": "8f43d8c926000a2990dc045b525a02857f4b487484194ce03037ebbd0d13ef4a",
+      "title": "output",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/outputHashSalt.mdx",
+      "bytes": 1289,
+      "sha256": "cf4d5bf788426d84ce12508e85ec93305303aefcc85ff5d555059348cdfe4de5",
+      "title": "outputHashSalt",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/pageExtensions.mdx",
+      "bytes": 2059,
+      "sha256": "2a6db806b295ffcffcc4a621120ef29f583b9fa4af935a56a2dd50727d6e83dd",
+      "title": "pageExtensions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/partialPrefetching.mdx",
+      "bytes": 4056,
+      "sha256": "bcab5a06a38005a03cc3e729255a287a0dbe45b66944726360e848ac302aa180",
+      "title": "partialPrefetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/poweredByHeader.mdx",
+      "bytes": 596,
+      "sha256": "ed5c76ef7877e99c03aa0ac7a647a6228c0f7d04235e81c94ce2ebe662da9530",
+      "title": "poweredByHeader",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/prefetchInlining.mdx",
+      "bytes": 3677,
+      "sha256": "53d03df55948aa02e28b0961705af50f7fb0d9e363a70d008574bf0dfcfba2ab",
+      "title": "prefetchInlining",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/productionBrowserSourceMaps.mdx",
+      "bytes": 1090,
+      "sha256": "52d649a21db01d6d684e1c2129d747d6eb8ffcafc724916ffbd0ab9edac53185",
+      "title": "productionBrowserSourceMaps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/proxyClientMaxBodySize.mdx",
+      "bytes": 3379,
+      "sha256": "3c7bc59018e979fad44201b237a54749ba77ba91951608f4637c5c3dedd33bd5",
+      "title": "proxyClientMaxBodySize",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/reactCompiler.mdx",
+      "bytes": 4089,
+      "sha256": "fd73bcf729013c8726327c8ee9021bb591e37560ac018e8d034aeb859b05200a",
+      "title": "reactCompiler",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/reactMaxHeadersLength.mdx",
+      "bytes": 882,
+      "sha256": "c95af197ac2a57edef8706e92a55dcd7f4f91a3d01b24136a969531112de620e",
+      "title": "reactMaxHeadersLength",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/reactStrictMode.mdx",
+      "bytes": 1379,
+      "sha256": "53e7de9101dfeb6f2b78914f6a5bad5e1ab40c2751e523e9563b23f404487380",
+      "title": "reactStrictMode",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/redirects.mdx",
+      "bytes": 12885,
+      "sha256": "24cc7f98f6548e71e2e52c83f6e5adfd19cf3e60d50911884ff29016df30bae1",
+      "title": "redirects",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/rewrites.mdx",
+      "bytes": 16942,
+      "sha256": "68446fc1d09fe7c2d258a1bfcfe678bde797043f6be2e1d92fd1a2fb75f19000",
+      "title": "rewrites",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/sassOptions.mdx",
+      "bytes": 1120,
+      "sha256": "f85317efcf08051e12f9cfc096fd6e6d2baa2982c2463666c40638c54498aaf7",
+      "title": "sassOptions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/serverActions.mdx",
+      "bytes": 4972,
+      "sha256": "917941b6e2a2ebf084ae4457022fea737fd3478d3e8156ace43ccd189d6b089f",
+      "title": "serverActions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/serverComponentsHmrCache.mdx",
+      "bytes": 1467,
+      "sha256": "9bcae25f83fc345915936731f4e246f84cc868b6c04d3a8db3da71086b4f08a9",
+      "title": "serverComponentsHmrCache",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/serverExternalPackages.mdx",
+      "bytes": 2655,
+      "sha256": "25de4f010b10654324b0217e705c84b0e58fb977459d033120559542220b3311",
+      "title": "serverExternalPackages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/skipProxyUrlNormalize.mdx",
+      "bytes": 6896,
+      "sha256": "b769340d02df1b24599599f48e7bf7b7c0d57e7cbba95bb85982ae402f2eeb65",
+      "title": "skipProxyUrlNormalize",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/skipTrailingSlashRedirect.mdx",
+      "bytes": 6203,
+      "sha256": "a90ba0bbeda1fff53af1079fe38b01d6cc619baeed73d841a5a410f991c56bd7",
+      "title": "skipTrailingSlashRedirect",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/staleTimes.mdx",
+      "bytes": 2079,
+      "sha256": "551e4c00c74750e572ba69a6896140603674beecfa29385d076ead1a7772cb25",
+      "title": "staleTimes",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/staticGeneration.mdx",
+      "bytes": 1149,
+      "sha256": "35294c91035f15640dd235543ebb3a993f607101c6985244e4d48cfeb87158c9",
+      "title": "staticGeneration*",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/supportsImmutableAssets.mdx",
+      "bytes": 1873,
+      "sha256": "688097b0049ccf6ce1bb0da4eab42f4da549fbc96b1e0acbdad791d22748a447",
+      "title": "supportsImmutableAssets",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/taint.mdx",
+      "bytes": 6907,
+      "sha256": "5d0eaee6cced88efaa999b0e330922caeef80bd582d31aab69048bbfff777fc8",
+      "title": "taint",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/trailingSlash.mdx",
+      "bytes": 1520,
+      "sha256": "03fbfdc2e37d84c253ba366938712011314257cfbad4812befab3af857c65167",
+      "title": "trailingSlash",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/transpilePackages.mdx",
+      "bytes": 2732,
+      "sha256": "991f36305b9fe8c37e23c0297cb04d48c78130dcb3da8e91dec8bcb8a1a193ca",
+      "title": "transpilePackages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopack.mdx",
+      "bytes": 21823,
+      "sha256": "0619870705ac2f9d6f2973bb3e73a7771bd38554291b86857f64a37b86dab758",
+      "title": "turbopack",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackChunking.mdx",
+      "bytes": 6103,
+      "sha256": "d6ea2576d92f1829f2ba008583903fa6cd342316e16f3427a9246fb87b77c9c4",
+      "title": "turbopackChunking",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackFileSystemCache.mdx",
+      "bytes": 2657,
+      "sha256": "f6ae65705b9bc3997e6cc4b1aae3eba255b0af291acedae8f0271ef7ed98bb40",
+      "title": "Turbopack FileSystem Caching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackGc.mdx",
+      "bytes": 3778,
+      "sha256": "bbb152e0f0ec2b478a7e0e30150cdc4b7fe08a95c793d8042a5d7fdb652d51db",
+      "title": "turbopackGc",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackIgnoreIssue.mdx",
+      "bytes": 4723,
+      "sha256": "be2577b76fa602f51ca0305b19a47782e91308da23af77577ac31a80dd2d93a3",
+      "title": "turbopack.ignoreIssue",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackLazyDynamicImports.mdx",
+      "bytes": 2910,
+      "sha256": "844cbdeeecd2d1b4038cda7f9329f0cc727a96dbf1a8f39f07da9bd5bbf06309",
+      "title": "turbopackLazyDynamicImports",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackLazyDynamicImportsSSR.mdx",
+      "bytes": 2416,
+      "sha256": "be733bc6f814cd448770b5061918798d90eb4b211f1608b1b93421c2199be62a",
+      "title": "turbopackLazyDynamicImportsSSR",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackLocalPostcssConfig.mdx",
+      "bytes": 2401,
+      "sha256": "1b56c6501839e38d5ec8f5ae00078c1a7681c8d65e0779446224f11cacdc7397",
+      "title": "turbopackLocalPostcssConfig",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackMemoryEviction.mdx",
+      "bytes": 1787,
+      "sha256": "47a680b67eb471384b40d2475a7dc8a710daa13b6f469d76a7c4f1e86fd948ca",
+      "title": "Turbopack Memory Eviction",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackPluginRuntimeStrategy.mdx",
+      "bytes": 2785,
+      "sha256": "ff7b9435a82cd2ab8ce73e40c676f7bdeea50fd17c66bfd0046bc8a7b26386b9",
+      "title": "turbopackPluginRuntimeStrategy",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/turbopackRustReactCompiler.mdx",
+      "bytes": 2207,
+      "sha256": "6e7af5b5eae7a336fd169d4cd89d208b4a111b24a958c2916dd7751f59a59670",
+      "title": "turbopackRustReactCompiler",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/typedRoutes.mdx",
+      "bytes": 518,
+      "sha256": "79729b1497363fbc8414fd8820ac76c7c9c7410f6ade87c5a0b670cbba1936df",
+      "title": "typedRoutes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/typescript.mdx",
+      "bytes": 2272,
+      "sha256": "9916d4fa3208615dc1442ee7759493c1c15cd679c6ce7d02bbeaea49373da398",
+      "title": "typescript",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/urlImports.mdx",
+      "bytes": 2880,
+      "sha256": "64b61f09d75f865cc663f9c322c2da2bc3844e6b1ea34007166f46a822bd3bca",
+      "title": "urlImports",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/useLightningcss.mdx",
+      "bytes": 6898,
+      "sha256": "a98c9e846454781909603bf3532671f75ab34bd2c2ebd05e8f83b5d342e3658c",
+      "title": "useLightningcss",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/useOffline.mdx",
+      "bytes": 5399,
+      "sha256": "239f098747dbdfec0eb21d3078f69012ea0f534867cf2839b285b097415a9284",
+      "title": "useOffline",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/useTypeScriptCli.mdx",
+      "bytes": 2357,
+      "sha256": "2db8519e4154e1e674fceb7e67a24300f5b038ac20980b4e465d491f59526c87",
+      "title": "useTypeScriptCli",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/webVitalsAttribution.mdx",
+      "bytes": 1958,
+      "sha256": "b8a340fcc4ecf0edd18c07fb55be642d2c91254e0462d690391cc37126e12080",
+      "title": "webVitalsAttribution",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/01-next-config-js/webpack.mdx",
+      "bytes": 3323,
+      "sha256": "41302b7c328a2aac0f74cb2582e848772ba19c37b94f61c42314a42a4b4c0154",
+      "title": "Custom Webpack Config",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/02-typescript.mdx",
+      "bytes": 23046,
+      "sha256": "4b168827c469c8bdebf13902b44365d510cc9619c526f2b877ae795ca822a4d3",
+      "title": "TypeScript",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/03-eslint.mdx",
+      "bytes": 19026,
+      "sha256": "4d83a417f3d7976d8713266f4c95a36de8429d8fa1c0a22d355b26a3978a0161",
+      "title": "ESLint Plugin",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/05-config/index.mdx",
+      "bytes": 87,
+      "sha256": "811e14d0ad9c7f5d0295b9d8ffdfbe09bc30da20de0a217b9dfb181a34a441ef",
+      "title": "Configuration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/06-cli/create-next-app.mdx",
+      "bytes": 8337,
+      "sha256": "ab638b7d1feaf2501f52519474f1979efd75a721cc1c174ce87a9a70a3d04dab",
+      "title": "create-next-app",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/06-cli/index.mdx",
+      "bytes": 691,
+      "sha256": "676539bbaa6bb334648e084efdff364672906925df4d9818040a363a84f1f38c",
+      "title": "CLI",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/06-cli/next.mdx",
+      "bytes": 28341,
+      "sha256": "b1b0e34dedd8d3e3d391a9370f3f56c4e8756765de406accf6721ad7eb984006",
+      "title": "next CLI",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/01-configuration.mdx",
+      "bytes": 483,
+      "sha256": "1a9082afd0c6494c4e81e8f54b0c8a710014f67f94ca50cffc356a457443db32",
+      "title": "Configuration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/02-creating-an-adapter.mdx",
+      "bytes": 3064,
+      "sha256": "edc7c0535bf3614821c7dcbcaa824e1281680ac3262d70d6c10fcc3a3e0c0945",
+      "title": "Creating an Adapter",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/03-api-reference.mdx",
+      "bytes": 2208,
+      "sha256": "99df8dbd17d5946a176685934e06c28798467768a5f40c33de3b266fc74f15f4",
+      "title": "API Reference",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/04-testing-adapters.mdx",
+      "bytes": 7316,
+      "sha256": "0aa1313aa43b85f14d773ce95dcb0e818988871c5db1c3e1ac8f68c2739c2bce",
+      "title": "Testing Adapters",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/05-routing-with-next-routing.mdx",
+      "bytes": 2184,
+      "sha256": "be0f652fc634028bf20d8ceb2813df6c3db606169ad08d5db858989cd5decaf6",
+      "title": "Routing with @next/routing",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/06-implementing-ppr-in-an-adapter.mdx",
+      "bytes": 3708,
+      "sha256": "49e08e10b5910ccb0c1c81328bf8ad3b912ce7f0097630dc061931b604c970a2",
+      "title": "Implementing PPR in an Adapter",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/07-runtime-integration.mdx",
+      "bytes": 2819,
+      "sha256": "e5e6a69b340b1a4c5b1c8811db2fc3508aeb6fe0171028d42be3113c89a3553c",
+      "title": "Runtime Integration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/08-invoking-entrypoints.mdx",
+      "bytes": 3903,
+      "sha256": "c5fa178820b2d364e61f37896da81059d49fdb614f23143a300f4b783de175e5",
+      "title": "Invoking Entrypoints",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/09-output-types.mdx",
+      "bytes": 11908,
+      "sha256": "f29553387556ca3314842f2a4896d4bf9f4203dfe5a91a680df68071fd3e574b",
+      "title": "Output Types",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/10-routing-information.mdx",
+      "bytes": 1485,
+      "sha256": "5e7b0cb24452f36c1975ca644db46d9e732d61dbfaceda830f165e05cd3e717a",
+      "title": "Routing Information",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/11-use-cases.mdx",
+      "bytes": 626,
+      "sha256": "f712e9895528922ee67cf617cbacadd286183af95425e000986be70156c2c092",
+      "title": "Use Cases",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/12-immutable-static-assets.mdx",
+      "bytes": 3039,
+      "sha256": "7d5e99af810ff88748a445062bf5a6894e5adb1595ca8c31f24ed1c7520dddd3",
+      "title": "Supporting Immutable Static Assets",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-adapters/index.mdx",
+      "bytes": 222,
+      "sha256": "d12477b3cb9c72af570e52a9abf2afea081d913e5509e66140fa53d61b82a305",
+      "title": "Adapters",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/07-edge.mdx",
+      "bytes": 29317,
+      "sha256": "a1e8386a4b3c9e789ca9a409a8c618853f4afba98fcbb1be451aa91a17c8b3d4",
+      "title": "Edge Runtime",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/08-turbopack.mdx",
+      "bytes": 44081,
+      "sha256": "be78b4d85e14627108f142bffb1ffca4dec047827aafaa74e58a6cea6415846e",
+      "title": "Turbopack",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/03-api-reference/index.mdx",
+      "bytes": 84,
+      "sha256": "2d82c97665404bc9ecdfbfc14b6ec132bdeb538d2f8ccf1d4d01bee495fc5c3c",
+      "title": "API Reference",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/04-glossary.mdx",
+      "bytes": 23346,
+      "sha256": "29abdd948586a95a8d3e62822b6899875601570951966f0af54842f5dff00dec",
+      "title": "Next.js Glossary",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/01-app/index.mdx",
+      "bytes": 891,
+      "sha256": "c80a70fc5f6920d4981a799a7cee4134f4866b070742f69727b69c51fe58e680",
+      "title": "App Router",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/01-installation.mdx",
+      "bytes": 587,
+      "sha256": "a3aaf586c567d3bf0a94852a47dba8dec7b870de48a5fa2a2ce38621aecbb138",
+      "title": "Create a new Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/02-project-structure.mdx",
+      "bytes": 567,
+      "sha256": "6328e92bc88f84a4db7b5180b9b57a5a4590476748cbcb126551bc81050e9d21",
+      "title": "Project Structure and Organization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/04-images.mdx",
+      "bytes": 655,
+      "sha256": "3426e30d0f6c6273e4fc4e9f4934223679ad2b63aa4344341588cad607a10bc2",
+      "title": "Image Optimization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/05-fonts.mdx",
+      "bytes": 620,
+      "sha256": "db1eda122fedf27a1ab5dd5b6c3887d8bf722258e64918ef36b827c29f8f97fc",
+      "title": "How to use fonts",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/06-css.mdx",
+      "bytes": 756,
+      "sha256": "0da4c6aec1154c9fb081326f2385f2109191dd7968e1ec212053d270e159a88e",
+      "title": "How to use CSS in your application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/11-deploying.mdx",
+      "bytes": 172,
+      "sha256": "9ce9c26a39f6e4b81b7685090ce444f7746a1480e8b2ead86e2a3d617e28bfb1",
+      "title": "How to deploy your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/01-getting-started/index.mdx",
+      "bytes": 170,
+      "sha256": "2c4eec72ed3283c94f25f4f7eaf9f6cc7acf1bd360533c50900f0e7199b9608d",
+      "title": "Getting Started - Pages Router",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/analytics.mdx",
+      "bytes": 480,
+      "sha256": "fcd1a22f680d1f51324d382bb02e0a304a81e402e63f47246ef952c566357838",
+      "title": "How to set up analytics",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/authentication.mdx",
+      "bytes": 602,
+      "sha256": "c644c29c9f6b142ed8e6f1d49ba525ad9304c05b875836d4ded9c807224186df",
+      "title": "How to implement authentication in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/babel.mdx",
+      "bytes": 2100,
+      "sha256": "0b5bd881037764373296e9d5ca3439e14ec00b3e4dd136e93f1b876f7a5ee25b",
+      "title": "How to configure Babel in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/ci-build-caching.mdx",
+      "bytes": 530,
+      "sha256": "c7eff40798128085c4e0f30f263c6376a5468bac6cfc8f1d8999d8fc2ddb631a",
+      "title": "How to configure Continuous Integration (CI) build caching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/content-security-policy.mdx",
+      "bytes": 586,
+      "sha256": "2bf82ce06f0276b298100e2f2d4dd67ca103325373e9398d68e51187c647cda8",
+      "title": "How to set a Content Security Policy (CSP) for your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/css-in-js.mdx",
+      "bytes": 475,
+      "sha256": "a721827f43f7e93fc9d1f748e94bcfb81be5b068e2563adf84dbf7cae94723d3",
+      "title": "How to use CSS-in-JS libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/custom-server.mdx",
+      "bytes": 516,
+      "sha256": "7a26d8998a7d681a114430bc5d0a22bd986c7db3ef4dd807d0b10198744f555f",
+      "title": "How to set up a custom server in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/debugging.mdx",
+      "bytes": 524,
+      "sha256": "9495ada6cb0b705654aa1120b3dc2bf806e1dd2d8658fbd5289623eb1f5792b9",
+      "title": "How to use debugging tools with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/draft-mode.mdx",
+      "bytes": 8174,
+      "sha256": "c2287e7593916c6289958795607e0fc8bbc54af30d9ae12a112bca4cfb4dc70c",
+      "title": "How to preview content with Draft Mode in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/environment-variables.mdx",
+      "bytes": 550,
+      "sha256": "ff493eef1baadcbba024819f6b468b5807d4fefece111ed6cd5cb7fab7c0ce60",
+      "title": "How to use environment variables in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/forms.mdx",
+      "bytes": 8959,
+      "sha256": "88bd864286b986089d6b68111307feadac79f808c4ec881cdda649e11e5ea0c4",
+      "title": "How to create forms with API Routes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/incremental-static-regeneration.mdx",
+      "bytes": 570,
+      "sha256": "1e9eda23d9d2e092849a229b54e9c9961294544a7bbba5e5a8680e87a71124b1",
+      "title": "How to implement Incremental Static Regeneration (ISR)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/index.mdx",
+      "bytes": 105,
+      "sha256": "e6ebdb79730d79e9d97e0c6fb0b2b71b45d7585b5f2dcbc44d242339b40fc415",
+      "title": "Guides",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/instrumentation.mdx",
+      "bytes": 532,
+      "sha256": "38f2de216e6b1fff42a518353ab55d9685bca4029d0088693710d3a3e7ee7c00",
+      "title": "How to set up instrumentation",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/internationalization.mdx",
+      "bytes": 15058,
+      "sha256": "97230f21b5cc46f59a62b57c5e677fca73f72b8de5244e50f428dd97033bf22b",
+      "title": "How to implement internationalization in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/lazy-loading.mdx",
+      "bytes": 571,
+      "sha256": "a2e1e0190d19d8b7d5c6e8e351ac3c891e484047307314d4a0e9ad1a9c04e818",
+      "title": "How to lazy load Client Components and libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/mdx.mdx",
+      "bytes": 498,
+      "sha256": "5f34797f636b6db424e8c4bd053a4aa5379f26b61fa1d24523721249aa6ab955",
+      "title": "How to use markdown and MDX in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/migrating/app-router-migration.mdx",
+      "bytes": 569,
+      "sha256": "ab4a47fb8825ca7560de941534c7abbd5cef5e63165102646b08c1375246af5a",
+      "title": "How to migrate from Pages to the App Router",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/migrating/from-create-react-app.mdx",
+      "bytes": 571,
+      "sha256": "483a019458d6a9e2dc6fb149c6f258d8aecb8aaf8f9c44c17912a3e4ffb85ee1",
+      "title": "How to migrate from Create React App to Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/migrating/from-vite.mdx",
+      "bytes": 523,
+      "sha256": "6152789932cf8fd662c66bf9f5654aec1df7ed0eeab252567d20b3171dcb3efb",
+      "title": "How to migrate from Vite to Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/migrating/index.mdx",
+      "bytes": 94,
+      "sha256": "b3a332f3d75eccc8ecf76ade66c9ec9a9e8097a96ed15b3bc501f3ef75c7edab",
+      "title": "Migrating",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/multi-zones.mdx",
+      "bytes": 586,
+      "sha256": "4ca59bbfd56eb39cf4d36f44a7c1e8e72fe5da8824103cc351076bc3c39716dc",
+      "title": "How to build micro-frontends using multi-zones and Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/open-telemetry.mdx",
+      "bytes": 531,
+      "sha256": "6c1439f1783139db17fb05fe7d53d7541988a594238b67170ff62e6f1349dbb3",
+      "title": "How to instrument your Next.js app with OpenTelemetry",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/package-bundling.mdx",
+      "bytes": 656,
+      "sha256": "47b368656c6f74ac9c41049d6a0cc0287d1868f2d55181140c231687fe9cee33",
+      "title": "How to optimize package bundling",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/post-css.mdx",
+      "bytes": 5820,
+      "sha256": "d74e3b76467f99ee9316f3989aa3b42409b17628a6c6a87233935d776752c985",
+      "title": "How to configure PostCSS in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/preview-mode.mdx",
+      "bytes": 14383,
+      "sha256": "68e81745e429f95a6e67992abe11dda671251066bf186ead632ac3842917a0e8",
+      "title": "How to preview content with Preview Mode in Next.js",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/02-pages/02-guides/production-checklist.mdx",
+      "bytes": 596,
+      "sha256": "bb4cee74f53701b42ec54bb3fe8e193ee05436105e44b531720fe2a4bf8b6e0d",
+      "title": "How to optimize your Next.js application for production",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/redirecting.mdx",
+      "bytes": 503,
+      "sha256": "1be8cda36c6d4060866a9181544f09b44efbc74f76d6c6cefb22da92e7f14ef5",
+      "title": "How to handle redirects in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/sass.mdx",
+      "bytes": 475,
+      "sha256": "cff15ebfadd44ffb8fafe3743eee44054a8fbb9db836e948b6bd3f4911bc8671",
+      "title": "How to use Sass in Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/scripts.mdx",
+      "bytes": 499,
+      "sha256": "8feefb06b77aad82e38b4a5aebe94df397ca5e569813a98983cb83bfb11de3b8",
+      "title": "How to load and optimize scripts",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/self-hosting.mdx",
+      "bytes": 577,
+      "sha256": "42b3b412f8c79c65f0492c4796de276f921c3796240f63685872cc8b3dad2d51",
+      "title": "How to self-host your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/static-exports.mdx",
+      "bytes": 622,
+      "sha256": "dbb149547eef830f33e20f4654dd0ea6286793657efb4ff12c7d26053ab4ad1a",
+      "title": "How to create a static export of your Next.js application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/tailwind-v3-css.mdx",
+      "bytes": 456,
+      "sha256": "aab8bbc142a348e4aac57e2af3c394e4a7cd7fd950b722cfa7eef11c1e34b7dd",
+      "title": "Tailwind CSS",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/testing/cypress.mdx",
+      "bytes": 531,
+      "sha256": "680ae3ff0bbbb1703c0057a1cba0f78a98486bf85ec24dedd473a04141003b52",
+      "title": "How to set up Cypress with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/testing/index.mdx",
+      "bytes": 502,
+      "sha256": "0526881bd4d82b62c0b4b11586d220cbd69907bfeedfef7b94ea9a05b6990c6c",
+      "title": "Testing",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/testing/jest.mdx",
+      "bytes": 493,
+      "sha256": "44e3a1565ec416ad859ef074fc3f2c22f3980d19695fed469702dcb3b87c8a12",
+      "title": "How to set up Jest with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/testing/playwright.mdx",
+      "bytes": 545,
+      "sha256": "77f8851d266341a0d2f7204ff43f10317f2ac2d8a91314a21920228c517c2f0c",
+      "title": "How to set up Playwright with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/testing/vitest.mdx",
+      "bytes": 547,
+      "sha256": "1fd6cd15596108191e98df324269db5071fb4653de637242af8b7ef671590437",
+      "title": "How to set up Vitest with Next.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/third-party-libraries.mdx",
+      "bytes": 579,
+      "sha256": "87b63a0030a55134e9042481b18a742264eb3fa1c1b653c5bb6a95628308d290",
+      "title": "How to optimize third-party libraries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/codemods.mdx",
+      "bytes": 482,
+      "sha256": "278fc888315449f3d7f4cfc4a39caf144bc5e7697643500cf783d44ebe57994f",
+      "title": "Codemods",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/index.mdx",
+      "bytes": 338,
+      "sha256": "21c4da08dd836c384d34afa9d03116ababfa48fc1e6aeb86b4af9997d77f64dd",
+      "title": "Upgrading",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-10.mdx",
+      "bytes": 595,
+      "sha256": "8dd01051cd5e38a45e5f56bdbca957f055ff5956164bc5140c25b660df7f64ba",
+      "title": "How to upgrade to version 10",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-11.mdx",
+      "bytes": 6561,
+      "sha256": "1da6c3ac15dfb8c597147af8ab43174d4a13ab6b812397b760176a2b8346cc3a",
+      "title": "How to upgrade to version 11",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-12.mdx",
+      "bytes": 7597,
+      "sha256": "6508f2bf1d8e199a11f9d2a7b8cda2f5e18ed653da201cca820d87e3fca7fba4",
+      "title": "How to upgrade to version 12",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-13.mdx",
+      "bytes": 5293,
+      "sha256": "f0a0acfb6629c4fd88ad875cd57830db005b7c39b9b9bd2faedb3c9b3d2176d0",
+      "title": "How to upgrade to version 13",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-14.mdx",
+      "bytes": 504,
+      "sha256": "9fe190312b8854487f277f66d3750480f3461d57f037c0daa19cfb6168b5c571",
+      "title": "How to upgrade to version 14",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-15.mdx",
+      "bytes": 504,
+      "sha256": "e8c21c5af3548c1cbddf1889419da5197162f068658dbc1be93729b514af603e",
+      "title": "How to upgrade to version 15",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-16.mdx",
+      "bytes": 504,
+      "sha256": "1cec1d0ff49ee8daeca62227497491e0b4e7d4b8c051efaff34828a9a30fe8d8",
+      "title": "How to upgrade to version 16",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/02-guides/upgrading/version-9.mdx",
+      "bytes": 6124,
+      "sha256": "2564d4b3fcefbe1509711a5eaf4b9febc9a6ae9be2e817d0bfc2da050ea4f5fa",
+      "title": "How to upgrade to version 9",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/01-pages-and-layouts.mdx",
+      "bytes": 6820,
+      "sha256": "dbbc791257e8feaa97485e4e24ba3fc569224033b184e2d85a54379c0383fb9d",
+      "title": "Pages and Layouts",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/02-dynamic-routes.mdx",
+      "bytes": 3172,
+      "sha256": "2d8e9a82d7eb0843065e7e96a1ce6ac5c177f574557942994852fadbf3be8ecc",
+      "title": "Dynamic Routes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/03-linking-and-navigating.mdx",
+      "bytes": 6390,
+      "sha256": "f68ca11f1ee522a3ff90334a83794cbf3a825bbc3e9edf2c131275e4198b43e3",
+      "title": "Linking and Navigating",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/05-custom-app.mdx",
+      "bytes": 3239,
+      "sha256": "8e5bef6622f352e9b187d8b89ca280a70ceebb4b448d3eeff327a3bcc60e48f6",
+      "title": "Custom App",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/06-custom-document.mdx",
+      "bytes": 4855,
+      "sha256": "9e61e23467f30426844c35515fda87f71d8cc0e27850c4afa5f66a65d728071f",
+      "title": "Custom Document",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/07-api-routes.mdx",
+      "bytes": 15764,
+      "sha256": "37a3d5be7a39a3b77e542008ce7956796710069f27342ae3225305ec2f085517",
+      "title": "API Routes",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/08-custom-error.mdx",
+      "bytes": 4098,
+      "sha256": "396474e8ef1855fbb84cfbae237a76c439c66c4fa365b3a81527639f68343e7f",
+      "title": "Custom Errors",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/01-routing/index.mdx",
+      "bytes": 330,
+      "sha256": "e96789760d49007ae5bff049daae1a3c55cc67d959343b081bc366e56c4d5ad3",
+      "title": "Routing",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/02-rendering/01-server-side-rendering.mdx",
+      "bytes": 1319,
+      "sha256": "3647d5f62ddc4de4e4ab718a7daf6bc6c92df6fd5f48814e26b1a92cd47ddcea",
+      "title": "Server-side Rendering (SSR)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/02-rendering/02-static-site-generation.mdx",
+      "bytes": 10273,
+      "sha256": "a1406c9622a699d608428baf3fb5f858f62ce4c218b7c0c850dd8159b76bb36c",
+      "title": "Static Site Generation (SSG)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/02-rendering/04-automatic-static-optimization.mdx",
+      "bytes": 3813,
+      "sha256": "15c44ea2da8a2bb161d3b5a1da5c882d620d36315d664080c5de46b525387866",
+      "title": "Automatic Static Optimization",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/02-rendering/05-client-side-rendering.mdx",
+      "bytes": 3993,
+      "sha256": "0e05a5ae4c2e259cd0bcc9bc918b833e51b6c4c3da4361042be1318780f4c41a",
+      "title": "Client-side Rendering (CSR)",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/02-rendering/index.mdx",
+      "bytes": 1747,
+      "sha256": "71d0542062ad400a899e316f31e1ef595d13c4c6be298b11455396ea07e1128d",
+      "title": "Rendering",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/03-data-fetching/01-get-static-props.mdx",
+      "bytes": 9440,
+      "sha256": "0a40562ab2f88b41297d80b0e328df066c6664adb518bef8c420707979f4d1aa",
+      "title": "getStaticProps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/03-data-fetching/02-get-static-paths.mdx",
+      "bytes": 5265,
+      "sha256": "f6c6c0502cebcd015de1a2e127fc616da4bbe5ddd611166defa3d58c18deb0eb",
+      "title": "getStaticPaths",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/03-data-fetching/03-get-server-side-props.mdx",
+      "bytes": 5043,
+      "sha256": "f42c7f9c006d5c227e035fd2bf06019e38cb2bc61b6865d750cc1b6a1f614fb5",
+      "title": "getServerSideProps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/03-data-fetching/05-client-side.mdx",
+      "bytes": 2681,
+      "sha256": "fc87e6007947e854e542150f7f86de02408967ec2960e2dd812fc7e681354c32",
+      "title": "Client-side Fetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/03-data-fetching/index.mdx",
+      "bytes": 4436,
+      "sha256": "231ff18074d884c85d2c4439c07d511ee6fa34f9f284d9fc3505c5f837eed7f2",
+      "title": "Data Fetching",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/06-configuring/12-error-handling.mdx",
+      "bytes": 4018,
+      "sha256": "93b115255a64c6abd1d112568d45e055a39bddb12b9aa3ef04e2404e1e2e1b2e",
+      "title": "Error Handling",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/06-configuring/index.mdx",
+      "bytes": 322,
+      "sha256": "eeba358b6bef5e82207d9f00a896cffc5feac955101ea38d3707db925ea41688",
+      "title": "Configuring",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/03-building-your-application/index.mdx",
+      "bytes": 115,
+      "sha256": "92f92a8d9c7a1b67c60051638cc4ef38f69e86451a11314aa390b792bd9d618c",
+      "title": "Building Your Application",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/font.mdx",
+      "bytes": 461,
+      "sha256": "cb790abcd63406739d571e7e46183811aec40f731794fab5fc44b12ae3236e16",
+      "title": "Font Module",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/form.mdx",
+      "bytes": 526,
+      "sha256": "72f6371cd7c6c21a58c44cee0ee33e2bbeb46708197f6d3b9c53c89182768f22",
+      "title": "Form",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/head.mdx",
+      "bytes": 2163,
+      "sha256": "09695f07abda181ad2fd438a35228326eed9129f0bffc9a01f93e63aa2a3830f",
+      "title": "Head",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/image-legacy.mdx",
+      "bytes": 32244,
+      "sha256": "e8f5e5f63e358cf5408ab156d2aff57665bfa867f6aa64c261b4c13a59a623bb",
+      "title": "Image (Legacy)",
+      "upstreamVersionLabel": "legacy"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/image.mdx",
+      "bytes": 493,
+      "sha256": "b11cf284cd87129463a6344cb62fa4020f550a0f28c4d96a33a21a38035f82d5",
+      "title": "Image",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/index.mdx",
+      "bytes": 472,
+      "sha256": "1a64604db8b632bcd7df17bd76d4d9f87b737e8099a8168f5f1c1ff75cb54829",
+      "title": "Components",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/link.mdx",
+      "bytes": 446,
+      "sha256": "27fc286c61d610b90700eff5277b5d5ce6b5cc17c6fe4c1c784dcc5d916fa2dd",
+      "title": "Link",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/01-components/script.mdx",
+      "bytes": 509,
+      "sha256": "233530ad6c91fc9fbb55911964648c2f8fe41e60159b1c350a3d54d4aa21a55b",
+      "title": "Script",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/02-file-conventions/index.mdx",
+      "bytes": 103,
+      "sha256": "c2d6b6819b377c0dec52d95dbcac07098326a74f06ddfd416885c4b45b13a3d8",
+      "title": "File-system conventions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/02-file-conventions/instrumentation.mdx",
+      "bytes": 482,
+      "sha256": "1e2e0382a8bd0086c128874ce4dcc4d9b1037d9abb67ad882f513acb6324c858",
+      "title": "instrumentation.js",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/02-file-conventions/proxy.mdx",
+      "bytes": 478,
+      "sha256": "b4cd8d04c7a804a56ca002fb99663fd9e4958be440ea84224c20a14c7093ab9a",
+      "title": "Proxy",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/02-file-conventions/public-folder.mdx",
+      "bytes": 559,
+      "sha256": "9452925899afc6892a2246069ea53171de528f1d1985173d90f4ee3b20b49415",
+      "title": "public Folder",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/02-file-conventions/src-folder.mdx",
+      "bytes": 508,
+      "sha256": "d5d43940a72d2ec8b81fe843097826df293ad53a58f7c3744ad2cfcf74c3eb8a",
+      "title": "src Directory",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/catchError.mdx",
+      "bytes": 458,
+      "sha256": "acaa858409fa76fa0a278f489a67708be2b50e13c2c41910e1e97377c47876d9",
+      "title": "catchError",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/get-initial-props.mdx",
+      "bytes": 3769,
+      "sha256": "57d7cca525a1a6c348116f576274c5987bc1e2f0b9f7479f84c986cdc92cc6ae",
+      "title": "getInitialProps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/get-server-side-props.mdx",
+      "bytes": 7614,
+      "sha256": "7392d943462a6111361a9c0774b50390f9901fef23807ae09bba88d2b54f1214",
+      "title": "getServerSideProps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/get-static-paths.mdx",
+      "bytes": 12568,
+      "sha256": "775e80454274e72d3380f8b162d5d9e24d3e89e9e07cd423e7467ab00762907a",
+      "title": "getStaticPaths",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/get-static-props.mdx",
+      "bytes": 12933,
+      "sha256": "5f2fdecbed74ade8048a6b7ba7eba630bf165b8880bc7391201e45da9cfc920d",
+      "title": "getStaticProps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/index.mdx",
+      "bytes": 458,
+      "sha256": "e11f1b335c47652e534289de97a91b283f31cf2c47fbb3fa90a1dec101c9672a",
+      "title": "Functions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/next-request.mdx",
+      "bytes": 449,
+      "sha256": "4fa926816d6a1732c58a35d22210e6f4c9110213b6f778df4ed33256dca966f3",
+      "title": "NextRequest",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/next-response.mdx",
+      "bytes": 452,
+      "sha256": "9ddab78f01e93aca6d8ac0eed2924d0dfdb3bf5308e791b0bc6ba6a0e7e563f1",
+      "title": "NextResponse",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/use-params.mdx",
+      "bytes": 7115,
+      "sha256": "e1dd698054dd1f8bfbff8e07967344bc931852ea35c3bd571237a65f6603c9b1",
+      "title": "useParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/use-report-web-vitals.mdx",
+      "bytes": 545,
+      "sha256": "6b40fa7dc583e1ca426f1fa01bc7bcd2da005450ddb067d7e7dc53788bcccab6",
+      "title": "useReportWebVitals",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/use-router.mdx",
+      "bytes": 21204,
+      "sha256": "083583cc92fef1c1214fe431982566825049f4856b6ee03a5b3943f80a33f88a",
+      "title": "useRouter",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/use-search-params.mdx",
+      "bytes": 10181,
+      "sha256": "230173d11714e42c72e5e66a13f48c892301831ac4d4ee6212ac379eddf3402a",
+      "title": "useSearchParams",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/03-functions/userAgent.mdx",
+      "bytes": 558,
+      "sha256": "7a72c1d4999ad7434712306aebc3629c7164d66a7ed05c5832e8b1253a55e236",
+      "title": "userAgent",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/adapterPath.mdx",
+      "bytes": 500,
+      "sha256": "d492a2b2fb39af5a88524750905c1b4d61b15b1cf123d52cc37ad0d42ff283ee",
+      "title": "adapterPath",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/allowedDevOrigins.mdx",
+      "bytes": 530,
+      "sha256": "004a62b2643968252f73ee8abbc6c56a1aafca6226f07ef67af9b053f31989b2",
+      "title": "allowedDevOrigins",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/assetPrefix.mdx",
+      "bytes": 499,
+      "sha256": "c2e0f6de46dff82d3152d8b762ea3c11a9b53036096956e069c520173398dc3f",
+      "title": "assetPrefix",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/basePath.mdx",
+      "bytes": 500,
+      "sha256": "24088b71a38f5017584533c7a28b80c07b825d1c6dfdb94a68d477a647e152a5",
+      "title": "basePath",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/bundlePagesRouterDependencies.mdx",
+      "bytes": 979,
+      "sha256": "2d99a62aad421e6bf78306a2b4aa7d57c9cafeeab942ce6eb4bab63ecbf480b5",
+      "title": "bundlePagesRouterDependencies",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/compress.mdx",
+      "bytes": 568,
+      "sha256": "61afb50f0d1698e2fd215559f5fcbc60b3dbbc868a92954666cca987c05bdcc7",
+      "title": "compress",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/crossOrigin.mdx",
+      "bytes": 465,
+      "sha256": "4a4c018521114d913f33ac56880be4a04cc5340f5de7380c96f9bf17b48e51b6",
+      "title": "crossOrigin",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/deploymentId.mdx",
+      "bytes": 517,
+      "sha256": "ca9f4906a049c877a0576502058bc0b7c536d9029759dfdead7886efb342c436",
+      "title": "deploymentId",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/devIndicators.mdx",
+      "bytes": 550,
+      "sha256": "ca90a3655f1422c68424153b12fd8372716977e889ed1f4d111db67382616d59",
+      "title": "devIndicators",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/distDir.mdx",
+      "bytes": 497,
+      "sha256": "4077150ab8d151ead7c21c1eeef5009511aa9e0985b62f1c9a0dd0166cc3b9f0",
+      "title": "distDir",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/enablePrerenderSourceMaps.mdx",
+      "bytes": 522,
+      "sha256": "3f2a6d5fcf1b192c18f2bf92a786e393c13af03a78e78d85fc623b1fa6cb5f32",
+      "title": "enablePrerenderSourceMaps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/env.mdx",
+      "bytes": 502,
+      "sha256": "8a20fbac52f4529a588f4b9029c25d651bd7bc969d9c24f2193c79e0ad225df2",
+      "title": "env",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/exportPathMap.mdx",
+      "bytes": 515,
+      "sha256": "f6398c4e7f1e15179e9723c75120eea16413c16f5a3fb5b155e2e6c50a3a0d7d",
+      "title": "exportPathMap",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/generateBuildId.mdx",
+      "bytes": 548,
+      "sha256": "d8a03018dc1e85b61ef1913ad6ae61660d770eb28846799199f36bb272c7cf29",
+      "title": "generateBuildId",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/generateEtags.mdx",
+      "bytes": 542,
+      "sha256": "3c8464eb69215f080eca68278ca032f7e291b09400a3be082f7231a053590a6c",
+      "title": "generateEtags",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/headers.mdx",
+      "bytes": 466,
+      "sha256": "9351a414ad23215ad73715a228d202ed976deec0da70de6a8d80dc1683dc99b8",
+      "title": "headers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/httpAgentOptions.mdx",
+      "bytes": 552,
+      "sha256": "dcf72426b4034e6672245f4c8e25c9fb00c0ad84e7baf9978e7a1f7cc3294373",
+      "title": "httpAgentOptions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/images.mdx",
+      "bytes": 466,
+      "sha256": "7fe5732a106a232e99c74e4640e2d2f2265b5ccfc7d585a0525967a42387fb76",
+      "title": "images",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/index.mdx",
+      "bytes": 502,
+      "sha256": "c56338f39f603503fe9b44c3b4e4b4a515262d162b224a88be38b12f9d24799f",
+      "title": "next.config.js Options",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/logging.mdx",
+      "bytes": 506,
+      "sha256": "61a858d42d596dfd6187d39ead22c823aa5c5f689701e3c525a467fcc7b2b011",
+      "title": "logging",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/onDemandEntries.mdx",
+      "bytes": 521,
+      "sha256": "585e8db941a40845031aa71a471b74483c407601b623a76b0bc20dbc41872e66",
+      "title": "onDemandEntries",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/optimizePackageImports.mdx",
+      "bytes": 536,
+      "sha256": "a100c7b4c4fe217a8b140cddfa593dc2c94afbcd89f80ab2ab079bbf90f68e7e",
+      "title": "optimizePackageImports",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/output.mdx",
+      "bytes": 559,
+      "sha256": "5af5bac3be11a18f14f154a5a113eb04b990faf485276e719223eb97cd37917f",
+      "title": "output",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/pageExtensions.mdx",
+      "bytes": 528,
+      "sha256": "f99acb0c7f50255a430d91f7cfe5d6bd13781bc7fd14bda1177e03596ca414b0",
+      "title": "pageExtensions",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/poweredByHeader.mdx",
+      "bytes": 521,
+      "sha256": "854c3096b875409cf3c005538ba13f2b6726d5f26c4980a4bddcf38d1ffd9edf",
+      "title": "poweredByHeader",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/productionBrowserSourceMaps.mdx",
+      "bytes": 528,
+      "sha256": "7b6554828591cd3bac139bdfb87f3b0d3bcf97b076349f756e5772b9c1852df9",
+      "title": "productionBrowserSourceMaps",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/proxyClientMaxBodySize.mdx",
+      "bytes": 522,
+      "sha256": "4dc6e442ad731fd597d80c3425545bce179355d933f9cb3518cdae71189aeb72",
+      "title": "experimental.proxyClientMaxBodySize",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/reactStrictMode.mdx",
+      "bytes": 516,
+      "sha256": "a4ee4912b5e481428a3999e3c485d8f53e1dd67163ecd78252314b9d7b80092f",
+      "title": "reactStrictMode",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/redirects.mdx",
+      "bytes": 460,
+      "sha256": "359c5e05e11ca16a8d365f5ebfb86f398acc304a09af7e10d2545d65e08332a0",
+      "title": "redirects",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/rewrites.mdx",
+      "bytes": 457,
+      "sha256": "0f4b59a33fa911e6385ca8a5a88adb0cfacce9583dc532378d481dee32055830",
+      "title": "rewrites",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/serverExternalPackages.mdx",
+      "bytes": 2176,
+      "sha256": "55492b832f620c8021179875f442de508b7ae95b28a2884fd77c3f41fedf41e5",
+      "title": "serverExternalPackages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/skipProxyUrlNormalize.mdx",
+      "bytes": 562,
+      "sha256": "47f03b87cfa19560dd0fa79ace526bafacff753b5df171a05abc4d7043407ae3",
+      "title": "skipProxyUrlNormalize",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/skipTrailingSlashRedirect.mdx",
+      "bytes": 558,
+      "sha256": "5c219cb71055165cbb86de70be49bb0d364b938acb7d83b020c18d907a5d8938",
+      "title": "skipTrailingSlashRedirect",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/trailingSlash.mdx",
+      "bytes": 502,
+      "sha256": "a2a3735ca03ce1ebe527b717e84754100774ca36a97b510fd4c6feebfbd39087",
+      "title": "trailingSlash",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/transpilePackages.mdx",
+      "bytes": 574,
+      "sha256": "1a9d1ed33d42c67da1a0aea4ecadace382e704b76f149a5de1ad314125399281",
+      "title": "transpilePackages",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/turbopack.mdx",
+      "bytes": 475,
+      "sha256": "f73d0d984d02c1bb59e07b06767994696dd03048825ffd7681e8d1f3bfa94baa",
+      "title": "turbopack",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/turbopackChunking.mdx",
+      "bytes": 549,
+      "sha256": "a3b0170b5f35589870b109ea0572da3d282d77d49f7c24107213b3dad2e81b55",
+      "title": "turbopackChunking",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/typescript.mdx",
+      "bytes": 513,
+      "sha256": "af71700cdc638eccc4b884b46dca1430dc8bc3299a2bbc7750076ea829df2ae0",
+      "title": "typescript",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/urlImports.mdx",
+      "bytes": 514,
+      "sha256": "b491b6df08dbf2e0368cbcf1b507bdd74020acdd7f10fad079e47469052b48b4",
+      "title": "urlImports",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/useLightningcss.mdx",
+      "bytes": 506,
+      "sha256": "55701a573adcf2c713bb0486b2e473ec15f76f4f9905d117875387976f2cf37c",
+      "title": "useLightningcss",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/useTypeScriptCli.mdx",
+      "bytes": 542,
+      "sha256": "a422747bcca03805befbf512505cdef7767336fafa21c022f4df1e95152f205a",
+      "title": "useTypeScriptCli",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/webVitalsAttribution.mdx",
+      "bytes": 541,
+      "sha256": "e9ff370c072ee1ad8f5e87eb6b94cd2895d8cdc53fa2b67e67402e00be24c454",
+      "title": "webVitalsAttribution",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-next-config-js/webpack.mdx",
+      "bytes": 512,
+      "sha256": "4f074e3904badf5d87f0703de904e7a8b1abdf3b501302b0e410d69a86c79a6b",
+      "title": "Custom Webpack Config",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/01-typescript.mdx",
+      "bytes": 508,
+      "sha256": "f52fab30deb27e672134bfa676e7bb8ff779bba8408d699d95b61c3c15ab2c1d",
+      "title": "TypeScript",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/02-eslint.mdx",
+      "bytes": 517,
+      "sha256": "adb031cb8d637b6ded76e4edd312544ab9f09007868211943a3630e7d0f50bc7",
+      "title": "ESLint",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/04-config/index.mdx",
+      "bytes": 91,
+      "sha256": "5edb01d8fc8fad837fce3eb3b66dd5c5ef0196393de7c26f670070c6c3ca8028",
+      "title": "Configuration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/05-cli/create-next-app.mdx",
+      "bytes": 491,
+      "sha256": "0e26f455ed58b4830894c0da920bb45d99f901355881dd4859c08968c6a56a21",
+      "title": "create-next-app CLI",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/05-cli/index.mdx",
+      "bytes": 457,
+      "sha256": "ee83d09126ed7e2fce76676af0b5f6208a5340e759a4e6a09e7926eda7d67a4a",
+      "title": "CLI",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/05-cli/next.mdx",
+      "bytes": 467,
+      "sha256": "19b2e0577bea3914cada1d21831d38e47ae859296cdfec83a38a350d6191e82d",
+      "title": "next CLI",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/01-configuration.mdx",
+      "bytes": 501,
+      "sha256": "d27ba5a14522ddbddcb113c3c18cbb6ceb4570a04f379d682dc775d8b739ad96",
+      "title": "Configuration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/02-creating-an-adapter.mdx",
+      "bytes": 500,
+      "sha256": "cdf52b436fbe1f98018b4cd82227c7fe9048aebf6844996910e6d61f121ea6e2",
+      "title": "Creating an Adapter",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/03-api-reference.mdx",
+      "bytes": 501,
+      "sha256": "cee9c2d2fdf079c2b3a1b4b8b20401dbaded439469eac166be113d2a03c2da77",
+      "title": "API Reference",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/04-testing-adapters.mdx",
+      "bytes": 516,
+      "sha256": "ce2b3d8f24e46867fb6e84654029d158c8a10670240f1459781480729b78196d",
+      "title": "Testing Adapters",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/05-routing-with-next-routing.mdx",
+      "bytes": 517,
+      "sha256": "3b4c836a2b8843307345483c3086414bb837cfb5d4ed888ee9fd04dc6ae75e7b",
+      "title": "Routing with @next/routing",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/06-runtime-integration.mdx",
+      "bytes": 509,
+      "sha256": "23c28bcec8b062293c74a1afca6a1f8d11fa09a8ebb54e66980079c41484284f",
+      "title": "Runtime Integration",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/07-invoking-entrypoints.mdx",
+      "bytes": 504,
+      "sha256": "add0a215eafd01ee15cd6ad0dfd93fc6a56a5ddb4593f07c6beabc96efe06efd",
+      "title": "Invoking Entrypoints",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/08-output-types.mdx",
+      "bytes": 474,
+      "sha256": "9aa0b32da5a3f7ee01312ab53ef0ad90ec23906024b66117589efb3e6a869a58",
+      "title": "Output Types",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/09-routing-information.mdx",
+      "bytes": 506,
+      "sha256": "10c35aa057b3a4222972bc7488dbaa44efae9aaed8d1eae1d5d87f6da32c50a5",
+      "title": "Routing Information",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/10-use-cases.mdx",
+      "bytes": 479,
+      "sha256": "0cb0f9a2a3a4489fe6bebfbaedad3ddbf746786313f624a3cbd951062d64f778",
+      "title": "Use Cases",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-adapters/index.mdx",
+      "bytes": 467,
+      "sha256": "6f7b0cd98f86f40bb6c319e7bd32242719743842cd55adffa6280091b9c9ee2e",
+      "title": "Adapters",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/06-edge.mdx",
+      "bytes": 437,
+      "sha256": "523af92d63089008a367a351d531cd4dfcb40054d24e9f3776c95ede2ef8ab88",
+      "title": "Edge Runtime",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/08-turbopack.mdx",
+      "bytes": 192,
+      "sha256": "5696f6a89f4a0ded0d82a372957253bed74b6448b206bbf4421f730df25ae43c",
+      "title": "Turbopack",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/04-api-reference/index.mdx",
+      "bytes": 86,
+      "sha256": "6be19f8b92cddc3f324d572555d37fa2841fb3e805e5c133bcaf2658e18f98a0",
+      "title": "API Reference",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/02-pages/index.mdx",
+      "bytes": 610,
+      "sha256": "79855e15a6cf5b0fb896e874b87a993a3fd27561668b9d4be5408395d7e2dc07",
+      "title": "Pages Router",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/03-architecture/accessibility.mdx",
+      "bytes": 2821,
+      "sha256": "4e7ec466f1384524976f122c9ddd3c325f59e649d56333ef99c26884d2f3a5f8",
+      "title": "Accessibility",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/03-architecture/fast-refresh.mdx",
+      "bytes": 5698,
+      "sha256": "c43bec497874611dbbfa657df233f2293a5037783edd981d90124f48b54069ad",
+      "title": "Fast Refresh",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/03-architecture/index.mdx",
+      "bytes": 130,
+      "sha256": "b8012b503ecfd6de571d401ea78169fa19469ea908e3a21417a2b97472c94194",
+      "title": "Architecture",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/03-architecture/nextjs-compiler.mdx",
+      "bytes": 14563,
+      "sha256": "541836568f4935fc4a045f067c33ab302f21ce6dd11566be0201285e6d886016",
+      "title": "Next.js Compiler",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/03-architecture/supported-browsers.mdx",
+      "bytes": 4592,
+      "sha256": "bafb829501639216a9cdf7d67fd209589f4b5cd99241ca3bf9e8a3ebbbc81fcd",
+      "title": "Supported Browsers",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/04-community/01-contribution-guide.mdx",
+      "bytes": 19272,
+      "sha256": "8f43c8a0aa59dbaa71773f1895c25a3c549113bb05e31916a7f8064aeb7945cf",
+      "title": "Docs Contribution Guide",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/04-community/02-rspack.mdx",
+      "bytes": 657,
+      "sha256": "00751625307e47cd16aaaf0354c446395cb9420a6510a01e712b42c68fb756f4",
+      "title": "Rspack Integration",
+      "upstreamVersionLabel": "experimental"
+    },
+    {
+      "path": "docs/04-community/index.mdx",
+      "bytes": 1732,
+      "sha256": "769d8acd16cc115b8f2d61f70d959ed5b4bdbd42112fac80a99f889637c1b921",
+      "title": "Next.js Community",
+      "upstreamVersionLabel": null
+    },
+    {
+      "path": "docs/index.mdx",
+      "bytes": 3138,
+      "sha256": "d222c8bfb9c47e2e4474a33a6804f5286db993814439ef33cc788f00c4580864",
+      "title": "Next.js Docs",
+      "upstreamVersionLabel": null
+    }
+  ]
+}

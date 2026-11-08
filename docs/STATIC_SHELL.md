@@ -79,13 +79,17 @@ implicit request to rerun the native seed for query values.
 
 ## Publication and compatibility
 
-The opt-in uses native `ExportConfig` version 3 and `.nextgo-export.json` format
-`nextgo-static-v3`, carrying static-shell descriptor version 1. These are separate
-contracts from navigation protocol 3 and module ABI 5, which remain unchanged.
-Without `StaticShell`, native export configurations 1/2 and ordinary published
-static formats 1/2 keep their existing meanings and parser extension behavior;
-version 3 adds strict shape/duplicate checks, not retroactive strictness for 1/2.
-Older CLIs must refuse unsupported version 3 rather than silently omit the shell.
+The current native `ExportConfig` is version **4**, allowing managed fonts and
+static shells in one validated publication. Published shell manifests retain
+`nextgo-static-v3` and descriptor version 1. Navigation remains 3; the combined
+private module ABI is 7. These are independent contracts.
+
+Legacy native configurations 1/2 keep their parser extension behavior. Strict
+legacy version 3 accepts either the earlier fonts-only or shell-only shape;
+combining both requires version 4. Versions 3/4 reject unknown/duplicate fields
+and invalid resource inventories. Older CLIs must refuse unsupported version 4
+rather than silently omit resources. The combined current source requires fresh
+qualification; preceding version-3 records retain their historical scope.
 
 Use a fresh paired CLI/framework/core/lazy build. Descriptor 1 accepts only the
 actual CLI-generated 20-lowercase-hex build ID; this restriction does not change

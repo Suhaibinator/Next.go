@@ -1,0 +1,162 @@
+{
+  "format": "nextgo-binaryen-wasm-size-experiment-v1",
+  "recordedAtUTC": "2026-11-07T19:14:39.369373+00:00",
+  "status": "experiment-only-not-integrated-or-release-qualification",
+  "frameworkGoSourceManifest": {
+    "path": ".nextgo-test-results/routing-index/go-source-manifest.json",
+    "bytes": 128817,
+    "sha256": "8ceb874b665f243a5c1e39bf8eab27acdcda8d1cec75802a693ce98cff5da29c"
+  },
+  "tool": {
+    "name": "Binaryen wasm-opt",
+    "version": "wasm-opt version 133 (version_133)",
+    "officialReleaseURL": "https://github.com/WebAssembly/binaryen/releases/tag/version_133",
+    "archive": {
+      "path": ".nextgo-test-results/wasm-optimization/binaryen-version_133-x86_64-linux.tar.gz",
+      "bytes": 111200018,
+      "sha256": "2dc9c7813f5375db93d96ead4b78222fcc3e2677bbb832297af4797782a37489"
+    },
+    "officialChecksumFile": {
+      "path": ".nextgo-test-results/wasm-optimization/binaryen-version_133-x86_64-linux.tar.gz.sha256",
+      "bytes": 107,
+      "sha256": "7f7f1e28667e1bfb260b69b361cabfa992e7ee5deaf6abdf577c3985cc8417bc"
+    },
+    "binary": {
+      "path": "/workspace/.tools/binaryen-version_133/bin/wasm-opt",
+      "bytes": 18711520,
+      "sha256": "8f25e9fd5db0fc5f210003aaa432922feb2e52d309e430def2f929e34da9466b"
+    },
+    "checksumVerified": true
+  },
+  "command": [
+    "wasm-opt",
+    "INPUT",
+    "-Oz",
+    "--enable-bulk-memory",
+    "--enable-sign-ext",
+    "--enable-nontrapping-float-to-int",
+    "--enable-reference-types",
+    "-o",
+    "OUTPUT"
+  ],
+  "environment": {
+    "BINARYEN_CORES": 1,
+    "optimizerEnvironment": "empty except PATH, TMPDIR and BINARYEN_CORES",
+    "OS": "Linux amd64",
+    "application": "examples/demo"
+  },
+  "measurements": {
+    "go1.27": {
+      "compressor": "matching SDK Go compress/gzip level 9",
+      "original": {
+        "bytes": 8700207,
+        "goGzip9Bytes": 2241402,
+        "path": ".nextgo-test-results/routing-index/demo-export-go1.27/lambda-assets/_nextgo/0f26b1df383a7881e98e/app.wasm",
+        "sha256": "ec7d7ec1d754a6ca0aeb4050590ba16e48c4eb33dd2515c8a59dfda1e7804064"
+      },
+      "optimized": {
+        "bytes": 7980171,
+        "goGzip9Bytes": 2242560,
+        "path": ".nextgo-test-results/wasm-optimization/demo-go1.27-Oz.wasm",
+        "sha256": "c678f6100b8b162b6ca3fba5180581706ed3ad6b75a5b32c6280646e51d10d25"
+      },
+      "rawReductionBytes": 720036,
+      "rawReductionPercent": 8.276078948466399,
+      "gzipReductionBytes": -1158,
+      "gzipReductionPercent": -0.05166409238503401,
+      "budgetStatus": "FAILED_BOTH_UNCHANGED_BUDGETS"
+    },
+    "go1.24": {
+      "compressor": "matching SDK Go compress/gzip level 9",
+      "original": {
+        "bytes": 7678689,
+        "goGzip9Bytes": 1921088,
+        "path": ".nextgo-test-results/routing-index/demo-export-go1.24/lambda-assets/_nextgo/6fc666a6ff14ffad4120/app.wasm",
+        "sha256": "f76f127dd64ec00c9b4629b95143fc874b812eee1271ca9a80885c322ccefda4"
+      },
+      "optimized": {
+        "bytes": 6828113,
+        "goGzip9Bytes": 1908440,
+        "path": ".nextgo-test-results/wasm-optimization/demo-go1.24-Oz.wasm",
+        "sha256": "729742125a899cee0270a74a879716d177ad19a7bc80b88178449dcc8df07731"
+      },
+      "rawReductionBytes": 850576,
+      "rawReductionPercent": 11.077099228787622,
+      "gzipReductionBytes": 12648,
+      "gzipReductionPercent": 0.6583769197454775,
+      "budgetStatus": "FAILED_BOTH_UNCHANGED_BUDGETS"
+    }
+  },
+  "compatibility": {
+    "go1.27": {
+      "original": {
+        "clientTopLevelTests": 223,
+        "result": "passed",
+        "runner": "matching SDK go_js_wasm_exec under Node 24.22.1, GOMAXPROCS=1",
+        "log": {
+          "path": ".nextgo-test-results/wasm-optimization/client-original-go1.27.log",
+          "bytes": 71083,
+          "sha256": "ea91dd98a6ef3a3b07784a795391afee2d5358658071a8e4d6c6a2daaa00f68f"
+        },
+        "binary": {
+          "path": ".nextgo-test-results/wasm-optimization/client-go1.27-original.wasm",
+          "bytes": 13877263,
+          "sha256": "da88a3dd5429c9469b35441658d05d256a42d5010d02af6ee5ecd6c704e9944b"
+        }
+      },
+      "Oz": {
+        "clientTopLevelTests": 223,
+        "result": "passed",
+        "runner": "matching SDK go_js_wasm_exec under Node 24.22.1, GOMAXPROCS=1",
+        "log": {
+          "path": ".nextgo-test-results/wasm-optimization/client-Oz-go1.27.log",
+          "bytes": 71083,
+          "sha256": "bce74d4643ecde8a8f94ae767e95084c498d1699aeceba24377647f234c97293"
+        },
+        "binary": {
+          "path": ".nextgo-test-results/wasm-optimization/client-go1.27-Oz.wasm",
+          "bytes": 12768770,
+          "sha256": "507bfe98e8c2b4f267fb2aa3f734c640b07e5ada38cc6c1ff6236bfaeb36301e"
+        }
+      }
+    },
+    "go1.24": {
+      "original": {
+        "clientTopLevelTests": 223,
+        "result": "passed",
+        "runner": "matching SDK go_js_wasm_exec under Node 24.22.1, GOMAXPROCS=1",
+        "log": {
+          "path": ".nextgo-test-results/wasm-optimization/client-original-go1.24.log",
+          "bytes": 71083,
+          "sha256": "9fd8e33b2f93eb952c9f5cd3fbf320be0c3d54ce212731cbe8dc96e6a1f4a2f8"
+        },
+        "binary": {
+          "path": ".nextgo-test-results/wasm-optimization/client-go1.24-original.wasm",
+          "bytes": 12102014,
+          "sha256": "f3fc8ebb4e7d9452d59d54a1f19326c9b350bff2b5560ed88fd4546d39aff035"
+        }
+      },
+      "Oz": {
+        "clientTopLevelTests": 223,
+        "result": "passed",
+        "runner": "matching SDK go_js_wasm_exec under Node 24.22.1, GOMAXPROCS=1",
+        "log": {
+          "path": ".nextgo-test-results/wasm-optimization/client-Oz-go1.24.log",
+          "bytes": 71083,
+          "sha256": "0c733c819c839e397bea6056587fbe97da9ca532ef3c70f267c5645be29d69ff"
+        },
+        "binary": {
+          "path": ".nextgo-test-results/wasm-optimization/client-go1.24-Oz.wasm",
+          "bytes": 11003562,
+          "sha256": "3b43d9461e847e9e1c22172b4eeb976fe39b802482f86a8e1e441bcfdcf3b071"
+        }
+      }
+    }
+  },
+  "limits": [
+    "No compiler integration or production artifact replacement. Original pinned server/static assets remain unchanged.",
+    "Both existing raw and gzip reference budgets remain exceeded on both SDKs.",
+    "Node client unit execution is ABI/functional experiment evidence; it is not browser/deployment/latency/memory/cloud qualification.",
+    "No full parity, release gate closure, performance threshold acceptance or security-audit conclusion."
+  ]
+}

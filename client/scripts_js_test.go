@@ -40,3 +40,21 @@ func TestScriptDependencyAdmissionAndCanceledCaller(t *testing.T) {
 		t.Fatal("source changed its security policy")
 	}
 }
+
+func TestScriptVendorDataParticipatesInSourceAdmission(t *testing.T) {
+	oldLoads, oldAliases, oldSources := scriptLoads, scriptAliases, scriptSources
+	t.Cleanup(func() { scriptLoads, scriptAliases, scriptSources = oldLoads, oldAliases, oldSources })
+	scriptLoads, scriptAliases, scriptSources = map[string]*scriptLoad{}, map[string]string{}, map[string]string{}
+	first, _ := scripts.NewDataAttributes(map[string]string{"data-site": "first.test"})
+	second, _ := scripts.NewDataAttributes(map[string]string{"data-site": "second.test"})
+	s := scripts.Script{ID: "vendor", Src: "https://vendor.test/settings.js", Data: first}
+	s, err := s.Check()
+	if err != nil {
+		t.Fatal(err)
+	}
+	scriptSources[s.Src] = s.Key()
+	s.Data = second
+	if err := checkScriptIdentity(s); err == nil {
+		t.Fatal("one source accepted incompatible vendor data")
+	}
+}

@@ -433,7 +433,7 @@ test('actual lazy ordinary Go source revokes loaded and download-pending owners 
     const expected = /\/module-([a-f0-9]{64})\.wasm$/.exec(new URL(response.url()).pathname); expect(expected).not.toBeNull(); expect(digest).toBe(expected[1]);
     const wasmMagic = bytes.subarray(0, 8).toString('hex'); expect(wasmMagic).toBe('0061736d01000000');
     const identity = await page.evaluate(() => ({build: document.body.dataset.nextgoBuild, buildPrefix: document.body.dataset.nextgoRuntime, hostABI: globalThis.__nextgoModuleHost?.version}));
-    expect(identity.build).toMatch(/^[a-f0-9]{20}$/); expect(identity.buildPrefix).toBe(`/_nextgo/${identity.build}/`); expect(identity.hostABI).toBe(6);
+    expect(identity.build).toMatch(/^[a-f0-9]{20}$/); expect(identity.buildPrefix).toBe(`/_nextgo/${identity.build}/`); expect(identity.hostABI).toBe(7);
     expect(new URL(response.url()).pathname).toBe(`${identity.buildPrefix}module-${digest}.wasm`);
     moduleAssets.push({phase, url: response.url(), status: response.status(), mime: response.headers()['content-type'].split(';')[0], bytes: bytes.length, sha256: digest, complete: true, wasmMagic, hostABI: identity.hostABI, buildPrefix: identity.buildPrefix});
   };
@@ -510,6 +510,6 @@ test('actual lazy ordinary Go source revokes loaded and download-pending owners 
     } finally { await held.close(); }
   } finally {
     page.off('request', requested); page.off('response', responded);
-    await info.attach('merge-lazy-module-proof', {body: JSON.stringify({version: 1, abi: 6, records: moduleAssets}), contentType: 'application/json'});
+    await info.attach('merge-lazy-module-proof', {body: JSON.stringify({version: 1, abi: 7, records: moduleAssets}), contentType: 'application/json'});
   }
 });

@@ -1,0 +1,201 @@
+{
+  "format": "nextgo-aws-rie-qualification-v1",
+  "recordedAtUTC": "2026-11-07T20:06:04.589473+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "baseline": {
+    "nextjs": "16.4.5"
+  },
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "goFileCount": 1246,
+    "manifestSha256": "ea749622f21e45e2672e68709a8c5c07b454d6daf227e6cf19edb42fbd220223",
+    "manifestPath": ".nextgo-test-results/aws-rie/go-source-manifest.json",
+    "comparison": {
+      "previousQualification": "compiled-routing-qualification.json",
+      "changedGoFiles": [
+        "tests/deployment/aws_rie_test.go"
+      ],
+      "applicationGoUnchanged": true
+    },
+    "files": {
+      "tests/deployment/aws_rie_test.go": "3d3b278254f5d54968127baa5064a248c2ed90d2b0cadbc3009f751087642314",
+      ".github/workflows/ci.yml": "efe7c03f456b1b136081ef5ac1afe9c20c39a34759436587244eb70674bc9ad5",
+      "docs/AWS_RIE.md": "9baed4f0d94f3de60bf6189b9f028b51051ab0e900abd2c537aea42c22bf01a9"
+    }
+  },
+  "emulator": {
+    "upstream": "https://github.com/aws/aws-lambda-runtime-interface-emulator",
+    "tag": "v1.38",
+    "commit": "d71cae7ddcf3b96ab5ba620fdda2ae7f225438fb",
+    "module": "github.com/aws/aws-lambda-runtime-interface-emulator",
+    "version": "v0.0.0-20261030183630-d71cae7ddcf3",
+    "sum": "h1:ZIYqwrhv8bqNaOD+QZMgfQ3s3qqogpHcNFDhrpf639Y=",
+    "goModSum": "h1:ZcIFGDF9a/leO549EWWCtPxc3xAfpgJbkRiEp38z2TA=",
+    "authentication": "normal Go module checksum verification using sum.golang.org; canonical module ZIP reconstructed from official codeload source because package-proxy redirect host was denied",
+    "buildSDK": "go1.27.3",
+    "CGO": false,
+    "buildInfoSha256": "ca68e63c0e2f1ab2e139c3d4c3fc22b9364c1791192541fc7f2f72258fd66d76",
+    "exploratoryReleaseBinary": {
+      "usedForQualification": false,
+      "sha256": "5ccd1df155e92aa3eb055e60fba492afdebf424626a7983b13a39aa5c2b71616",
+      "publisherChecksumVerified": false
+    }
+  },
+  "artifacts": {
+    "emulator": {
+      "path": ".nextgo-test-results/aws-rie/aws-lambda-rie-source-built",
+      "sha256": "392c9a31674c8619120e8501e8e768571463bfad7d961d7de879ae97f9bbaf2b",
+      "bytes": 14479352
+    },
+    "harnessGo1.27": {
+      "path": ".nextgo-test-results/aws-rie/deployment.test",
+      "sha256": "6aad34e39dddd9926429523dd7b9cf56779ca2a95ac5b7c3d746addd08b07e61",
+      "bytes": 20908697
+    },
+    "harnessGo1.24": {
+      "path": ".nextgo-test-results/aws-rie/deployment-go1.24.test",
+      "sha256": "3a15c8653cc2319ba0e028375c9e39ac3ef650bad5065068bcdaa84f11ea994a",
+      "bytes": 19321291
+    },
+    "appGo1.27": {
+      "path": ".nextgo-test-results/routing-index/demo-go1.27/server",
+      "sha256": "c70268cfff5a0f7ac8f6e22c439832e0761c0bfb5538bcac00b71fc964841e90",
+      "bytes": 50155680
+    },
+    "appGo1.24": {
+      "path": ".nextgo-test-results/routing-index/demo-go1.24/server",
+      "sha256": "1f7d4f29cf309605099885c699aef87066478644c3b7b987f9ff4bb58adac798",
+      "bytes": 45011128
+    }
+  },
+  "matrix": {
+    "SDKs": [
+      "go1.27.3",
+      "go1.24.13"
+    ],
+    "modes": [
+      "buffered",
+      "streaming"
+    ],
+    "scopes": [
+      "root",
+      "base=/scoped locale=fr trailingSlash=true"
+    ],
+    "casesPerRun": 32,
+    "regularPasses": 128,
+    "racePasses": 64,
+    "logs": {
+      "host-focused-go1.27": {
+        "path": ".nextgo-test-results/aws-rie/host-focused-go1.27.log",
+        "sha256": "250e3ee4aaea3a7043a045e5a4dc38a37bbdd3032cd64d0e3e23106c94d9a2ed",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "host-go1.24": {
+        "path": ".nextgo-test-results/aws-rie/host-go1.24.log",
+        "sha256": "610a7f5d8d40b15972e2381db360d268e109d002786785ffaff5d4d21505a967",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "container-go1.27": {
+        "path": ".nextgo-test-results/aws-rie/container-go1.27.log",
+        "sha256": "1069004097addc469108018da4c7eca4fba30387614af236bd844540f5d864a6",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "container-go1.24": {
+        "path": ".nextgo-test-results/aws-rie/container-go1.24.log",
+        "sha256": "c6832d95ec9796659642b33ac14353d26935a88ee1b5f5bc24abb107414d2589",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "race-go1.27": {
+        "path": ".nextgo-test-results/aws-rie/race-go1.27.log",
+        "sha256": "e535a99b4705f32052ff243a0eaf8341ff019b03a5a6fd7483ff0fb59ab3137e",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "race-go1.24": {
+        "path": ".nextgo-test-results/aws-rie/race-go1.24.log",
+        "sha256": "5a8b1067dac3b1fe8619a83764ad917b141cdb59c74efc2fd55e75380c0a71ac",
+        "passedCases": 32,
+        "failed": 0,
+        "skipped": 0,
+        "ownedEmulatorLifecycles": 16
+      },
+      "vet-go1.27": {
+        "path": ".nextgo-test-results/aws-rie/vet-go1.27.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exitCode": 0
+      },
+      "vet-go1.24": {
+        "path": ".nextgo-test-results/aws-rie/vet-go1.24.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exitCode": 0
+      }
+    }
+  },
+  "container": {
+    "osArch": "linux/amd64",
+    "user": "65532:65532",
+    "readOnlyRoot": true,
+    "network": "none",
+    "capDrop": "ALL",
+    "noNewPrivileges": true,
+    "pids": 128,
+    "memoryBytes": 268435456,
+    "tmpfs": "/tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777",
+    "executables": "read-only mounts of the hashed files into an existing scratch image; no SDK/source/application configuration mounts"
+  },
+  "contract": [
+    "synthetic complete environment; no inherited credentials/proxies",
+    "empty working directory; independent loopback frontend/runtime listeners",
+    "cold/warm health runtime reuse",
+    "SSR and navigation envelope",
+    "HEAD and gzip/base64 WASM transport",
+    "warm generated mutation then SSR state",
+    "unsupported event report and recovery",
+    "signed session/auth/cookie/native form/combined action-view suite",
+    "stream metadata/eight-NUL framing",
+    "observed child ownership/absence and listener cleanup"
+  ],
+  "failedAttempts": {
+    "argv0-ownership-attempt.log": {
+      "path": ".nextgo-test-results/aws-rie/argv0-ownership-attempt.log",
+      "sha256": "b63a54dd6966c1f646512c78d0a2f77a2c1852b80d2a0fca0c3a8008a85b184d"
+    },
+    "task-children-kernel-attempt.log": {
+      "path": ".nextgo-test-results/aws-rie/task-children-kernel-attempt.log",
+      "sha256": "ff4e43f9e71dd612951774ad4f2fe9ce9c26d6376884caf2578a2408eba5a918"
+    },
+    "canonical-and-SSR-assertion-attempt.log": {
+      "path": ".nextgo-test-results/aws-rie/canonical-and-SSR-assertion-attempt.log",
+      "sha256": "bee3ea50bb16ef9bb400939b11af039f1176eee970b3cb263edddd730e009754"
+    },
+    "nonroot-tool-permission-attempt.log": {
+      "path": ".nextgo-test-results/aws-rie/nonroot-tool-permission-attempt.log",
+      "sha256": "5d61fc589f43c566ac670af691285135f0c781a7f886926c4f0c3b633017be61"
+    }
+  },
+  "limitations": [
+    "No hosted AWS account, IAM, networking, orchestration, scaling or provider limits qualified.",
+    "RIE public endpoint buffers: no hosted early-flush evidence.",
+    "RIE kills runtime child: no graceful-drain evidence.",
+    "Emulator configured memory fields are not measured RSS or cold-start/performance evidence.",
+    "Go1.24 is compatibility-only and has known standard-library advisory findings.",
+    "New CI configuration validated locally but not run remotely.",
+    "No application source changes; existing pinned production binaries reused with new test harness.",
+    "All 79 capabilities and G01-G11 remain retained/open; no waiver."
+  ]
+}

@@ -85,6 +85,12 @@ func ignored(name string) bool {
 	return strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor" || name == "dist"
 }
 
+// Private app directories opt out of routing, not Go imports or build inputs.
+// Keep this separate from ignored: source snapshots/watchers must retain them.
+func privateRouteDirectory(name string) bool {
+	return strings.HasPrefix(name, "_") || strings.HasPrefix(name, "private_")
+}
+
 func Discover(root string) (*Project, error) {
 	abs, err := filepath.Abs(root)
 	if err != nil {
@@ -187,11 +193,21 @@ func Pattern(relative string) (string, error) {
 	parts := strings.Split(filepath.ToSlash(relative), "/")
 	segments := make([]string, 0, len(parts))
 	for _, part := range parts {
+		if privateRouteDirectory(part) {
+			return "", fmt.Errorf("private app directory %q is not a route", part)
+		}
 		// Go import paths cannot contain the bracket syntax used by Next.js.
 		if strings.ContainsAny(part, "[]{} ") {
 			return "", fmt.Errorf("invalid Go route directory %q; use param_name for parameters", part)
 		}
 		switch {
+		case strings.HasPrefix(part, "literal_"):
+			part = strings.TrimPrefix(part, "literal_")
+			if part == "" {
+				return "", fmt.Errorf("literal route directory requires a name")
+			}
+			segments = append(segments, part)
+			continue
 		case strings.HasPrefix(part, "group_"):
 			if part == "group_" {
 				return "", fmt.Errorf("route group requires a name")
@@ -232,7 +248,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 			return walkErr
 		}
 		if d.IsDir() {
-			if path != appDir && (ignored(d.Name()) || strings.HasPrefix(d.Name(), "slot_") || d.Name() == "intercept_root") {
+			if path != appDir && (ignored(d.Name()) || privateRouteDirectory(d.Name()) || strings.HasPrefix(d.Name(), "slot_") || d.Name() == "intercept_root") {
 				if d.Name() == "intercept_root" && (filepath.Dir(path) != appDir || !strings.HasPrefix(filepath.Base(appDir), "slot_")) {
 					return fmt.Errorf("intercept_root must be directly inside a slot directory: %s", path)
 				}

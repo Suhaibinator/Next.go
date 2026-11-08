@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// ReadStatic reads only the six exact root filenames. It never walks source
+// ReadStatic reads only the fixed exact root filenames. It never walks source
 // directories or follows named symlinks. Directories are not declarations, so
 // existing app/robots.txt/route.go style manual endpoints remain usable.
 func ReadStatic(ctx context.Context, source fs.FS) (map[string][]byte, error) {
@@ -103,6 +103,8 @@ func fileLimit(name string) int {
 		return MaxSitemapBytes
 	case "manifest.webmanifest":
 		return MaxManifestBytes
+	case "opengraph-image.alt.txt", "twitter-image.alt.txt":
+		return MaxAltBytes
 	default:
 		return MaxImageBytes
 	}

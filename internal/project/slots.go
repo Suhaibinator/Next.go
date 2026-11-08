@@ -30,7 +30,7 @@ func discoverSlotTree(p *Project, appDir, appImport, prefix string, depth int) e
 		if !d.IsDir() {
 			return nil
 		}
-		if path != appDir && ignored(d.Name()) {
+		if path != appDir && (ignored(d.Name()) || privateRouteDirectory(d.Name())) {
 			return filepath.SkipDir
 		}
 		if path != appDir && d.Name() == "intercept_root" {

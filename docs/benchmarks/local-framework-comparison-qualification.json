@@ -1,0 +1,144 @@
+{
+  "format": "nextgo-local-framework-comparison-qualification-v1",
+  "recordedAtUTC": "2026-11-07T20:37:07.661738+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "goFileCount": 1257,
+    "goManifestSha256": "8891c7df00928c0c3ba520cd7d2922a0df097c391f0364924947cac656fb7972",
+    "goManifestPath": ".nextgo-test-results/framework-comparison/go-source-manifest.json",
+    "frameworkGoUnchangedSinceExistingRuntimeQualification": true,
+    "newGoFilesSinceThatCheckpoint": [
+      "examples/comparison/actionrefs/nextgo_gen.go",
+      "examples/comparison/actionrefs/nextgo_gen_js.go",
+      "examples/comparison/actionrefs/nextgo_gen_server.go",
+      "examples/comparison/app/about/page.go",
+      "examples/comparison/app/page.go",
+      "examples/comparison/components/counter/client_js.go",
+      "examples/comparison/components/counter/props.go",
+      "examples/comparison/components/counter/server.go",
+      "examples/comparison/routes/nextgo_gen.go"
+    ],
+    "files": {
+      "examples/comparison/README.md": "1f0603c365e715f536ef65ca92f36129a1ac43f5ca9992fd43c2ef98c1bdb9d4",
+      "examples/comparison/actionrefs/nextgo_gen.go": "244e238b5e1b98684aec45aa457c397494d96cdfbe21383b2f083badb4329de9",
+      "examples/comparison/actionrefs/nextgo_gen_js.go": "c5c77c3f0c1130c35c63b75a5f6bf6ed7143523143d3254d883e0677050b3d36",
+      "examples/comparison/actionrefs/nextgo_gen_server.go": "896c371805e73cd9ccf5cfb375883045def3190b67054e657517149d85fe5f1a",
+      "examples/comparison/app/about/page.go": "2c705d001df7788eaffc03a272e31d05557351f787a37bff9409328b0e43895a",
+      "examples/comparison/app/favicon.ico": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+      "examples/comparison/app/page.go": "ffc79629d1da18f8da74ee08068c8349dd2e11eff4edddc327bc947c0c4ad6d2",
+      "examples/comparison/components/counter/client_js.go": "0813b8f01ff403cc489a6f4b2d28469c64220638546f9dfa229ca9d2f86660bb",
+      "examples/comparison/components/counter/props.go": "422a20555490f4f68d65a7f64d35d4c7f65107c07b8360177a297fde7fba10a6",
+      "examples/comparison/components/counter/server.go": "bbd733c632316361f9c80ec4bf0c04e38d64de2bf162c39b77350898fe24d3fc",
+      "examples/comparison/public/style.css": "a129ad2a084334115772d50b1e61d70eec7f3cc209499d514c7c9590f069c4e9",
+      "examples/comparison/routes/nextgo_gen.go": "48a0602676ceaf01315416630e982d4d44749a5a04663a448235d508bf0e82c1",
+      "tests/performance/compare.mjs": "e63f9954474933db68842d7041276352d2819b4f6e5b5b3b41b11a88609a6b0b",
+      "tests/performance/nextjs/app/about/page.jsx": "f0cb4cdb3c81e29aeb6e54a408a5043461cb8185df14fa028c25044392750584",
+      "tests/performance/nextjs/app/counter.jsx": "a5fdb96f2699b06b90c4e1ef16e3ba6e5a08233a26bc16aa73818768a95dab11",
+      "tests/performance/nextjs/app/favicon.ico": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+      "tests/performance/nextjs/app/globals.css": "a129ad2a084334115772d50b1e61d70eec7f3cc209499d514c7c9590f069c4e9",
+      "tests/performance/nextjs/app/layout.jsx": "e8e43be986a548292a81a7938ff466ca1db35a8e5efd4a440466772bffe5503a",
+      "tests/performance/nextjs/app/page.jsx": "d8ba740f109cbf0a1e92ed804f44f64bfe45156893a2a9f59714d781a34aee02",
+      "tests/performance/nextjs/next.config.mjs": "3660500a3f5d598465aecab9bf9072b4c8164ee0510be36c92c598551e4c2aa0",
+      "tests/performance/nextjs/package-lock.json": "5d0d6d303f92a1d02c409906ed74df6c6eebaf20570e9083c08cdc2bdaff6da7",
+      "tests/performance/nextjs/package.json": "b902441f7cd1b73ee42e566a6b19e4eef7303bd58aa37da64653b6efb43174ca",
+      "tests/performance/nextjs/.gitignore": "585f773be9ef8642c0d30c51857bda9de6b296ce6ec73e60d9f38386d251237a",
+      ".github/workflows/ci.yml": "99a31ac1592bd98a19c6e920d9a05ff5ce1d032403ca0a38082a6794f7e7ca5f",
+      "docs/FRAMEWORK_COMPARISON.md": "201348c41342682d072823c06f0c89ac4839487725634ed8677fc95e0e830489"
+    }
+  },
+  "reference": {
+    "nextjs": "16.4.5",
+    "react": "19.3.1",
+    "reactDOM": "19.3.1",
+    "npmLockVersion": 3,
+    "nextPackageIntegrity": "sha512-rmdfsWosjTUO+6R0S3KokoIk6Kj0sWDRTe86tZHdqaWH/oXq/udX3/4xb+YQi7aWbyEFoglDU54kaifLCdXbBw==",
+    "allReferenceDependenciesPinnedByLock": true,
+    "standaloneManifest": {
+      "path": ".nextgo-test-results/framework-comparison/nextjs-standalone-manifest.json",
+      "entries": 1256,
+      "sha256": "ad040513fa952856b2717f46870fd78ae9255add8925af8982e03170d16f52d6"
+    },
+    "nextConfig": "production standalone, tracing/turbopack root confined to reference; one build worker; request-time SSR pages"
+  },
+  "finalObservations": {
+    "file": "local-framework-comparison.json",
+    "sha256": "e4a0a3c45cbfad46f7ba28a73b80fe4806ce42324a500d3f0108eec0a29c6adc",
+    "freshBrowserSamples": 36,
+    "noJSChecks": 3,
+    "loadRequests": 6000,
+    "servedResponseGraphsPinned": true,
+    "staticServedDecodedSizesMatchBrowser": true,
+    "errors": 0,
+    "cleanup": "all parents exited without forced kill; independent fresh TCP refusal checks",
+    "independentCleanupSha256": "ef29c6dabc45aa3c1b7fac8cb920cc6662c6098b7560945e3b81b85aba43ece7"
+  },
+  "GoArtifacts": [
+    {
+      "SDK": "1.27",
+      "nativeSHA256": "b4b19fde3b568d213344077325b26a1905dbb761aba737ab565c24008e415572",
+      "nativeBytes": 18935968,
+      "CGO": false,
+      "buildInfoSha256": "4cbc8dfa459e9cb48821049637cd578f5714c2b2c5c373c15429debe17c53f02",
+      "generatedNativeWasmVetExit": 0,
+      "checkLogSha256": "f6923c801de42a5009fd8803959885b0ea931437e92ef878f95c27e909072d5e",
+      "servedRuntimeReport": "comparison-served-runtime-go1.27.json",
+      "servedRuntimeReportSha256": "36f51ed7c193bd8a8a5a1aa70d722447b916d03ce901874d9ac73a7df574999d",
+      "analysisExit": 1
+    },
+    {
+      "SDK": "1.24",
+      "nativeSHA256": "41f5ca8f8011c1b784ffa4745045c75cf20955a044802d7369cb0efb72128867",
+      "nativeBytes": 16572600,
+      "CGO": false,
+      "buildInfoSha256": "fbc92e6a87743fe6d1bf00a5d51e156127af8a948aa3e6ecd343f1bcfc435858",
+      "generatedNativeWasmVetExit": 0,
+      "checkLogSha256": "f6923c801de42a5009fd8803959885b0ea931437e92ef878f95c27e909072d5e",
+      "servedRuntimeReport": "comparison-served-runtime-go1.24.json",
+      "servedRuntimeReportSha256": "dd8ad663ad2aabaede5418436d782eed585d777cd3e3f9a1c841709f94358f7f",
+      "analysisExit": 0
+    }
+  ],
+  "priorRuns": {
+    "initialBrowserTempSocketFailure": {
+      "logSha256": "e9d7f7a6a451932e4c93bc62a953230351b7f71c4ef95bb53a9b0de3c35c8f3c",
+      "resultSha256": "e28a0c66c48f2bdad6efa7124c1cede479fa97bdb96189f04823bb98c8a3775b"
+    },
+    "readinessMarkerAndNextSIGTERMConventionAttempt": {
+      "logSha256": "806aa054ab73bcbf3fae674ec1de1dfcc82df95d3bf936de19c779788b8107d2",
+      "resultSha256": "26406b5e6ddf91086a5c82ce1af758ceb05b161648338cba67857e7613c5d4d9"
+    },
+    "correctedThreeSampleProbe": {
+      "resultSha256": "930b687c10084a594d26c48fcd09f82de372ca34ff9726079cb161099427170f",
+      "freshBrowserSamples": 9,
+      "loadRequests": 600
+    },
+    "firstFullRunBeforeFaviconAndIntegrityChecks": {
+      "resultSha256": "cf6b0dda48c8c9c35bb0c17b5b36825957df8b08441156e7234a0f6ffad3979c",
+      "freshBrowserSamples": 36,
+      "loadRequests": 6000,
+      "status": "pre-final baseline retained, contains favicon 404 resources"
+    },
+    "servedIntegrityFailureOnMissingFavicon": {
+      "logSha256": "45a25ac2ba76d15195b5e2fcc699e7f7409eec01d74b6e67c6dc4f576e3d4456",
+      "resultSha256": "12cb1f186f67fb40e00d24eb3c9f0c0e24086d40172c8a66f1f8d213c969fbf2"
+    },
+    "NextOpaqueIconBuildRejection": {
+      "logSha256": "c6adce9d8599194e313f04f4dc911b9fc4a1a891febf499eebcc7021c4287adf",
+      "reason": "upstream ICO decoder requires RGBA PNG; original matching RGBA fixture added"
+    }
+  },
+  "interpretation": [
+    "Shared-host local synthetic workload, not a complete framework comparison or production tail measurement.",
+    "The 12-browser-sample p95/p99 is its observed maximum; no statistical production-tail confidence.",
+    "Go uses GOMAXPROCS=2, Next one unclustered Node process; no affinity or CPU quota.",
+    "Decoded served hashes are fetched after timed phases; browser encoded body bytes exclude headers and differ from Go gzip-9.",
+    "Server RSS/tick snapshots exclude browser and other process memory; no generic efficiency claim.",
+    "One startup observation per process with warm OS caches; cold/warm build distributions are not measured.",
+    "No app/runtime framework Go changes: preceding full 80-package race/vet per SDK remains its own checkpoint; new example qualified by actual builds/browser and focused native/WASM vet.",
+    "Go1.27 minimal core still exceeds both reference budgets. Go1.24 fits this fixture but is EOL/compatibility-only with known advisories. Full demo remains over both on both SDKs.",
+    "No current independent source audit or hosted/container performance qualification; new CI configuration has no remote evidence.",
+    "All 79 capabilities and G01-G11 remain retained/open, with no waiver."
+  ]
+}

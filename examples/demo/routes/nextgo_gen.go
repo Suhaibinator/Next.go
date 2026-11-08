@@ -8,6 +8,9 @@ import routeinfo "github.com/Suhaibinator/Next.go/routeinfo"
 // Index constructs the application path for page /.
 func Index() string { return "/" }
 
+// Public constructs the application path for page /_public.
+func Public() string { return "/_public" }
+
 // About constructs the application path for page /about.
 func About() string { return "/about" }
 
@@ -202,6 +205,9 @@ func LinkStatusStream() string { return "/link-status/stream" }
 
 // LinkStatusTwo constructs the application path for page /link-status/two.
 func LinkStatusTwo() string { return "/link-status/two" }
+
+// LocalFonts constructs the application path for page /local-fonts.
+func LocalFonts() string { return "/local-fonts" }
 
 // Locale constructs the application path for page /locale.
 func Locale() string { return "/locale" }
@@ -409,6 +415,9 @@ func Resources() string { return "/resources" }
 
 // Restricted constructs the application path for page /restricted.
 func Restricted() string { return "/restricted" }
+
+// RoutingPrivate constructs the application path for page /routing-private.
+func RoutingPrivate() string { return "/routing-private" }
 
 // Rules constructs the application path for page /rules.
 func Rules() string { return "/rules" }

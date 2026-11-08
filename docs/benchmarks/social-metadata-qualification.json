@@ -1,0 +1,1634 @@
+{
+  "format": "nextgo-social-metadata-qualification-v1",
+  "recordedAtUTC": "2026-11-07T11:56:37.861920+00:00",
+  "status": "partial-local-evidence-not-release-qualification",
+  "baseline": {
+    "nextjs": "16.4.5",
+    "officialStableURL": "https://github.com/vercel/next.js/releases/tag/v16.4.5",
+    "evidence": {
+      "path": ".nextgo-test-results/social-metadata/nextjs-stable-url.txt",
+      "bytes": 55,
+      "sha256": "c4da04548e7a210051978fc550a35d64e50fceadb3cf2cb79f900cd6aa59ebd3"
+    }
+  },
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "files": {
+      "metadatafiles/metadata.go": "57de91847deb160274d6690a200a2592fbf8d8291f29ae5031570fc754032316",
+      "metadatafiles/files.go": "89064d740b098840465d9c8d60515229b39d6f5c153e6ffafd578f6cc0f0edf2",
+      "metadatafiles/raster.go": "9316fe6629eb5148f10ed6662e98a684a89c88a03617c93f476dcae9211ca604",
+      "metadatafiles/social.go": "49ea2cd165e265bc042e2ad67d04a32b345a377395b2f6d32f82681ed6a3d307",
+      "metadatafiles/social_test.go": "ef2beccc2382d23338ec205f036115cb952c17d4dc71b7970a6f15050abe42cc",
+      "metadatafiles/http.go": "ca378b4ceb4bea1663bd11766c30c9feb0899710e433499d591d39b5ea12842b",
+      "managed_metadata.go": "21bacd117ab947aec555ef5580c2253e338d8d40146b5f1e45b4c47041777e12",
+      "managed_social_metadata_test.go": "7d1fc4757bf44bc805bd7f5952cc8d94f1f8e495d255d1b08939628fbf53c6f5",
+      "nextgo.go": "8beca4e4d1c37d49dc32578c34ccaddf21f87e4ebb46149ee3cf1bb9f137af2e",
+      "head.go": "f6a33063206dc6ab36e40e2a64d332e2793bac99a501fe859f2edad2dc820fce",
+      "zone_release.go": "ccfdb516d01b55f5703434006d217b575b908a9fc556fce2594fdd432d4fcd93",
+      "zone_release_boundary_test.go": "b03f23bb8be541f9c3c93bd931453b1b3d534186e6ec61967b876daefaad42f8",
+      "internal/project/metadata_files.go": "0ca87f6fc6d9cdd520ee5eaad3b66a13108937c59b4852373e6a3e176217a2da",
+      "internal/project/metadata_files_test.go": "f138d86a752165248aa05ab70b0754b90fe42505fc87d10061d0e703209af1f6",
+      "internal/project/metadata_build.go": "1631ca387f00ae5a36c0f76bb8af3357d2121bc8ca3a3cbe5b98db50e37e7f93",
+      "internal/project/metadata_build_test.go": "2d4f06388d10625a00f90fe9207ea02cd01233d39716a1952a1b6974df5b26ad",
+      "cmd/nextgo/export_metadata.go": "822ffb80f391ddb765bf97cb6fba45940fb299af9b3dfbb17fd7251724419920",
+      "cmd/nextgo/export_social_metadata_test.go": "9eee75450145e960b16abdf6bb3d2d0f679f046286349fa90f19ecd540d2f001",
+      "examples/metadata-site/app/config.go": "305044ee0051581d95c731df094eaddd60324ba8ec79c4ab2804694e16a2c964",
+      "examples/metadata-site/app/metadata.go": "ee940634320a3c1aebc842db68443564c00e210c9fe1d9e1b64970aea649a362",
+      "examples/metadata-site/app/metadata_test.go": "51575667f53c9746e10e9bf5d641f55c0e2938495a0db2dcbbc5eabd857ef03f",
+      "examples/metadata-site/app/opengraph-image.go": "74db2c09257bdac0b7d363a24f38b3850fc960a94c069723783c60db3cc0bea6",
+      "examples/metadata-site/app/twitter-image.go": "0a7fe313866a1dfec2c6e886e1285e71caef8d9998b632e1eb2402770629cae5",
+      "examples/metadata-site/app/opengraph-image.alt.txt": "42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08",
+      "examples/metadata-site/app/twitter-image.alt.txt": "34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863",
+      "examples/metadata-site/app/page.go": "2bd51dd607e3188eb904b6b471251747649e176c892e2f1547a94daba03a6ecb",
+      "examples/metadata-site/app/override/page.go": "040dfd3984f916adf4edb5932b52593d468412fafc42eea467889d54203d70a5",
+      "examples/metadata-site/app/disabled/page.go": "edff319fdb226472f2ffcbe1a3e489f2a8513a1b365865924c39ed4fa7957433",
+      "examples/metadata-site/app/api/health/route.go": "0caaab87a91ef9851fa608631964418d345de655efabdae62c5bfa2b034304e2",
+      "tests/deployment/social_metadata_test.go": "b769ac1fe998fb0304df2d6254912c726717b6a7d69184626dfa2409c6103850",
+      "tests/social-metadata.config.mjs": "86d0081f3ac44a5b5e8d7576cdf74bc6ae491bb42709d2cbc5d4237a3f04c386",
+      "tests/social-metadata.spec.mjs": "66e8db10f56bbc64ee25f39c987eaa6152ad5543d321eefb3a0fe3a783be189e",
+      "tests/social-metadata-static-fixture.mjs": "3e27ce4bf7d5a089fab2d5253d5441ec9557a828c544ecdd99e5ca369422b2f0",
+      "tests/social-metadata-observe.mjs": "724e719709310b205e87965b25348b3b07e38a46a3bbdf2917e3f0472d734218",
+      "tests/metadata-stream-deployment-fixture.mjs": "8fe8698938be216987d6eab2acf2e1bc414ce36667147f980b4c247050bba047",
+      "tests/metadata-static-server.mjs": "4f8dc8120bb194f9b7ec79e72b7330bdf2fa7470969e8583cdcbcbabf5bb1ee8",
+      "tests/client-only-deployment-fixture.mjs": "8f197a1ef916ba1908147f299f408d9fccf31dfc5e147060e4ba6d90e7c3d03d",
+      ".github/workflows/ci.yml": "cfa60fb8eec6e75518aea6f2b288a14d6e076dd00a44087a139b8cc16934e53c",
+      "package.json": "2a24f720fc3df3b08a358c0a70b5fbe6aeaeedb00198f36e756b0e2d4bfbcd36"
+    },
+    "allRepositoryGoFiles": {
+      "count": 1183,
+      "manifestEncoding": "sorted compact JSON path -> SHA-256",
+      "sha256": "706ab46b03640fe6ef44875ed170c64f66902702ffe0471dc9ab9238767b3ed0"
+    }
+  },
+  "environment": {
+    "os": "Linux amd64",
+    "kernel": "6.18.57",
+    "node": "24.22.1",
+    "playwright": "1.64.1",
+    "browser": "system Chromium 156.0.8078.79",
+    "executable": "/usr/bin/chromium",
+    "nativeArtifactCGO": false,
+    "GOTOOLCHAIN": "local",
+    "GOMAXPROCS": "2",
+    "GOFLAGS": "-p=2",
+    "compilerExperiments": "SDK defaults",
+    "umask": "022",
+    "TMPDIR": "ignored result directories inside the repository; normal VCS stamping retained"
+  },
+  "contract": {
+    "files": [
+      "opengraph-image.png",
+      "twitter-image.png",
+      "opengraph-image.alt.txt",
+      "twitter-image.alt.txt"
+    ],
+    "startupProducers": [
+      "OpenGraphImage(context.Context) ([]byte,error)",
+      "TwitterImage(context.Context) ([]byte,error)"
+    ],
+    "producerExecution": "once per application startup, also in each separate native build-tool subprocess; no incoming request; deterministic output required",
+    "maxPNGBytes": 1048576,
+    "maxPNGDimension": 2048,
+    "maxPNGPixels": 4194304,
+    "maxAltBytes": 1024,
+    "maxCombinedMetadataBytes": 8388608,
+    "metadataNames": 10,
+    "origin": "explicit trusted Metadata.BaseURL; empty base omits automatic tags; never request Host/forwarded headers or CDN/locale inference",
+    "headOverrides": "typed non-nil lists replace; empty lists clear; explicit Twitter card and legacy named values retain precedence",
+    "publication": "existing declared inventory plus full raster/dimension/type/hash/build/length verification and staged atomic publication",
+    "negativeChecks": [
+      "static/producer conflict before callbacks",
+      "orphan alt before callbacks",
+      "PNG format/byte/dimension/truncation admission",
+      "invalid UTF-8/control/oversize alt",
+      "producer panic/cancellation",
+      "global locale ownership and unknown-origin avoidance",
+      "HTML/navigation typed and legacy overrides/clears",
+      "bad PNG/type/cookie export response",
+      "mismatching declared dimensions with previous-generation rollback",
+      "independent zone release callback exclusion"
+    ]
+  },
+  "container": {
+    "base": "scratch",
+    "uid": 65532,
+    "readOnly": true,
+    "network": "none",
+    "capabilities": "none",
+    "noNewPrivileges": true,
+    "pids": 128,
+    "memoryBytes": 268435456,
+    "browserLocation": "outside container; compiled transport suite and pinned server inside container"
+  },
+  "sdks": [
+    {
+      "go": "go1.27.3",
+      "native": {
+        "path": ".nextgo-test-results/social-metadata/site/server",
+        "bytes": 19026080,
+        "sha256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8"
+      },
+      "cli": {
+        "path": ".nextgo-test-results/social-metadata/nextgo",
+        "bytes": 15519473,
+        "sha256": "8bdd2c0f2aa1122c6de27fa0a504132ad4e52e2bb59d5067eee63d57d59acdcd"
+      },
+      "testBinary": {
+        "path": ".nextgo-test-results/social-metadata/deployment.test",
+        "bytes": 20653156,
+        "sha256": "45d0db7ca9924298b5705dfc71aab0cf95b3278b400838e58ae1b2362080fb80"
+      },
+      "build": {
+        "path": ".nextgo-test-results/social-metadata/build-go1.27.log",
+        "bytes": 172,
+        "sha256": "8b5395601cabf5c160b7977dffe87af2c39f7f53f12af678958c2663a62938a8"
+      },
+      "export": {
+        "path": ".nextgo-test-results/social-metadata/export-go1.27.log",
+        "bytes": 188,
+        "sha256": "5217aec0d79e98ccfcd2948598eefdf834f74e3ede0d19a490d0dc43be6a90a7"
+      },
+      "nativeRace": {
+        "testedPackages": 80,
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/race-go1.27.log",
+          "bytes": 21652,
+          "sha256": "266109de450f568846976c7e8adeb12e3d0385348d2f65f9af90a9855bd9e29f"
+        }
+      },
+      "vet": {
+        "path": ".nextgo-test-results/social-metadata/vet-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "static": {
+        "manifest": {
+          "protocol": 3,
+          "configuration": "cf4f1c42a51a5c92cb93e4f233261e072d2117e846d6d449f9c477dd72453b3e",
+          "basePath": "/lambda-features",
+          "assetPrefix": "/lambda-assets",
+          "format": "nextgo-static-v1",
+          "build": "404ac101a76d283d7d77",
+          "paths": [
+            "/",
+            "/about",
+            "/disabled",
+            "/override"
+          ],
+          "metadata": [
+            {
+              "name": "robots.txt",
+              "path": "/lambda-features/robots.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 97,
+              "digest": "9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9",
+              "etag": "\"9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9\""
+            },
+            {
+              "name": "sitemap.xml",
+              "path": "/lambda-features/sitemap.xml",
+              "contentType": "application/xml; charset=utf-8",
+              "size": 553,
+              "digest": "ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8",
+              "etag": "\"ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8\""
+            },
+            {
+              "name": "favicon.ico",
+              "path": "/lambda-features/favicon.ico",
+              "contentType": "image/x-icon",
+              "size": 214,
+              "digest": "1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27",
+              "etag": "\"1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27\"",
+              "width": 32,
+              "height": 32,
+              "sizes": "32x32"
+            },
+            {
+              "name": "icon.png",
+              "path": "/lambda-features/icon.png",
+              "contentType": "image/png",
+              "size": 192,
+              "digest": "b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f",
+              "etag": "\"b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f\"",
+              "width": 32,
+              "height": 32,
+              "sizes": "32x32"
+            },
+            {
+              "name": "apple-icon.png",
+              "path": "/lambda-features/apple-icon.png",
+              "contentType": "image/png",
+              "size": 871,
+              "digest": "964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a",
+              "etag": "\"964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a\"",
+              "width": 180,
+              "height": 180,
+              "sizes": "180x180"
+            },
+            {
+              "name": "manifest.webmanifest",
+              "path": "/lambda-features/manifest.webmanifest",
+              "contentType": "application/manifest+json",
+              "size": 362,
+              "digest": "5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0",
+              "etag": "\"5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0\""
+            },
+            {
+              "name": "opengraph-image.png",
+              "path": "/lambda-features/opengraph-image.png",
+              "contentType": "image/png",
+              "size": 16103,
+              "digest": "89d313d1af0d866769218f3347e275632cf10c73f105ecd7117513ae01083963",
+              "etag": "\"89d313d1af0d866769218f3347e275632cf10c73f105ecd7117513ae01083963\"",
+              "width": 1200,
+              "height": 630,
+              "sizes": "1200x630"
+            },
+            {
+              "name": "twitter-image.png",
+              "path": "/lambda-features/twitter-image.png",
+              "contentType": "image/png",
+              "size": 16056,
+              "digest": "38f320b2f8d3f150d5899c68db91540390c0d140064e068bba61f77601732431",
+              "etag": "\"38f320b2f8d3f150d5899c68db91540390c0d140064e068bba61f77601732431\"",
+              "width": 1200,
+              "height": 630,
+              "sizes": "1200x630"
+            },
+            {
+              "name": "opengraph-image.alt.txt",
+              "path": "/lambda-features/opengraph-image.alt.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 55,
+              "digest": "42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08",
+              "etag": "\"42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08\""
+            },
+            {
+              "name": "twitter-image.alt.txt",
+              "path": "/lambda-features/twitter-image.alt.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 57,
+              "digest": "34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863",
+              "etag": "\"34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863\""
+            }
+          ]
+        },
+        "pin": {
+          "sha256": "50076777ab7833079991fce0287a32770bc01fe31a01af220ed275a54eed2632",
+          "bytes": 6647590,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 3185,
+              "sha256": "076f3ae6b5afef41cda6dbbb61e762e01edc05aaaf05636e46ae9cace82f4477"
+            },
+            {
+              "path": "lambda-assets/_nextgo/404ac101a76d283d7d77/app.wasm",
+              "bytes": 6554415,
+              "sha256": "8ca64bd67b81f1bc534e32027b4134a94b5858fe607eb5276a4d160f13c265a6"
+            },
+            {
+              "path": "lambda-assets/_nextgo/404ac101a76d283d7d77/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/404ac101a76d283d7d77/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 801,
+              "sha256": "2d655e249a998b53eedac17a22d6dde162c1da8c6a79b63f16a8aee7a91dee65"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/about.json",
+              "bytes": 3463,
+              "sha256": "77f5976225c7eb2d3836762d87745b4686ffd9a3c485c2b782a434e4ed9185b1"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/disabled.json",
+              "bytes": 2284,
+              "sha256": "c2c9b980eb890892a8ad98e6124c7ce3ba37492540bc136d4de5c634dfdd6935"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/index.json",
+              "bytes": 6097,
+              "sha256": "a457dbc481ffb300f10a936c093623fe396a009f40256b365ed1cd57c66a5f8e"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/override.json",
+              "bytes": 2991,
+              "sha256": "0a444e6413dcb63be31d5fea0193e87a0f254f136bcdbf95d3bf15b52a6ddf5b"
+            },
+            {
+              "path": "lambda-features/about/index.html",
+              "bytes": 4940,
+              "sha256": "9e60f21e56c591b679e618ae4f6ff0c12503de883552f6c33bfdc5309f424ae5"
+            },
+            {
+              "path": "lambda-features/apple-icon.png",
+              "bytes": 871,
+              "sha256": "964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a"
+            },
+            {
+              "path": "lambda-features/disabled/index.html",
+              "bytes": 3817,
+              "sha256": "c32fa92aa773c41643bab170882bfcb4fdea6240d9a33e0b92b6ab4c21938297"
+            },
+            {
+              "path": "lambda-features/favicon.ico",
+              "bytes": 214,
+              "sha256": "1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27"
+            },
+            {
+              "path": "lambda-features/icon.png",
+              "bytes": 192,
+              "sha256": "b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f"
+            },
+            {
+              "path": "lambda-features/index.html",
+              "bytes": 6966,
+              "sha256": "2b966093392c9db77c96d41829a95ababcdb60e695947ad3317c2a97de8929b9"
+            },
+            {
+              "path": "lambda-features/manifest.webmanifest",
+              "bytes": 362,
+              "sha256": "5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0"
+            },
+            {
+              "path": "lambda-features/opengraph-image.alt.txt",
+              "bytes": 55,
+              "sha256": "42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08"
+            },
+            {
+              "path": "lambda-features/opengraph-image.png",
+              "bytes": 16103,
+              "sha256": "89d313d1af0d866769218f3347e275632cf10c73f105ecd7117513ae01083963"
+            },
+            {
+              "path": "lambda-features/override/index.html",
+              "bytes": 4487,
+              "sha256": "8bb5386a832227e4a8298b3a5b501c4eadf12418a889c3f78981e4a55f14da59"
+            },
+            {
+              "path": "lambda-features/robots.txt",
+              "bytes": 97,
+              "sha256": "9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9"
+            },
+            {
+              "path": "lambda-features/sitemap.xml",
+              "bytes": 553,
+              "sha256": "ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8"
+            },
+            {
+              "path": "lambda-features/twitter-image.alt.txt",
+              "bytes": 57,
+              "sha256": "34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863"
+            },
+            {
+              "path": "lambda-features/twitter-image.png",
+              "bytes": 16056,
+              "sha256": "38f320b2f8d3f150d5899c68db91540390c0d140064e068bba61f77601732431"
+            }
+          ]
+        }
+      },
+      "imageBytes": 32159,
+      "altBytes": 112,
+      "allMetadataBytes": 34560,
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T11:34:52.783Z",
+          "duration": 11939.073,
+          "expected": 12,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "report": {
+          "path": ".nextgo-test-results/social-metadata/chromium-go1.27.json",
+          "bytes": 76064,
+          "sha256": "8394f95ffb26a83bdf90a1497dd74e56dafe7716ddabf0ea8cf591508d1c2694"
+        },
+        "transportProofs": [
+          {
+            "transport": "http",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "http",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "50076777ab7833079991fce0287a32770bc01fe31a01af220ed275a54eed2632",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "50076777ab7833079991fce0287a32770bc01fe31a01af220ed275a54eed2632",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          },
+          {
+            "transport": "http",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "94eed1729a906fa8207ec71b5ddce62cdac795186a7c19d749200aaab5a7b1b8",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "50076777ab7833079991fce0287a32770bc01fe31a01af220ed275a54eed2632",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          }
+        ],
+        "noJavaScriptPNGDecodes": [
+          {
+            "project": "social-metadata-http-chromium",
+            "images": [
+              {
+                "src": "/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-buffered-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-streaming-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-static-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          }
+        ]
+      },
+      "host": {
+        "assetCases": 24,
+        "documents": 6,
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "weak If-None-Match"
+        ],
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/deployment-host-go1.27.log",
+          "bytes": 4585,
+          "sha256": "e4b45e240c231afa4683184d27f72b1903e72305e33d6459697f0ac9c9d64a9a"
+        }
+      },
+      "container": {
+        "image": "sha256:a2a688ff6a87c9ad44bd8ed55690a3e3d7d1b59c97f03a4b83bd22882a7af97f",
+        "assetCases": 24,
+        "documents": 6,
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "weak If-None-Match"
+        ],
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/deployment-container-go1.27.log",
+          "bytes": 4585,
+          "sha256": "d04d963f7cd7b4672c679965fb3f18e1e8b84edcabd17c08c9337ef12533fa01"
+        }
+      },
+      "localObservations": {
+        "fixtureStartToHealthMilliseconds": {
+          "minimum": 77.99364700000001,
+          "median": 109.79226699999998,
+          "maximum": 123.90597799999998
+        },
+        "loopbackPNGMilliseconds": {
+          "minimum": 0.3881139999999732,
+          "median": 0.6779089999999997,
+          "maximum": 1.7686489999999822
+        },
+        "processes": 5,
+        "requests": 25
+      }
+    },
+    {
+      "go": "go1.24.13",
+      "native": {
+        "path": ".nextgo-test-results/social-metadata/site-go1.24/server",
+        "bytes": 16736440,
+        "sha256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d"
+      },
+      "cli": {
+        "path": ".nextgo-test-results/social-metadata/nextgo-go1.24",
+        "bytes": 14205611,
+        "sha256": "adb133b81106208097711750f5c31f185d38369f108f25984aaef55be2e0e8f0"
+      },
+      "testBinary": {
+        "path": ".nextgo-test-results/social-metadata/deployment-go1.24.test",
+        "bytes": 19079591,
+        "sha256": "7f6f6da43dba06ac24387146fd0bd5acc53ff693537a577a43c50aed2a469c35"
+      },
+      "build": {
+        "path": ".nextgo-test-results/social-metadata/build-go1.24.log",
+        "bytes": 186,
+        "sha256": "19cb7b3c656b9bbed053c34212ac9f364ead1f41b31fb16406e45a6f8ae3010e"
+      },
+      "export": {
+        "path": ".nextgo-test-results/social-metadata/export-go1.24.log",
+        "bytes": 195,
+        "sha256": "6c6e89310b89f9fbc8f3f794a0b4d889e50981cc7f031ce0adacf419ee79e1c3"
+      },
+      "nativeRace": {
+        "testedPackages": 80,
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/race-go1.24.log",
+          "bytes": 21575,
+          "sha256": "fb9427a954dfa990120b90c0a99ff7d42a442bf15a477b117175266aca268135"
+        }
+      },
+      "vet": {
+        "path": ".nextgo-test-results/social-metadata/vet-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "static": {
+        "manifest": {
+          "protocol": 3,
+          "configuration": "4360bdc7a7175737d488e0afefded69e3abc6926367b43204b3f59d645ec5368",
+          "basePath": "/lambda-features",
+          "assetPrefix": "/lambda-assets",
+          "format": "nextgo-static-v1",
+          "build": "1462f850fae4bf2b11fd",
+          "paths": [
+            "/",
+            "/about",
+            "/disabled",
+            "/override"
+          ],
+          "metadata": [
+            {
+              "name": "robots.txt",
+              "path": "/lambda-features/robots.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 97,
+              "digest": "9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9",
+              "etag": "\"9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9\""
+            },
+            {
+              "name": "sitemap.xml",
+              "path": "/lambda-features/sitemap.xml",
+              "contentType": "application/xml; charset=utf-8",
+              "size": 553,
+              "digest": "ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8",
+              "etag": "\"ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8\""
+            },
+            {
+              "name": "favicon.ico",
+              "path": "/lambda-features/favicon.ico",
+              "contentType": "image/x-icon",
+              "size": 214,
+              "digest": "1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27",
+              "etag": "\"1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27\"",
+              "width": 32,
+              "height": 32,
+              "sizes": "32x32"
+            },
+            {
+              "name": "icon.png",
+              "path": "/lambda-features/icon.png",
+              "contentType": "image/png",
+              "size": 192,
+              "digest": "b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f",
+              "etag": "\"b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f\"",
+              "width": 32,
+              "height": 32,
+              "sizes": "32x32"
+            },
+            {
+              "name": "apple-icon.png",
+              "path": "/lambda-features/apple-icon.png",
+              "contentType": "image/png",
+              "size": 871,
+              "digest": "964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a",
+              "etag": "\"964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a\"",
+              "width": 180,
+              "height": 180,
+              "sizes": "180x180"
+            },
+            {
+              "name": "manifest.webmanifest",
+              "path": "/lambda-features/manifest.webmanifest",
+              "contentType": "application/manifest+json",
+              "size": 362,
+              "digest": "5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0",
+              "etag": "\"5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0\""
+            },
+            {
+              "name": "opengraph-image.png",
+              "path": "/lambda-features/opengraph-image.png",
+              "contentType": "image/png",
+              "size": 5011,
+              "digest": "038ce08be59b08188bc37a5af73e3afd4ab19ceba077d758844c74464e744f4d",
+              "etag": "\"038ce08be59b08188bc37a5af73e3afd4ab19ceba077d758844c74464e744f4d\"",
+              "width": 1200,
+              "height": 630,
+              "sizes": "1200x630"
+            },
+            {
+              "name": "twitter-image.png",
+              "path": "/lambda-features/twitter-image.png",
+              "contentType": "image/png",
+              "size": 4990,
+              "digest": "14d5cd13c9269f58746e42b22e1a29f298daa7777a12f3ff614038c97da919c0",
+              "etag": "\"14d5cd13c9269f58746e42b22e1a29f298daa7777a12f3ff614038c97da919c0\"",
+              "width": 1200,
+              "height": 630,
+              "sizes": "1200x630"
+            },
+            {
+              "name": "opengraph-image.alt.txt",
+              "path": "/lambda-features/opengraph-image.alt.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 55,
+              "digest": "42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08",
+              "etag": "\"42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08\""
+            },
+            {
+              "name": "twitter-image.alt.txt",
+              "path": "/lambda-features/twitter-image.alt.txt",
+              "contentType": "text/plain; charset=utf-8",
+              "size": 57,
+              "digest": "34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863",
+              "etag": "\"34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863\""
+            }
+          ]
+        },
+        "pin": {
+          "sha256": "8b4912d43787f43a115b72be4e27176cb0d5b6fea3d50250bae6491ae77a2b38",
+          "bytes": 5386059,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 3183,
+              "sha256": "cc2ef23260d485f71cd1f25760d47606f2f75b16cdb3963ed1c798196bad4615"
+            },
+            {
+              "path": "lambda-assets/_nextgo/1462f850fae4bf2b11fd/app.wasm",
+              "bytes": 5315044,
+              "sha256": "44fd1885322cf44b7b2804c90da58694bf29f61da1f18bc75e3ea24782b448af"
+            },
+            {
+              "path": "lambda-assets/_nextgo/1462f850fae4bf2b11fd/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/1462f850fae4bf2b11fd/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 801,
+              "sha256": "2d655e249a998b53eedac17a22d6dde162c1da8c6a79b63f16a8aee7a91dee65"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/about.json",
+              "bytes": 3463,
+              "sha256": "e4886cd64ad7e027d792e03225f1f55b6b3912538040fd8ecc0b8d67d1d5028b"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/disabled.json",
+              "bytes": 2284,
+              "sha256": "3f436ee5548a5cce6b4bc80c2f62f382d9affd711c24eb4e06d1c0de2604f6a6"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/index.json",
+              "bytes": 6097,
+              "sha256": "1d435cd236c9dd01a86d4f806979b6083723a624c3b6faa1fe1b7cdb468610b9"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/override.json",
+              "bytes": 2991,
+              "sha256": "81eb094970aef608b9dee04a0ef46eae144af30d7a87e8c4df4bd5ddce245362"
+            },
+            {
+              "path": "lambda-features/about/index.html",
+              "bytes": 4940,
+              "sha256": "653787ecd5993c089e2b30761f395c82ed0c5f305cadc509de1d92d915b63c33"
+            },
+            {
+              "path": "lambda-features/apple-icon.png",
+              "bytes": 871,
+              "sha256": "964cea1972e495bf6de1d5a17964e7fd646d1d0e3a19ae2ecfa2c5d7faff462a"
+            },
+            {
+              "path": "lambda-features/disabled/index.html",
+              "bytes": 3817,
+              "sha256": "ed60a3fc112205363d71940b347b465f4fda29d3758764ae9879f4c83610fda3"
+            },
+            {
+              "path": "lambda-features/favicon.ico",
+              "bytes": 214,
+              "sha256": "1e92c34afd06ee36dc7ff23a8d8c2e001c54a61cb67a7d52beefdc71ede8ae27"
+            },
+            {
+              "path": "lambda-features/icon.png",
+              "bytes": 192,
+              "sha256": "b3ed828cfb242971e11067a2401f5ae21b7df117c4d90e028c88431edc9bb23f"
+            },
+            {
+              "path": "lambda-features/index.html",
+              "bytes": 6966,
+              "sha256": "a290920cd22efca8d362b515a7a2929b2b974d07c8050733613d6562ba8410f3"
+            },
+            {
+              "path": "lambda-features/manifest.webmanifest",
+              "bytes": 362,
+              "sha256": "5e00000bdcca053561330b983f132a54aea68e9d764742d764752d6722469ae0"
+            },
+            {
+              "path": "lambda-features/opengraph-image.alt.txt",
+              "bytes": 55,
+              "sha256": "42373b8cc992c7545565089e837424bcbcfd14533587a341e37dbcea7fc0ba08"
+            },
+            {
+              "path": "lambda-features/opengraph-image.png",
+              "bytes": 5011,
+              "sha256": "038ce08be59b08188bc37a5af73e3afd4ab19ceba077d758844c74464e744f4d"
+            },
+            {
+              "path": "lambda-features/override/index.html",
+              "bytes": 4487,
+              "sha256": "183f5a8e9cdce4194fc77381d484a57dc02a4d9a1663db0d3dbf2b6307c3fbc4"
+            },
+            {
+              "path": "lambda-features/robots.txt",
+              "bytes": 97,
+              "sha256": "9d8b8f0cfb6f004d38b921372c7c9fc73aae1778d27eff0f685a9e0dd9401ae9"
+            },
+            {
+              "path": "lambda-features/sitemap.xml",
+              "bytes": 553,
+              "sha256": "ab19b8523177e62c1f7c39817d93b42e4d184c3da83a9cf289fd95aac4d021c8"
+            },
+            {
+              "path": "lambda-features/twitter-image.alt.txt",
+              "bytes": 57,
+              "sha256": "34ca2311000db5c9f9c624466d555d40a2a3815044eb8d3ffed2800c7d1c5863"
+            },
+            {
+              "path": "lambda-features/twitter-image.png",
+              "bytes": 4990,
+              "sha256": "14d5cd13c9269f58746e42b22e1a29f298daa7777a12f3ff614038c97da919c0"
+            }
+          ]
+        }
+      },
+      "imageBytes": 10001,
+      "altBytes": 112,
+      "allMetadataBytes": 12402,
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T11:43:06.564Z",
+          "duration": 21882.472999999998,
+          "expected": 12,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "report": {
+          "path": ".nextgo-test-results/social-metadata/chromium-go1.24.json",
+          "bytes": 75805,
+          "sha256": "98aa25991115e331e8f9c1917165eb340fd868c7aca1541f9eb94e97c54042d7"
+        },
+        "transportProofs": [
+          {
+            "transport": "http",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "http",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "8b4912d43787f43a115b72be4e27176cb0d5b6fea3d50250bae6491ae77a2b38",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "8b4912d43787f43a115b72be4e27176cb0d5b6fea3d50250bae6491ae77a2b38",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          },
+          {
+            "transport": "http",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            }
+          },
+          {
+            "transport": "buffered",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "streaming",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": true,
+            "staticArtifactSHA256": null,
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            }
+          },
+          {
+            "transport": "static",
+            "binarySHA256": "15f957eed413ece6c077910a89514e2d5a3d241bae10f634c0a4900b5fde787d",
+            "binaryExecuted": false,
+            "staticArtifactSHA256": "8b4912d43787f43a115b72be4e27176cb0d5b6fea3d50250bae6491ae77a2b38",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            }
+          }
+        ],
+        "noJavaScriptPNGDecodes": [
+          {
+            "project": "social-metadata-http-chromium",
+            "images": [
+              {
+                "src": "/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-buffered-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-streaming-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          },
+          {
+            "project": "social-metadata-static-chromium",
+            "images": [
+              {
+                "src": "/lambda-features/opengraph-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              },
+              {
+                "src": "/lambda-features/twitter-image.png",
+                "width": 1200,
+                "height": 630,
+                "complete": true
+              }
+            ]
+          }
+        ]
+      },
+      "host": {
+        "assetCases": 24,
+        "documents": 6,
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "weak If-None-Match"
+        ],
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/deployment-host-go1.24.log",
+          "bytes": 4585,
+          "sha256": "e7e81afef067b8989adc54c8f1f1ff0c9063948612c10cf1795a5c437044e826"
+        }
+      },
+      "container": {
+        "image": "sha256:dd312101ad3f6a55ca462cc75a1be2ff6c070bcdedb2b9d1a7fcf5fb2dd44109",
+        "assetCases": 24,
+        "documents": 6,
+        "methods": [
+          "GET",
+          "HEAD",
+          "POST",
+          "weak If-None-Match"
+        ],
+        "log": {
+          "path": ".nextgo-test-results/social-metadata/deployment-container-go1.24.log",
+          "bytes": 4585,
+          "sha256": "6f4a1dcc825443e72fa1bc7499539640792b845aab832093f4f94d5208da0121"
+        }
+      },
+      "localObservations": {
+        "fixtureStartToHealthMilliseconds": {
+          "minimum": 73.22240299999999,
+          "median": 97.62411199999997,
+          "maximum": 118.96268499999996
+        },
+        "loopbackPNGMilliseconds": {
+          "minimum": 0.356907000000092,
+          "median": 0.5263219999999365,
+          "maximum": 1.4487490000000207
+        },
+        "processes": 5,
+        "requests": 25
+      }
+    }
+  ],
+  "pixelEquivalence": {
+    "encodingDiffers": true,
+    "decodedPixelsEqual": true,
+    "algorithm": "SHA-256 over row-major 8-bit non-premultiplied RGBA pixels; width/height recorded separately",
+    "decoders": [
+      "go1.27.3",
+      "go1.24.13"
+    ],
+    "reports": [
+      {
+        "path": ".nextgo-test-results/social-metadata/pixel-equivalence.json",
+        "bytes": 1362,
+        "sha256": "bb5866d5b9f3516061999f008b60b5a27469c9514c763b61a4b7ed62ea9a6518"
+      },
+      {
+        "path": ".nextgo-test-results/social-metadata/pixel-equivalence-go1.24.json",
+        "bytes": 1362,
+        "sha256": "bb5866d5b9f3516061999f008b60b5a27469c9514c763b61a4b7ed62ea9a6518"
+      }
+    ],
+    "images": [
+      {
+        "decodedNRGBA8SHA256": "7bf0b6b6b757d7606e7aa1fe7f6ca4c46548d76a825faf9103d862a2049669e8",
+        "encodedBytes": 16103,
+        "encodedSHA256": "89d313d1af0d866769218f3347e275632cf10c73f105ecd7117513ae01083963",
+        "height": 630,
+        "name": "opengraph-image.png",
+        "path": ".nextgo-test-results/social-metadata/export/lambda-features/opengraph-image.png",
+        "width": 1200
+      },
+      {
+        "decodedNRGBA8SHA256": "220385ee81622a45918a1668b896e787f0b835d6e521f04d8870256cbf2d99fc",
+        "encodedBytes": 16056,
+        "encodedSHA256": "38f320b2f8d3f150d5899c68db91540390c0d140064e068bba61f77601732431",
+        "height": 630,
+        "name": "twitter-image.png",
+        "path": ".nextgo-test-results/social-metadata/export/lambda-features/twitter-image.png",
+        "width": 1200
+      },
+      {
+        "decodedNRGBA8SHA256": "7bf0b6b6b757d7606e7aa1fe7f6ca4c46548d76a825faf9103d862a2049669e8",
+        "encodedBytes": 5011,
+        "encodedSHA256": "038ce08be59b08188bc37a5af73e3afd4ab19ceba077d758844c74464e744f4d",
+        "height": 630,
+        "name": "opengraph-image.png",
+        "path": ".nextgo-test-results/social-metadata/export-go1.24/lambda-features/opengraph-image.png",
+        "width": 1200
+      },
+      {
+        "decodedNRGBA8SHA256": "220385ee81622a45918a1668b896e787f0b835d6e521f04d8870256cbf2d99fc",
+        "encodedBytes": 4990,
+        "encodedSHA256": "14d5cd13c9269f58746e42b22e1a29f298daa7777a12f3ff614038c97da919c0",
+        "height": 630,
+        "name": "twitter-image.png",
+        "path": ".nextgo-test-results/social-metadata/export-go1.24/lambda-features/twitter-image.png",
+        "width": 1200
+      }
+    ],
+    "reproductionSource": "package main\nimport(\"bytes\";\"crypto/sha256\";\"encoding/hex\";\"encoding/json\";\"image/color\";\"image/png\";\"os\";\"path/filepath\")\nfunc main(){var output []map[string]any;for _,root:=range os.Args[1:]{for _,name:=range []string{\"opengraph-image.png\",\"twitter-image.png\"}{p:=filepath.Join(root,\"lambda-features\",name);data,err:=os.ReadFile(p);if err!=nil{panic(err)};img,err:=png.Decode(bytes.NewReader(data));if err!=nil{panic(err)};bounds:=img.Bounds();sum:=sha256.New();row:=make([]byte,bounds.Dx()*4);for y:=bounds.Min.Y;y<bounds.Max.Y;y++{for x:=bounds.Min.X;x<bounds.Max.X;x++{c:=color.NRGBAModel.Convert(img.At(x,y)).(color.NRGBA);i:=(x-bounds.Min.X)*4;row[i],row[i+1],row[i+2],row[i+3]=c.R,c.G,c.B,c.A};sum.Write(row)};encoded:=sha256.Sum256(data);output=append(output,map[string]any{\"path\":p,\"name\":name,\"width\":bounds.Dx(),\"height\":bounds.Dy(),\"encodedBytes\":len(data),\"encodedSHA256\":hex.EncodeToString(encoded[:]),\"decodedNRGBA8SHA256\":hex.EncodeToString(sum.Sum(nil))})}};json.NewEncoder(os.Stdout).Encode(output)}\n"
+  },
+  "localObservations": {
+    "report": {
+      "path": ".nextgo-test-results/social-metadata/local-observations.json",
+      "bytes": 16284,
+      "sha256": "cb2e3d03ed4222a156dbfa4885dd9a0d0b81392a461fbd731e6b9d7032c38761"
+    },
+    "source": {
+      "path": "tests/social-metadata-observe.mjs",
+      "sha256": "724e719709310b205e87965b25348b3b07e38a46a3bbdf2917e3f0472d734218"
+    },
+    "scope": "Fresh Go processes on warm local filesystem/cache; ordinary loopback HTTP only; no browser, provider or isolated CPU/load conditions.",
+    "startWindow": "Before fixture construction to real Go health response; includes artifact SHA-256 reads, temporary directory/source-listener setup, process spawn, startup PNG production/validation and readiness polling.",
+    "requestWindow": "Client request creation to complete identity PNG body over a new TCP connection (agent:false); includes Node/network/Go response work.",
+    "limitations": [
+      "Five processes and 25 PNG requests per SDK are descriptive observations, not tail/load statistics.",
+      "No matched no-producer control isolates PNG startup cost.",
+      "No cold filesystem, RSS/CPU/allocation/CLS measurement or hosted serverless qualification.",
+      "No performance release threshold or SDK speed comparison is inferred."
+    ]
+  },
+  "regressions": {
+    "demoNative": {
+      "path": ".nextgo-test-results/social-metadata/demo/server",
+      "bytes": 50086048,
+      "sha256": "22bf5277de9c17abafd6a576afa28b880ec363465e295160fe298c2fa2eb4958"
+    },
+    "demoStaticPin": {
+      "sha256": "e84e5e6dd2fb946af3ca6069157dcb5768b345325cc655d66f14f2901ad65702",
+      "bytes": 35921532,
+      "files": [
+        {
+          "path": ".nextgo-export.json",
+          "bytes": 936,
+          "sha256": "f1155fb8490e85017af03b19bc3fb445b3ab129fa9cce5a8011cc1dbfd8e96ff"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/app.wasm",
+          "bytes": 8670847,
+          "sha256": "230c2086eb567b9124c1e07f9ae4f4f7a12478442b83cba9648bb27ad6d36330"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/boot.js",
+          "bytes": 2592,
+          "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/module-34cce84d480b40b77335dfd7b15014ec98d9b282fa6c6d474f2caa8827cad2d2.wasm",
+          "bytes": 5404207,
+          "sha256": "34cce84d480b40b77335dfd7b15014ec98d9b282fa6c6d474f2caa8827cad2d2"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/module-9cc67d159ef7c75ac7e753bc19b0964c8a0a32d84d27abef913bd601138ee163.wasm",
+          "bytes": 5540067,
+          "sha256": "9cc67d159ef7c75ac7e753bc19b0964c8a0a32d84d27abef913bd601138ee163"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/module-d58c9ed0c2b6291874174966778c7f088778bc656b3c1c19c0fac5008f18f94b.wasm",
+          "bytes": 5293094,
+          "sha256": "d58c9ed0c2b6291874174966778c7f088778bc656b3c1c19c0fac5008f18f94b"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/module-e440079fdcb93e8e0b81474c77d8ddd09391b4a5bf1181ca776472f3a8cd97e5.wasm",
+          "bytes": 5511999,
+          "sha256": "e440079fdcb93e8e0b81474c77d8ddd09391b4a5bf1181ca776472f3a8cd97e5"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/module-f65aae0c108563642c0d534b317b3a47e1086bbec00f24fe1e0dde2e04a58425.wasm",
+          "bytes": 5408587,
+          "sha256": "f65aae0c108563642c0d534b317b3a47e1086bbec00f24fe1e0dde2e04a58425"
+        },
+        {
+          "path": "lambda-assets/_nextgo/9eac2ff11359a7269a57/wasm_exec.js",
+          "bytes": 16992,
+          "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.mp4",
+          "bytes": 2125,
+          "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.vtt",
+          "bytes": 96,
+          "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.wav",
+          "bytes": 9678,
+          "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.webm",
+          "bytes": 1098,
+          "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+        },
+        {
+          "path": "lambda-assets/assets/link-status.css",
+          "bytes": 81,
+          "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+        },
+        {
+          "path": "lambda-assets/assets/local-fonts.css",
+          "bytes": 211,
+          "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+        },
+        {
+          "path": "lambda-assets/assets/media.css",
+          "bytes": 54,
+          "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+        },
+        {
+          "path": "lambda-assets/assets/metadata-stream.css",
+          "bytes": 377,
+          "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+        },
+        {
+          "path": "lambda-assets/assets/social-image.css",
+          "bytes": 188,
+          "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+        },
+        {
+          "path": "lambda-assets/assets/style.css",
+          "bytes": 8625,
+          "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-demo.js",
+          "bytes": 157,
+          "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-early-second.js",
+          "bytes": 84,
+          "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-early.js",
+          "bytes": 81,
+          "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-module.js",
+          "bytes": 167,
+          "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/about.json",
+          "bytes": 4069,
+          "sha256": "209c41a9d084dc33c4a693a85f2df3956511f77a32d5bea7856d0c5bd9cb78f1"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/client-only.json",
+          "bytes": 7203,
+          "sha256": "18e82d8def98c1936811604a2b80e14d899d5f06eae31da42b366bc7511decbd"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/local-fonts.json",
+          "bytes": 4475,
+          "sha256": "2026eb3d4561ab2a03dafcb97f3f2d0fab4696fb16c9beca8d4ec19a8e53ce34"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+          "bytes": 964,
+          "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+          "bytes": 385,
+          "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+          "bytes": 592,
+          "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+        },
+        {
+          "path": "lambda-features/about/index.html",
+          "bytes": 9558,
+          "sha256": "fccb4190e590fba8900040feb3184047a7d16d794a81216a2d9b0c98dcd6df2e"
+        },
+        {
+          "path": "lambda-features/client-only/index.html",
+          "bytes": 11929,
+          "sha256": "bd252adfe6e0402846186da3b2ad3b085db6913e5250ec60fa789e57a56704f7"
+        },
+        {
+          "path": "lambda-features/local-fonts/index.html",
+          "bytes": 10014,
+          "sha256": "548f3b359d37748229d844e69022a3e68f2fe72f98485c997b4e1a90e227637d"
+        }
+      ]
+    },
+    "fontBrowser": {
+      "stats": {
+        "startTime": "2026-11-07T11:40:33.059Z",
+        "duration": 13993.167,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report": {
+        "path": ".nextgo-test-results/social-metadata/font-regression.json",
+        "bytes": 81597,
+        "sha256": "334b63d0a7d6ed578df8d26f0ce9c5f907294fd691be295e3e3b9646f0b377ba"
+      },
+      "transportProofs": [],
+      "noJavaScriptPNGDecodes": []
+    },
+    "metadataCDNStaticBrowser": {
+      "stats": {
+        "startTime": "2026-11-07T11:44:19.381Z",
+        "duration": 4675.495000000001,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report": {
+        "path": ".nextgo-test-results/social-metadata/legacy-chromium.json",
+        "bytes": 10140,
+        "sha256": "00fe7827e9dc62c6df3e69c40b6313035f3a9e51c92944f597fa204c191709ca"
+      },
+      "transportProofs": [],
+      "noJavaScriptPNGDecodes": []
+    },
+    "metadataStreamTransport": {
+      "cases": 15,
+      "failed": 0,
+      "skipped": 0,
+      "log": {
+        "path": ".nextgo-test-results/social-metadata/metadata-stream-regression.log",
+        "bytes": 1589,
+        "sha256": "5f0cdbcfebb59d0a08fc738b642e66bfefc9ba392195f0c1ca774dcf9c99c406"
+      }
+    },
+    "demoCoreSizing": {
+      "bytes": 8670847,
+      "go": "go1.27.3",
+      "goGzip9Bytes": 2231626,
+      "gzipPass": false,
+      "path": ".nextgo-test-results/social-metadata/demo-export/lambda-assets/_nextgo/9eac2ff11359a7269a57/app.wasm",
+      "rawPass": false,
+      "referenceGoGzip9Limit": 1677722,
+      "referenceRawLimit": 6291456,
+      "sha256": "230c2086eb567b9124c1e07f9ae4f4f7a12478442b83cba9648bb27ad6d36330"
+    }
+  },
+  "ci": {
+    "sdkSelectors": [
+      "1.24.x",
+      "stable"
+    ],
+    "socialImageCasesPerSDK": 48,
+    "profilesPerSDK": 16,
+    "browserProfiles": [
+      "chromium",
+      "firefox",
+      "webkit",
+      "webkit-touch"
+    ],
+    "transports": [
+      "http",
+      "buffered",
+      "streaming",
+      "static"
+    ],
+    "nativeContainerContract": "24 asset cases per SDK in a source-free scratch container",
+    "remoteStatus": "not run for this source",
+    "matrixList": {
+      "path": ".nextgo-test-results/social-metadata/matrix-list.txt",
+      "bytes": 8857,
+      "sha256": "24bec5f6a9dfaa00e5a6723f696e3ee0609c031109edc2bb7f69f139e6a92078"
+    }
+  },
+  "attempts": [
+    "The first report assembler incorrectly required equal encoded PNG byte totals across SDKs. Exact artifacts instead measure 32159 PNG bytes on Go 1.27.3 and 10001 on Go 1.24.13, with 112 alt-text bytes in either case. Both SDK decoders independently produce identical NRGBA8 pixel hashes for both encodings; the report now preserves separate encoded identities.",
+    "Initial root assertions incorrectly scanned the whole HTML including the still-public handler inventory. They now inspect only the head. A subsequent navigation assertion omitted legacy Envelope.Meta; it now checks head plus the separately transported legacy map. These assertion failures did not show incorrect production override/clear behavior.",
+    "One new export-test syntax typo was corrected before production builds. The corrected focused tests and complete two-SDK race/vet runs pass."
+  ],
+  "limitations": [
+    "Local Lambda Runtime API adapters are not hosted AWS/serverless execution; user selected local-machine qualification for now.",
+    "Only Linux desktop system Chromium was run locally. Defined Firefox/WebKit/touch and remote CI matrices remain pending.",
+    "The fixed app-root PNG conventions do not implement nested precedence, JPEG/GIF variants, multiple generated image IDs, request-dependent static producers or build-only PNG precomputation.",
+    "Original public cards use the existing ASCII bitmap face; this does not establish CSS/HTML/shaping/ImageResponse/Satori compatibility or general font/script quality.",
+    "Plain static hosting controls cache/MIME/CORS/ETag headers; tests use the existing no-cache file server, without synthetic framework validators. CDN/crawler behavior remains unqualified.",
+    "Startup and loopback timings include fixture/client work and warm local caches, lack a matched no-producer control and are not production cold-start/load/RSS/CPU/latency evidence or SDK speed comparisons.",
+    "The new report is not an independent security audit, decoder/encoder fuzz campaign, soak/recovery or provider-quota qualification.",
+    "Current Go 1.27.3 demo exceeds existing raw/Go gzip-9 WASM budgets. No budget increase or waiver; historical minimum-SDK sizing remains its own source checkpoint.",
+    "All 79 capabilities and G01-G11 are retained in docs/PARITY.md. No acceptance, gate closure or full parity/maturity claim.",
+    "The example uses illustrative public origins and explicit external override image URLs. Replace them before deployment; the framework does not fetch/publish arbitrary external metadata images."
+  ]
+}

@@ -43,34 +43,34 @@ func readExportConfigEnv(ctx context.Context, binary, build, domain string, env 
 func decodeExportConfig(data []byte, build, domain string) (nextgo.ExportConfig, error) {
 	var config nextgo.ExportConfig
 	// Versions 1/2 keep their original encoding/json extension behavior.
-	// Strict and duplicate-free shapes belong to the new version 3 contract.
+	// Strict and duplicate-free shapes belong to the version 3/4 contracts.
 	if len(data) == 0 || len(data) > 128<<10 || json.Unmarshal(data, &config) != nil {
 		return config, fmt.Errorf("invalid static export configuration; write application build logs to stderr")
 	}
-	if config.Build != build || config.Version < 1 || config.Version > 3 || config.Version == 1 && len(config.Metadata) > 0 || config.Version == 2 && len(config.Metadata) == 0 || config.Version != 3 && config.StaticShell != nil {
+	if config.Build != build || config.Version < 1 || config.Version > 4 || config.Version == 1 && len(config.Metadata) > 0 || config.Version == 2 && len(config.Metadata) == 0 || config.Version < 3 && (len(config.Fonts) > 0 || config.StaticShell != nil) || config.Version >= 3 && len(config.Fonts) == 0 && config.StaticShell == nil || config.Version == 3 && len(config.Fonts) > 0 && config.StaticShell != nil {
 		return config, fmt.Errorf("incompatible static export configuration")
 	}
-	if config.Version == 3 {
+	if config.Version >= 3 {
 		if !utf8.Valid(data) || wirejson.Unique(data) != nil || wirejson.Strict(data, &config) != nil {
-			return config, fmt.Errorf("invalid version 3 static export configuration")
+			return config, fmt.Errorf("invalid version 3/4 static export configuration")
 		}
 		var fields map[string]json.RawMessage
 		if json.Unmarshal(data, &fields) != nil || fields == nil {
 			return config, fmt.Errorf("invalid static export configuration object")
 		}
-		for _, field := range []string{"version", "build", "paths", "scopes", "staticShell"} {
+		for _, field := range []string{"version", "build", "paths", "scopes"} {
 			if len(fields[field]) == 0 || bytes.Equal(bytes.TrimSpace(fields[field]), []byte("null")) {
 				return config, fmt.Errorf("invalid static export configuration field %s", field)
 			}
-		}
-		if config.StaticShell == nil {
-			return config, fmt.Errorf("version 3 requires one static shell declaration")
 		}
 	}
 	if err := validateStaticShellExportDeclaration(config.StaticShell, config.Paths, config.Scopes, config.Domain); err != nil {
 		return config, err
 	}
 	if err := validateMetadataInventory(config.Paths, config.Metadata); err != nil {
+		return config, err
+	}
+	if err := validateFontInventory(config.Fonts); err != nil {
 		return config, err
 	}
 	expected := ""

@@ -19,11 +19,11 @@ import (
 )
 
 func TestOriginalFilesAndStartupFactoriesAtMount(t *testing.T) {
-	s, err := metadatafiles.New(context.Background(), metadatafiles.Sources{Static: os.DirFS("."), Robots: Robots, Sitemap: Sitemap, Manifest: Manifest}, metadatafiles.Options{BasePath: "/notes"})
+	s, err := metadatafiles.New(context.Background(), metadatafiles.Sources{Static: os.DirFS("."), Robots: Robots, Sitemap: Sitemap, Manifest: Manifest, OpenGraphImage: OpenGraphImage, TwitterImage: TwitterImage}, metadatafiles.Options{BasePath: "/notes"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(s.Entries()) != 6 {
+	if len(s.Entries()) != 10 {
 		t.Fatal(s.Entries())
 	}
 	for _, entry := range s.Entries() {

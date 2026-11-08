@@ -182,6 +182,9 @@ func (a *App) prerenderPaths(ctx context.Context) ([]string, error) {
 			copy.routes = append(copy.routes, r)
 		}
 	}
+	if err := copy.initRouteIndex(); err != nil {
+		return nil, err
+	}
 	// Keep the full route selection table for shadow checks.
 	paths, err := copy.StaticPaths(ctx)
 	if err != nil {

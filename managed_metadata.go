@@ -109,6 +109,7 @@ func (a *App) withManagedMetadataHead(page Page) Page {
 		return page
 	}
 	page.managedHead = nil
+	page.managedHeadErr = nil
 	if a.config.metadataSet == nil {
 		return page
 	}
@@ -120,6 +121,24 @@ func (a *App) withManagedMetadataHead(page Page) Page {
 			}
 		case "icon", "apple-touch-icon":
 			if page.Metadata.Icons != nil {
+				continue
+			}
+		}
+		page.managedHead = append(page.managedHead, element)
+	}
+	social, err := a.config.metadataSet.SocialHead(page.Metadata.BaseURL)
+	if err != nil {
+		page.managedHeadErr = err
+		return page
+	}
+	for _, element := range social {
+		if strings.HasPrefix(element.Attrs["property"], "og:image") && page.Metadata.OpenGraph.Images != nil {
+			continue
+		}
+		if strings.HasPrefix(element.Attrs["name"], "twitter:") {
+			_, legacyImage := page.Meta["twitter:image"]
+			_, legacyValue := page.Meta[element.Attrs["name"]]
+			if page.Metadata.Twitter.Images != nil || legacyImage || legacyValue || element.Attrs["name"] == "twitter:card" && page.Metadata.Twitter.Card != "" {
 				continue
 			}
 		}

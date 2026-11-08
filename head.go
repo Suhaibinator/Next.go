@@ -71,6 +71,10 @@ func assembleHead(page Page, deployment paths.Config, frozen frozenHeadResources
 	if err != nil {
 		return
 	}
+	if page.managedHeadErr != nil {
+		err = page.managedHeadErr
+		return
+	}
 	metadata := page.Metadata
 	metadata.Title = ""
 	metadata.Description = ""
