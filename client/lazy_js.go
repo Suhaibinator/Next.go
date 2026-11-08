@@ -50,7 +50,7 @@ var lazyRetryScope *Scope
 
 var lazySlots = make(chan struct{}, 2)
 
-const moduleABI = 6
+const moduleABI = 7
 const moduleBridgeName = "__nextgoModuleHost"
 
 func RegisterLazy(name string, module LazyModule) {
@@ -474,6 +474,7 @@ func installModuleHost() {
 	}
 	bind("skipTransition", func([]js.Value) any { skipViewTransition(); return "" })
 	bind("script", scriptHostPromise)
+	bind("importModule", importModuleHostPromise)
 	bind("actionView", actionViewHostPromise)
 	bind("mutation", mutationHostPromise)
 	bind("actionFence", func([]js.Value) any { beginFrameworkAction(); return "" })

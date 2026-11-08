@@ -67,9 +67,16 @@ export function observe(origin, path, {method = 'GET', headers = {}} = {}) {
     return bounded(promise).finally(() => listeners.delete(listener));
   }};
 }
-export async function startMetadataDeployment(transport, {html = true, mode = '', cancelCase = false} = {}) {
+export async function startMetadataDeployment(transport, {html = true, mode = '', cancelCase = false, binary = process.env.NEXTGO_METADATA_DEPLOY_BINARY, sha256 = process.env.NEXTGO_METADATA_DEPLOY_SHA256, port = 4280, startupEnvironment = {}} = {}) {
   assert.ok(['http', 'buffered', 'streaming'].includes(transport));
-  const binary = process.env.NEXTGO_METADATA_DEPLOY_BINARY, expected = process.env.NEXTGO_METADATA_DEPLOY_SHA256;
+  assert.ok(Number.isInteger(port) && port >= 1024 && port <= 65535, 'invalid fixture port');
+  // Literal public example path settings, never ambient account/credential
+  // inheritance. The generated executable still owns all HTML and resources.
+  for (const [key, value] of Object.entries(startupEnvironment)) {
+    assert.ok(['NEXTGO_METADATA_BASE_PATH', 'NEXTGO_METADATA_ASSET_PREFIX'].includes(key), 'unsupported public fixture setting');
+    assert.equal(typeof value, 'string'); assert.ok(value.length <= 256 && !/[\r\n\0]/.test(value));
+  }
+  const expected = sha256;
   assert.match(expected || '', /^[a-f0-9]{64}$/); assert.equal(await artifactPin(binary), expected);
   const envdir = await mkdtemp(join(tmpdir(), 'nextgo-metadata-local-env-')), pending = [], gates = new Set(), sockets = new Set(), sourceRecords = [];
   let worker, native, nativeClosed, sourcePort, logs = '', closed = false;
@@ -85,7 +92,7 @@ export async function startMetadataDeployment(transport, {html = true, mode = ''
   source.maxConnections = 8; source.maxHeadersCount = 32; source.headersTimeout = 3000;
   source.on('connection', socket => {sockets.add(socket); socket.once('close', () => sockets.delete(socket));});
   const basePath = transport === 'http' ? '' : '/lambda-features';
-  const fixture = {origin: 'http://127.0.0.1:4280', path: basePath + '/metadata-stream', sourceRecords, cleanupProof, runtimeProof: () => worker?.snapshot(), arm() {assert.ok(pending.length < 8 && gates.size < 8); const gate = {entered: deferred(), closed: deferred(), released: false, release() {gate.released = true; gate.respond?.();}}; gates.add(gate); pending.push(gate); return gate;}, async health() {
+  const fixture = {origin: `http://127.0.0.1:${port}`, path: basePath + '/metadata-stream', sourceRecords, cleanupProof, runtimeProof: () => worker?.snapshot(), arm() {assert.ok(pending.length < 8 && gates.size < 8); const gate = {entered: deferred(), closed: deferred(), released: false, release() {gate.released = true; gate.respond?.();}}; gates.add(gate); pending.push(gate); return gate;}, async health() {
     const actual = observe(fixture.origin, basePath + '/api/health'); const result = await bounded(actual.done);
     if (result.error) {const error = new Error('Actual Go health transport failed'); error.code = result.error; error.beforeHeaders = !result.headersReceived; throw error;}
     assert.equal(result.status, 200); assert.equal(JSON.parse(result.text).framework, 'Next.go'); if (worker) {const report = worker.snapshot().reports.at(-1); assert.equal(report.path, basePath + '/api/health'); assert.equal(report.statusCode, 200); assert.ok(report.httpBytes > 0);} return result;
@@ -101,7 +108,7 @@ export async function startMetadataDeployment(transport, {html = true, mode = ''
     if (ownedPID) try {await processAbsent(ownedPID); cleanupProof.nativePIDAndGroupAbsent = true;} catch (error) {failures.push(error);}
     for (const socket of sockets) socket.destroy();
     try {await bounded(new Promise(done => source.close(done)), 2500); await waitUntil(() => !source.listening && sockets.size === 0, 'Source sockets did not physically close'); cleanupProof.sourceSocketsClosed = true;} catch (error) {failures.push(error);}
-    if (ownedPID) try {await listenerAbsent(4280); cleanupProof.applicationListenerAbsent = true;} catch (error) {failures.push(error);}
+    if (ownedPID) try {await listenerAbsent(port); cleanupProof.applicationListenerAbsent = true;} catch (error) {failures.push(error);}
     if (sourcePort) try {await listenerAbsent(sourcePort); cleanupProof.sourceListenerAbsent = true;} catch (error) {failures.push(error);}
     try {await rm(envdir, {recursive: true, force: true}); await assert.rejects(lstat(envdir), {code: 'ENOENT'}); cleanupProof.emptyEnvDirectoryRemoved = true;} catch (error) {failures.push(error);}
     try {assert.equal(await artifactPin(binary), expected);} catch (error) {failures.push(error);}
@@ -112,11 +119,11 @@ export async function startMetadataDeployment(transport, {html = true, mode = ''
     sourcePort = source.address().port;
     const sourceURL = `http://127.0.0.1:${source.address().port}/value`, timeout = cancelCase ? '2s' : '8s';
     if (transport === 'http') {
-      const clean = settingsEnvironment(sourceURL, String(html), mode, timeout, envdir);
-      native = spawn(binary, ['-addr', '127.0.0.1:4280', '-env-dir', envdir], {cwd: envdir, detached: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'], env: clean});
+      const clean = {...settingsEnvironment(sourceURL, String(html), mode, timeout, envdir), ...startupEnvironment};
+      native = spawn(binary, ['-addr', `127.0.0.1:${port}`, '-env-dir', envdir], {cwd: envdir, detached: true, shell: false, stdio: ['ignore', 'pipe', 'pipe'], env: clean});
       native.stdout.on('data', bytes => {logs = (logs + bytes.toString()).slice(-16 << 10);}); native.stderr.on('data', bytes => {logs = (logs + bytes.toString()).slice(-16 << 10);});
       nativeClosed = new Promise(done => {native.once('error', error => done({error: error.code})); native.once('close', (code, signal) => done({code, signal}));});
-    } else worker = await startLambdaGateway({binary, mode: transport, port: 4280, workerArgs: ['-env-dir', envdir], trustedEnvironment: settingsEnvironment(sourceURL, String(html), mode, timeout, envdir)});
+    } else worker = await startLambdaGateway({binary, mode: transport, port, workerArgs: ['-env-dir', envdir], trustedEnvironment: {...settingsEnvironment(sourceURL, String(html), mode, timeout, envdir), ...startupEnvironment}});
     // Readiness is the real Go API endpoint, never the gateway ready shortcut.
     const deadline = Date.now() + 10_000;
     for (;;) {try {await fixture.health(); break;} catch (error) {if (!error.beforeHeaders || !['ECONNREFUSED', 'ECONNRESET'].includes(error.code) || Date.now() >= deadline) throw error; await new Promise(done => setTimeout(done, 25));}}

@@ -91,11 +91,12 @@ type Page struct {
 	// Resources declares local stylesheets and font preloads for this page.
 	Resources []assets.Resource
 	// Stream enables progressive ui.Defer boundaries on full-document requests.
-	Stream       bool
-	preparedHead *renderedHead
-	managedHead  []seo.Element
-	document     *Document
-	partial      *partialResponse
+	Stream         bool
+	preparedHead   *renderedHead
+	managedHead    []seo.Element
+	managedHeadErr error
+	document       *Document
+	partial        *partialResponse
 }
 type PageFunc func(*Context) (Page, error)
 type LayoutFunc func(*Context, ui.Node) (ui.Node, error)
@@ -184,6 +185,11 @@ type Config struct {
 	MetadataFiles    metadatafiles.Sources
 	metadataSet      *metadatafiles.Set
 	metadataBasePath string
+	// LocalFonts declares immutable, explicitly public font snapshots. Managed
+	// delivery and static export use the same bounded content-addressed inventory.
+	LocalFonts  []*assets.LocalFonts
+	fontFiles   map[string]*assets.LocalFonts
+	fontEntries []assets.FontAsset
 	// Public explicitly publishes runtime settings into every browser document.
 	// Values are public data. New validates and freezes this map.
 	Public map[string]string
@@ -206,13 +212,19 @@ type Config struct {
 	AssetPrefix   string
 	Routes        []Route
 	NotFound      PageFunc
-	Unauthorized  PageFunc
-	Forbidden     PageFunc
-	Assets        fs.FS
-	BuildID       string
-	Dev           bool
-	Logger        *log.Logger
-	Cache         *cache.Store
+	// GlobalError is the terminal synchronous page-error fallback. It renders
+	// without route layouts or slot ownership when no route Error handles the
+	// failure, or when that boundary fails. Its own error/panic uses the generic
+	// fallback. Response-serialization and already-committed stream failures
+	// retain their separate fail-closed paths.
+	GlobalError  ErrorFunc
+	Unauthorized PageFunc
+	Forbidden    PageFunc
+	Assets       fs.FS
+	BuildID      string
+	Dev          bool
+	Logger       *log.Logger
+	Cache        *cache.Store
 	// SharedCache stores opt-in public rendered snapshots. Its namespace must
 	// be trusted for HTML and isolated from unrelated applications/writers.
 	SharedCache   *shared.Store
@@ -253,6 +265,7 @@ type App struct {
 	proxy               *rewriteProxy
 	config              Config
 	routes              []Route
+	routeIndex          *routing.Index
 	handler             http.Handler
 	navigationJSON      string
 	configurationID     string
@@ -261,6 +274,7 @@ type App struct {
 	assetHandler        http.Handler
 	profiles            map[string]cache.Profile
 	intercepts          []interceptionOwner
+	multipleRoots       bool
 }
 
 // ErrNotFound lets a loader return the application's custom 404.
@@ -273,6 +287,7 @@ const NavigationProtocolVersion = navigation.ProtocolVersion
 type Document = seo.DocumentAttributes
 
 type Envelope struct {
+	Root string `json:"root,omitempty"`
 	// Shell identifies a negotiated public partial shell. ShellRef is only sent
 	// in a stream when the caller proposes that exact cached shell generation.
 	Shell         string                      `json:"shell,omitempty"`
@@ -394,6 +409,9 @@ func newApp(c Config) (*App, error) {
 	if err := freezeManagedMetadata(&c); err != nil {
 		return nil, err
 	}
+	if err := freezeManagedFonts(&c); err != nil {
+		return nil, err
+	}
 	if err := freezeManagedOfflineConfig(&c); err != nil {
 		return nil, err
 	}
@@ -404,7 +422,7 @@ func newApp(c Config) (*App, error) {
 		c.BuildID = "development"
 	}
 	switch c.BuildID {
-	case "actions", "loading", "image", "events", "draft", "offline":
+	case "actions", "loading", "image", "events", "draft", "offline", "local-fonts":
 		return nil, fmt.Errorf("build ID %q is reserved for a framework service", c.BuildID)
 	}
 	if c.Logger == nil {
@@ -452,6 +470,9 @@ func newApp(c Config) (*App, error) {
 	sort.SliceStable(a.routes, func(i, j int) bool {
 		return routing.Less(a.routes[i].Pattern, a.routes[j].Pattern)
 	})
+	if err := a.initRouteIndex(); err != nil {
+		return nil, err
+	}
 	if err := a.initPrerenderPolicies(); err != nil {
 		return nil, err
 	}
@@ -479,6 +500,7 @@ func newApp(c Config) (*App, error) {
 	if err := a.initManagedOffline(); err != nil {
 		return nil, err
 	}
+	a.initDocumentRoots()
 	manifest := navigation.Manifest{Public: c.Public, Development: c.Dev, RetainRoutes: c.RetainRoutes, Documents: documentPathPatterns(c.DocumentPaths)}
 	if c.RetainRoutes {
 		manifest.MergeVersion = navigation.MergeVersion
@@ -500,12 +522,15 @@ func newApp(c Config) (*App, error) {
 		}
 	}
 	for _, route := range a.routes {
-		manifest.Routes = append(manifest.Routes, navigation.Route{Pattern: route.Pattern, Endpoint: route.API != nil})
+		manifest.Routes = append(manifest.Routes, navigation.Route{Pattern: route.Pattern, Endpoint: route.API != nil, Root: a.routeDocumentRoot(route)})
 	}
 	for path := range a.config.Handlers {
 		manifest.Handlers = append(manifest.Handlers, path)
 	}
 	manifest.Handlers = append(manifest.Handlers, a.metadataEndpointPatterns()...)
+	for path := range c.fontFiles {
+		manifest.Handlers = append(manifest.Handlers, path)
+	}
 	manifest.Handlers = append(manifest.Handlers, a.offlineEndpointPatterns()...)
 	sort.Strings(manifest.Handlers)
 	manifestJSON, _ := json.Marshal(manifest)
@@ -574,6 +599,9 @@ func (a *App) serveRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if a.serveManagedMetadata(w, r) {
+		return
+	}
+	if a.serveManagedFonts(w, r) {
 		return
 	}
 	// An explicit alternate asset prefix is a public asset-only mount.
@@ -661,11 +689,8 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	if a.applyRewrites(w, r) {
 		return
 	}
-	for _, route := range a.routes {
-		params, ok := match(route.Pattern, r.URL.EscapedPath())
-		if !ok {
-			continue
-		}
+	if index, params, ok := a.routeIndex.Match(r.URL.EscapedPath()); ok {
+		route := a.routes[index]
 		telemetry.SetRoute(r.Context(), route.Pattern)
 		if route.API != nil {
 			for k, v := range params {
@@ -701,6 +726,9 @@ func (a *App) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if len(route.Slots) > 0 || hasPrimaries(route) {
 			r = r.WithContext(context.WithValue(r.Context(), parallelRequestKey{}, true))
+		}
+		if a.multipleRoots {
+			r = r.WithContext(context.WithValue(r.Context(), documentRootKey{}, a.routeDocumentRoot(route)))
 		}
 		request = request.WithContext(r.Context())
 		ctx := &Context{Context: r.Context(), Request: request, Params: params, Query: request.URL.Query()}
@@ -901,7 +929,7 @@ func (a *App) renderError(c *Context, r Route, cause error) (page Page, status i
 	defer func() {
 		if p := recover(); p != nil {
 			a.config.Logger.Printf("error boundary panic: %v", p)
-			page, status = errorPage(), 500
+			page, status = a.renderGlobalError(c, fmt.Errorf("error boundary panic: %v", p)), 500
 		}
 	}()
 	if r.Error != nil {
@@ -918,14 +946,37 @@ func (a *App) renderError(c *Context, r Route, cause error) (page Page, status i
 			return a.renderAccess(c, r, err)
 		}
 		a.config.Logger.Printf("error boundary failed: %v", err)
+		cause = err
 	}
-	return errorPage(), 500
+	return a.renderGlobalError(c, cause), 500
+}
+
+func (a *App) renderGlobalError(c *Context, cause error) (page Page) {
+	page = errorPage()
+	if a.config.GlobalError == nil {
+		return page
+	}
+	defer func() {
+		if failure := recover(); failure != nil {
+			a.config.Logger.Printf("global error boundary panic: %v", failure)
+			page = errorPage()
+		}
+	}()
+	// Context owns response synchronization and must not be copied. Share its
+	// staged controls explicitly, while dropping all route/slot/layout authority.
+	view := &Context{Context: c.Context, Request: c.Request, Params: c.Params, Query: c.Query, responseRef: c.responseControls()}
+	result, err := a.config.GlobalError(view, cause)
+	if err != nil {
+		a.config.Logger.Printf("global error boundary failed: %v", err)
+		return page
+	}
+	return result
 }
 func (a *App) notFound(c *Context) (page Page, status int) {
 	defer func() {
 		if v := recover(); v != nil {
 			a.config.Logger.Printf("404 panic: %v", v)
-			page, status = errorPage(), 500
+			page, status = a.renderGlobalError(c, fmt.Errorf("404 panic: %v", v)), 500
 		}
 	}()
 	if a.config.NotFound != nil {
@@ -940,7 +991,7 @@ func (a *App) notFound(c *Context) (page Page, status int) {
 			return a.renderAccess(c, Route{}, err)
 		}
 		a.config.Logger.Printf("404: %v", err)
-		return errorPage(), 500
+		return a.renderGlobalError(c, err), 500
 	}
 	return Page{Title: "Not found", Body: ui.El("h1", nil, ui.Text("Page not found"))}, 404
 }
@@ -1190,6 +1241,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		shell, shellRef := partialEnvelopeFields(r, p, status, false)
 		envelope := Envelope{
+			Root:  a.requestDocumentRoot(r),
 			Shell: shell, ShellRef: shellRef,
 			Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: documentAttrs,
 			Build: a.config.BuildID, URL: requestURI(r), HTML: body,
@@ -1233,6 +1285,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Transitions    bool
 		Navigation     string
 		Configuration  string
+		Root           string
 		Draft          string
 		Paths          paths.Config
 		Runtime        string
@@ -1249,7 +1302,7 @@ func (a *App) respondPage(w http.ResponseWriter, r *http.Request, p Page, status
 		Build: a.config.BuildID, Dev: a.config.Dev, DevGeneration: a.config.DevGeneration,
 		Head:     template.HTML(nonceHead(headHTML, scripts.Nonce(r.Context()))),
 		Preserve: a.config.PreserveLayouts, Transitions: a.config.ViewTransitions,
-		Navigation: a.navigationJSON, Configuration: a.configurationID, Draft: a.draftState(r),
+		Navigation: a.navigationJSON, Configuration: a.configurationID, Root: a.requestDocumentRoot(r), Draft: a.draftState(r),
 		Paths: a.paths, Runtime: a.paths.RuntimeURL(a.config.BuildID),
 		Style: a.offlineStylesheetURL(r), Nonce: scripts.Nonce(r.Context()),
 		Early:          template.HTML(a.earlyScripts(r)),
@@ -1277,7 +1330,7 @@ var document = template.Must(template.New("document").Parse(`<!doctype html>
 <style{{if .Nonce}} nonce="{{.Nonce}}"{{end}}>` + frameworkCSS + `</style>
 <link rel="stylesheet" href="{{.Style}}">
 {{.Early}}
-</head><body{{if .Merge}} data-nextgo-merge="{{.Merge}}"{{end}}{{if .Retention}} data-nextgo-retention="{{.Retention}}"{{end}}{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
+</head><body{{if .Root}} data-nextgo-root="{{.Root}}"{{end}}{{if .Merge}} data-nextgo-merge="{{.Merge}}"{{end}}{{if .Retention}} data-nextgo-retention="{{.Retention}}"{{end}}{{if .Offline}} data-nextgo-offline="{{.Offline}}"{{end}}{{if .OfflineSaved}} data-nextgo-offline-saved="1"{{end}}{{if .Draft}} data-nextgo-draft="{{.Draft}}"{{end}} data-nextgo-configuration="{{.Configuration}}" data-nextgo-basepath="{{.Paths.BasePath}}" data-nextgo-assets="{{.Paths.AssetPrefix}}" data-nextgo-runtime="{{.Runtime}}"{{if .Paths.TrailingSlash}} data-nextgo-trailing-slash="true"{{end}} data-nextgo-navigation="{{.Navigation}}" data-nextgo-build="{{.Build}}"{{if .Dev}} data-nextgo-dev="true" data-nextgo-dev-generation="{{.DevGeneration}}"{{end}}{{if .Preserve}} data-nextgo-preserve-layouts="true"{{end}}{{if .Transitions}} data-nextgo-transitions="true"{{end}}>
 <div id="nextgo-status" role="status" aria-live="polite" hidden></div>
 ` + routeAnnouncer + `
 <div id="nextgo-app" tabindex="-1">{{.Body}}</div>

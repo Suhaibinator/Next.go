@@ -72,7 +72,7 @@ func (a *App) respondNavigationStream(w http.ResponseWriter, r *http.Request, pa
 			if shellRef {
 				html = ""
 			}
-			payload, err := json.Marshal(Envelope{Shell: shell, ShellRef: shellRef, Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: document, Build: a.config.BuildID, URL: requestURI(r), HTML: html, Title: page.Title, Description: page.Description, Meta: page.Meta, Status: 200, Head: head})
+			payload, err := json.Marshal(Envelope{Root: a.requestDocumentRoot(r), Shell: shell, ShellRef: shellRef, Version: NavigationProtocolVersion, Configuration: a.configurationID, Document: document, Build: a.config.BuildID, URL: requestURI(r), HTML: html, Title: page.Title, Description: page.Description, Meta: page.Meta, Status: 200, Head: head})
 			if err != nil {
 				return err
 			}

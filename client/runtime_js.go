@@ -233,6 +233,11 @@ func Run() {
 			return
 		}
 	}
+	if err := routeManifest.CompileRoutes(); err != nil {
+		hydrate()
+		report("Invalid navigation routes")
+		return
+	}
 
 	public, publicErr := publicconfig.Clone(routeManifest.Public)
 	if publicErr != nil {
@@ -504,6 +509,16 @@ func NavigateWithOptions(target string, options NavigationOptions) (err error) {
 	}
 	u, err := pageURL(target)
 	if err != nil {
+		if rootBoundaryURL(u) {
+			cancelPendingNavigation()
+			saveScroll()
+			method := "assign"
+			if replace {
+				method = "replace"
+			}
+			win.Get("location").Call(method, u.Get("href").String())
+			return nil
+		}
 		return err
 	}
 	old := win.Get("URL").New(currentURL)
@@ -567,6 +582,15 @@ func Refresh() {
 }
 
 func eligibleURL(u js.Value) bool {
+	if !eligibleDocumentURL(u) {
+		return false
+	}
+	path, _ := deployment.Strip(u.Get("pathname").String())
+	return routeManifest.SameRoot(path, documentRoot())
+}
+
+// Shared origin/scope checks apply equally to SPA and root-boundary requests.
+func eligibleDocumentURL(u js.Value) bool {
 	if refreshFrozen() {
 		return false
 	}
@@ -824,6 +848,7 @@ type headElement struct {
 }
 
 type envelope struct {
+	Root          string `json:"root,omitempty"`
 	metadata      *metadataHead
 	Document      navigation.Document   `json:"document"`
 	Version       int                   `json:"version"`
@@ -848,7 +873,7 @@ type envelope struct {
 // Account for payload strings plus conservative per-entry/map overhead. This
 // bounds retained response data; browser DOM and the Go heap are separate costs.
 func envelopeBytes(data envelope) int64 {
-	size := int64(512 + len(data.URL) + len(data.Build) + len(data.Configuration) + len(data.Shell) + len(data.Document.Language) + len(data.Document.Direction) + len(data.Document.Viewport) + len(data.HTML) + len(data.Title) + len(data.Description))
+	size := int64(512 + len(data.Root) + len(data.URL) + len(data.Build) + len(data.Configuration) + len(data.Shell) + len(data.Document.Language) + len(data.Document.Direction) + len(data.Document.Viewport) + len(data.HTML) + len(data.Title) + len(data.Description))
 	for key, value := range data.Meta {
 		size += int64(96 + len(key) + len(value))
 	}
@@ -1138,6 +1163,10 @@ func decodeEnvelopeResponseWithShell(resp Response, body []byte, target string, 
 		if !shellOptions.prefetch {
 			revokeMergeDocument()
 		}
+		invalidateCache()
+		return data, 0, true, nil
+	}
+	if data.Root != documentRoot() {
 		invalidateCache()
 		return data, 0, true, nil
 	}

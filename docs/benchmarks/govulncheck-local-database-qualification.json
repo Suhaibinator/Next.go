@@ -1,0 +1,2394 @@
+{
+  "format": "nextgo-local-official-advisory-qualification-v1",
+  "recordedAtUTC": "2026-11-07T19:28:43.404048+00:00",
+  "status": "advisory-evidence-only-not-source-audit-or-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "GoFiles": 1245,
+    "GoSourceManifest": {
+      "path": ".nextgo-test-results/routing-index/go-source-manifest.json",
+      "bytes": 128817,
+      "sha256": "8ceb874b665f243a5c1e39bf8eab27acdcda8d1cec75802a693ce98cff5da29c"
+    },
+    "go.mod": {
+      "path": "go.mod",
+      "bytes": 48,
+      "sha256": "5baa3db5d68f402f8be2ee6eab92cf9309c5f290b3454fc34fbb999a6bc93e6b"
+    },
+    "productionDockerfile": {
+      "path": "Dockerfile",
+      "bytes": 4521,
+      "sha256": "c0161b2b946cfcb76e0e0332505d8b164a164fe519aa150146ea5c4fa0a37bc3"
+    },
+    "CI": {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 52684,
+      "sha256": "68f538fb0cf01d24c5b72e17909f785bc7960eac42ba606708f6619bb120b7b3"
+    }
+  },
+  "database": {
+    "officialRepository": "https://github.com/golang/vulndb",
+    "observedCurrentHEAD": "e22db6528018f9725b3230c4e6429c791f40bb15",
+    "modulePath": "golang.org/x/vulndb",
+    "moduleVersion": "v0.0.0-20261105234957-e22db6528018",
+    "moduleSum": "h1:mfngRv0Yoh0VApsXKEN82CjD99kl7mtparN3bs3JnqI=",
+    "goModSum": "h1:HnEYM2y9jCNxxP/kHt25bXeLz4yUbQ9rg5c2iP/ggQ4=",
+    "sourceAcquisition": "Official codeload commit archive reconstructed with golang.org/x/mod/zip and authenticated by normal Go module download with GOSUMDB=sum.golang.org; no checksum exemptions. The reconstructed ZIP matches the public module transparency checksum.",
+    "sourceArchive": {
+      "path": ".nextgo-test-results/wasm-optimization/vulndb-source.tar.gz",
+      "bytes": 18663848,
+      "sha256": "ff19933834c8359a8dd088adfb1a2e465f8b62d5327a6af69725efe112af78df"
+    },
+    "moduleVerification": {
+      "path": ".nextgo-test-results/wasm-optimization/vulndb-verified-download.json",
+      "bytes": 767,
+      "sha256": "69902aa0a6543a36d69fafc55d17fe8d914f5f86f78dc5547a9113253b2772b9"
+    },
+    "HEADObservation": {
+      "path": ".nextgo-test-results/wasm-optimization/vulndb-head.txt",
+      "bytes": 46,
+      "sha256": "c9dadb4c9c4e2764c3ad8737bf9574c1ec58c32dabd3556cdba290338bcf2b4c"
+    },
+    "generator": "Unmodified official cmd/gendb at the verified module version, using official Git history for publication/modified timestamps.",
+    "generatorBinary": {
+      "path": "/workspace/.tools/bin/gendb",
+      "bytes": 31453501,
+      "sha256": "21b4c6814da66bfca720e22cc92f0d49fa5cf09a7a2f5be04ebdaf06d23def2c"
+    },
+    "generatorBuildInfo": {
+      "path": ".nextgo-test-results/wasm-optimization/gendb-build-info.txt",
+      "bytes": 6443,
+      "sha256": "a4db6ad63c4be096ee43119e2048ddcee8f8b8e9424668ae322c1230ea2be43c"
+    },
+    "generatorLog": {
+      "path": ".nextgo-test-results/wasm-optimization/gendb.log",
+      "bytes": 85,
+      "sha256": "a65f232193186f2a747a09144162cfe9d3d4e3270840d04ee76f4eb5fe9abfe8"
+    },
+    "entryCount": 4789,
+    "files": 9584,
+    "databaseMetadata": {
+      "modified": "2026-11-05T23:49:57Z"
+    },
+    "fileManifest": {
+      "path": ".nextgo-test-results/wasm-optimization/database-file-manifest.json",
+      "bytes": 876912,
+      "sha256": "e1620e6a8f8baefeb075083c832df6e2570d381a6fa37d0a78491a51faa9e263"
+    }
+  },
+  "tool": {
+    "name": "govulncheck",
+    "version": "v1.9.0",
+    "binary": {
+      "path": "/workspace/.tools/bin/govulncheck",
+      "bytes": 16007701,
+      "sha256": "64ee360bad2dcd834cf2b585f54a835fa1d09c920dccad4a0a28528abf811ed0"
+    },
+    "buildInfo": {
+      "path": ".nextgo-test-results/wasm-optimization/govulncheck-build-info.txt",
+      "bytes": 780,
+      "sha256": "4fbe972b26dd17278aaf62f05f94497881ecc4eb62d03f4e20e6153e118254ca"
+    },
+    "databaseURL": "file:///workspace/.tools/vulndb-database-e22db6528018",
+    "JSONExitSemantics": "JSON mode exits zero even with findings; the pinned tool converter returns 3 for the recorded legacy-SDK findings."
+  },
+  "scans": {
+    "binary-demo-go1.24": {
+      "SDK": "go1.24.13",
+      "result": "KNOWN_STDLIB_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 3,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "scan_level": "symbol",
+          "scan_mode": "binary"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.24.13",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go",
+              "version": "v0.0.0-20261026215559-747c43a9d427+dirty"
+            },
+            {
+              "path": "stdlib",
+              "version": "go1.24.13"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "progress": 3,
+        "SBOM": 1,
+        "osv": 187,
+        "finding": 19526
+      },
+      "findingMessages": 19526,
+      "uniqueAdvisoryIDsByLevel": {
+        "module": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "package": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "symbol": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ]
+      },
+      "uniqueCountsByLevel": {
+        "module": 42,
+        "package": 42,
+        "symbol": 42
+      },
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.24.json",
+        "bytes": 5881132,
+        "sha256": "009df3eaefa1a4153109301732b03e6810cddc0ad4144a27c0777c4ef43d7ecb"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.24.txt",
+        "bytes": 19808,
+        "sha256": "39b76c47be85238705ad2d322c7955a497635d132693a278e17d8d74f89b028f"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "artifact": {
+        "path": ".nextgo-test-results/routing-index/demo-go1.24/server",
+        "bytes": 45011128,
+        "sha256": "1f7d4f29cf309605099885c699aef87066478644c3b7b987f9ff4bb58adac798"
+      }
+    },
+    "binary-demo-go1.27": {
+      "SDK": "go1.27.3",
+      "result": "NO_KNOWN_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 0,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "scan_level": "symbol",
+          "scan_mode": "binary"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.27.3",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go",
+              "version": "v0.0.0-20261026215559-747c43a9d427+dirty"
+            },
+            {
+              "path": "stdlib",
+              "version": "go1.27.3"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "progress": 3,
+        "SBOM": 1,
+        "osv": 187
+      },
+      "findingMessages": 0,
+      "uniqueAdvisoryIDsByLevel": {},
+      "uniqueCountsByLevel": {},
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.27.json",
+        "bytes": 573866,
+        "sha256": "46a61b3562240e21f3e5b657be48ea5043840f9c47b7447b464c175b0c4cbec4"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.27.txt",
+        "bytes": 26,
+        "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-demo-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "artifact": {
+        "path": ".nextgo-test-results/routing-index/demo-go1.27/server",
+        "bytes": 50155680,
+        "sha256": "c70268cfff5a0f7ac8f6e22c439832e0761c0bfb5538bcac00b71fc964841e90"
+      }
+    },
+    "binary-roots-go1.24": {
+      "SDK": "go1.24.13",
+      "result": "KNOWN_STDLIB_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 3,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "scan_level": "symbol",
+          "scan_mode": "binary"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.24.13",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go",
+              "version": "v0.0.0-20261026215559-747c43a9d427+dirty"
+            },
+            {
+              "path": "stdlib",
+              "version": "go1.24.13"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "progress": 3,
+        "SBOM": 1,
+        "osv": 187,
+        "finding": 19526
+      },
+      "findingMessages": 19526,
+      "uniqueAdvisoryIDsByLevel": {
+        "module": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "package": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "symbol": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ]
+      },
+      "uniqueCountsByLevel": {
+        "module": 42,
+        "package": 42,
+        "symbol": 42
+      },
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.24.json",
+        "bytes": 5881132,
+        "sha256": "3e44237d1b38b273834b502c9b75ea20f34f4a0b5da735583cde2a062e1630e0"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.24.txt",
+        "bytes": 19758,
+        "sha256": "3e836ff24302bef5bc7248f535f2ef45da787dfab7396a64b38b5d70f54e849d"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "artifact": {
+        "path": ".nextgo-test-results/routing-index/roots-go1.24/server",
+        "bytes": 16629944,
+        "sha256": "3c43ea27398ecf538d849f96df6640fb9290412ee14771272bc9b9d41b7327cb"
+      }
+    },
+    "binary-roots-go1.27": {
+      "SDK": "go1.27.3",
+      "result": "NO_KNOWN_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 0,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "scan_level": "symbol",
+          "scan_mode": "binary"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.27.3",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go",
+              "version": "v0.0.0-20261026215559-747c43a9d427+dirty"
+            },
+            {
+              "path": "stdlib",
+              "version": "go1.27.3"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "progress": 3,
+        "SBOM": 1,
+        "osv": 187
+      },
+      "findingMessages": 0,
+      "uniqueAdvisoryIDsByLevel": {},
+      "uniqueCountsByLevel": {},
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.27.json",
+        "bytes": 573866,
+        "sha256": "46a61b3562240e21f3e5b657be48ea5043840f9c47b7447b464c175b0c4cbec4"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.27.txt",
+        "bytes": 26,
+        "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-binary-roots-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "artifact": {
+        "path": ".nextgo-test-results/routing-index/roots-go1.27/server",
+        "bytes": 18964640,
+        "sha256": "ccaf1ce7badd8ce1acc518f3167a34079c30d4cff71003b098de0014ad21b3e1"
+      }
+    },
+    "native-go1.24": {
+      "SDK": "go1.24.13",
+      "result": "KNOWN_STDLIB_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 3,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.24.13",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.24.13",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.24.13"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/accesscontrol",
+            "github.com/Suhaibinator/Next.go/internal/actionwire",
+            "github.com/Suhaibinator/Next.go/internal/ascii",
+            "github.com/Suhaibinator/Next.go/internal/paths",
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/wirejson/scan",
+            "github.com/Suhaibinator/Next.go/internal/wirejson",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/internal/actionview",
+            "github.com/Suhaibinator/Next.go/internal/jsonld",
+            "github.com/Suhaibinator/Next.go/internal/keyed",
+            "github.com/Suhaibinator/Next.go/internal/streamguard",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/seo",
+            "github.com/Suhaibinator/Next.go/metadatafiles",
+            "github.com/Suhaibinator/Next.go/internal/zonecontract",
+            "github.com/Suhaibinator/Next.go/internal/publicorigin",
+            "github.com/Suhaibinator/Next.go/actions",
+            "github.com/Suhaibinator/Next.go/assets",
+            "github.com/Suhaibinator/Next.go/cache",
+            "github.com/Suhaibinator/Next.go/serveronly",
+            "github.com/Suhaibinator/Next.go/cache/shared",
+            "github.com/Suhaibinator/Next.go/draft",
+            "github.com/Suhaibinator/Next.go/httpx",
+            "github.com/Suhaibinator/Next.go/internal/postresponse",
+            "github.com/Suhaibinator/Next.go/internal/prerenderid",
+            "github.com/Suhaibinator/Next.go/internal/publicconfig",
+            "github.com/Suhaibinator/Next.go/internal/releaseassets",
+            "github.com/Suhaibinator/Next.go/internal/offlinejson",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/routeinfo",
+            "github.com/Suhaibinator/Next.go/scripts",
+            "github.com/Suhaibinator/Next.go/telemetry",
+            "github.com/Suhaibinator/Next.go",
+            "github.com/Suhaibinator/Next.go/buildassets",
+            "github.com/Suhaibinator/Next.go/internal/devrefresh",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/environment",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/internal/project",
+            "github.com/Suhaibinator/Next.go/internal/dev",
+            "github.com/Suhaibinator/Next.go/internal/scaffold",
+            "github.com/Suhaibinator/Next.go/serverless",
+            "github.com/Suhaibinator/Next.go/cmd/nextgo",
+            "github.com/Suhaibinator/Next.go/cmd/nextgo-cache",
+            "github.com/Suhaibinator/Next.go/content",
+            "github.com/Suhaibinator/Next.go/examples/content/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/content/app",
+            "github.com/Suhaibinator/Next.go/examples/content/routes",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/app",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/routes",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/tools/styles",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/tools/tokens",
+            "github.com/Suhaibinator/Next.go/examples/demo/access",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionstate",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add",
+            "github.com/Suhaibinator/Next.go/examples/demo/cookiesession",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/session/login",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/session/logout",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionviewstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/demo/choices",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/localfonts",
+            "github.com/Suhaibinator/Next.go/images",
+            "github.com/Suhaibinator/Next.go/examples/demo/media",
+            "github.com/Suhaibinator/Next.go/examples/demo/profiles",
+            "github.com/Suhaibinator/Next.go/examples/demo/uploads",
+            "github.com/Suhaibinator/Next.go/examples/demo/mutations",
+            "github.com/Suhaibinator/Next.go/examples/demo/state",
+            "github.com/Suhaibinator/Next.go/examples/demo/preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/shareddata",
+            "github.com/Suhaibinator/Next.go/telemetry/otlp",
+            "github.com/Suhaibinator/Next.go/examples/demo/app",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/about",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/action-view",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/embed",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/header-policy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/locale",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/report",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/resourcedata",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/resources",
+            "github.com/Suhaibinator/Next.go/socialimage",
+            "github.com/Suhaibinator/Next.go/examples/demo/socialcard",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/social",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/chart",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports/slot_reportdetail",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports/slot_reportdetail/summary",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/chart",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/slot_detail",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/slot_detail/drill",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team/activity",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/cache",
+            "github.com/Suhaibinator/Next.go/examples/demo/routes",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/catalog/optional_path",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choice-pair",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choice-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choices",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/client-only",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/composition/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/cookie-session",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/docs/catchall_path",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/downloads/param_name",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/embeds",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/environment",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/evergreen",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/features",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/field-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/file-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/form-pair",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/forms",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal/intercept_root",
+            "github.com/Suhaibinator/Next.go/examples/demo/internal/photos",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal/intercept_root/photos/param_id",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/generated-actions",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/group_marketing/welcome",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed/table",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lifecycle",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/one",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/two",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/literal__public",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/local-fonts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/locale",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category/param_product",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category/summary",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/media",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/metadata-stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/metadata-clear",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/partialdata",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial/control",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/photos/param_id",
+            "github.com/Suhaibinator/Next.go/examples/demo/data",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/posts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prefetch",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender/fixed/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/private_helpers",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/private_helpers/slot_ignored",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/profiles",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/resources",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/restricted",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/routing-private",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/rules",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/rules/headers/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-cache",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-pages",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-pages/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-prerender",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-prerender/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/social-image",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates/param_slug/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/transitions",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/translations",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/uploads",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/model",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/components/validationform",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/preview",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/validate",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/details",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/routes",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/about",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/disabled",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/override",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/routes",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/tools/icons",
+            "github.com/Suhaibinator/Next.go/examples/offline/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/offline/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/offline/components/offlinecontrols",
+            "github.com/Suhaibinator/Next.go/examples/offline/app",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/guide",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/offline",
+            "github.com/Suhaibinator/Next.go/examples/offline/routes",
+            "github.com/Suhaibinator/Next.go/examples/refresh/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/refresh/components/eagerbadge",
+            "github.com/Suhaibinator/Next.go/examples/refresh/shared",
+            "github.com/Suhaibinator/Next.go/examples/refresh/components/refreshcounter",
+            "github.com/Suhaibinator/Next.go/examples/refresh/serverstate",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/api/work",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/details",
+            "github.com/Suhaibinator/Next.go/examples/refresh/routes",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/components/rootnav",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing/guide",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing/masked",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard/settings",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard/stream",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/plain",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/routes",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app/clear",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/routes",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/tools/art",
+            "github.com/Suhaibinator/Next.go/examples/zones",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/site",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/cached",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/details",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/routes",
+            "github.com/Suhaibinator/Next.go/examples/zones/identity",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/cached",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/details",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/routes",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenantdata",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/api/record",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/dashboard",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/routes",
+            "github.com/Suhaibinator/Next.go/internal/mediatype"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187,
+        "finding": 1042
+      },
+      "findingMessages": 1042,
+      "uniqueAdvisoryIDsByLevel": {
+        "module": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6604",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "package": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6604",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "symbol": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4865",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4980",
+          "GO-2026-4982",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6604",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ]
+      },
+      "uniqueCountsByLevel": {
+        "module": 43,
+        "package": 40,
+        "symbol": 37
+      },
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.24.json",
+        "bytes": 1680019,
+        "sha256": "1255992bd9fd00e839c52aeb748f9bcb4bf2fc8aea4b24e0b43eec80f5bb1bb4"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.24.txt",
+        "bytes": 110065,
+        "sha256": "20ef791164af888427e8402669502fb857827aa85bb13a6399c54aa59bf8bac8"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "native-go1.27": {
+      "SDK": "go1.27.3",
+      "result": "NO_KNOWN_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 0,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.27.3",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.27.3",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.27.3"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/accesscontrol",
+            "github.com/Suhaibinator/Next.go/internal/actionwire",
+            "github.com/Suhaibinator/Next.go/internal/ascii",
+            "github.com/Suhaibinator/Next.go/internal/paths",
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/wirejson/scan",
+            "github.com/Suhaibinator/Next.go/internal/wirejson",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/internal/actionview",
+            "github.com/Suhaibinator/Next.go/internal/jsonld",
+            "github.com/Suhaibinator/Next.go/internal/keyed",
+            "github.com/Suhaibinator/Next.go/internal/streamguard",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/seo",
+            "github.com/Suhaibinator/Next.go/metadatafiles",
+            "github.com/Suhaibinator/Next.go/internal/zonecontract",
+            "github.com/Suhaibinator/Next.go/internal/publicorigin",
+            "github.com/Suhaibinator/Next.go/actions",
+            "github.com/Suhaibinator/Next.go/assets",
+            "github.com/Suhaibinator/Next.go/cache",
+            "github.com/Suhaibinator/Next.go/serveronly",
+            "github.com/Suhaibinator/Next.go/cache/shared",
+            "github.com/Suhaibinator/Next.go/draft",
+            "github.com/Suhaibinator/Next.go/httpx",
+            "github.com/Suhaibinator/Next.go/internal/postresponse",
+            "github.com/Suhaibinator/Next.go/internal/prerenderid",
+            "github.com/Suhaibinator/Next.go/internal/publicconfig",
+            "github.com/Suhaibinator/Next.go/internal/releaseassets",
+            "github.com/Suhaibinator/Next.go/internal/offlinejson",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/routeinfo",
+            "github.com/Suhaibinator/Next.go/scripts",
+            "github.com/Suhaibinator/Next.go/telemetry",
+            "github.com/Suhaibinator/Next.go",
+            "github.com/Suhaibinator/Next.go/buildassets",
+            "github.com/Suhaibinator/Next.go/internal/devrefresh",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/environment",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/internal/project",
+            "github.com/Suhaibinator/Next.go/internal/dev",
+            "github.com/Suhaibinator/Next.go/internal/scaffold",
+            "github.com/Suhaibinator/Next.go/serverless",
+            "github.com/Suhaibinator/Next.go/cmd/nextgo",
+            "github.com/Suhaibinator/Next.go/cmd/nextgo-cache",
+            "github.com/Suhaibinator/Next.go/content",
+            "github.com/Suhaibinator/Next.go/examples/content/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/content/app",
+            "github.com/Suhaibinator/Next.go/examples/content/routes",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/app",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/routes",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/tools/styles",
+            "github.com/Suhaibinator/Next.go/examples/css-pipeline/tools/tokens",
+            "github.com/Suhaibinator/Next.go/examples/demo/access",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionstate",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/generated/add",
+            "github.com/Suhaibinator/Next.go/examples/demo/cookiesession",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/session/login",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/session/logout",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionviewstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/actions/view/save",
+            "github.com/Suhaibinator/Next.go/examples/demo/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/demo/choices",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/localfonts",
+            "github.com/Suhaibinator/Next.go/images",
+            "github.com/Suhaibinator/Next.go/examples/demo/media",
+            "github.com/Suhaibinator/Next.go/examples/demo/profiles",
+            "github.com/Suhaibinator/Next.go/examples/demo/uploads",
+            "github.com/Suhaibinator/Next.go/examples/demo/mutations",
+            "github.com/Suhaibinator/Next.go/examples/demo/state",
+            "github.com/Suhaibinator/Next.go/examples/demo/preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/shareddata",
+            "github.com/Suhaibinator/Next.go/telemetry/otlp",
+            "github.com/Suhaibinator/Next.go/examples/demo/app",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/about",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/action-view",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/embed",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/header-policy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/locale",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/report",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/resourcedata",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/resources",
+            "github.com/Suhaibinator/Next.go/socialimage",
+            "github.com/Suhaibinator/Next.go/examples/demo/socialcard",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/api/social",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/chart",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports/slot_reportdetail",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/reports/slot_reportdetail/summary",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/chart",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/slot_detail",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_analytics/slot_detail/drill",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team/activity",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/boards/slot_team/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/cache",
+            "github.com/Suhaibinator/Next.go/examples/demo/routes",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/catalog/optional_path",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choice-pair",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choice-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/choices",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/client-only",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/composition/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/cookie-session",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/docs/catchall_path",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/downloads/param_name",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/embeds",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/environment",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/evergreen",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/features",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/field-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/file-preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/form-pair",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/forms",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal/intercept_root",
+            "github.com/Suhaibinator/Next.go/examples/demo/internal/photos",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/gallery/slot_modal/intercept_root/photos/param_id",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/generated-actions",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/group_marketing/welcome",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/keyed/table",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lazy/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/lifecycle",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/one",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/link-status/two",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/literal__public",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/local-fonts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/locale",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category/param_product",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/market/param_category/summary",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/media",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/metadata-stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/metadata-clear",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/partialdata",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial/control",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/partial/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/photos/param_id",
+            "github.com/Suhaibinator/Next.go/examples/demo/data",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/posts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prefetch",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender/fixed/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/prerender/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/preview",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/private_helpers",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/private_helpers/slot_ignored",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/profiles",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/resources",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/restricted",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/routing-private",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/rules",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/rules/headers/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/scripts/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-cache",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-pages",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-pages/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-prerender",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/shared-prerender/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/social-image",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/stream",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/templates/param_slug/details",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/transitions",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/translations",
+            "github.com/Suhaibinator/Next.go/examples/demo/app/uploads",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/model",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/components/validationform",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/preview",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/api/validate",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/app/details",
+            "github.com/Suhaibinator/Next.go/examples/form-validation/routes",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/about",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/disabled",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/app/override",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/routes",
+            "github.com/Suhaibinator/Next.go/examples/metadata-site/tools/icons",
+            "github.com/Suhaibinator/Next.go/examples/offline/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/offline/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/offline/components/offlinecontrols",
+            "github.com/Suhaibinator/Next.go/examples/offline/app",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/guide",
+            "github.com/Suhaibinator/Next.go/examples/offline/app/offline",
+            "github.com/Suhaibinator/Next.go/examples/offline/routes",
+            "github.com/Suhaibinator/Next.go/examples/refresh/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/refresh/components/eagerbadge",
+            "github.com/Suhaibinator/Next.go/examples/refresh/shared",
+            "github.com/Suhaibinator/Next.go/examples/refresh/components/refreshcounter",
+            "github.com/Suhaibinator/Next.go/examples/refresh/serverstate",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/api/work",
+            "github.com/Suhaibinator/Next.go/examples/refresh/app/details",
+            "github.com/Suhaibinator/Next.go/examples/refresh/routes",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/components/rootnav",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing/guide",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_marketing/masked",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard/settings",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/group_workspace/dashboard/stream",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/app/plain",
+            "github.com/Suhaibinator/Next.go/examples/root-layouts/routes",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app/api/health",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/app/clear",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/routes",
+            "github.com/Suhaibinator/Next.go/examples/social-variants/tools/art",
+            "github.com/Suhaibinator/Next.go/examples/zones",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/site",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/cached",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/details",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/zones/blog/routes",
+            "github.com/Suhaibinator/Next.go/examples/zones/identity",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/cached",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/details",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/app/posts/param_slug",
+            "github.com/Suhaibinator/Next.go/examples/zones/marketing/routes",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/actionrefs",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenantdata",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/api/record",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/api/status",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/app/dashboard",
+            "github.com/Suhaibinator/Next.go/examples/zones/tenant/routes",
+            "github.com/Suhaibinator/Next.go/internal/mediatype"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187
+      },
+      "findingMessages": 0,
+      "uniqueAdvisoryIDsByLevel": {},
+      "uniqueCountsByLevel": {},
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.27.json",
+        "bytes": 594744,
+        "sha256": "0e35d6687de6610701257558330dd43174c4005adf6affc924d1761ced4498a6"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.27.txt",
+        "bytes": 26,
+        "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-native-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "wasm-go1.24": {
+      "SDK": "go1.24.13",
+      "result": "KNOWN_STDLIB_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 3,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.24.13",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.24.13",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.24.13"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187,
+        "finding": 56
+      },
+      "findingMessages": 56,
+      "uniqueAdvisoryIDsByLevel": {
+        "module": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6604",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "package": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4864",
+          "GO-2026-4970",
+          "GO-2026-6218",
+          "GO-2026-6604"
+        ],
+        "symbol": [
+          "GO-2026-4601",
+          "GO-2026-6218"
+        ]
+      },
+      "uniqueCountsByLevel": {
+        "module": 43,
+        "package": 6,
+        "symbol": 2
+      },
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.24.json",
+        "bytes": 587216,
+        "sha256": "be77ad54cea00923142968e1946b8f5e6842e23306e7d242832015c8a84ea038"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.24.txt",
+        "bytes": 1007,
+        "sha256": "537d4ec77836ebdf6b2f44ff5a28fe89ca8bcd195e72cad7397a14858a059a72"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "wasm-go1.27": {
+      "SDK": "go1.27.3",
+      "result": "NO_KNOWN_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 0,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.27.3",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.27.3",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.27.3"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187
+      },
+      "findingMessages": 0,
+      "uniqueAdvisoryIDsByLevel": {},
+      "uniqueCountsByLevel": {},
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.27.json",
+        "bytes": 575928,
+        "sha256": "8c17413e40fe52871db52890b5c8692a2393776c75815ed254b849e478980975"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.27.txt",
+        "bytes": 26,
+        "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "wasm-module-go1.24": {
+      "SDK": "go1.24.13",
+      "result": "KNOWN_STDLIB_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 3,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.24.13",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.24.13",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.24.13"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187,
+        "finding": 56
+      },
+      "findingMessages": 56,
+      "uniqueAdvisoryIDsByLevel": {
+        "module": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4603",
+          "GO-2026-4864",
+          "GO-2026-4865",
+          "GO-2026-4869",
+          "GO-2026-4870",
+          "GO-2026-4918",
+          "GO-2026-4946",
+          "GO-2026-4947",
+          "GO-2026-4970",
+          "GO-2026-4971",
+          "GO-2026-4976",
+          "GO-2026-4977",
+          "GO-2026-4980",
+          "GO-2026-4981",
+          "GO-2026-4982",
+          "GO-2026-4986",
+          "GO-2026-5026",
+          "GO-2026-5037",
+          "GO-2026-5038",
+          "GO-2026-5039",
+          "GO-2026-5856",
+          "GO-2026-5972",
+          "GO-2026-6088",
+          "GO-2026-6089",
+          "GO-2026-6090",
+          "GO-2026-6091",
+          "GO-2026-6218",
+          "GO-2026-6599",
+          "GO-2026-6600",
+          "GO-2026-6603",
+          "GO-2026-6604",
+          "GO-2026-6605",
+          "GO-2026-6607",
+          "GO-2026-6608",
+          "GO-2026-6609",
+          "GO-2026-6610",
+          "GO-2026-6611",
+          "GO-2026-6612",
+          "GO-2026-6613",
+          "GO-2026-6617",
+          "GO-2026-6809"
+        ],
+        "package": [
+          "GO-2026-4601",
+          "GO-2026-4602",
+          "GO-2026-4864",
+          "GO-2026-4970",
+          "GO-2026-6218",
+          "GO-2026-6604"
+        ],
+        "symbol": [
+          "GO-2026-4601",
+          "GO-2026-6218"
+        ]
+      },
+      "uniqueCountsByLevel": {
+        "module": 43,
+        "package": 6,
+        "symbol": 2
+      },
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.24.json",
+        "bytes": 587216,
+        "sha256": "5cd7a29cc82ac3a3bf7ef9540506823ebca6a084b5d6e81654cedf7dcd190053"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.24.txt",
+        "bytes": 1007,
+        "sha256": "537d4ec77836ebdf6b2f44ff5a28fe89ca8bcd195e72cad7397a14858a059a72"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "wasm-module-go1.27": {
+      "SDK": "go1.27.3",
+      "result": "NO_KNOWN_FINDINGS_REPORTED",
+      "JSONExitCode": 0,
+      "converterExitCode": 0,
+      "config": [
+        {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "file:///workspace/.tools/vulndb-database-e22db6528018",
+          "db_last_modified": "2026-11-05T23:49:57Z",
+          "go_version": "go1.27.3",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        }
+      ],
+      "SBOM": [
+        {
+          "go_version": "go1.27.3",
+          "modules": [
+            {
+              "path": "github.com/Suhaibinator/Next.go"
+            },
+            {
+              "path": "stdlib",
+              "version": "v1.27.3"
+            }
+          ],
+          "roots": [
+            "github.com/Suhaibinator/Next.go/internal/routing",
+            "github.com/Suhaibinator/Next.go/internal/navigation",
+            "github.com/Suhaibinator/Next.go/offline",
+            "github.com/Suhaibinator/Next.go/ui",
+            "github.com/Suhaibinator/Next.go/client",
+            "github.com/Suhaibinator/Next.go/mutation",
+            "github.com/Suhaibinator/Next.go/offline/worker",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionview",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/actionviewlazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/choiceform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/clientpanellazy",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/composition",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/counter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/fileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/generatedaction",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/keyedlist",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/layoutstate",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazycounter",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/linkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/lazylinkhint",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/modal",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/optimistic",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/profileform",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/resourcepanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/scriptwidget",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/selectionnav",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/sessionpanel",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/settings",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/toolbox",
+            "github.com/Suhaibinator/Next.go/examples/demo/components/transitioncard"
+          ]
+        }
+      ],
+      "messages": {
+        "config": 1,
+        "SBOM": 1,
+        "progress": 2,
+        "osv": 187
+      },
+      "findingMessages": 0,
+      "uniqueAdvisoryIDsByLevel": {},
+      "uniqueCountsByLevel": {},
+      "JSON": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.27.json",
+        "bytes": 575928,
+        "sha256": "8c17413e40fe52871db52890b5c8692a2393776c75815ed254b849e478980975"
+      },
+      "text": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.27.txt",
+        "bytes": 26,
+        "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+      },
+      "stderr": {
+        "path": ".nextgo-test-results/wasm-optimization/govuln-wasm-module-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "knownLegacyAdvisories": {
+    "GO-2026-6088": {
+      "summary": "Add recursion depth guard during decode in encoding/xml",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6088",
+      "aliases": [
+        "CVE-2026-56859"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-6603": {
+      "summary": "HTTP/2 server memory exhaustion due to Trailer headers in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6603",
+      "aliases": [
+        "CVE-2026-78659"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4971": {
+      "summary": "Panic in Dial and LookupPort when handling NUL byte on Windows in net",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4971",
+      "aliases": [
+        "CVE-2026-39836"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-5037": {
+      "summary": "Inefficient candidate hostname parsing in crypto/x509",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5037",
+      "aliases": [
+        "CVE-2026-27145"
+      ],
+      "fixedVersions": [
+        "v1.25.11"
+      ]
+    },
+    "GO-2026-4869": {
+      "summary": "Unbounded allocation for old GNU sparse in archive/tar",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4869",
+      "aliases": [
+        "CVE-2026-32288"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-4976": {
+      "summary": "ReverseProxy forwards queries with more than urlmaxqueryparams parameters in net/http/httputil",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4976",
+      "aliases": [
+        "CVE-2026-39825"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-4982": {
+      "summary": "Bypass of meta content URL escaping causes XSS in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4982",
+      "aliases": [
+        "CVE-2026-39823"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-6610": {
+      "summary": "HTTP/2 transport accepts malformed framing-related headers in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6610",
+      "aliases": [
+        "CVE-2026-78660"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4970": {
+      "summary": "Root escape via symlink plus trailing slash in os",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4970",
+      "aliases": [
+        "CVE-2026-39822"
+      ],
+      "fixedVersions": [
+        "v1.25.12"
+      ]
+    },
+    "GO-2026-4602": {
+      "summary": "FileInfo can escape from a Root in os",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4602",
+      "aliases": [
+        "CVE-2026-27139"
+      ],
+      "fixedVersions": [
+        "v1.25.8"
+      ]
+    },
+    "GO-2026-6605": {
+      "summary": "HTTP/1 client connection desynchronization after CONNECT rejection in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6605",
+      "aliases": [
+        "CVE-2026-56866"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4946": {
+      "summary": "Inefficient policy validation in crypto/x509",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4946",
+      "aliases": [
+        "CVE-2026-32281"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-6613": {
+      "summary": "HTTP/1 server connection desynchronization after 2xx CONNECT response in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6613",
+      "aliases": [
+        "CVE-2026-94439"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4986": {
+      "summary": "Quadratic string concatentation in consumeComment in net/mail",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4986",
+      "aliases": [
+        "CVE-2026-39820"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-4947": {
+      "summary": "Unexpected work during chain building in crypto/x509",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4947",
+      "aliases": [
+        "CVE-2026-32280"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-6091": {
+      "summary": "Fix Javascript regexp context tracking in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6091",
+      "aliases": [
+        "CVE-2026-56858"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-4918": {
+      "summary": "Infinite loop in HTTP/2 transport when given bad SETTINGS_MAX_FRAME_SIZE in net/http/internal/http2 in golang.org/x/net",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4918",
+      "aliases": [
+        "CVE-2026-33814"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-4870": {
+      "summary": "Unauthenticated TLS 1.3 KeyUpdate record can cause persistent connection retention and DoS in crypto/tls",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4870",
+      "aliases": [
+        "CVE-2026-32283"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-6600": {
+      "summary": "Recognize yield as regexp preceder keyword in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6600",
+      "aliases": [
+        "CVE-2026-97030"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-6809": {
+      "summary": "Distrust compromised intermediate certificates in crypto/x509",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6809",
+      "aliases": [
+        "CVE-2026-111943"
+      ],
+      "fixedVersions": [
+        "v1.26.10"
+      ]
+    },
+    "GO-2026-4601": {
+      "summary": "Incorrect parsing of IPv6 host literals in net/url",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4601",
+      "aliases": [
+        "CVE-2026-25679"
+      ],
+      "fixedVersions": [
+        "v1.25.8"
+      ]
+    },
+    "GO-2026-5039": {
+      "summary": "Arbitrary inputs are included in errors without any escaping in net/textproto",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5039",
+      "aliases": [
+        "CVE-2026-42507"
+      ],
+      "fixedVersions": [
+        "v1.25.11"
+      ]
+    },
+    "GO-2026-6089": {
+      "summary": "Apply ReadHeaderTimeout when doing unencrypted HTTP/2 check in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6089",
+      "aliases": [
+        "CVE-2026-56853"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-4980": {
+      "summary": "Escaper bypass leads to XSS in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4980",
+      "aliases": [
+        "CVE-2026-39826"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-6599": {
+      "summary": "Reset context tracking on consecutive template expressions in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6599",
+      "aliases": [
+        "CVE-2026-94448"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-6611": {
+      "summary": "Excessive CPU consumption from repeated initial window changes in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6611",
+      "aliases": [
+        "CVE-2026-78669"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4981": {
+      "summary": "Crash when handling long CNAME response in net",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4981",
+      "aliases": [
+        "CVE-2026-33811"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-6607": {
+      "summary": "Reject malformed ECH outer extension references in crypto/tls",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6607",
+      "aliases": [
+        "CVE-2026-97031"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4603": {
+      "summary": "URLs in meta content attribute actions are not escaped in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4603",
+      "aliases": [
+        "CVE-2026-27142"
+      ],
+      "fixedVersions": [
+        "v1.25.8"
+      ]
+    },
+    "GO-2026-5038": {
+      "summary": "Quadratic complexity in WordDecoder.DecodeHeader in mime",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5038",
+      "aliases": [
+        "CVE-2026-42504"
+      ],
+      "fixedVersions": [
+        "v1.25.11"
+      ]
+    },
+    "GO-2026-6608": {
+      "summary": "Memory limit bypass when parsing MIME headers in net/textproto, mime/multipart",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6608",
+      "aliases": [
+        "CVE-2026-94440"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-6218": {
+      "summary": "Avoid quadratic complexity in resolvePath in net/url",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6218",
+      "aliases": [
+        "CVE-2026-56860"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-5972": {
+      "summary": "Enforce maximum recursion depth in encoding/asn1",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5972",
+      "aliases": [
+        "CVE-2026-33818"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-4864": {
+      "summary": "TOCTOU permits root escape on Linux via Root.Chmod in os in internal/syscall/unix",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4864",
+      "aliases": [
+        "CVE-2026-32282"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-5026": {
+      "summary": "Invoking failure to reject ASCII-only Punycode-encoded labels in golang.org/x/net/idna",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5026",
+      "aliases": [
+        "CVE-2026-39821"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-6612": {
+      "summary": "Double flow control refund on HTTP/2 server streams in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6612",
+      "aliases": [
+        "CVE-2026-78663"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-4977": {
+      "summary": "Quadratic string concatenation in consumePhrase in net/mail",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4977",
+      "aliases": [
+        "CVE-2026-42499"
+      ],
+      "fixedVersions": [
+        "v1.25.10"
+      ]
+    },
+    "GO-2026-6609": {
+      "summary": "Lack of limit on size of parsed Range headers in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6609",
+      "aliases": [
+        "CVE-2026-78667"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-6090": {
+      "summary": "Limit handshake messages we are willing to accept post-handshake in crypto/tls",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6090",
+      "aliases": [
+        "CVE-2026-56862"
+      ],
+      "fixedVersions": [
+        "v1.25.13"
+      ]
+    },
+    "GO-2026-5856": {
+      "summary": "Invoking Encrypted Client Hello privacy leak in crypto/tls",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-5856",
+      "aliases": [
+        "CVE-2026-42505"
+      ],
+      "fixedVersions": [
+        "v1.25.12"
+      ]
+    },
+    "GO-2026-4865": {
+      "summary": "JsBraceDepth Context Tracking Bugs (XSS) in html/template",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-4865",
+      "aliases": [
+        "CVE-2026-32289"
+      ],
+      "fixedVersions": [
+        "v1.25.9"
+      ]
+    },
+    "GO-2026-6617": {
+      "summary": "HTTP/2 server crash due to HPACK encoder race in net/http",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6617",
+      "aliases": [
+        "CVE-2026-97032"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    },
+    "GO-2026-6604": {
+      "summary": "Root.Mkdir(All) can follow junctions out of the root on Windows in os",
+      "URL": "https://pkg.go.dev/vuln/GO-2026-6604",
+      "aliases": [
+        "CVE-2026-56857"
+      ],
+      "fixedVersions": [
+        "v1.26.9"
+      ]
+    }
+  },
+  "limitations": [
+    "This checks known Go advisories against the current repository snapshot observed at HEAD, with generated database modified 2026-11-05T23:49:57Z. It does not assert that the inaccessible live deployed API has identical state or cover undisclosed vulnerabilities.",
+    "Source native scope is ./... without tests. WASM source scopes cover client/mutation/offline/navigation/routing/UI and demo components, in core and nextgo_module configurations.",
+    "Binary scans cover actual source-independent demo/root ELF executables; they do not analyze embedded WASM bytes.",
+    "A symbol finding is a reachability or linked-symbol signal from the checker, not an independently confirmed exploit.",
+    "The Codex Security source-audit workflow still lacks ready preflight/supporting assets/context. No current source audit, canonical report or production security approval follows.",
+    "Real cloud/CDN/proxy deployment, broader browser engines, performance budgets and remaining 79-capability/11-gate requirements remain open."
+  ],
+  "productionPolicy": "Existing production Docker image is already pinned to Go 1.27.3. Go 1.24 is the language/compatibility floor and is already documented as unsupported for production; its compatibility passes do not waive these advisory results.",
+  "CI": "Added pinned Go 1.27.3/govulncheck v1.9.0 native/core-WASM/module-WASM live-database jobs, with JSON-to-text conversion providing a nonzero findings gate. YAML validated; remote CI not run here."
+}

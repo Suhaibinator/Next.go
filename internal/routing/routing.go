@@ -163,13 +163,40 @@ func Covers(pattern, target string) bool {
 // ValidatePatterns checks both the grammar and ambiguity of a complete route
 // set. Static/parameter overlaps are allowed and resolved by Less.
 func ValidatePatterns(patterns []string) error {
+	// Canonical shapes identify duplicate routes, catch-all peers and optional
+	// parents without reparsing every earlier pattern. Keep the earliest prior
+	// conflict so diagnostics retain their original deterministic ordering.
+	shapes, tails, optionalParents := map[string]int{}, map[string]int{}, map[string]int{}
 	for i, pattern := range patterns {
-		if _, err := Validate(pattern); err != nil {
+		parts, shape, err := parse(pattern)
+		if err != nil {
 			return err
 		}
-		for _, previous := range patterns[:i] {
-			if Conflicts(previous, pattern) {
-				return fmt.Errorf("ambiguous routes %q and %q", previous, pattern)
+		previous := i
+		check := func(table map[string]int, key string) {
+			if at, ok := table[key]; ok && at < previous {
+				previous = at
+			}
+		}
+		check(shapes, shape)
+		check(optionalParents, shape)
+		isTail := len(parts) > 0 && parts[len(parts)-1].kind >= catchall
+		parent := ""
+		if isTail {
+			parent = parentShape(shape)
+			check(tails, parent)
+			if parts[len(parts)-1].kind == optionalCatchall {
+				check(shapes, parent)
+			}
+		}
+		if previous != i {
+			return fmt.Errorf("ambiguous routes %q and %q", patterns[previous], pattern)
+		}
+		shapes[shape] = i
+		if isTail {
+			tails[parent] = i
+			if parts[len(parts)-1].kind == optionalCatchall {
+				optionalParents[parent] = i
 			}
 		}
 	}

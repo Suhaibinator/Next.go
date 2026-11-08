@@ -27,9 +27,11 @@ type MetadataFile struct {
 func (m MetadataFile) Static() bool { return m.Factory == "" }
 
 var metadataProducers = map[string]struct{ name, factory string }{
-	"robots.go":   {"robots.txt", "Robots"},
-	"sitemap.go":  {"sitemap.xml", "Sitemap"},
-	"manifest.go": {"manifest.webmanifest", "Manifest"},
+	"robots.go":          {"robots.txt", "Robots"},
+	"sitemap.go":         {"sitemap.xml", "Sitemap"},
+	"manifest.go":        {"manifest.webmanifest", "Manifest"},
+	"opengraph-image.go": {"opengraph-image.png", "OpenGraphImage"},
+	"twitter-image.go":   {"twitter-image.png", "TwitterImage"},
 }
 
 // DiscoverMetadataFiles parses only root conventions and snapshots static
@@ -122,6 +124,13 @@ func DiscoverMetadataFiles(p *Project) ([]MetadataFile, error) {
 		seen[producer.name] = true
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
+	declarations := make([]string, 0, len(result))
+	for _, file := range result {
+		declarations = append(declarations, file.Name)
+	}
+	if err := metadatafiles.CheckSocialNames(declarations); err != nil {
+		return nil, err
+	}
 	for _, file := range result {
 		for _, route := range projectRoutes(p.Routes) {
 			if !route.Default && !route.Missing && route.Pattern == "/"+file.Name {

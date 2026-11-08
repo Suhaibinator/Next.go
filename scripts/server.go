@@ -12,6 +12,7 @@ import (
 	"github.com/Suhaibinator/Next.go/ui"
 	"html"
 	"io"
+	"sort"
 	"strings"
 )
 
@@ -101,6 +102,18 @@ func EarlyHTML(declarations []Script, resolve func(string) (string, error), nonc
 			if attr[1] != "" {
 				markup += ` ` + attr[0] + `="` + html.EscapeString(attr[1]) + `"`
 			}
+		}
+		values, err := s.Data.Values()
+		if err != nil {
+			return "", err
+		}
+		names := make([]string, 0, len(values))
+		for name := range values {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			markup += ` ` + name + `="` + html.EscapeString(values[name]) + `"`
 		}
 		markup += `></script>`
 	}

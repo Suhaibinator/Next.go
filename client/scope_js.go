@@ -53,6 +53,7 @@ type Scope struct {
 	Root                   Element
 	cleanup                []func()
 	closed                 bool
+	startupRootHeld        bool
 	suspended              bool
 	activityEpoch          uint64
 	retainedReport         *retainedScopeReport
@@ -182,9 +183,8 @@ func (s *Scope) dispose() {
 		s.propsSource = nil
 	}
 	s.mergeView = nil
-	if s.parent != nil {
-		delete(s.parent.children, s)
-		s.parent = nil
+	if !s.startupRootHeld {
+		s.releaseParent()
 	}
 	for i := len(s.cleanup) - 1; i >= 0; i-- {
 		func() {
@@ -204,6 +204,13 @@ func (s *Scope) dispose() {
 	}
 	s.cleanup = nil
 	s.frameworkCleanup = nil
+}
+
+func (s *Scope) releaseParent() {
+	if s.parent != nil {
+		delete(s.parent.children, s)
+		s.parent = nil
+	}
 }
 func DecodeProps[T any](raw json.RawMessage) (T, error) {
 	var p T

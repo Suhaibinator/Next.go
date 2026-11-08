@@ -130,10 +130,11 @@ that data path.
 The new boundary still uses the existing page navigation transport: native
 servers provide page envelopes, and static hosts need the already exported
 page envelopes. It does not synthesize unexported pages, resolve arbitrary
-client-only routes or provide a catch-all host rewrite/fallback. Static-host
-qualification of the new boundary, broader retained-layout/streamed-insertion/
-refresh interactions, complete client-only page routing and physical-device
-qualification remain pending.
+client-only routes or provide a catch-all host rewrite/fallback. The later
+deployment matrix below verifies a mounted static-host Chromium subset.
+Complete static-host/cross-engine qualification, broader retained-layout/
+streamed-insertion/refresh interactions, complete client-only page routing and
+physical-device qualification remain pending.
 
 ## Sample and proof boundary
 
@@ -172,13 +173,90 @@ proofs with TERM/no KILL and four browser exit-0 observations per SDK; final
 source/artifact pins and owned-container cleanup checks pass. `runtime.Goexit`
 cleanup has focused WASM unit coverage, not a native-Goexit browser scenario.
 
-These checks do not qualify the new boundary on static hosts, retained layouts,
+Those earlier checks did not qualify the new boundary on static hosts, retained layouts,
 streamed insertion or development-refresh integration. Physical devices, full
 framework combinations, client-only page routing and catch-all host fallback
 remain open. No startup/size/CPU/RSS, cloud or full SPA/Next.js compatibility
 claim follows. The earlier metadata/scalar campaigns remain their own
 checkpoints; they were not rerun as this 40-case suite. All 79 capability IDs
 and 11 open gates remain.
+
+### Deployment matrix (November 6, 2026)
+
+`npm run test:client-only:deployment` applies the same journeys to real prebuilt
+native HTTP, buffered/streaming local Lambda and mounted static output. Dynamic
+transports cover all five preceding journeys plus useful HTML with JavaScript
+disabled. Static output covers delayed runtime/modules, disposal/navigation
+return, superseded lazy downloads and no-JavaScript HTML. A static query string
+does not rerun the server Page function: the `fail=error`/`fail=panic` variations
+require a server and are explicitly excluded from static projects.
+
+The browser fixture checks executable SHA-256 and physical PID/group/listener
+cleanup for dynamic modes. Static hosting runs no Go process: it serves the
+already exported `/lambda-features` pages and envelopes and `/lambda-assets`
+runtime from a bounded tree pinned before startup and rechecked at teardown.
+Ordinary islands, eager client views and lazy client views use their actual
+Go/WASM behavior throughout; no HTML or navigation payload is synthesized.
+
+The matching `TestClientOnlyExecutable` covers HTML, empty HEAD bodies and
+navigation envelopes for normal/error/panic query modes through all three
+transports. Ordinary and mounted French/trailing-slash scopes produce 54 leaf
+cases. The checks verify useful fallback controls, explicit client markers,
+ordinary SSR, absent browser-created markup and correctly scoped exit links.
+They run against the actual generated executable, reusing the established
+HTTP/Runtime API process controllers. They also run in a non-root, read-only,
+source/compiler-free scratch Linux container with no network or capabilities.
+These container tests inspect transport output, not browser execution.
+
+The local Go 1.27.3/Linux AMD64 checkpoint passes 22 Chromium deployment cases
+(six HTTP, six buffered Lambda, six streaming Lambda, four static), six original
+native-fixture cases, 54 host-race executable leaf cases and the same 54 cases
+inside the isolated container. All 15 metadata deployment regressions and four
+artifact-admission groups pass. Full native race/vet also pass with a
+checkout-owned temporary directory and umask 022. The first broad race attempt
+hit this sandbox's non-repository `/tmp/.git` marker and restrictive umask;
+the initial parallel browser/metadata attempt collided on port 4280 before the
+new fixture moved to 4281. These failed attempts remain recorded separately.
+
+[Qualification data and pins](benchmarks/client-only-deployment-go1.27.3-linux-amd64.json)
+include the prebuilt native/test binaries, full 26-file static tree, browser
+results/cleanup observations, harness hashes and raw-log hashes. This is a
+working-tree checkpoint rather than a published immutable release. Browser
+downloads and the Playwright container image pull were denied by network
+policy, so this increment adds no local Firefox/WebKit/touch or container-browser
+claim. The full cross-engine CI matrix and actual AWS verification remain open.
+The exported core measures 8,670,847 raw / 2,226,675 Node gzip-9 bytes; both
+reference size budgets still fail. No speed, memory or cross-framework
+performance result follows from those byte counts.
+
+The CI job `client-only` builds and pins artifacts on `1.24.x` and `stable`,
+runs admission and executable checks, then requires the fixed 88-case,
+16-profile browser matrix. Its pending remote results cannot replace local
+evidence or close a release gate. Complete static-host/cross-engine, retained
+layout/streamed insertion/refresh, real AWS, security/performance, physical
+device and full SPA qualification remain open.
+
+To reproduce the deployment browser matrix with installed development-test
+dependencies and browsers:
+
+```sh
+CGO_ENABLED=0 go run ./cmd/nextgo build -out /tmp/nextgo-client-only ./examples/demo
+NEXTGO_DEMO_BASE_PATH=/lambda-features NEXTGO_DEMO_ASSET_PREFIX=/lambda-assets \
+  go run ./cmd/nextgo export -out /tmp/nextgo-client-only-static -paths /client-only,/about ./examples/demo
+export NEXTGO_E2E_SERVER_BINARY=/tmp/nextgo-client-only/server
+export NEXTGO_METADATA_STREAM_SERVER_SHA256=$(sha256sum "$NEXTGO_E2E_SERVER_BINARY" | cut -d ' ' -f 1)
+export NEXTGO_CLIENT_ONLY_STATIC_ROOT=/tmp/nextgo-client-only-static
+export NEXTGO_CLIENT_ONLY_STATIC_SHA256=$(node --input-type=module -e 'import {staticArtifactPin} from "./tests/client-only-deployment-fixture.mjs"; console.log((await staticArtifactPin(process.env.NEXTGO_CLIENT_ONLY_STATIC_ROOT)).sha256)')
+node --test tests/client-only-deployment-fixture.test.mjs
+npm run test:client-only:deployment
+NEXTGO_TEST_BINARY="$NEXTGO_E2E_SERVER_BINARY" \
+  go test -race -tags=deployment ./tests/deployment -run '^TestClientOnlyExecutable$' -count=1
+```
+
+The existing `scripts/test-deployment-container.sh` also includes the new
+executable contract in its full container run. The local focused run can use
+prebuilt static binaries copied into a scratch image, avoiding SDK/image pulls;
+the qualification report records its limits and pins separately.
 
 ### Run the browser fixture
 

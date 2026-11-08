@@ -1,0 +1,1214 @@
+{
+  "format": "nextgo-local-font-static-qualification-v1",
+  "recordedAtUTC": "2026-11-07T11:15:02.054374+00:00",
+  "status": "partial-local-evidence-not-a-release-qualification",
+  "baseline": {
+    "nextjs": "16.4.5",
+    "officialStableURL": "https://github.com/vercel/next.js/releases/tag/v16.4.5",
+    "evidence": {
+      "path": ".nextgo-test-results/static-fonts/nextjs-stable-url.txt",
+      "bytes": 55,
+      "sha256": "c4da04548e7a210051978fc550a35d64e50fceadb3cf2cb79f900cd6aa59ebd3"
+    }
+  },
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "files": {
+      "assets/assets.go": "d96a8cdff80f84b458e1532601f1af8520b57e9cf58b42ae35bf6cc0b6312240",
+      "assets/local_fonts.go": "8affcae271cd10dcceea6f039512b6cc21760b24f783cf135d951d72cd813363",
+      "assets/local_fonts_test.go": "ac0e4ab2e5d301c444c8ee0ed74d616824ae9233725dfae0fd4ed77a9a0faa0c",
+      "managed_fonts.go": "a38210a809bf83836ea1c5f1328ecb3b1bce80a714246456988d4979c770fa37",
+      "managed_fonts_test.go": "6aaa89920fdd43b3c27b2d36d28db5478a5aae688572e1fa77e02805b3b7eb97",
+      "managed_offline.go": "94355e8ab48641bc7997e9c813571adaf92fc8c08efab57adcb512982a4af3d4",
+      "managed_offline_test.go": "72446f862a360e82cf87dc937b05e36c9ee52ded1b623565af2e8b99b59a1d91",
+      "zone_release.go": "3027ade1b0a06b92e75cb13883aabb19b5ae0657ea09637eb17a88215e6b67ea",
+      "zone_release_boundary_test.go": "c9036a4d234b384aa70ea5a950b6f1fc9ecad7aee819c99ee9ffb8b16e99106c",
+      "nextgo.go": "06e3dd602b8621a5dd3609b9fef787f12fef11af905be8b2fb12423b76d9021e",
+      "export.go": "56e69a800232c035b81bc534365135676b41e686b697b3fde901d8aa2f6801fa",
+      "cmd/nextgo/export.go": "faa3b3f57fe29b93afeb5dc736ebe52801b344728b76fae1473db2eaa4f3b688",
+      "cmd/nextgo/export_test.go": "6d88ef8f4cec7cfbf3a817283c204cb317b4c0a16cd3eb6c9e6f104fffcc1194",
+      "cmd/nextgo/export_fonts.go": "53786e27fc33a3499c74718340d7936af0b70b5c8416ecedd94df67a54dca9b8",
+      "cmd/nextgo/export_fonts_test.go": "f5e0d51bcd26acf80341b7277867c9613af06c9f0307938c50b4a33d29ab59ab",
+      "cmd/nextgo/export_scopes.go": "5283e05ecb534c7f99e244c5587390e1064ef7b9d2e0da9989f5bf03b1e97a2d",
+      "examples/demo/app/config.go": "46769b948a0a8be5cb9e3188a50263856d42194b476e1bd82e4ac5688469ebf6",
+      "examples/demo/app/local-fonts/page.go": "3415db47afb271cbfb7175ee703fc543fad777ac8f043af83dd1ac5529e7b6b8",
+      "examples/demo/localfonts/fonts.go": "26819abb152e6c72fd9d2e5aa4a230e2d99785e143c66a7df3bbfcfe6f5a4231",
+      "examples/demo/localfonts/fixture.woff": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e",
+      "examples/demo/localfonts/fixture.woff2": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196",
+      "examples/demo/public/local-fonts.css": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e",
+      "examples/demo/routes/nextgo_gen.go": "b17b859377b7a96b41d205f90dd01de02c50ea406fad312345e0382045e07b23",
+      "tests/deployment/local_fonts_test.go": "44d5b011fc6bd5c494e3ee164b05005025833f9eaa04a0d6c35d1192e4c4a4ce",
+      "tests/deployment/client_only_test.go": "259bce429cb2b1130cbbcb860b5bf5253405afd2675d2d9b4b68877480d01969",
+      "tests/local-fonts.config.mjs": "4f38a422b005881036571aefd765ac2ea6e33aaf18bcf64470fc3df13935c84b",
+      "tests/local-fonts.spec.mjs": "76e0caabb53ed3a67e4cd3b762bd09d5acf747628d2910d55c3c28fe34791d33",
+      "tests/local-fonts-static-fixture.mjs": "013f6d004726277e01b201a827324738b009e117488a265d2a12ed5b92890dfe",
+      "tests/client-only-deployment-fixture.mjs": "8f197a1ef916ba1908147f299f408d9fccf31dfc5e147060e4ba6d90e7c3d03d",
+      "tests/metadata-static-server.mjs": "4f8dc8120bb194f9b7ec79e72b7330bdf2fa7470969e8583cdcbcbabf5bb1ee8",
+      "tests/metadata-stream-deployment-fixture.mjs": "2338b096534b036cc07d7d1ed946fab0cfc862274dd203f4cd250e5dbba7ef89",
+      ".github/workflows/ci.yml": "8c173390916931c5643878f5406937a833293bce157ad6e2e0cda1a77e50ce7f"
+    },
+    "allRepositoryGoFiles": {
+      "count": 1176,
+      "manifestEncoding": "sorted compact JSON path -> SHA-256",
+      "sha256": "1f50179e03a9a2310939ce753b2e68cb11be8a4d6792f136815f87fe94a3cc88"
+    }
+  },
+  "environment": {
+    "os": "Linux amd64",
+    "kernel": "6.18.57",
+    "node": "24.22.1",
+    "playwright": "1.64.1",
+    "browser": "system Chromium 156.0.8078.79",
+    "browserExecutable": "/usr/bin/chromium",
+    "buildCGOEnabled": false,
+    "goBuildFlags": "-p=2; normal production compiler defaults; GOTOOLCHAIN=local",
+    "umask": "022",
+    "temporaryBuildFiles": "ignored .nextgo-test-results/static-fonts/tmp* inside the module"
+  },
+  "contract": {
+    "exportConfigVersion": 3,
+    "maxSets": 32,
+    "maxFiles": 256,
+    "maxEncodedInventoryBytes": 67108864,
+    "maxOneFileBytes": 33554432,
+    "scopeLimit": 32,
+    "fontIdentityPayloadBytes": 1941,
+    "publication": "declared snapshot files copied under each document base/locale scope; independent of AssetPrefix; staged atomic publication",
+    "failureChecks": [
+      "same-length content alteration with spoofed ETag",
+      "wrong build",
+      "Set-Cookie",
+      "content encoding",
+      "wrong MIME",
+      "redirect",
+      "oversize response",
+      "weak ETag",
+      "truncated body",
+      "undeclared HTML/navigation links",
+      "copied asset collision",
+      "malformed inventory and size bounds"
+    ],
+    "unsupported": [
+      "managed offline bundles",
+      "independent zone release v1",
+      "automatic CDN/provider header publication"
+    ]
+  },
+  "container": {
+    "base": "scratch",
+    "uid": 65532,
+    "readOnly": true,
+    "network": "none",
+    "capabilities": "none",
+    "noNewPrivileges": true,
+    "pids": 128,
+    "memoryBytes": 268435456,
+    "browserLocation": "outside container; executable transport tests inside container"
+  },
+  "sdks": [
+    {
+      "go": "go1.27.3",
+      "native": {
+        "path": ".nextgo-test-results/static-fonts/demo/server",
+        "bytes": 50061472,
+        "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29"
+      },
+      "cli": {
+        "path": ".nextgo-test-results/static-fonts/nextgo",
+        "bytes": 15515505,
+        "sha256": "7191e69e24fcfe5a23a392dab94c14b9d277837294bea6974b6b0b95fe8f5598"
+      },
+      "deploymentTestBinary": {
+        "path": ".nextgo-test-results/static-fonts/deployment.test",
+        "bytes": 20609457,
+        "sha256": "45b93af35633c6720f66505cf560dade94efceada801fa164b1755c90802592d"
+      },
+      "buildLog": {
+        "path": ".nextgo-test-results/static-fonts/build-final-go1.27.log",
+        "bytes": 166,
+        "sha256": "985729e14d0d24c2b7457c08ee72cebcc3ca9dd45c68355f02667a6d49f66dd9"
+      },
+      "exportLog": {
+        "path": ".nextgo-test-results/static-fonts/export-final-go1.27.log",
+        "bytes": 185,
+        "sha256": "aad116d413f5e026a7df1b7b508bcda04cfb469512f1ea60bcc8f18dbb6d9504"
+      },
+      "static": {
+        "manifest": {
+          "protocol": 3,
+          "configuration": "ce0cabdbe451b149f85d0150ee4342fd597da783c29e07452708148a1c5893f8",
+          "basePath": "/lambda-features",
+          "assetPrefix": "/lambda-assets",
+          "format": "nextgo-static-v1",
+          "build": "c6a7e7b52052fb463579",
+          "paths": [
+            "/about",
+            "/client-only",
+            "/local-fonts"
+          ],
+          "fonts": [
+            {
+              "url": "/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+              "contentType": "font/woff",
+              "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e",
+              "bytes": 964
+            },
+            {
+              "url": "/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+              "contentType": "text/css; charset=utf-8",
+              "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65",
+              "bytes": 385
+            },
+            {
+              "url": "/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+              "contentType": "font/woff2",
+              "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196",
+              "bytes": 592
+            }
+          ]
+        },
+        "pin": {
+          "sha256": "909323606ef56f870231e559f62a494a39aa015be18f581819b3badcbf579000",
+          "bytes": 35921532,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 936,
+              "sha256": "3c7d482ae387e8163e27f78b8a44e699e727815d08f3bdfdf35a454f79a0fbea"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/app.wasm",
+              "bytes": 8670847,
+              "sha256": "b1ba857d24f9b27edbd3a2f0b3b0cabfd9e85edbd96f99f4056eeea264f2da69"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/module-00a7b454403dea783b7fecb33c6d7c616d375ba1dd519657260253e216ae838c.wasm",
+              "bytes": 5540067,
+              "sha256": "00a7b454403dea783b7fecb33c6d7c616d375ba1dd519657260253e216ae838c"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/module-0b699df0f262fa7b86a74609bead8da742b1c3ddbbc8e4791f479a3dbc400709.wasm",
+              "bytes": 5408587,
+              "sha256": "0b699df0f262fa7b86a74609bead8da742b1c3ddbbc8e4791f479a3dbc400709"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/module-aa1c29b0346b4b156448070ec9369fb76d24e2dcaec1f0c6cf9b3f770927c9e3.wasm",
+              "bytes": 5293094,
+              "sha256": "aa1c29b0346b4b156448070ec9369fb76d24e2dcaec1f0c6cf9b3f770927c9e3"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/module-f03115a2327c68368fb4420426ae4caa06e786d48fe01073ec30e7c466f28d2e.wasm",
+              "bytes": 5511999,
+              "sha256": "f03115a2327c68368fb4420426ae4caa06e786d48fe01073ec30e7c466f28d2e"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/module-f915eb03d3e251474cf81e7af9f5b9973088c215eb55f861b5c068a97ed09347.wasm",
+              "bytes": 5404207,
+              "sha256": "f915eb03d3e251474cf81e7af9f5b9973088c215eb55f861b5c068a97ed09347"
+            },
+            {
+              "path": "lambda-assets/_nextgo/c6a7e7b52052fb463579/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.mp4",
+              "bytes": 2125,
+              "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.vtt",
+              "bytes": 96,
+              "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.wav",
+              "bytes": 9678,
+              "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.webm",
+              "bytes": 1098,
+              "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+            },
+            {
+              "path": "lambda-assets/assets/link-status.css",
+              "bytes": 81,
+              "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+            },
+            {
+              "path": "lambda-assets/assets/local-fonts.css",
+              "bytes": 211,
+              "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+            },
+            {
+              "path": "lambda-assets/assets/media.css",
+              "bytes": 54,
+              "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+            },
+            {
+              "path": "lambda-assets/assets/metadata-stream.css",
+              "bytes": 377,
+              "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+            },
+            {
+              "path": "lambda-assets/assets/social-image.css",
+              "bytes": 188,
+              "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 8625,
+              "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-demo.js",
+              "bytes": 157,
+              "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-early-second.js",
+              "bytes": 84,
+              "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-early.js",
+              "bytes": 81,
+              "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-module.js",
+              "bytes": 167,
+              "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/about.json",
+              "bytes": 4069,
+              "sha256": "469e31afc9882660b1b00773db9c56a3e40d7712c7bc52376ac16b7cbc9bc15a"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/client-only.json",
+              "bytes": 7203,
+              "sha256": "14a0d6e3945e78abe439c8dffe9e01d58743b74d4f8efa19891a65d4203382ae"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/local-fonts.json",
+              "bytes": 4475,
+              "sha256": "84977959b8407d2bfddeafeb78a85496a42a79bd9394bfe2b4e408d7f656231b"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+              "bytes": 964,
+              "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+              "bytes": 385,
+              "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+              "bytes": 592,
+              "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+            },
+            {
+              "path": "lambda-features/about/index.html",
+              "bytes": 9558,
+              "sha256": "55b03844fc3cac42145bb4f5f0d98a1b7b14bcad94ea69ef4a9c40c0c1d799e7"
+            },
+            {
+              "path": "lambda-features/client-only/index.html",
+              "bytes": 11929,
+              "sha256": "75908d644ef270ee416acfa4397661787182163020f50464f2f31e85468636b2"
+            },
+            {
+              "path": "lambda-features/local-fonts/index.html",
+              "bytes": 10014,
+              "sha256": "9d4b25362a2e2dece3d6e783cecea2a4305643a6823fa815cd7a14b628412f40"
+            }
+          ]
+        }
+      },
+      "coreSizing": {
+        "bytes": 8670847,
+        "go": "go1.27.3",
+        "goGzip9Bytes": 2231613,
+        "gzipPass": false,
+        "path": ".nextgo-test-results/static-fonts/export/lambda-assets/_nextgo/c6a7e7b52052fb463579/app.wasm",
+        "rawPass": false,
+        "referenceGoGzip9Limit": 1677722,
+        "referenceRawLimit": 6291456,
+        "sha256": "b1ba857d24f9b27edbd3a2f0b3b0cabfd9e85edbd96f99f4056eeea264f2da69"
+      },
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T11:09:36.076Z",
+          "duration": 22488.905,
+          "expected": 12,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "report": {
+          "path": ".nextgo-test-results/static-fonts/chromium-final-go1.27.json",
+          "bytes": 81399,
+          "sha256": "54df673a8a5e55452ec83809a727a48a09cb2477fff04b229a9aadb31652f8d8"
+        },
+        "transportProofs": [
+          {
+            "transport": "http",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "http",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "static",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "909323606ef56f870231e559f62a494a39aa015be18f581819b3badcbf579000"
+          },
+          {
+            "transport": "static",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "909323606ef56f870231e559f62a494a39aa015be18f581819b3badcbf579000"
+          },
+          {
+            "transport": "http",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "static",
+            "sha256": "57f93b4367e06dbb5521ff925cd617d633333e2c9b4482a03264a81b73d3eb29",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "909323606ef56f870231e559f62a494a39aa015be18f581819b3badcbf579000"
+          }
+        ],
+        "noJavaScriptFontDecodes": [
+          {
+            "project": "local-fonts-http-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-buffered-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-streaming-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-static-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          }
+        ]
+      },
+      "host": {
+        "leafCases": {
+          "fonts": 18,
+          "clientOnlyRegression": 54
+        },
+        "log": {
+          "path": ".nextgo-test-results/static-fonts/deployment-host-final-go1.27.log",
+          "bytes": 11249,
+          "sha256": "f105b6bda545cf3325a46f9d146a0f4190fa8ebeab6fc6a55564e90b5a07044e"
+        }
+      },
+      "container": {
+        "image": "sha256:9367776d4b4c9eaf1aa5a00aedb19985265cdf1dec6254cb3ed3c7cb322ef65a",
+        "leafCases": {
+          "fonts": 18,
+          "clientOnlyRegression": 54
+        },
+        "log": {
+          "path": ".nextgo-test-results/static-fonts/deployment-container-final-go1.27.log",
+          "bytes": 11249,
+          "sha256": "a6d90415968724ac75035f97aa202318ed4cc2ee4f7fd766ab0cf669f1757baf"
+        }
+      },
+      "race": {
+        "path": ".nextgo-test-results/static-fonts/race-final-go1.27.log",
+        "bytes": 21670,
+        "sha256": "e4a75fb81c5acc858602689657b4dfe49d45511fa8352347b801eb5b1d2a4efa"
+      },
+      "vet": {
+        "path": ".nextgo-test-results/static-fonts/vet-final-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "go": "go1.24.13",
+      "native": {
+        "path": ".nextgo-test-results/static-fonts/demo-go1.24/server",
+        "bytes": 44896440,
+        "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b"
+      },
+      "cli": {
+        "path": ".nextgo-test-results/static-fonts/nextgo-go1.24",
+        "bytes": 14200451,
+        "sha256": "d679089f0c9e82f793bb6d415a736b352b4daf8c3e0afb64f2b0d118cda8d499"
+      },
+      "deploymentTestBinary": {
+        "path": ".nextgo-test-results/static-fonts/deployment-go1.24.test",
+        "bytes": 19037140,
+        "sha256": "bfa2df5389199353b2771e111aef7dc7caa1c1da257de6dd3b7118a79dd66816"
+      },
+      "buildLog": {
+        "path": ".nextgo-test-results/static-fonts/build-final-go1.24.log",
+        "bytes": 180,
+        "sha256": "2cdb1f34939da1ea0128547a30da7536b274463a4705922555d3be49f7194d19"
+      },
+      "exportLog": {
+        "path": ".nextgo-test-results/static-fonts/export-final-go1.24.log",
+        "bytes": 192,
+        "sha256": "ffaeaf97b33873ab70e7b3d2a4e1a42c62cca8bfc63811c046a5c5ac50917dc4"
+      },
+      "static": {
+        "manifest": {
+          "protocol": 3,
+          "configuration": "81f01273743974f3125c429d41b82d192a58e947b418a03eaddc5fffac532f4a",
+          "basePath": "/lambda-features",
+          "assetPrefix": "/lambda-assets",
+          "format": "nextgo-static-v1",
+          "build": "21892ca26b43f928d969",
+          "paths": [
+            "/about",
+            "/client-only",
+            "/local-fonts"
+          ],
+          "fonts": [
+            {
+              "url": "/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+              "contentType": "font/woff",
+              "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e",
+              "bytes": 964
+            },
+            {
+              "url": "/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+              "contentType": "text/css; charset=utf-8",
+              "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65",
+              "bytes": 385
+            },
+            {
+              "url": "/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+              "contentType": "font/woff2",
+              "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196",
+              "bytes": 592
+            }
+          ]
+        },
+        "pin": {
+          "sha256": "48d9643be30441c83b71f39d11fd9f1c3464ebd67123ef60f4bb487fdb8cec9e",
+          "bytes": 28994780,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 936,
+              "sha256": "22441155c5df2de0f0ed1f12fe44b45e7a0a7ada4277b481f04ab169ffb8f181"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/app.wasm",
+              "bytes": 7650369,
+              "sha256": "8bea9a3f557a3d1451fad52837845b436f7e4b22684e3979928ecf95d259f8c8"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/module-1dab50d279eac5ffa5a123d0c6a6746b7576c84319f3fcddd7ad9221adfce248.wasm",
+              "bytes": 4097734,
+              "sha256": "1dab50d279eac5ffa5a123d0c6a6746b7576c84319f3fcddd7ad9221adfce248"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/module-694c8c665dc2de0716f9472560cfd96ab2e1f58ac7de424a58572396b23e8a04.wasm",
+              "bytes": 4202365,
+              "sha256": "694c8c665dc2de0716f9472560cfd96ab2e1f58ac7de424a58572396b23e8a04"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/module-878b0391976e8d79b10348618185b8449c38863e07560babd50f981983cdcc1e.wasm",
+              "bytes": 4258389,
+              "sha256": "878b0391976e8d79b10348618185b8449c38863e07560babd50f981983cdcc1e"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/module-a63e775db4f7b1cf49fd906fbe46283a124b06b325f866c32691cf0bf99e5dc4.wasm",
+              "bytes": 4333588,
+              "sha256": "a63e775db4f7b1cf49fd906fbe46283a124b06b325f866c32691cf0bf99e5dc4"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/module-ea8a48eb838a447423a30054e6462b5bd16728c6783d5c800cd56813d097fb2a.wasm",
+              "bytes": 4359604,
+              "sha256": "ea8a48eb838a447423a30054e6462b5bd16728c6783d5c800cd56813d097fb2a"
+            },
+            {
+              "path": "lambda-assets/_nextgo/21892ca26b43f928d969/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.mp4",
+              "bytes": 2125,
+              "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.vtt",
+              "bytes": 96,
+              "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.wav",
+              "bytes": 9678,
+              "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+            },
+            {
+              "path": "lambda-assets/assets/embeds-demo.webm",
+              "bytes": 1098,
+              "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+            },
+            {
+              "path": "lambda-assets/assets/link-status.css",
+              "bytes": 81,
+              "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+            },
+            {
+              "path": "lambda-assets/assets/local-fonts.css",
+              "bytes": 211,
+              "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+            },
+            {
+              "path": "lambda-assets/assets/media.css",
+              "bytes": 54,
+              "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+            },
+            {
+              "path": "lambda-assets/assets/metadata-stream.css",
+              "bytes": 377,
+              "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+            },
+            {
+              "path": "lambda-assets/assets/social-image.css",
+              "bytes": 188,
+              "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 8625,
+              "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-demo.js",
+              "bytes": 157,
+              "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-early-second.js",
+              "bytes": 84,
+              "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-early.js",
+              "bytes": 81,
+              "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+            },
+            {
+              "path": "lambda-assets/assets/vendor-module.js",
+              "bytes": 167,
+              "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/about.json",
+              "bytes": 4069,
+              "sha256": "023a3968f415f58b22508000de30b5479ec7314e5199b8b97a71d331dbbbf076"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/client-only.json",
+              "bytes": 7203,
+              "sha256": "15d5d3c32f88ccf11cc92d2272616713d2ed17bd7cd7e2f9006033c88cf7c12e"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/local-fonts.json",
+              "bytes": 4475,
+              "sha256": "d4deb8b57b201aee1a1031cccaae0201de6c3a9a1ce113ee99550140b17ebc8e"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+              "bytes": 964,
+              "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+              "bytes": 385,
+              "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+            },
+            {
+              "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+              "bytes": 592,
+              "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+            },
+            {
+              "path": "lambda-features/about/index.html",
+              "bytes": 9558,
+              "sha256": "061691923370a3f3be69a5e48b13916cf6d8c97a6773b7cf6ab73d6f6ca6706f"
+            },
+            {
+              "path": "lambda-features/client-only/index.html",
+              "bytes": 11929,
+              "sha256": "e8b3f51fb589e97a0c548ebb327ca6f78fe78b5ff73c08376b5ebaa274e69a26"
+            },
+            {
+              "path": "lambda-features/local-fonts/index.html",
+              "bytes": 10014,
+              "sha256": "d55f90deb941bef5b14f8a0ecd2531f1fdc231639551b65b6fc5d94322209d0c"
+            }
+          ]
+        }
+      },
+      "coreSizing": {
+        "bytes": 7650369,
+        "go": "go1.24.13",
+        "goGzip9Bytes": 1912373,
+        "gzipPass": false,
+        "path": ".nextgo-test-results/static-fonts/export-go1.24/lambda-assets/_nextgo/21892ca26b43f928d969/app.wasm",
+        "rawPass": false,
+        "referenceGoGzip9Limit": 1677722,
+        "referenceRawLimit": 6291456,
+        "sha256": "8bea9a3f557a3d1451fad52837845b436f7e4b22684e3979928ecf95d259f8c8"
+      },
+      "browser": {
+        "stats": {
+          "startTime": "2026-11-07T11:10:21.789Z",
+          "duration": 18420.648,
+          "expected": 12,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "report": {
+          "path": ".nextgo-test-results/static-fonts/chromium-final-go1.24.json",
+          "bytes": 81554,
+          "sha256": "eb09eb9bc9ab351cad46776236c0336ad67f776799380589f4a805c2485db37e"
+        },
+        "transportProofs": [
+          {
+            "transport": "http",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "http",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "static",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "48d9643be30441c83b71f39d11fd9f1c3464ebd67123ef60f4bb487fdb8cec9e"
+          },
+          {
+            "transport": "static",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "48d9643be30441c83b71f39d11fd9f1c3464ebd67123ef60f4bb487fdb8cec9e"
+          },
+          {
+            "transport": "http",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": false
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "buffered",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "streaming",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "nativePIDAndGroupAbsent": true,
+              "applicationListenerAbsent": true,
+              "sourceListenerAbsent": true,
+              "sourceSocketsClosed": true,
+              "emptyEnvDirectoryRemoved": true,
+              "runtimeGatewayClosed": true
+            },
+            "artifactSHA256": null
+          },
+          {
+            "transport": "static",
+            "sha256": "632d43eba368c133dc0defccc3adf5dfa4caebb5e6b62987b96bde2c8d2efa3b",
+            "sourceRequests": 0,
+            "cleanup": {
+              "staticServerClosed": true,
+              "artifactUnchanged": true
+            },
+            "artifactSHA256": "48d9643be30441c83b71f39d11fd9f1c3464ebd67123ef60f4bb487fdb8cec9e"
+          }
+        ],
+        "noJavaScriptFontDecodes": [
+          {
+            "project": "local-fonts-http-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-buffered-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-streaming-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          },
+          {
+            "project": "local-fonts-static-chromium",
+            "fonts": [
+              {
+                "family": "Nextgo Fixture",
+                "status": "loaded"
+              },
+              {
+                "family": "Nextgo Fixture WOFF",
+                "status": "loaded"
+              }
+            ],
+            "widths": [
+              109.44003295898438,
+              109.44003295898438
+            ]
+          }
+        ]
+      },
+      "host": {
+        "leafCases": {
+          "fonts": 18,
+          "clientOnlyRegression": 54
+        },
+        "log": {
+          "path": ".nextgo-test-results/static-fonts/deployment-host-final-go1.24.log",
+          "bytes": 11249,
+          "sha256": "c13f052980865576b7ba47711227883089439d9dfb8e1627ef7a66667701996a"
+        }
+      },
+      "container": {
+        "image": "sha256:824bcc0245234794049353034822ef964cf844d3a8c78bba28993cc1d53d33c0",
+        "leafCases": {
+          "fonts": 18,
+          "clientOnlyRegression": 54
+        },
+        "log": {
+          "path": ".nextgo-test-results/static-fonts/deployment-container-final-go1.24.log",
+          "bytes": 11249,
+          "sha256": "9403030a4745194ee78346db77b4b3ce9cd6f1b9c4a0297301b74388cbcac729"
+        }
+      },
+      "race": {
+        "path": ".nextgo-test-results/static-fonts/race-final-go1.24.log",
+        "bytes": 8830,
+        "sha256": "c525bd7062a96453a700fd61de52c689e0162178ad5fed51191d0b45e23e248d"
+      },
+      "vet": {
+        "path": ".nextgo-test-results/static-fonts/vet-final-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "nativeGo127TestedPackages": 80,
+  "regressions": {
+    "clientOnlyChromium": {
+      "stats": {
+        "startTime": "2026-11-07T11:09:36.094Z",
+        "duration": 49151.943,
+        "expected": 22,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report": {
+        "path": ".nextgo-test-results/static-fonts/client-only-chromium.json",
+        "bytes": 104305,
+        "sha256": "07c4e7781be31ebf7c2055582f0a8a91c80641fe9eeadbb9c63c122b4b0126fb"
+      },
+      "transportProofs": [],
+      "noJavaScriptFontDecodes": []
+    },
+    "artifactAdmissionFixture": {
+      "path": ".nextgo-test-results/static-fonts/fixture-tests.log",
+      "bytes": 470,
+      "sha256": "9b6fe88a48a39b640c01259d417efab8f6d311d8d0eecd0ceba2f5696a7ec58f"
+    },
+    "focusedFinal": {
+      "path": ".nextgo-test-results/static-fonts/focused-final.log",
+      "bytes": 99,
+      "sha256": "95eb8e18df6aaa4f1543c438e1c863e5c6ef36ad8ba8767479b8604eafb56c7d"
+    }
+  },
+  "ci": {
+    "sdkSelectors": [
+      "1.24.x",
+      "stable"
+    ],
+    "requiredFontCasesPerSDK": 48,
+    "requiredProfilesPerSDK": 16,
+    "profiles": [
+      "chromium",
+      "firefox",
+      "webkit",
+      "webkit-touch"
+    ],
+    "transports": [
+      "http",
+      "buffered",
+      "streaming",
+      "static"
+    ],
+    "remoteExecution": "not run for this source",
+    "matrixList": {
+      "path": ".nextgo-test-results/static-fonts/matrix-list.txt",
+      "bytes": 7657,
+      "sha256": "8a1b3f2f1c59a8b47d3815f50e110e5fec1f8cc8641d7a4ed24eed64d450fcc1"
+    }
+  },
+  "attempts": [
+    "Initial candidate passed full Go 1.27 native race/vet, affected Go 1.24 race/vet, 12 Chromium cases and host/container font cases. Review then tightened exact MIME admission, added offline/independent-zone exclusions and avoided request cloning outside the font namespace. Final source was frozen and all recorded checks rebuilt/rerun.",
+    "An inventory-retention helper initially omitted S-prefixed capabilities from its regex; corrected to all A-Z prefixes, confirming the unchanged 79 capabilities and 11 release gates.",
+    "The local sizing helper initially used 1600000 instead of the documented 1677722-byte gzip reference limit; corrected before recording this report. Both SDKs exceed either limit."
+  ],
+  "limitations": [
+    "User selected local-machine qualification; local Lambda Runtime API emulation is not hosted serverless execution.",
+    "Only Linux desktop system Chromium was executed locally; Firefox/WebKit/touch and full remote CI remain unverified.",
+    "Static fixture uses no-cache and no synthetic ETag/CORS; provider headers and CDN deployment require separate configuration and validation.",
+    "Original fonts contain only G, O and space; this does not qualify production typography, general glyph coverage, fallback metrics or layout shifts.",
+    "No full font decoder/sanitizer, independent security audit, cold-start/load/RSS/latency/provider-quota/recovery test is claimed.",
+    "Both SDK WASM cores exceed the existing 6 MiB raw and 1.6 MiB Go gzip-9 reference budgets; no budget change or waiver. Sizing is an independent checkpoint, not a controlled optimization comparison or HTTP measurement.",
+    "Generated Go gzip-9 bytes can differ from Node/zlib and actual HTTP encoding.",
+    "All 79 capabilities and G01-G11 remain in docs/PARITY.md; no acceptance, release gate closure or parity/maturity claim."
+  ]
+}

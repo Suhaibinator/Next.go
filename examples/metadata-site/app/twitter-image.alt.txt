@@ -1,0 +1,1 @@
+Original Go bitmap card for the public metadata example.

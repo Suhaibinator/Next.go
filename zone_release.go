@@ -122,8 +122,11 @@ func validateReleaseFeatures(c Config) error {
 	if c.Phase != PhaseProduction || c.Dev || c.PrerenderBuildMode || c.PrerenderFS != nil {
 		return fmt.Errorf("nextgo: independent zone releases require ordinary production execution without prerender artifacts")
 	}
-	if c.Images != nil || c.Locales != nil || c.MetadataFiles.Static != nil || c.MetadataFiles.Robots != nil || c.MetadataFiles.Sitemap != nil || c.MetadataFiles.Manifest != nil {
+	if c.Images != nil || c.Locales != nil || c.MetadataFiles.Static != nil || c.MetadataFiles.Robots != nil || c.MetadataFiles.Sitemap != nil || c.MetadataFiles.Manifest != nil || c.MetadataFiles.OpenGraphImage != nil || c.MetadataFiles.TwitterImage != nil {
 		return fmt.Errorf("nextgo: independent zone release v1 requires pinned public/runtime assets; images, locales and managed metadata are not supported")
+	}
+	if len(c.LocalFonts) != 0 || len(c.fontFiles) != 0 {
+		return fmt.Errorf("nextgo: independent zone release v1 does not pin managed local fonts")
 	}
 	for _, route := range c.Routes {
 		if route.Prerender != nil {

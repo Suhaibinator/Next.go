@@ -178,10 +178,10 @@ test('a missing new named Props or Merge PASS never becomes optional in a module
 // Synthetic module observations below exercise schema rejection only. They do
 // not supply application bytes, production metadata, browser PASS or served proof.
 const modulePrefix='/_nextgo/'+'a'.repeat(20)+'/',moduleOrigin='http://127.0.0.1:4188';
-function moduleProof(digest='b'.repeat(64),bytes=12345){return {version:1,abi:6,records:['initial','held-recovery'].map(phase=>({phase,url:moduleOrigin+modulePrefix+'module-'+digest+'.wasm',status:200,mime:'application/wasm',bytes,sha256:digest,complete:true,wasmMagic:'0061736d01000000',hostABI:6,buildPrefix:modulePrefix}))};}
+function moduleProof(digest='b'.repeat(64),bytes=12345){return {version:1,abi:7,records:['initial','held-recovery'].map(phase=>({phase,url:moduleOrigin+modulePrefix+'module-'+digest+'.wasm',status:200,mime:'application/wasm',bytes,sha256:digest,complete:true,wasmMagic:'0061736d01000000',hostABI:7,buildPrefix:modulePrefix}))};}
 function moduleMatrix(){return ['chromium','firefox','webkit','webkit-touch'].map(profile=>({id:'merge-'+profile+'|'+lazyModuleTitle,proof:moduleProof()}));}
-test('actual module proof schema requires exactly two complete ABI6 response records and no compiled size substitute',()=>{
-  assert.deepEqual(validateLazyModuleProof(moduleProof(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:6,buildPrefix:modulePrefix,downloads:2});
+test('actual module proof schema requires exactly two complete ABI7 response records and no compiled size substitute',()=>{
+  assert.deepEqual(validateLazyModuleProof(moduleProof(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:7,buildPrefix:modulePrefix,downloads:2});
   const changes=[v=>{v.abi=5;},v=>{v.version='1';},v=>{v.compiledSize=12345;},v=>{v.records.pop();},v=>{v.records.push(v.records[0]);},v=>{v.records[0].compiledSize=12345;},v=>{v.records[0].status='200';},v=>{v.records[0].mime='text/javascript';},v=>{v.records[0].complete=1;},v=>{v.records[0].wasmMagic='0061736d02000000';},v=>{v.records[1].hostABI=5;},v=>{v.records.reverse();}];
   for(const change of changes){const value=moduleProof();change(value);assert.throws(()=>validateLazyModuleProof(value,modulePrefix,moduleOrigin));}
 });
@@ -196,7 +196,7 @@ test('both actual module downloads must agree in decoded hash and bytes rather t
   const differentBytes=moduleProof();differentBytes.records[1].bytes++;assert.throws(()=>validateLazyModuleProof(differentBytes,modulePrefix,moduleOrigin));
 });
 test('each of four exact lazy profiles requires its own proof and all eight downloads must agree',()=>{
-  assert.deepEqual(validateLazyModuleMatrix(moduleMatrix(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:6,buildPrefix:modulePrefix,profiles:4,downloads:8});
+  assert.deepEqual(validateLazyModuleMatrix(moduleMatrix(),modulePrefix,moduleOrigin),{sha256:'b'.repeat(64),bytes:12345,abi:7,buildPrefix:modulePrefix,profiles:4,downloads:8});
   const changes=[v=>{v.pop();},v=>{v.push(v[0]);},v=>{v[1].id=v[0].id;},v=>{v[0].id='retained-chromium|'+lazyModuleTitle;},v=>{v[0].id='merge-chromium|different case';},v=>{v[0].proof=moduleProof('c'.repeat(64));},v=>{v[0].proof=moduleProof('b'.repeat(64),12346);},v=>{v[0].borrowed=true;}];
   for(const change of changes){const value=moduleMatrix();change(value);assert.throws(()=>validateLazyModuleMatrix(value,modulePrefix,moduleOrigin));}
 });

@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	nextgo "github.com/Suhaibinator/Next.go"
+	assetapi "github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/internal/project"
 	"github.com/Suhaibinator/Next.go/seo"
 	"github.com/Suhaibinator/Next.go/ui"
@@ -64,6 +65,17 @@ func exportFixture(t *testing.T) (string, string) {
 		{Pattern: "/action", Page: func(*nextgo.Context) (nextgo.Page, error) {
 			return nextgo.Page{Body: ui.El("form", ui.Attrs{"method": "post", "action": "/_nextgo/actions/save"})}, nil
 		}},
+		{Pattern: "/local-fonts", Page: func(*nextgo.Context) (nextgo.Page, error) {
+			// No explicit RequireServer call: the reserved resource namespace
+			// must still fail closed without an explicit managed declaration.
+			return nextgo.Page{Resources: []assetapi.Resource{assetapi.Stylesheet(assetapi.LocalFontPrefix + strings.Repeat("a", 64) + ".css")}, Body: ui.Text("Fonts")}, nil
+		}},
+		{Pattern: "/encoded-local-fonts", Page: func(*nextgo.Context) (nextgo.Page, error) {
+			return nextgo.Page{Resources: []assetapi.Resource{assetapi.Stylesheet("/_nextgo/%6cocal-fonts/" + strings.Repeat("a", 64) + ".css")}, Body: ui.Text("Fonts")}, nil
+		}},
+		{Pattern: "/font-documentation", Page: func(*nextgo.Context) (nextgo.Page, error) {
+			return nextgo.Page{Title: "About /_nextgo/local-fonts/ URLs", Description: "Examples mention /_nextgo/local-fonts/ without loading fonts.", Body: ui.El("code", nil, ui.Text("/_nextgo/local-fonts/example.css"))}, nil
+		}},
 		{Pattern: "/stream", Page: func(*nextgo.Context) (nextgo.Page, error) {
 			return nextgo.Page{Stream: true, Body: ui.Defer("content", ui.Text("Loading"), func(context.Context) (ui.Node, error) { return ui.Text("Ready"), nil })}, nil
 		}},
@@ -113,7 +125,7 @@ func TestExportFailuresPreservePreviousGeneration(t *testing.T) {
 		t.Fatal(err)
 	}
 	original, _ := os.ReadFile(filepath.Join(out, "index.html"))
-	for _, failure := range []string{"/missing", "/stream", "/action"} {
+	for _, failure := range []string{"/missing", "/stream", "/action", "/local-fonts", "/encoded-local-fonts"} {
 		if err := exportApplication(context.Background(), base, assets, out, "test", []string{"/about", failure}); err == nil {
 			t.Fatalf("export accepted unsupported or failing page %s", failure)
 		}
@@ -131,6 +143,29 @@ func TestExportFailuresPreservePreviousGeneration(t *testing.T) {
 	current, _ := os.ReadFile(filepath.Join(out, "index.html"))
 	if string(current) != string(original) {
 		t.Fatal("publication failure did not restore previous output")
+	}
+}
+
+func TestExportAllowsFontNamespaceInDocumentationText(t *testing.T) {
+	assets, base := exportFixture(t)
+	if err := exportApplication(context.Background(), base, assets, filepath.Join(t.TempDir(), "static"), "test", []string{"/font-documentation"}); err != nil {
+		t.Fatal("font namespace text is not a runtime dependency", err)
+	}
+}
+
+func TestExportFontDependencyUsesScopedDecodedResourcePaths(t *testing.T) {
+	for _, tc := range []struct {
+		href, mount string
+		want        bool
+	}{
+		{"/app/fr/_nextgo/%6cocal-fonts/a.css", "/app/fr", true},
+		{"/_nextgo/local-fonts/demo/assets/style.css", "/_nextgo/local-fonts/demo", false},
+		{"https://cdn.example/_nextgo/local-fonts/a.css", "", false},
+		{"/other/_nextgo/local-fonts/a.css", "/app", false},
+	} {
+		if got := runtimeFontURL(tc.href, tc.mount); got != tc.want {
+			t.Fatal(tc, got)
+		}
 	}
 }
 

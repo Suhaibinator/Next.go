@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "analyzerGo": "go1.24.13",
+  "compression": "go-compress-gzip-level-9",
+  "scope": "shared runtime assets and static route summaries; route component usage is not inferred",
+  "build": "3c143f75758ba6f17067",
+  "fingerprint": "bbbddae12e0cd2c524c4099ed50d6ecea9d532981e9a1790382a7cd1c1d2babb",
+  "native": {
+    "bytes": 21590200,
+    "sha256": "6b5e7ebbeb6a07893e9eba7e22f9806841b57fe5fbce538da4ffea039912f924",
+    "go": "go1.24.13",
+    "goos": "linux",
+    "goarch": "amd64",
+    "cgo": "0"
+  },
+  "assets": [
+    {
+      "file": "app.wasm",
+      "kind": "core",
+      "bytes": 5729355,
+      "gzip9Bytes": 1530997,
+      "sha256": "dd970f77bdc8a8af5ec6ed7f73acf80a40efd44ced36c4fecd06d498ce5011fb",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 718,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 3313,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 6526,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 3771434,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1946951,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "boot.js",
+      "kind": "bootstrap",
+      "bytes": 2654,
+      "gzip9Bytes": 1004,
+      "sha256": "1f8e6fd7b88a806668f2bc25d526d5fd5d08a3c37b9b3ebe0e378d6e55c35860"
+    },
+    {
+      "file": "module-d970882b7d0a8830ed9cebfd2e966b2c8900e76a619ea9d4c6c9bbc725377570.wasm",
+      "kind": "lazy",
+      "bytes": 4348037,
+      "gzip9Bytes": 1209496,
+      "sha256": "d970882b7d0a8830ed9cebfd2e966b2c8900e76a619ea9d4c6c9bbc725377570",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 654,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2691,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 5280,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2748582,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1590417,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "wasm_exec.js",
+      "kind": "shim",
+      "bytes": 16992,
+      "gzip9Bytes": 4345,
+      "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+    }
+  ],
+  "components": [
+    {
+      "name": "chart",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "chartlazy",
+      "loading": "lazy",
+      "file": "module-d970882b7d0a8830ed9cebfd2e966b2c8900e76a619ea9d4c6c9bbc725377570.wasm"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "/",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/about",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/health",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/esm",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/failure",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/late",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy-esm",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy-late",
+      "kind": "page",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    }
+  ],
+  "totals": {
+    "allBytes": 10097038,
+    "allGzip9Bytes": 2745842,
+    "eagerBytes": 5749001,
+    "eagerGzip9Bytes": 1536346
+  },
+  "budgets": {
+    "coreBytes": 6291456,
+    "coreGzip9Bytes": 1677722,
+    "lazyBytes": 0,
+    "lazyGzip9Bytes": 0
+  },
+  "violations": []
+}

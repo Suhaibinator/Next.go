@@ -1,6 +1,47 @@
 # Next.go capability parity and production release gates
 
-Research baseline: **October 23, 2026**, official Next.js documentation identifying **v16.4.3** as latest ([release](https://github.com/vercel/next.js/releases/tag/v16.4.3), commit `29bbeab09981148ade186e8599ecdede15abc281`). The original October 22 inventory used v16.4.2; the patch delta is recorded below without removing any capability or gate. The [official latest-release API](https://api.github.com/repos/vercel/next.js/releases/latest) was rechecked on October 29 and still identifies stable v16.4.3. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
+The native global-error increment adds `Config.GlobalError` and the compiler-checked
+`app/globalerror.go` convention. Focused native/race, standalone compiler and local
+buffered/streaming Runtime API checks pass both SDKs. The global fallback drops
+route/slot ownership, bypasses layouts and falls back generically on its own
+failure. [Contract and explicit limits](ERROR_BOUNDARIES.md). Each SDK passes one
+complete 85-package native race run and native vet. Fresh standalone fixtures
+pass 72 cases across both SDKs, HTTP/both mock Lambda modes and host/restricted
+nonroot scratch containers. The production native advisory check passes against
+the rechecked official database. [Exact source and evidence](benchmarks/native-global-error-qualification.json).
+Earlier combined/browser results below retain their original source scope. All
+capabilities and release gates remain open.
+
+The earlier combined candidate integrates upstream `d788b8c` retained query/Refresh,
+static-shell, offline and Lambda packaging changes with the local increments.
+Private module ABI is **7** and native export configuration is **4**. Both SDKs
+have that candidate's local coverage for all 85 native test packages (84 broad passes
+plus the corrected CLI package), native vet, 12 WASM package runs/four targets,
+four WASM vets, 104 Chromium widget/module cases and 504 executable cases.
+[Combined source scope, failures and artifact pins](benchmarks/combined-parity-integration-qualification.json)
+retain the exact evidence. This does not infer the unexecuted complete retained,
+offline, cross-engine, cloud or release matrices. Production Go 1.27 widget core
+is **8,014,494 raw / 2,132,794 gzip-9 bytes**; compatibility Go 1.24 is
+**6,823,989 / 1,800,023**. Both fail both reference byte budgets.
+
+The user explicitly authorized external publication after automatic approval
+review initially rejected the write. [Draft PR #9](https://github.com/Suhaibinator/Next.go/pull/9)
+publishes the exact reviewed candidate at `a56c4f22e5422de42607ab36b91c143f6a13f0bf`.
+On CI head `d669169`, both SDKs pass static-shell and invocation-context jobs;
+all four SDK/architecture Lambda-packaging cells pass, with 56 actual extracted-ZIP
+mock Runtime flight passes. The stable independent-zone job passes 52 browser
+cases; native and core-WASM production advisory jobs pass. These results retain
+their exact source/job scope in the [remote CI checkpoint](benchmarks/remote-ci-parity-qualification.json).
+The same head fails client-only discovery because its producer still expects
+20 cases while the existing no-JavaScript scenario increases discovery to 24.
+Commit `2de12c8` requires all 24 exact title/profile pairs and physical cleanup
+proofs. Its hosted qualification remains pending. Current unchanged Go source
+also passes 19 local Chromium cases and 15 metadata adapter cases against a
+fresh production demo; this does not qualify the hosted nonroot producer.
+Full remote CI is not green. All 79 capabilities and G01–G11 remain in scope;
+no release gate is complete.
+
+Research baseline refreshed **November 7, 2026 (UTC)**: the [official latest-release page](https://github.com/vercel/next.js/releases/latest) redirects to stable **v16.4.5** ([release](https://github.com/vercel/next.js/releases/tag/v16.4.5), commit `4e5335a00314be7fbb2aace5e9be56a88e64e5a8`). The original October 22 inventory used v16.4.2; the October 23/25 checkpoint used v16.4.3. Both patch deltas are retained below without removing any capability or gate. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
 
 The target is an alternative implemented in Go, with Go/WASM browser behavior and only the JavaScript runtime bridge that WASM requires. Equivalent user-visible capabilities may have idiomatic Go APIs. React, JSX, RSC wire formats, JavaScript configuration syntax, npm packages, and exact Next.js source APIs are not compatibility promises. Their underlying capabilities remain in this inventory. An existing Next.js application cannot currently be imported or run unchanged.
 
@@ -454,6 +495,61 @@ qualification. These requirements remain open; the Go runtime does not inherit
 upstream fixes by recording them. No row or release gate was removed, and no
 new compatibility claim follows from this baseline update.
 
+## Stable v16.4.5 delta (November 6, 2026)
+
+The official [v16.4.3…v16.4.5 comparison](https://github.com/vercel/next.js/compare/v16.4.3...v16.4.5)
+and its downloadable patch contain 16 commits, including the v16.4.4 and
+v16.4.5 version commits. Changed production paths and their regression fixtures
+add these requirements to the existing inventory:
+
+| Changed behavior | Inventory / release requirements |
+| --- | --- |
+| Missed startup CSS updates must recover; strict module-factory optimization was reverted | A03, T02, T03; development recovery and module bootstrap correctness |
+| Partial-prerender resume bootstrap must receive the document CSP nonce | V12, A06, G02; nonce propagation through resumed output |
+| Outer and cold nested cache fills must isolate root-parameter values; binary arguments must produce distinct cache keys | D03, D04, D06, G02; cache-key identity and request/tenant isolation |
+| Request-supplied placeholder parameters must not poison shared prerender shells | D07, V12, G02; trusted static inputs and shared-shell isolation |
+| AVIF/HEIC sniffing must reject false positives | A04; image decoding/format conformance |
+| Forwarded fetch responses must not retain stale compressed framing | R12, T12; encoded-body/header agreement across forwarding |
+| Internal middleware cookie headers must not escape edge responses | D02, R12, T14, G02; private transport metadata containment |
+| Analyzer route indexes use route summaries; JWT dependency and deployment Node version change | T04, T10, D16, G11; diagnostics, application auth integration and release tooling |
+
+These are semantic requirements, not imports of upstream code or evidence that
+Next.go has the same defects. Their Go equivalents need independent source and
+regression evidence. All remain part of the open capabilities/gates. The full
+latest documentation catalog, independent security review and immutable release
+conformance still require rechecking before release. GitHub's API endpoint was
+blocked by this environment's network policy; the successful official release
+redirect and comparison patch establish this named baseline instead.
+
+## Stable-source documentation catalog (November 7, 2026 UTC)
+
+The latest-release redirect still identifies v16.4.5. Its official source tag
+resolves to `4e5335a00314be7fbb2aace5e9be56a88e64e5a8`. The
+[document catalog](benchmarks/nextjs-16.4.5-documentation-catalog.json) retains
+paths, titles, lengths and SHA-256 hashes for all **474 MDX documents**: 298 App
+Router, 167 Pages Router, five architecture, three community and one root.
+Thirty-seven documents carry an explicit experimental frontmatter label; the
+remaining documents still require per-feature stability review. This catalog
+and selected body review improve baseline provenance. Full semantic review and
+G01 remain open.
+
+The following named requirements are explicitly retained under the existing
+rows. Their presence in upstream documentation does not qualify Next.go code:
+
+| Stable-source documented behavior | Inventory requirements still open |
+| --- | --- |
+| `instant` validates navigation readiness below shared layouts, with stable warning-level development diagnostics | V07–V09, T02, T04: segment-specific blocking diagnostics, warm-prefetch readiness and reset/retry combinations |
+| `ensureStatic` enforces shell, per-link prefetch or complete-navigation static output, including conflicts/opt-outs | D07, V12, T05: equivalent stage policies, build diagnostics and isolation tests |
+| `prefetch()`, `navigation()`, `connection()` and `io()` distinguish prerender, shell, per-link and user-request execution | D01, D07, V09, V12: explicit suspension-stage semantics, synchronous nondeterminism and side-effect/cache isolation |
+| `catchError` supplies programmatic component recovery, preserves state outside its boundary and handles framework control flow | R09, R10, V05, V07: arbitrary boundary reset/retry, navigation clearing and redirect/access interaction |
+| Adapter contracts describe output types, routing information, entrypoint invocation, partial prerender integration and immutable static assets | T12–T15, T17, G07: provider-independent output/adapter conformance and hosted behavior |
+| Data taint and server/client boundary controls protect sensitive values crossing serialization | V03, D02, G02: comprehensive data-flow and serialization qualification |
+| Client instrumentation injection and attribution have lifecycle/configuration controls | T09, T10: early client initialization, attribution and complete diagnostics |
+| Experimental agent upgrade policies/reminders, agent feedback/rules and editor integrations | T18, T19, T02, G11: retain experimental classification, implement or obtain explicit acceptance and verify behavior |
+
+All 79 capability rows and G01–G11 remain in scope. No catalog entry, JavaScript
+API spelling or experimental label constitutes user acceptance of an omission.
+
 ## Reading the status
 
 - **Implemented**: source and focused tests exist for the limited behavior stated in the row. This does not mean production qualification.
@@ -565,6 +661,74 @@ Short fuzz runs exercised approximately 917,000 routing and 611,000 HTML-escapin
 
 Actual cloud, physical-device/manual accessibility, performance/operations and all full release gates remain open.
 
+## Script host admission checkpoint (November 7, 2026 UTC)
+
+The document script host now reserves at most 256 pending requests before
+scheduling Go workers, rejects malformed calls as Promise failures and retains
+refresh accounting through settlement. Both SDKs pass saturation/recovery and
+refresh-drain tests, 12 full WASM package runs/four targets, four WASM vets and
+16 generated examples. Fresh artifacts pass 104 Chromium checks over four
+local transports, 336 ordinary host/container and 168 race executable cases.
+[Contract and current source/artifact qualification](SCRIPTS.md).
+
+Only JS/WASM-tagged Go inputs changed after the script-settings checkpoint.
+Native CLIs and normal/race test controllers rebuild byte-identically; the
+preceding 80-package native race/vet baseline is retained with that scope,
+without claiming a new broad native run. Current browser-containing artifacts
+are rebuilt and qualified. Fresh bundle analysis matches both server hashes;
+Go 1.27 core is 6,938,726 raw / 1,861,976 gzip-9 bytes and both reference budgets
+still fail. Automated production advisories report no known findings in tested
+scopes. This bounds pending Go work and does not establish a browser execution
+sandbox, full physical resource/soak behavior or hosted deployment. G06 and all
+complete release gates remain open.
+
+## Managed script settings checkpoint (November 7, 2026 UTC)
+
+`Script.Data` now has immutable, comparable bounded `data-*` settings with
+reserved-name/JSON/value/encoded-byte validation. Early output escapes them;
+managed loads attach them before execution, and execution/configuration
+identities include them. Both SDKs pass 80 native race packages/vet, 12 WASM
+package runs/four targets, four WASM vets and 16 generated examples. Fresh
+pinned artifacts pass 104 Chromium cases over HTTP, both local Lambda modes and
+static hosting, 336 ordinary host/restricted-container executable cases and
+168 race executable cases. All Go inputs remain unchanged throughout the
+campaign. [Contract, failures and limits](SCRIPTS.md),
+[source/artifact qualification](benchmarks/script-data-qualification.json).
+
+Fresh bundle analysis matches the qualified binaries. Go 1.27 production core
+is 6,937,167 raw / 1,861,229 gzip-9 bytes, failing both reference budgets.
+Production-SDK advisory checks report no known findings in the tested scopes;
+the independent source audit remains open. Remote cross-engine CI and hosted
+cloud are unverified. The optional descriptor field keeps private module ABI 6;
+earlier real development-replacement evidence retains its preceding source
+scope. A06 and all complete release gates remain open.
+
+## Native ESM integration checkpoint (November 7, 2026 UTC)
+
+[Go-native module imports](MODULE_IMPORTS.md) now expose default/named exports
+and live bindings through native browser `import()`, shared by eager/lazy Go
+components. The generated bridge and private module ABI are 6; rebuild the CLI,
+core, modules and development entries together. Root imports, aliases and
+pending consumers have explicit bounds; cancellation retains physical callback
+accounting, and failed URLs remain reserved. Native import has no per-graph SRI
+controls or unload/sandbox guarantee.
+
+The ESM two-SDK checkpoint passes 80 native race packages/vet, 11 WASM
+package runs/four targets, four WASM vets and 16 generated examples per SDK,
+104 Chromium lifecycle/ESM cases over four local transports, 312 ordinary
+host/restricted-container executable cases, 156 race executable cases and two
+real development-replacement checks. The
+[qualification record](benchmarks/module-imports-qualification.json) preserves
+source/artifact pins, earlier failures and the JS-only ABI-test correction after
+the native snapshot. Successful script/ESM cases use native nonce-based script
+CSP; the uPlot example permits inline styles. Static hosting supplies its own
+response policy. Fresh bundle analysis matches both qualified executables.
+Go 1.27 production core is 6,919,617 raw / 1,854,612 gzip-9 bytes, failing both
+reference budgets. Automated production-SDK advisories report no known findings
+in the tested scopes; source security, remote cross-engine CI, hosted cloud and
+all complete release gates remain open. Earlier widget/comparison checkpoints
+retain their original source scope and counts.
+
 ## Capability inventory
 
 ### Routing and request handling
@@ -573,15 +737,15 @@ Next.js documents file conventions, dynamic/catch-all segments, groups, template
 
 | ID | Capability | Next.go status and evidence | Remaining parity work |
 | --- | --- | --- | --- |
-| R01 | File-based static and nested routes | Implemented: `app/**/page.go`; [discovery](../internal/project/discover.go), [discovery tests](../internal/project/discover_test.go), [runtime tests](../nextgo_test.go). | Qualify large route trees, URL normalization, and diagnostics across supported systems. |
+| R01 | File-based static and nested routes | Implemented: `app/**/page.go`; [discovery](../internal/project/discover.go), [discovery tests](../internal/project/discover_test.go), [runtime tests](../nextgo_test.go). Immutable native/browser route indexing, canonical-shape validation, reference/diagnostic fuzzing, deep-path and 3,000-route App checks now pass both SDKs, including pinned browser/host/container qualification ([contract](ROUTING_PERFORMANCE.md)). | Complete large-tree/URL/diagnostic and production performance qualification remains open. |
 | R02 | Single dynamic segment, decoded parameters, static precedence | Implemented subset: `param_name`, validated escaped-path matching/static precedence, generated URL constructors with decoded string fields and validated typed readers. Builder/matcher round trips, compile-time shape failures, native/WASM generated packages and demo loader/navigation tests cover the subset. [Typed routes](TYPED_ROUTES.md). | Full matching/collision fuzz and large-tree qualification; stable naming/alias and migration policy, typed query/schema integration. |
 | R03 | Required and optional catch-all segments | Implemented subset: terminal `catchall_name`/`optional_name`, matching precedence and ambiguity checks; generated constructors/readers expose owned decoded `[]string` fields, reject empty required tails and safely encode each segment. The runtime Params map remains slash-joined for compatibility. Native/compile/WASM and browser Unicode/percent-encoding, optional-root, direct-load, history, mounted and locale tests cover this API. [Typed routes](TYPED_ROUTES.md). | Large-route-set and full production/browser combinations, typed schema inference and naming/migration qualification. |
-| R04 | Route groups, private folders, multiple root layouts | Partial: `group_name` omits a URL segment while preserving layout ancestry; hidden directories ignored. Discovery/routing tests. | Private-folder API, multiple root-layout semantics, root selection and comprehensive cross-system diagnostics. |
+| R04 | Route groups, private folders, multiple root layouts | Partial: `group_name` omits a URL segment while preserving layout ancestry. `_name` and `private_name` app subtrees are excluded from primary/slot routing while remaining importable and included in source snapshots; `literal_` escapes structural spellings for intentional public URLs. [Private-folder contract](PRIVATE_ROUTES.md). Independent roots are derived from persistent layout ancestry, with native cross-root links/Navigate/Replace and response/export root checks ([contract](ROOT_LAYOUTS.md)); both SDKs pass the pinned local browser/native/container qualification. | Broader root/locale/parallel/interception/prerender/rollout combinations, naming/migration policy and comprehensive cross-system diagnostics. |
 | R05 | Nested reusable layouts | Partial: nested server layouts plus opt-in `PreserveLayouts`, generated identities/outlets and client preservation code. Native and Chromium tests verify retained shared layout node/state identity. | Expand retained effects and request-sensitive content qualification; layout data/metadata inheritance and segment error handling. |
 | R06 | Templates with deliberate remount semantics | Implemented subset: discovered `template.go` wrappers render inside same-directory layouts, key the immediate child segment, retain deeper/query state, and remount/dispose on child changes. [Runtime](../template.go), native/discovery tests and Chromium/Firefox/WebKit/touch-viewport state/reset/cleanup tests pass. | Qualify nested boundary/loading behavior, encoded/catch-all browser combinations and full browser matrix. |
 | R07 | Parallel route slots and unmatched-slot defaults | Partial: `slot_name` discovery, typed registrations and layout-scoped `Context.Slot`, matching/default SSR including implicit children and slot-only URLs; named defaults inherit their root wrappers, providers and error/not-found boundaries through validated/frozen `DefaultRoute` registrations; recursive named slots, nested slot-only URLs and named slots inside retained primary layouts have parent-bound identities, independent owned-content hashes and prevalidated hierarchical reconciliation; ordered `Primaries` chains independently select/revalidate nested ancestor outlets and generation composes overlapping URLs using the deepest compatible owner, current-request reauthorization of unmatched active primary/named branches, content-hash/DOM-state retention, history selections and cleanup. Layout-scoped server selected-segment reads and scoped browser observers expose the committed active branch with bounded metadata and automatic island cleanup. Stateful pages reject shared/prefetch reuse and slot response mutations; slot pages fail static publication while unrelated pages remain exportable. Native/race, Chromium/Firefox/WebKit/touch and generated HTTP/both-Lambda fixtures cover this subset. [Contract](PARALLEL_ROUTES.md), [server](../parallel.go), [browser](../client/parallel_js.go), [example](../examples/demo/app/boards/layout.go). | Concurrent/independent streamed loading, head composition, scoped denial/reset/recovery and complete production/browser/resource/accessibility/deployment qualification. |
 | R08 | Intercepted routes and contextual URL-addressable modals | Partial: `slot_name/intercept_root` discovers absolute targets with normal standalone pages; typed `Slot.Intercepts` registrations require primary ownership/defaults, freeze their graph and participate in runtime identity. Soft navigation reselects registered background scopes, binds shared owner parameters and reruns background/modal loaders with current credentials; hard requests render standalone pages, including targets beneath the same owner. URL-only navigation reuse is disabled for contextual targets. Selection uses deepest ownership and cross-slot target specificity, rejects equally eligible background hints before loaders, and validates complete standalone route-pattern coverage for catch-all targets. Go native dialogs retain background state, cycle focus, restore reconnected openers, close/Escape/back and reopen forward; network failures preserve the current view and authorization denials dispose protected islands. Open-modal refresh preserves unchanged native/dialog/Go state, replaces changed modal output independently and reauthorizes both active branches. `Context.InterceptedFrom`, bounded same-runtime history ownership and `client.BackOrReplace` restore backgrounds after push/replace; declarative replacement includes same-page fragments, and unknown history/network failures use safe replacement/retry behavior. Native/race, Chromium/Firefox/WebKit/touch and generated HTTP/both mock Lambda checks cover this subset. [Contract](INTERCEPTING_ROUTES.md), [runtime](../interception.go), [browser](../tests/interceptions.spec.mjs), [executable](../tests/deployment/interception_test.go). | Owners inside named slots, relative matcher ergonomics, head composition, stacked/contextual overlays and arbitrary history-stack unwinding; standalone pattern-union coverage and comprehensive query/catch-all/locale/base/rewrite/history/failure combinations and full resource/accessibility/real-cloud/production qualification. |
-| R09 | Custom not-found and global error responses | Partial: nearest route error/not-found functions, root unmatched fallback, generic 500/panic recovery, generated registration. Native renderer/discovery and Chromium custom-boundary flows pass. | Boundary reset/retry API, complete layout-failure semantics, global fallback distinction, crawler/status behavior and browser conformance. |
+| R09 | Custom not-found and global error responses | Partial: nearest route error/not-found functions, root unmatched fallback, generic 500/panic recovery and generated registration. Native `Config.GlobalError`/`app/globalerror.go` provides a terminal synchronous fallback outside layouts and slot ownership, with generic recovery on its own failure. Both SDKs pass full native/race and vet, standalone compiler and local buffered/streaming Runtime API checks; 72 generated-executable cases cover both SDKs on host/restricted nonroot containers. [Contract](ERROR_BOUNDARIES.md), [source-scoped evidence](benchmarks/native-global-error-qualification.json). Earlier Chromium custom-boundary flows retain their source scope. | Boundary reset/retry API, complete layout-failure semantics, response-serialization/late-stream/global-browser recovery, crawler/status behavior and full browser/deployment conformance. |
 | R10 | Authorization/forbidden boundary UI | Partial: explicit ErrUnauthorized/ErrForbidden results, inherited unauthorized.go/forbidden.go, safe outer layout prefixes, private/noindex 401/403 documents/envelopes, and action denial results. The protected demo checks roles in data/API/mutation paths; denial navigation disposes retained layout DOM. [Contract](ACCESS.md), native/discovery/action and browser tests. | Deferred/after-stream access interrupts, independent segment recovery, complete authentication/session integration and production identity/tenant qualification. Experimental Next.js auth-interrupt semantics remain tracked. |
 | R11 | HTTP route handlers | Partial: discovered `app/**/route.go` at unreserved paths, dynamic/grouped parameters via PathValue, configured handlers, `httpx.Methods` dispatch/HEAD/OPTIONS/405 and route-kind manifests that exclude endpoints from prefetch/navigation. Page response controls and both Lambda modes are integrated. Native and Chromium/Firefox/WebKit/touch endpoint tests pass. | Broader CORS/uploads, typed endpoint clients, diagnostics and release-level failure/concurrency qualification. |
 | R12 | Redirects, rewrites, response headers, request interception | Partial: ordered middleware/global headers and frozen `HeaderRules` with path/condition captures, ordered set/append values, before-middleware source selection, final-write privacy, asset/locale redirect support and static-publication rejection; local/external redirects, conditional header/cookie/query/host Has/Missing with compiled RE2 captures, validated templates, static redirect cycle checks and canonical local navigation. Literal-origin HTTP(S) rewrites have application/locale-shared admission, body/time limits, explicit credential/forwarding policy, trace integration and streamed responses. External sources require full documents; conditional pages bypass shared/prefetch caches; static publication fails closed. Native/race/fuzz, real-upstream cross-engine browsers and generated HTTP/both-Lambda executable fixtures pass. [Contract](REQUEST_RULES.md), [header rules](HEADER_RULES.md), [compiler](../rules.go), [proxy](../rewrite_proxy.go), [tests](../rules_test.go), [executable](../tests/deployment/rules_test.go). | Full rewrite phase/source-constraint/query-composition semantics and local configured-handler/asset targets; advanced proxy/TLS/network/redirect-loop policy, long-lived streaming and real production/CDN/cloud/load/tenant/recovery qualification. |
@@ -607,11 +771,11 @@ The current Next.js baseline combines server/client component boundaries, hydrat
 | V10 | Retained route UI/state on back navigation | Partial layout/slot and browser-owned preview restoration primitives remain. **UNQUALIFIED SOURCE:** the first opt-in `Config.RetainRoutes`/`Page.Retention` slice uses fresh server authority and unchanged body fingerprint/partition, bounded owners, suspended managed activity and partition/denial reset. New stationary source adds `ClientIslandWithOptions` Key/Schema identity under independent `ui.Keyed` roots, live read-only `PropsSource` snapshots and fresh server text/attributes/head/props on query and Refresh. Real `layout.go` ancestor fixtures use independently validated request-local merge authority; legacy whole-route retention stays absent for those layout renders. Native/WASM/browser test source is prospective. The genuine lazy ordinary module privacy fixture covers loaded/download-pending denial and fresh cold recovery, not changed-output module preservation. [Retained-route scope](RETAINED_ROUTES.md), [lifecycle](LIFECYCLE.md), [merge example](../examples/merge/README.md). | Mandatory remaining: complete compatible-identity reconciliation for changed ordinary/server output, moves and Refresh/query/path/history updates; nested providers and full multi-root, lazy/client-only, forms, layout/slot and streaming composition; runtime, resource/memory, browser/conformance and deployment qualification. The stationary subset, generated nested-layout fixture and ABI-6 privacy case do not close V10, any of the79 capabilities or11 release gates. V10 remains OPEN. |
 | V11 | Streaming HTML and independent async boundaries | Partial: `Page.Stream`/`ui.Defer` emit immediate shells and independently scheduled nested boundaries; bounded event rendering drives initial inert templates and negotiated navigation JSON frames. Go readers validate and commit shells, hydrate progressive chunks, reject invalid ownership/IDs, cancel superseded work and offer recoverable retry. Prefetch avoids running deferred UI loaders; old clients retain buffered JSON. App-wide `Config.Streaming` admission shares render/physical-callback capacity and deadlines across locale/domain mounts; marked, validated busy navigation preserves the current view. Canceled callbacks retain physical slots until return, and same-limiter recursive deferred rendering fails explicitly. Full native race/vet and matching core/module WASM checks pass on both SDKs, alongside actual-process host/nonroot Linux HTTP/both mock Lambda coverage; the admission browser matrix passes 329 checks with three existing CDP skips across host Chromium and Linux Firefox/WebKit/touch. Earlier native/UI/WASM/browser and executable Lambda timing fixtures cover the preceding transport subset. Explicit partial prerendering reuses a public static shell while named callbacks stream current-request regions; the final partial-shell matrix passes 377 browser checks with three existing CDP skips plus both SDK native/WASM and host/Linux executable coverage. Deferred typed metadata shares admission/physical callback limits and updates only the owned SEO head; its initial HTML is blocking by default, development buffers and production HTML is explicitly opted in for recognized browsers. Negotiated production navigation is independent of that HTML flag. [Metadata](METADATA.md), [Contract](STREAMING.md), [partial shells](PARTIAL_PRERENDERING.md). | Initial document chunks still require WASM; independent route/slot ownership and broader metadata/crawler streaming, late access/status interrupts, cross-process admission/fairness, full backpressure/peak-memory/soak/accessibility and actual proxy/CDN/cloud qualification remain open. |
 | V12 | Partial prerendering / static shell with dynamic regions | Partial: explicit `PrerenderPolicy.Partial` captures public page/layout HTML and static head/document data once per generation, with bounded `ui.RequestRegion` fallback offsets and owned public props. Native `regions.go` callbacks bind to the current request/middleware values and never run during build capture; private region results never enter shell storage. Existing local/shared lifetime and authority-ticket mechanisms retain shells only; artifact/DTO format 3 preserves descriptor identity and rejects incompatible old readers. Streaming, legacy JSON/HEAD, admission/cancellation/retry and static-export rejection use existing paths. UI/native/audit/codec/ownership and real native/WASM compiler-graph checks pass; the corrected frozen source passes both SDK native/WASM, guarded builds and host/nonroot Linux HTTP/both mock Lambda suites, plus 377 browser checks with three existing CDP skips. A later explicit public-shell prefetch/resume protocol is implemented with native/WASM/executable checks and 40 final focused browser checks across host Chromium and Linux Firefox/WebKit/touch; every resume still runs server checks and fresh private regions. `Page.DeferredMetadata` is explicitly refused for partial public shells; their captured head remains resolved. [Contract and sample](PARTIAL_PRERENDERING.md), [prefetch](PARTIAL_PREFETCH.md). | Automatic Go request-data/purity analysis and secret classification, automatic cached components/nested lifetimes, full session-scoped App Shell/partial prefetch, unknown-parameter/static-application shells, deferred metadata composition, parallel/interception ownership composition and complete Next.js Cache Components semantics; cloud, soak, security/access and immutable release qualification remain open. |
-| V13 | Route/component bundle splitting and lazy browser modules | Partial: opt-in `component.json` generates separate hashed Go/WASM component executables and keeps lazy application imports out of the core entrypoint. A reserved compiler target selects module API forwarding at compile time and preserves application Go tags; exact-target graph checks reject module-only route dependencies. Compiler/native/WASM fixtures cover tag semantics and entrypoint ownership. Core Go loader deduplicates loads, verifies exact bytes/epoch/ABI, limits concurrency and delegates router/history APIs through a JSON/DOM bridge. Resource-invalidation epochs introduced with ABI 4 and per-anchor link-status forwarding introduced with ABI 5 remain mandatory in paired ABI 6; rebuild every core/lazy asset together, and mixed ABI registration fails. ABI 6 adds recognized document-authority revocation before module observer dispatch and fences pending/mounted owners. The ABI-4 resource/core/lazy and ABI-5 core/module/link-status records are historical; the ABI-6/query/Refresh merge source increment is unqualified. Initial/streamed SSR islands mount in place, unmount cleans listeners, and document-lifetime runtimes are reused. Eight-package/two-load/8 MiB limits are explicit. Historical native/WASM tests and browser/deployment qualification cover the preceding subset; see [contract and tradeoffs](LAZY_COMPONENTS.md). | Automatic route-to-component graph splitting/preloading, grouping/shared dependencies, shared application context/effect semantics, advanced modal/slot/animation/mutation interactions, multi-module resource/memory/soak/device/CDN qualification and robust damaged-runtime recovery remain open. |
-| V14 | Third-party browser component/library integration | Partial: raw browser APIs are available through `syscall/js`; no supported integration abstraction. | Scoped adapters, ownership/cleanup and SSR-safe opt-out, script dependencies and lazy loading. |
+| V13 | Route/component bundle splitting and lazy browser modules | Partial: content-addressed lazy Go/WASM packages use checked size/digest/source epoch, bounded core loading and versioned JSON/DOM forwarding. The combined bridge is ABI 7, retaining resource epochs, link status, document-authority revocation and native module imports. Rebuild CLI/core/modules/development entries together. Earlier ABI 4/5/6 qualifications retain their exact snapshot scope; combined-source qualification is pending. [Contract](LAZY_COMPONENTS.md). | Automatic route-level graph splitting/preloading, grouping/shared dependencies, shared application context/effect semantics, advanced modal/slot/mutation interactions, multi-runtime resource/soak/device/CDN qualification and damaged-runtime recovery remain open. |
+| V14 | Third-party browser component/library integration | Partial: `Scope.Widget` owns a connected opaque child host, ordered script/module dependencies, cancellable startup, registered destructors and exact SSR fallback restoration. Native ESM default/named exports and live bindings share a bounded document cache across eager/lazy Go components, with explicit failure/cancellation policy and ABI 6. Current two-SDK native/WASM, 104 Chromium, 312 ordinary host/container, 156 race executable and two development-replacement checks qualify the bounded subset. [Widget contract](WIDGETS.md), [ESM contract and pins](MODULE_IMPORTS.md). Upstream integration evidence: Partial: raw browser APIs are available through `syscall/js`; no supported integration abstraction. | Broader library/framework adapters, dependency/CSS orchestration, responsive/state updates, strict-CSP/security/device/cross-engine combinations, aggregate multi-runtime resource/soak and hosted-cloud qualification. Arbitrary library code and async destruction are not sandboxed or inferred. Upstream integration requirements: Scoped adapters, ownership/cleanup and SSR-safe opt-out, script dependencies and lazy loading. |
 | V15 | Accessibility of navigation | Partial: semantic HTML/live loading status, a polite route announcer, destination/fragment focus with `data-nextgo-focus` override, scroll-safe focus and retained-focus refresh. Chromium/Firefox/WebKit/touch-viewport keyboard/focus tests pass. | Screen-reader/manual and contrast review, full keyboard paths, offline/error focus qualification and reduced-motion behavior. |
 | V16 | View transitions | Partial: opt-in `Config.ViewTransitions`, Go component `client.Transition`, typed/link controls and transition types, reduced-motion checks/change handling, bounded snapshot fallback and superseded/unmounted callback guards. Body/head/history/focus commit together; ordinary/streamed/static documents carry a versioned policy. Native/WASM, actual Chromium/Firefox/WebKit/touch transitions, static hosting and generated HTTP/both-Lambda executable checks cover this subset. [Contract](TRANSITIONS.md), [runtime](../client/transition_js.go), [browser](../tests/transitions.spec.mjs). | Cross-document and independent scoped transitions, complete component enter/exit/share orchestration and resource readiness, manual accessibility/physical-device review, snapshot memory/load/soak and full production/browser qualification. |
-| V17 | SPA/client-only application mode | Partial: ordinary Go islands attach browser behavior to SSR nodes. Declared static exports already publish HTML and `/_nextgo/data/*.json` envelopes for same-document Go navigation/history; native pages use server navigation envelopes. `ui.ClientIsland`/`Scope.ClientView` adds a useful SSR fallback, one bounded browser-created inner view, owned child-scope behavior and failed-Mount fallback restoration; scoped two-SDK native/WASM checks pass for all 11 new source groups, production checks pass and 40 new browser cases across four profiles verify the bounded eager/lazy lifecycle. That boundary-only campaign did not qualify static-host or retained/streamed/development-refresh integration of the new boundary. Experimental `Config.StaticShell` adds one generic public optional-catchall seed for configured static-host deep URLs and committed-route parameter helpers. Dedicated Linux AMD64 public CI run 40454404997 passes seven producer commands, four actual eager/lazy root/mounted exports and 48 static-shell browser cases per SDK (Go 1.24.13/1.27.3; 96 observations across SDKs, no skips/retries), including physical fixture closure. Exact checkout and prior failed attempts remain scoped in the guide. [Static-shell scope](STATIC_SHELL.md), [Boundary contract](CLIENT_ONLY.md), [existing static fixtures](../tests/static.spec.mjs). | Full client-only page/route resolution, multiple/root-wide/locale shells, provider-specific unexported-route/host fallback, broader static-boundary hosting, broader retained/streamed/refresh interactions and complete SPA/lifecycle/device conformance. |
+| V17 | SPA/client-only application mode | Partial: ordinary Go islands attach browser behavior to SSR nodes. Declared static exports already publish HTML and `/_nextgo/data/*.json` envelopes for same-document Go navigation/history; native pages use server navigation envelopes. `ui.ClientIsland`/`Scope.ClientView` adds a useful SSR fallback, one bounded browser-created inner view, owned child-scope behavior and failed-Mount fallback restoration; scoped two-SDK native/WASM checks pass for all 11 new source groups, production checks pass and 40 new browser cases across four profiles verify the bounded eager/lazy lifecycle. A later Go 1.27.3/Linux AMD64 checkpoint verifies the Chromium subset across native HTTP, both local Lambda modes and mounted static files, plus source-free read-only container executable contracts; see the deployment checkpoint below. Broader static-host/cross-engine and retained/streamed/development-refresh integration remain open. [Boundary contract](CLIENT_ONLY.md), [existing static fixtures](../tests/static.spec.mjs). Upstream integration evidence: Partial: ordinary Go islands attach browser behavior to SSR nodes. Declared static exports already publish HTML and `/_nextgo/data/*.json` envelopes for same-document Go navigation/history; native pages use server navigation envelopes. `ui.ClientIsland`/`Scope.ClientView` adds a useful SSR fallback, one bounded browser-created inner view, owned child-scope behavior and failed-Mount fallback restoration; scoped two-SDK native/WASM checks pass for all 11 new source groups, production checks pass and 40 new browser cases across four profiles verify the bounded eager/lazy lifecycle. That boundary-only campaign did not qualify static-host or retained/streamed/development-refresh integration of the new boundary. Experimental `Config.StaticShell` adds one generic public optional-catchall seed for configured static-host deep URLs and committed-route parameter helpers. Dedicated Linux AMD64 public CI run 40454404997 passes seven producer commands, four actual eager/lazy root/mounted exports and 48 static-shell browser cases per SDK (Go 1.24.13/1.27.3; 96 observations across SDKs, no skips/retries), including physical fixture closure. Exact checkout and prior failed attempts remain scoped in the guide. [Static-shell scope](STATIC_SHELL.md), [Boundary contract](CLIENT_ONLY.md), [existing static fixtures](../tests/static.spec.mjs). | Full client-only page/route resolution, unexported-route and catch-all host fallback, full static-host/cross-engine qualification of the new boundary, broader retained/streamed/refresh interactions and complete SPA/lifecycle/device conformance. Upstream integration requirements: Full client-only page/route resolution, multiple/root-wide/locale shells, provider-specific unexported-route/host fallback, broader static-boundary hosting, broader retained/streamed/refresh interactions and complete SPA/lifecycle/device conformance. |
 
 Cache Components is an opt-in Next.js capability and includes prerendered shells, function/component caching, deferred dynamic work, and route-state preservation. Some underlying primitives now exist, but the integrated Cache Components/PPR capability remains missing; ordinary SSR, public TTL caching and initial-document deferred chunks are not equivalent. [Cache Components](https://nextjs.org/docs/app/getting-started/partial-prerendering), [caching](https://nextjs.org/docs/app/getting-started/caching).
 
@@ -650,12 +814,12 @@ Next.js offers optimized image/font loading, metadata generation, and static hos
 | A02 | Global CSS and co-located/scoped styles | Partial: static public CSS plus typed assets.Stylesheet links and Page.Resources head integration, including validation before rendering/caching; native head/asset tests. | Chromium stylesheet navigation and cleanup test passes; scoped modules, route stylesheet lifecycle qualification and optional preprocessing adapters. |
 | A03 | CSS tooling integrations | Partial: optional nextgo.assets.json integrates literal-argv external tools with dev/build/export; typed buildassets hooks, declared input snapshots/watch tracking, bounded logs/time/output, collision validation and staged generation publication retain the no-Node baseline. Manifest v2 adds explicit acyclic dependency aliases, private intermediates, stable topological order and bounded isolated consumer copies; the two-stage Go token/CSS example needs no npm tools. Focused native/compiler fixtures cover failure/cancellation/ownership paths; 22 CSS-pipeline checks pass. [Pipeline](ASSET_PIPELINE.md), [dependency chains](ASSET_DEPENDENCIES.md). | Tools execute with user privileges, not an OS sandbox. Managed Sass/PostCSS/Tailwind installation/presets, CSS-module/scoped semantics, automatic import/dependency inference, source maps/HMR and representative third-party/cross-platform/static-host cache qualification remain open. |
 | A04 | Responsive image optimization | Partial: bounded local-FS PNG/JPEG optimizer, configured responsive widths, dimensions/lazy/priority attributes, content validators and encoded LRU cache. [Image tests](../images/images_test.go), media sample. | Remote-source adapters/SSRF controls, WebP/AVIF, blur placeholders, static image metadata generation, broader image quality/performance/cross-browser qualification; Chromium sample media integration passes. |
-| A05 | Font optimization | Partial: validated local WOFF/WOFF2 font stylesheet handler with content-addressed CSS, preload resources, weights/styles/display and metric overrides. [Assets](../assets/assets.go), native tests. | Automatic font acquisition/subsetting/fallback generation, source manifests, full layout-shift/performance/browser verification and safe external font build workflow. |
-| A06 | Third-party script loading strategies | Partial: typed trusted external descriptors, inert SSR declarations, Go-owned after-interactive/idle loading, document-wide deduplication across lazy WASM runtimes, scoped ready/error callbacks, retry, SRI/module/crossorigin/referrer policy and bounded admission. Frozen root early classic scripts run in parser order before Go. Request nonce binding bypasses framework public caches and covers buffered/streamed runtime/style/JSON-LD markup plus later scripts; navigation retains the initial document nonce and static export rejects nonce responses. Native/core/module WASM, browser and source-independent HTTP/mock Lambda checks cover this subset. [Contract and limits](SCRIPTS.md). | Nonblocking early orchestration and early load/error observation, worker strategy, custom data attributes, dependency/consent orchestration, separate first-load notification semantics, broad library/adapter lifecycle, strict-CSP development/Trusted Types and production security/device/CDN/performance qualification remain open. |
+| A05 | Font optimization | Partial: validated WOFF/WOFF2 stylesheet/preload descriptors, weights/styles/display and explicit metric overrides. `assets.NewLocalFonts` adds bounded public file snapshots, byte-addressed font/CSS URLs, owned source manifests, shared-source/digest deduplication, relative CSS references, immutable HTTP/HEAD/ETag/CORS delivery and no source reads after construction. The `/local-fonts` demo embeds original GO-only WOFF/WOFF2 fixtures. `Config.LocalFonts` declares bounded immutable snapshots for native/Lambda serving and verified staged static publication under base/locale scopes; undeclared resources fail closed. [Contract and limits](../assets/README.md#frozen-local-font-files). | Automatic acquisition/subsetting/format conversion/fallback metric generation, automatic CDN publication/provider header configuration, managed offline/independent zone release font inventories, broader formats/collections/glyph coverage, full layout-shift/performance/security and cross-engine/device verification and safe external font build workflows. |
+| A06 | Third-party script loading strategies | Partial: typed trusted external descriptors with immutable bounded vendor data attributes participating in execution/configuration identity, inert SSR declarations, Go-owned after-interactive/idle loading, document-wide deduplication across lazy WASM runtimes, scoped ready/error callbacks, retry, SRI/module/crossorigin/referrer policy and bounded admission. Frozen root early classic scripts run in parser order before Go. Request nonce binding bypasses framework public caches and covers buffered/streamed runtime/style/JSON-LD markup plus later scripts; navigation retains the initial document nonce and static export rejects nonce responses. Native/core/module WASM, browser and source-independent HTTP/mock Lambda checks cover this subset. [Contract and limits](SCRIPTS.md). Native [ESM export imports](MODULE_IMPORTS.md) have their own bounded policy and paired ABI-6 checks. | Nonblocking early orchestration and early load/error observation, worker strategy, dependency/consent orchestration, separate first-load notification semantics, broad library/adapter lifecycle, strict-CSP development/Trusted Types and production security/device/CDN/performance qualification remain open. |
 | A07 | Page titles and basic metadata | Implemented subset: title/description/named metadata, inherited metadata.go providers, owned parent snapshots, request Memo reuse, nearest inherited title templates/absolute-title overrides, typed head and case-insensitive named-tag deduplication. `Page.DeferredMetadata` adds an owned typed contribution with complete fallback, default-blocking initial HTML, explicit production browser HTML opt-in and separately negotiated navigation completion; focused two-SDK native/WASM, production, four-profile browser and LOCAL adapter checks qualify this bounded subset. `Metadata.Clear`/`seo.ScalarClears` explicitly suppress inherited description/canonical/robots values when their child literals are empty; nonempty child literals win and reset clear state. Fresh reconstructed-source two-SDK native/WASM and production checks pass, plus 16 new deferred-clear browser cases across four profiles; prior broader metadata evidence remains its own checkpoint. [Contract](METADATA.md), native/discovery and browser SSR/navigation checks. | Broader deletion/typed metadata fields, complete composition and full crawler qualification. |
 | A08 | Canonical/alternate/Open Graph/Twitter/robots/viewport metadata | Partial: typed canonical, robots, language alternates, icons, Open Graph/Twitter; inherited providers, trusted BaseURL, validated document language/direction and viewport/color-scheme/media-conditioned theme colors. SSR/stream/navigation/cache/export retain document settings; malformed navigation is rejected before commit. [Contract](METADATA.md), SEO/native/browser tests and executable HTTP/Lambda fixture. | Broader deferred-metadata/document composition (effective viewport remains frozen), broader typed fields and full crawler/browser conformance. |
-| A09 | Metadata files | Partial: six managed app-root public files (robots.txt, sitemap.xml, favicon.ico, icon.png, apple-icon.png, manifest.webmanifest), plus native typed Robots/Sitemap/Manifest startup factories. Bounded owned snapshots, exact global mounted dispatch, ETag/HEAD, locale/CDN separation and typed icon/manifest inheritance/override/clear join validated inventory export. Current focused native/static/browser fixtures pass; final native/static/asset-browser closure passes for this bounded subset. [Contract](../metadatafiles/README.md), [example](../examples/metadata-site/README.md). | Nested/file-variant conventions, generated OG/Twitter filename publication, broader icons/manifests, request-independent factory determinism, real crawler/CDN/installability and complete cross-engine/production qualification remain open. |
-| A10 | Dynamic social images | Partial: server-only standard-library socialimage renders typed rows/columns/overlays, bitmap text and supplied images to deterministic PNG. Bounded layout/decoding/concurrency, cancellation, content-keyed LRU, ETags/HEAD and private-by-default HTTP policy have focused native fixtures; the demo publishes a branded card through metadata and declares a runtime server dependency. Final host/Linux social-image and local mock Lambda checks pass for this bounded contract. [Contract](SOCIAL_IMAGES.md). | HTML/CSS/JSX/ImageResponse/Satori layout compatibility, broad fonts/scripts, generated filename/static publication, modern formats and real crawler/CDN/performance/soak qualification remain open. |
+| A09 | Metadata files | Partial: sixteen recognized app-root filenames (robots/sitemap/icons/manifest, PNG/JPG/JPEG/GIF social-image variants and matching alt-text files; at most ten published resources with one variant per role), plus native typed Robots/Sitemap/Manifest/OpenGraphImage/TwitterImage startup factories. Bounded owned snapshots, exact global mounted dispatch, ETag/HEAD, locale/CDN separation and typed icon/manifest and trusted-base social-image inheritance/override/clear join validated inventory export. Current focused native/static/browser fixtures pass; final native/static/asset-browser closure passes for this bounded subset. [Contract](../metadatafiles/README.md), [example](../examples/metadata-site/README.md). | Nested/additional file conventions, multiple generated image IDs, modern codecs/icons/manifests, request-independent factory determinism and build-only precomputation, real crawler/CDN/installability and complete cross-engine/production qualification remain open. |
+| A10 | Dynamic social images | Partial: server-only standard-library socialimage renders typed rows/columns/overlays, bitmap text and supplied images to deterministic PNG. Bounded layout/decoding/concurrency, cancellation, content-keyed LRU, ETags/HEAD and private-by-default HTTP policy have focused native fixtures; the demo publishes a branded card through metadata and declares a runtime server dependency. The request-dependent demo stays server-only. Managed app-root OpenGraphImage/TwitterImage PNG producers, static PNG/JPEG/GIF variants and bounded alt-text files add frozen startup snapshots, trusted-base head defaults and hash-verified static inventory publication; serving performs no image generation. Native/static and local transport qualification is recorded below. [Contract](SOCIAL_IMAGES.md). | HTML/CSS/JSX/ImageResponse/Satori layout compatibility, broad fonts/scripts, nested/multiple-image conventions, modern formats, build-only precomputation and real crawler/CDN/cold-start/performance/soak qualification remain open. |
 | A11 | Structured data and content integrations | Partial: typed seo.JSONLD snapshots/escapes bounded object data and validates/synchronizes navigation head. New portable content.Parse maps an explicit Markdown subset to escaped ui.Node values with byte/line/node/depth limits and safe links; no raw HTML, component evaluation, implicit files or network. Focused native/WASM/fuzz and styled native/static example fixtures cover this bounded grammar; final native/static/metadata-asset browser closure passes for this bounded increment. [Content](CONTENT.md), [example](../examples/content/README.md). | CommonMark/MDX-equivalent grammar, component slots/interpolation, richer file/content pipeline, vocabulary/crawler/publication policy and complete production/resource/security qualification remain open. |
 | A12 | Video and third-party embed integrations | Partial: typed ui.Video/ui.Audio provide native controls, validated sources/posters/preload/captions and fallbacks. Explicit immutable FramePolicy allowlists literal origins/self paths, emits sandboxed titled frames with denied-by-default permissions and persistent fallback, and leaves general iframe/raw HTML restrictions intact. Focused native and final cross-engine fixtures pass for this contract. [Media and frames](EMBEDS.md). | Provider SDK/consent/postMessage adapters, remote discovery, adaptive streaming/transcoding/DRM, broad codec/caption/accessibility/device qualification and application CSP/provider trust remain open responsibilities. |
 
@@ -674,11 +838,11 @@ Next.js provides CLI/build tooling, refresh, configuration, instrumentation, tes
 | T07 | Unit, integration and E2E testing | Partial: native/race/vet and matching-toolchain WASM tests pass; generated-package tests run real native/WASM compiler successes and expected type failures. Expanded Chromium and Linux Firefox/WebKit/touch suites cover implemented routing, actions, cache, persistence, streaming and SEO/media subsets. Runtime container reports use unique per-run directories and optional Playwright filters; concurrent focused/full runs verify cleanup isolation. CI includes generated-output drift checks, but remote results are not established here. | Complete capability conformance, physical-device/manual accessibility, expanded network/fault matrices and independent remote CI release evidence remain. |
 | T08 | Developer debugging and DevTools | Partial: compiler/browser/dev status plus nextgo inspect and development-only version-1 read-only JSON graph of public routes/layouts/templates/slots/components and last-good build state. Loopback peer/Host/origin policy, bounded graph/output and omission of source/env/props have 21 passing focused inspection checks. [Inspection](DEV_INSPECTION.md). | WASM source/debug workflow, island/cache/trace state, actionable stacks, richer editor tooling and production/debugger qualification remain open. |
 | T09 | Instrumentation and OpenTelemetry | Partial: standard-library typed trace records, explicit parent trust/sampling, middleware/load/cache/render/API/action/completion spans, failure accounting and body-aware outbound HTTP transport. Optional bounded OTLP/HTTP JSON queue/batching/retry/flush/shutdown and Lambda pre-reuse flushing are implemented. Native/race, enabled-browser and generated HTTP/both-Lambda fixtures cover lifecycle; the generated binary exports to official digest-pinned Collector Contrib 0.163.2 in an isolated non-root/read-only Linux fixture. [Contract](TRACING.md), [exporter](../telemetry/otlp/README.md), [collector fixture](../tests/collector/collector_test.go). | Complete OpenTelemetry SDK/semantic/propagation conformance, metrics/logs, browser/navigation and CLI/build spans, operational dashboards, real TLS/proxy/cloud collector deployment and exporter load/soak/recovery qualification. |
-| T10 | Browser metrics and bundle analysis | Partial: reproducible artifact/startup comparison, native SSR/envelope/cache/gzip benchmarks, bundle sizes and initial reference budgets. [Performance report](PERFORMANCE.md), raw benchmark samples linked there. | Field Web Vitals, traceable per-route imports/bundles, stable CI enforcement, representative real-device/concurrent load, cloud/CDN and equivalent Next.js benchmark comparison. |
+| T10 | Browser metrics and bundle analysis | Partial: reproducible artifact/startup comparison, native SSR/envelope/cache/gzip benchmarks, bundle sizes and initial reference budgets. The Go-native `nextgo analyze` command measures a fresh completed production generation: native/runtime hashes, raw and Go gzip-9 sizes, bounded WASM sections, actual eager/lazy registrations and build-owned static route summaries. Explicit core/per-lazy byte budgets retain JSON before a nonzero exit; native-SDK CI jobs retain an independent measurement-build report. `-runtime-dir` measures existing published runtime files without a build/SDK/source checkout, with caller ownership and separate runtime-only reports; the static browser CI tree is also measured directly. A matched two-route/counter fixture adds pinned Go/Next.js 16.4.5 production lab observations, served-file integrity and no-JS/SSR/navigation conformance. [Comparison](FRAMEWORK_COMPARISON.md), [Analyzer contract](BUNDLE_ANALYSIS.md), [performance evidence](PERFORMANCE.md). | Field Web Vitals, traceable per-route imports and observed loading, package attribution, live deployment authentication/native pairing, aggregate zones/public assets, approved release-budget enforcement and remote CI evidence, representative device/concurrent load, cloud/CDN and broader isolated Next.js comparisons. |
 | T11 | Native self-hosted deployment | Partial: embedded executable, SIGTERM drain, scratch Dockerfile, UID/GID 65532 and read-only Linux execution checked locally; reproducible executable SSR/API/404/gzip WASM/protocol/shutdown checks in `scripts/test-deployment-container.sh`. [Deployment guide](DEPLOYMENT.md). | Complete OS/architecture matrix, actual cloud/proxy/TLS/streaming/load qualification, readiness/dependency policies and production drain/rollout tests. |
 | T12 | CDN/proxy integration | Partial: negotiated gzip preserving flush, immutable runtime URLs, explicit public route policy and dynamic no-store behavior. [HTTP contract](../httpx/README.md), native tests. | Cross-proxy/CDN variant/invalidation correctness, trusted forwarding policy, streaming and rollout conformance. |
 | T13 | Multi-instance deployment and rolling updates | Partial: navigation protocol/build/runtime-configuration checks force full-document recovery; development retains previous runtime assets. Real-process local proxy fixtures cover policy changes, speculative prefetch, mounted redirects and rollback; static export rejects mixed configurations. Ordinary typed mutations are contract-revision-bound, not browser-build/release-affine: compatible old callers can mutate a new active v1 handler; unsupported revisions reject before dispatch. New independent-release asset routing remains unqualified. [Policy](INDEPENDENT_ZONES.md). | Production asset retention/affinity qualification, shared cache/action/session state, distributed rollout/draining and real infrastructure mixed-version qualification. No automatic release affinity for ordinary mutations. |
-| T14 | Static, serverless and edge deployment targets | Partial: buffered Lambda HTTP API v2/Function URL plus optional real chunked response-stream transport, locally mock-tested for early flush/deadlines/errors. Basic static export works on an actual static host. The generated executable passes source-independent local Runtime API fixtures in the same isolated Linux harness. `serverless.InvocationID`/`GatewayRequestID` expose bounded context-only correlation metadata without transport validation changes; both supported SDKs have native `serverless` package coverage through actual Linux AMD64 unfiltered race-suite jobs, without individual verbose records for its seven new source groups. After a preserved first test-compilation failure, corrected-head dedicated checks pass native HTTP, buffered mock Runtime API and streaming mock Runtime API modes on both SDKs, with nine paired response/After identity observations and three child Wait exit-0/no-KILL/mock-join receipts per SDK. This is Linux AMD64 functional proof; the overall core workflow has a separate browser failure, and later diagnostic source changes/broader qualification are not covered by these component receipts. [Context and CI scope](SERVERLESS_CONTEXT.md), [Deployment](DEPLOYMENT.md). **Component qualification:** the [Lambda ZIP target](LAMBDA_PACKAGING.md) passed its original [four-cell run 40514703903, attempt 1](https://github.com/Suhaibinator/Next.go/actions/runs/40514703903/attempts/1) at immutable 452bca5d/test merge 1748c45b: Go 1.24.13 and 1.27.3 on public Linux AMD64/ARM64, seven selected race groups, 25 parent/subtest run/PASS records and 14 actual extracted-bootstrap mock invocations per cell, plus vet. Both target ELFs/ZIPs, host prerender and matching buffered/streaming modes were checked; parent/subtest records are not unique-test counts. No skipped or retried cases occurred. This fixture result does not qualify arbitrary deployments, AWS/IAM/cold starts, physical isolation or full G06/G07; all 79 capabilities/11 release gates remain open. | Actual AWS deployment/IAM/streaming/cold-start evidence, complete static qualification and additional serverless/edge adapters; REST v1/ALB/WebSockets unsupported. |
+| T14 | Static, serverless and edge deployment targets | Partial: buffered Lambda HTTP API v2/Function URL plus optional real chunked response-stream transport, locally mock-tested for early flush/deadlines/errors. Basic static export works on an actual static host. The generated executable passes source-independent local Runtime API fixtures and the official AWS RIE host/restricted-container matrix on both SDKs. RIE buffers its public response and does not qualify hosted streaming delivery or graceful drain. [Deployment](DEPLOYMENT.md), [RIE evidence and limits](AWS_RIE.md). Upstream integration evidence: Partial: buffered Lambda HTTP API v2/Function URL plus optional real chunked response-stream transport, locally mock-tested for early flush/deadlines/errors. Basic static export works on an actual static host. The generated executable passes source-independent local Runtime API fixtures in the same isolated Linux harness. `serverless.InvocationID`/`GatewayRequestID` expose bounded context-only correlation metadata without transport validation changes; both supported SDKs have native `serverless` package coverage through actual Linux AMD64 unfiltered race-suite jobs, without individual verbose records for its seven new source groups. After a preserved first test-compilation failure, corrected-head dedicated checks pass native HTTP, buffered mock Runtime API and streaming mock Runtime API modes on both SDKs, with nine paired response/After identity observations and three child Wait exit-0/no-KILL/mock-join receipts per SDK. This is Linux AMD64 functional proof; the overall core workflow has a separate browser failure, and later diagnostic source changes/broader qualification are not covered by these component receipts. [Context and CI scope](SERVERLESS_CONTEXT.md), [Deployment](DEPLOYMENT.md). **Component qualification:** the [Lambda ZIP target](LAMBDA_PACKAGING.md) passed its original [four-cell run 40514703903, attempt 1](https://github.com/Suhaibinator/Next.go/actions/runs/40514703903/attempts/1) at immutable 452bca5d/test merge 1748c45b: Go 1.24.13 and 1.27.3 on public Linux AMD64/ARM64, seven selected race groups, 25 parent/subtest run/PASS records and 14 actual extracted-bootstrap mock invocations per cell, plus vet. Both target ELFs/ZIPs, host prerender and matching buffered/streaming modes were checked; parent/subtest records are not unique-test counts. No skipped or retried cases occurred. This fixture result does not qualify arbitrary deployments, AWS/IAM/cold starts, physical isolation or full G06/G07; all 79 capabilities/11 release gates remain open. | Actual AWS deployment/IAM/streaming/cold-start evidence, complete static qualification and additional serverless/edge adapters; REST v1/ALB/WebSockets unsupported. |
 | T15 | Custom server and backend integration | Partial: public `App` implements `http.Handler`. | Supported production constructor/config lifecycle, composable middleware/custom routing, WebSocket/SSE recipes and integration tests. |
 | T16 | Offline/PWA behavior | Partial: experimental production-only saved-anonymous-public editions now have a Go/WASM worker, compiler-pinned eager/lazy/runtime/public inventories, atomic startup preparation, explicit eager Go controls and native saved-document navigation. Ownership, freshness and three-generation reservations remain bounded. [Contract and qualification](OFFLINE.md). | Complete installable PWA support, authenticated/client-data persistence, background sync or mutation recovery, arbitrary CSS/asset/framework integration, durable scheduling and complete browser/operational/resource/upgrade qualification remain open. |
 | T17 | Monorepo and dependency integration | Implemented foundation: owning-module selection across Go workspaces, local/workspace/alternate-modfile replacement roots, conservative source/module/sum/embed snapshots, retained watch inputs through manifest failures, cancellation/byte/count bounds and source-change rejection during builds. The multi-module example shares Go code across native/WASM while keeping embedded server data native-only; native/compiler, development browser and standalone HTTP/both mock Lambda fixtures cover the subset. A stable-generated-path compiler overlay with caller overlay merge/watch tracking has scoped same-input sequential/concurrent fixtures passing on both SDKs with Main/VCS/runtime-asset provenance preserved. Physical AST discovery is unchanged; virtual-only structural routes/contracts are unsupported, and wider qualification remains pending. [Contract](WORKSPACES.md). | Minimal target/import graph, planning cache, vendoring/Cgo/non-Go tool inputs, symlinked package-directory traversal, registry/proxy integration, cross-system identity/reproducibility and large-monorepo performance/recovery/resource qualification remain open. |
@@ -784,6 +948,588 @@ operational qualification remain pending. Prior committed managed-offline proof
 is unchanged. All **79 capabilities and 11 OPEN gates** remain; full Go/Next.js
 parity and production maturity are not achieved. Real AWS execution was
 explicitly declined; its missing evidence is not waived.
+
+## Client-only deployment checkpoint (November 6, 2026)
+
+The explicit Go client-view boundary now has one browser matrix for production
+HTTP, buffered local Lambda, streaming local Lambda and mounted file-only
+hosting. It consumes pinned prebuilt artifacts; no test fixture builds an app or
+constructs its HTML/navigation envelopes. Static-tree admission hashes every
+bounded regular file, rejects symlinks and verifies the pin after each journey.
+Each dynamic case checks physical process/group/listener cleanup. The new
+matrix uses port 4281; the older metadata deployment fixture retains 4280.
+
+The Go executable contract exercises the same 54 leaf cases on the host and in
+a source/compiler-free scratch Linux container: three transports, two deployment
+scopes (ordinary and mounted French/trailing-slash), three query variants and
+HTML/HEAD/navigation representations. The container runs as UID/GID 65532 with
+a read-only root, no network, no capabilities, no added writable mounts and
+256 MiB/128-PID limits. These are repeated observations of 54 cases, not 108
+distinct tests. They inspect actual SSR/transport behavior; they do not run a
+browser inside that container.
+
+The new CI job targets both supported SDK selectors and 16 transport/browser
+profiles, requiring exactly 88 successful cases and zero failures/skips/flakes.
+Static output has four journeys per profile; its two server-query failure modes
+are deliberately excluded because export freezes props. Each dynamic mode has
+all six journeys, including no-JavaScript HTML. A CI definition is not a remote
+CI result. Local Chromium and container results, artifact pins, earlier failed
+attempts and remaining browser/network limits are recorded in
+[the boundary contract](CLIENT_ONLY.md#deployment-matrix-november-6-2026).
+
+Final local evidence passes **22 Chromium deployment cases**, six original
+native-fixture cases, 54 host-race executable leaf cases and those same 54 cases
+in the isolated Linux container, 15 existing metadata deployment regressions and
+four artifact-admission groups. Full native race/vet pass on Go 1.27.3/Linux
+AMD64 using checkout-owned temporary storage and umask 022. The earlier failed
+temporary-repository/permission and shared-port attempts are preserved in the
+[qualification record](benchmarks/client-only-deployment-go1.27.3-linux-amd64.json).
+The current static core is **8,670,847 raw / 2,226,675 Node gzip-9 bytes**, exceeding
+both reference budgets. Only Chromium was available for the new browser matrix;
+other browsers/image pulls were denied by network policy. No real AWS,
+container-browser, independent security or performance qualification follows.
+
+This increment retains every capability ID and G01–G11. Complete cross-engine,
+physical-device, independent security/performance, actual AWS and immutable
+release/rollback qualification remain open. No user acceptance or waiver has
+been inferred.
+
+## Go-native analysis checkpoint (November 6, 2026)
+
+`nextgo analyze` adds bounded artifact measurement and explicit CI byte budgets
+to T10. Reports use the completed build's route/registration metadata and actual
+native/runtime bytes, not fresh filename inference. It adds no browser
+JavaScript or server endpoint. Diagnostics use stderr; complete JSON is retained
+before a budget failure returns nonzero. It does not infer per-route component
+use, linked-package attribution or already-deployed artifact behavior.
+
+Seven source groups pass under native race instrumentation on Go 1.24.13 and
+1.27.3/Linux AMD64. Full Go 1.27.3 native race (80 packages)/vet and focused Go
+1.24.13 vet pass. The section-envelope parser passes 49,835 fuzz executions in
+three seconds. Real CLI runs each report eight runtime files, 24 registrations
+and 91 static route summaries; Go 1.27.3 preserves both reference-limit
+violations before its expected exit 1. A new executable from the current
+compiler passes the same 54 host and 54 isolated Linux container leaf-case
+observations through HTTP and both local Lambda modes. These are repeated
+observations of 54 cases, not 108 distinct tests.
+
+Core bytes are **7,650,369 raw / 1,912,367 Go gzip-9** on Go 1.24.13 and
+**8,670,847 raw / 2,231,618 Go gzip-9** on Go 1.27.3. Both exceed the reference
+limits. The compression implementation differs from the preceding Node gzip-9
+checkpoint; no speed/memory or optimization claim follows. The user requested
+local-machine qualification for now; actual hosted-serverless qualification is
+deferred and remains required. Cross-engine downloads are still blocked by
+network policy. CI reports, independent security review, performance/load and
+immutable release/rollback evidence remain open.
+
+[Analyzer contract and scope](BUNDLE_ANALYSIS.md),
+[qualification and artifact pins](benchmarks/bundle-analysis-qualification.json).
+All 79 capabilities and G01–G11 remain. No waiver or parity/maturity claim follows.
+
+## Initial frozen local-font checkpoint
+
+This is historical evidence from before managed static publication below.
+
+A05 now includes `assets.NewLocalFonts`: bounded public WOFF/WOFF2 snapshots,
+byte-addressed source/CSS URLs, owned manifests, source/digest deduplication and
+relative CSS references for mounted/locale paths. Serving performs no source
+reads or font decoding and adds no browser JavaScript. Defaults bound each
+source to 4 MiB and all source reads to 32 MiB; overrides remain subject to
+transport/provider quotas. Header admission does not sanitize arbitrary fonts.
+
+The original GO-only fixtures pass **nine Chromium cases per SDK** on Linux
+AMD64 Go 1.24.13 and 1.27.3, across HTTP and both local Lambda modes. Both formats
+decode without application JavaScript and have the expected glyph advances;
+Go navigation/history owns the font head links. Each SDK repeats **18 asset-case
+groups on host and isolated non-root/read-only/network-free Linux container**,
+covering CSS/WOFF/WOFF2 GET/HEAD/POST/ETag behavior under ordinary and mounted
+French/trailing-slash scopes. These are repeated cases, not additional distinct
+capabilities. Full Go 1.27.3 native race (80 packages)/vet, affected Go 1.24.13
+race/vet, legacy stylesheet regressions and 6,805 bounded header fuzz executions
+pass. Final exporter tests reject runtime font resources from decoded scoped
+HTML/navigation heads while permitting namespace text in documentation and
+preserving a previous successful static publication.
+
+The CI definition requires a 36-case, 12-profile font matrix per supported SDK;
+remote/cross-engine results are still pending. The tiny font/CSS identity
+payloads total 1,941 bytes. This proves neither production typography, arbitrary
+glyph coverage, subsetting, automatic metrics nor CLS/performance/security
+qualification. Static/CDN publication of the runtime files remains unimplemented
+and fails closed. Hosted serverless remains deferred under the user's local-only
+qualification direction. No release gate closes.
+
+[Font API and limits](../assets/README.md#frozen-local-font-files),
+[qualification and pins](benchmarks/local-fonts-qualification.json).
+All 79 capabilities and G01–G11 remain; no acceptance or waiver is inferred.
+
+## Managed font static-publication checkpoint
+
+`Config.LocalFonts` now declares already frozen public font sets for managed
+HTTP/Lambda dispatch and static publication. Startup deduplicates the inventory,
+rejects route/handler conflicts and bounds it to 32 sets, 256 files and 64 MiB
+of encoded font/CSS bytes. Hashed file paths enter navigation configuration
+identity. Export contract version 3 makes older exporters reject unsupported
+font declarations. Each selected locale scope receives exact font/CSS files
+under its document mount, independently of `AssetPrefix`; relative CSS
+filenames need no rewriting.
+
+The exporter verifies build identity, strong ETag, exact MIME, raw length and
+SHA-256 before staged publication. Nine bad-response cases, undeclared links,
+malformed/bounded inventories and file collisions reject while preserving the
+previous publication. Native tests cover mounted French/trailing-slash scopes
+and static tests verify both locale inventories. Managed offline bundles and
+independent zone release v1 explicitly reject fonts until their pinned
+inventories cover them. This does not add browser JavaScript or a decoder.
+
+Linux AMD64 Go 1.24.13 and 1.27.3 each pass **12 Chromium cases** over HTTP,
+buffered/streaming local Lambda and plain static files: both original font
+formats decode without JavaScript; Go navigation/history owns the head links;
+raw hashes, MIME, HEAD and transport header behavior match. These are **24
+executions of 12 cases**, not cross-engine qualification. Each SDK repeats
+**18 font asset cases plus 54 client-only regression cases** on the host and in
+a non-root, read-only, network-free scratch container. A separate Go 1.27.3
+client-only browser regression passes 22 Chromium cases against the same
+artifacts. Browser execution stays outside the containers. Full Go 1.27.3
+native race tests (80 tested packages)/vet and affected Go 1.24.13
+race/vet pass against the frozen source.
+
+The font/CSS identity payload remains 1,941 bytes. Independent demo sizing is
+7,650,369 raw / 1,912,373 Go gzip-9 bytes on Go 1.24.13 and 8,670,847 raw /
+2,231,613 Go gzip-9 bytes on Go 1.27.3. **Both existing 6-MiB raw / 1.6-MiB gzip
+reference budgets still fail.** These are sizing checkpoints, not controlled
+optimization comparisons, HTTP encoding, latency, memory or layout-shift
+qualification. Static hosts own cache/CORS/validator configuration; the test
+host deliberately uses its existing no-cache policy rather than synthetic
+framework headers.
+
+The CI definition requires **48 font cases / 16 profiles per SDK** across four
+browser profiles and four transports. Remote CI, Firefox/WebKit/touch, CDN
+rollout, broader font coverage, automatic acquisition/subsetting/metrics and
+security/performance qualification remain open. Hosted serverless remains
+deferred under the user's local-machine direction. The official latest-release
+redirect still selects Next.js 16.4.5 for this checkpoint.
+
+[API and limits](../assets/README.md#frozen-local-font-files),
+[source/artifact pins, test evidence and limitations](benchmarks/local-fonts-static-qualification.json).
+All 79 capability IDs and G01–G11 remain; no acceptance or waiver is inferred.
+
+## Generated social metadata checkpoint
+
+A09/A10 now include app-root `opengraph-image.png`, `twitter-image.png` and
+matching optional `.alt.txt` conventions. Native `OpenGraphImage`/`TwitterImage`
+Go producers return public PNG bytes once per application startup, including
+separate configuration/enumeration/export tool processes. The existing managed
+metadata pipeline validates and owns complete PNG rasters, applies 1-MiB image,
+2,048-dimension / 4,194,304-pixel, 1,024-byte alt-text and 8-MiB combined limits,
+and serves frozen bytes without per-request rendering or decoding. Static and
+Go definitions conflict; orphan alt files and unsupported independent-release
+producers fail before callbacks execute. Metadata producer closures and source FS fields are cleared from
+`Config.MetadataFiles` after construction.
+
+Automatic defaults use only the trusted `Metadata.BaseURL` and global app
+mount. Empty base omits automatic image tags while retaining public files;
+request Host/forwarded headers, asset prefixes and locale document prefixes
+never choose the origin. Typed lists replace image defaults, non-nil empty lists
+clear them and explicit Twitter card/legacy named metadata retains precedence.
+Go navigation, deferred metadata ownership and verified staged static export
+share those descriptors. Export rejects altered PNG/type/cookie responses or
+mismatched dimensions while preserving the previous successful publication.
+The request-dependent `/api/social` sample remains server-only.
+
+On Linux AMD64, Go 1.24.13 and 1.27.3 each pass the complete **80-package native
+race suite and vet**, **12 Chromium cases** across HTTP, both local Lambda modes
+and plain static files, and **24 asset cases on both host and isolated non-root,
+read-only/network-free scratch container**. The browser cases decode both
+1200 × 630 cards with JavaScript disabled, verify trusted head URLs/alt/dimensions,
+and exercise replacement, clearing, history and retained layout identity. These
+are 24 executions of 12 cases across SDKs; the host/container leaves repeat the
+same 24 cases. The Go 1.27.3 source additionally passes 12 font browser regressions,
+five existing metadata/CDN/static browser cases and 15 deferred-metadata
+transport regressions. Browser execution stays outside containers. The selected
+browser and executable matrices have no skips, flakes or retries.
+
+The original PNGs total 32,159 bytes on Go 1.27.3 and 10,001 on Go 1.24.13;
+their two alt files add 112 bytes on either SDK. Encoded hashes differ, while
+both Go decoders independently produce identical row-major NRGBA8 pixel hashes
+for both files across SDKs. Determinism applies within the pinned SDK/encoder,
+not byte equivalence across SDK releases. Five
+fresh processes and 25 identity PNG requests per SDK provide descriptive warm
+local observations. Fixture-start-to-health medians are 109.79 ms (Go 1.27.3)
+and 97.62 ms (Go 1.24.13); these windows include binary hashing, temporary
+fixtures/listeners, spawn, startup generation/validation and polling. Whole
+loopback request windows over new TCP connections have medians 0.68 / 0.53 ms.
+There is no matched no-producer control, isolated CPU/load, cold filesystem,
+RSS/CPU/allocation or hosted-serverless measurement; these are not SDK speed
+comparisons or release performance thresholds. The fresh Go 1.27.3 demo core
+still measures 8,670,847 raw / 2,231,626 Go gzip-9 bytes: **both existing size
+budgets fail**. No budget changes or waivers follow.
+
+CI requires **48 social-image cases / 16 profiles per SDK**, with literal pinned
+production/static artifacts and a separate scratch-container contract. Remote
+CI and Firefox/WebKit/touch execution remain pending. Nested/variant filenames,
+JPEG/GIF and multiple generated IDs, build-only precomputation, broad text/fonts
+and HTML/CSS layout, crawler/CDN headers, cold-start/load/security and hosted
+qualification remain open. The official stable redirect still selects Next.js
+16.4.5. All 79 capability IDs and G01–G11 remain; no release gate closes.
+
+[Metadata contract](../metadatafiles/README.md#generated-social-image-publication),
+[example](../examples/metadata-site/README.md),
+[source/artifact pins and local evidence](benchmarks/social-metadata-qualification.json).
+
+## Static JPEG/GIF social-image checkpoint
+
+A09/A10 now recognize `.jpg`, `.jpeg` and `.gif` variants for app-root social
+images. Sixteen filenames are recognized, with at most ten published resources:
+one image variant per Open Graph/Twitter role. Multiple variants, including a
+static JPEG/GIF plus a PNG Go producer, reject before startup callbacks run.
+Compiler discovery and static-export inventory admission apply the same role
+checks; rejected exports preserve the previous publication. Go producers remain
+PNG-only. Head defaults retain the actual MIME/dimensions/global filename, and
+all formats share the existing trusted-base override/clear semantics.
+
+JPEG header/pixel limits precede complete raster decoding, with a preflight cap
+of 128 scans and 4,096 markers. GIF preflight bounds the complete block envelope
+before `DecodeAll`: 32 frames, 8,388,608 aggregate frame pixels and 16,384 blocks;
+every frame rectangle must fit the bounded logical canvas. Existing 1-MiB input,
+2,048-dimension / 4,194,304-canvas-pixel and 8-MiB total metadata limits remain.
+These are bounded work units, not hard wall-clock or decoder-security guarantees.
+The independent progressive-JPEG corpus is read from each selected SDK; no
+third-party artwork is copied into the repository.
+
+Original procedural fixtures in `examples/social-variants` provide a 320 × 180
+JPEG (8,022 bytes), two-frame GIF (4,047 bytes) and two alt files (75 bytes).
+Both SDKs publish identical checked-in bytes. Linux AMD64 Go 1.24.13 and 1.27.3
+each pass the full **80-package native race suite and vet**, **12 Chromium cases**
+across HTTP, both local Lambda modes and plain static files, and **24 executable
+asset cases on both host and isolated non-root/read-only/network-free scratch
+container**. Browser cases decode JPEG/GIF without JavaScript and verify head
+clearing/history with retained Go layout state. Executable cases fully decode
+both GIF frames and check MIME/hash/method/validator contracts under normal and
+mounted/trailing-slash scopes. These are repeated checks, not distinct parity
+capabilities; browser execution stays outside containers.
+
+Three-second raster admission fuzz targets complete **10,869 executions on
+Go 1.27.3** and **19,534 on Go 1.24.13** (four seconds including shutdown).
+An initial example registration mistake used `client.go` instead of the required
+`client_js.go`; it passed no-JS decoding but failed hydration. After the rename,
+fresh native/static artifacts pass all selected cases with no retries/skips/flakes.
+A current-source Go 1.27.3 PNG regression matrix adds 12 passing Chromium cases.
+The CI definition requires **48 variant cases / 16 profiles per SDK**, plus the
+native/scratch executable contract. Remote CI and other engines remain pending.
+
+Nested metadata precedence, modern codecs, additional generated IDs, motion and
+animation-clock/accessibility/crawler behavior, general decoder security,
+production load/latency, CDN configuration and hosted deployment remain open.
+The prior security/preflight/advisory blockers and performance budget failures
+are not waived by these passes. All 79 capability IDs and G01–G11 remain.
+
+[Example](../examples/social-variants/README.md),
+[limits](../metadatafiles/README.md#generated-social-image-publication),
+[source/artifact pins and evidence](benchmarks/social-image-variants-qualification.json).
+
+## Private app folders and literal routes checkpoint (November 7, 2026)
+
+R04 now excludes `_name` and `private_name` app subtrees from every primary and
+slot routing convention. Explicit Go imports still compile, and helper edits
+remain build/watch fingerprint inputs. `literal_` escapes structural directory
+spellings, including an intentional `/_public` route. Folder privacy is route
+organization, not authorization or a native/browser import barrier.
+
+The [qualification record](benchmarks/private-routes-qualification.json) pins
+the preceding source snapshot, complete Go-source manifest and both SDK
+artifacts. Go 1.24.13 and 1.27.3 each passed all 80 native test packages under the
+race detector and vet, 12 Chromium private-route cases over HTTP, buffered
+Lambda, streaming Lambda and plain static hosting, and 42 generated-executable
+cases on the host and again in a non-root/read-only/network-isolated scratch
+container. Each SDK also passed 12 existing font and 22 client-only browser
+regressions. A concurrent regression run collided on its fixed port; the record
+retains that failure and the successful serial rerun. The CI definition requires
+48 private-route cases across 16 profiles per SDK; unexecuted browser engines
+and hosted cloud deployment remain unqualified. The official latest-release
+redirect still resolved to Next.js 16.4.5 at this checkpoint.
+
+[Private-route documentation](PRIVATE_ROUTES.md) covers naming migration,
+literal escapes, explicit handlers/catch-alls and Go build tags. Independent
+root-layout boundaries are subsequent implementation work, not evidence from
+this checkpoint. All 79 capabilities and 11 release gates remain in this
+inventory; no waiver or gate closure is recorded.
+
+## Independent root-layout checkpoint (November 7, 2026)
+
+R04 now derives document roots from outermost persistent layout ancestry.
+Separate route groups can own separate roots without a global `app/layout.go`;
+templates remain inside their root, and pages without persistent layouts share
+an implicit root. Same-root Go navigation retains eligible layout/island state.
+Cross-root anchors and Go Navigate/Replace use native document navigation;
+prefetch rejects cross-root UI work. Opaque manifest/document/envelope identities
+also reject a conditional rewrite's different-root UI before commit. Request
+selection binds roots outside cached materialization; HTML and navigation
+streaming carry the same ownership. Static export verifies matching HTML/data
+roots and preserves an earlier publication on mismatch. See the
+[contract](ROOT_LAYOUTS.md), [example](../examples/root-layouts/README.md) and
+[qualification record](benchmarks/root-layouts-qualification.json).
+
+Go 1.24.13 and 1.27.3 each passed all 80 native packages under the race detector,
+native and WASM client vet, and nine WASM package runs across all four core/
+module/refresh targets. Each SDK passed 19 Chromium cases across HTTP, buffered
+Lambda, streaming Lambda and plain static hosting, plus 42 executable cases on
+the host and again in non-root/read-only/network-isolated scratch containers.
+The fixture checks three root identities, same-root counter/DOM/history
+retention, native anchor and Go push/replace semantics, implicit roots, conditional
+rewrite fallback, streamed ownership and useful no-JS HTML. Fresh single-root
+Go 1.27.3 artifacts passed 46 existing private-route/font/client-only browser
+regressions. The fixed CI definition requires 76 cases across 16 profiles per
+SDK; unexecuted engines and actual hosted deployment remain unqualified.
+
+Fresh reference-demo analysis still **fails both existing size budgets**:
+Go 1.27.3 core WASM is 8,680,366 raw / 2,233,150 Go gzip-9 bytes; Go 1.24.13 is
+7,659,557 / 1,914,390 bytes. Limits remain 6,291,456 / 1,677,722 bytes. Reports
+and nonzero analyzer outcomes are pinned in the qualification record; no
+performance gate is closed or waived. The upstream stable redirect still
+resolved to Next.js 16.4.5. Complete root/locale/parallel/interception/prerender/
+rollout combinations, broader naming/diagnostics and all release requirements
+remain open. All 79 capabilities and 11 gates are retained.
+
+## Compiled routing checkpoint (November 7, 2026)
+
+Native page/API dispatch and initialized Go/WASM route classification now use
+an immutable route index. It preserves the existing specificity, parameter and
+path-admission rules, with direct literal lookup and an explicit DFS stack for
+deep paths and failed-literal backtracking. Canonical-shape validation replaces
+quadratic pairwise reparsing while preserving the earliest conflict and exact
+diagnostic text. Browser compilation preserves manifest JSON/configuration
+identities, and filtered prerender views rebuild the index. Configured-handler,
+document-boundary, rewrite, middleware and authorization ownership remain in
+their prior order. See the [contract](ROUTING_PERFORMANCE.md) and
+[source/artifact/measurement record](benchmarks/compiled-routing-qualification.json).
+
+Both Go 1.24.13 and 1.27.3 passed 80 native packages under the race detector,
+native vet, 11 WASM package runs across the four core/module/refresh targets and
+their vet checks, and generated-helper drift checks for all 14 applications.
+Reference comparisons cover all ordered triples of a 21-pattern conflict
+corpus, decoding/Unicode/invalid paths, literal/parameter backtracking,
+10,000-segment traversal, concurrent ownership and a 3,000-route real App.
+Differential fuzzers executed 69,194 cases on Go 1.27.3 and 188,409 on Go 1.24.13.
+Each SDK passed 65 Chromium cases across HTTP, buffered Lambda, streaming Lambda
+and static hosting, and 156 generated-executable cases on the host and again
+in restricted Linux containers. These use newly compiled artifacts for private
+routes, independent roots, fonts and client-only UI; root health labeling is
+also corrected. Broader engines/real cloud remain unqualified.
+
+Paired three-run medians on the shared Linux host for 3,000 distinct record
+prefixes show validation at 2.80 s → 1.23 ms (Go 1.27.3) and 3.12 s → 1.27 ms
+(Go 1.24.13), with index construction at 2.75/2.83 ms. The deliberately last-prefix
+dynamic lookup is 1.86 ms → 0.414 µs and 2.27 ms → 0.447 µs respectively. These
+are local microbenchmarks, not HTTP/full-startup/concurrency/device/cloud/Next.js
+comparisons. Allocated bytes are cumulative per operation, not resident memory.
+The standalone pre-change baseline is retained separately from paired results.
+
+Fresh reference-demo analysis still **fails both unchanged size budgets**:
+Go 1.27.3 core WASM is 8,700,207 raw / 2,241,402 Go gzip-9 bytes; Go 1.24.13 is
+7,678,689 / 1,921,088 bytes. Limits remain 6,291,456 / 1,677,722 bytes. Current
+security access/preflight, broad capability conformance, production performance,
+operations and hosted-deployment gates remain open. The upstream stable redirect
+still resolves to Next.js 16.4.5. All 79 capabilities and 11 gates remain retained;
+no completion, acceptance or waiver is recorded.
+
+## Official AWS emulator checkpoint (November 7, 2026)
+
+The pinned generated demo passes **32 host and 32 restricted-container cases
+per SDK** (Go 1.27.3 and compatibility-only Go 1.24.13), plus 32 race-instrumented
+host cases and deployment vet per SDK. The official AWS RIE v1.38 source is
+authenticated by the Go checksum database and built separately with Go 1.27.3.
+Both modes, root/mounted locale scopes, warm reuse, SSR/navigation, HEAD,
+gzip/base64 WASM, generated mutations, invocation-error recovery and signed
+cookie/auth/form behavior pass. Owned runtime processes and listeners are gone
+after emulator shutdown. No application Go code changed after the prior
+compiled-routing source snapshot; only the deployment harness was added.
+
+The new CI matrix builds the pinned tool and application independently, checks
+binary hashes and requires all 32 cases in both environments. Its remote results
+are not yet available. The local scratch runs use UID 65532, read-only root,
+network isolation, dropped capabilities and bounded memory/PIDs/tmpfs. Earlier
+fixture-ownership, canonical-path, runtime-directory and non-root tool-permission
+failures remain recorded alongside the corrected passes.
+
+RIE buffers the public response, reports configured memory and kills its child
+runtime during shutdown. These results therefore do not establish hosted early
+stream delivery, measured memory/cold-start performance or graceful application
+drain. AWS orchestration/IAM/networking and the full deployment matrix remain
+unverified. The user's instruction to use this machine authorizes local work;
+it does not waive hosted qualification. **All 79 capabilities and all 11 release
+gates remain retained and open.** [Reproduction and limits](AWS_RIE.md),
+[pinned evidence](benchmarks/aws-rie-qualification.json).
+
+## Existing published-runtime analysis checkpoint (November 7, 2026)
+
+`nextgo analyze -runtime-dir DIR` reads an existing immutable runtime namespace
+without building/executing application code or requiring a source checkout/SDK.
+The bounded runtime report contains hashes, raw/Go gzip-9 bytes, WASM sections,
+totals and opt-in budget violations. It does not infer build/source identity,
+native pairing, routes or registrations. The input remains caller-owned;
+symlink/nonregular entries are rejected and report output must be outside it.
+
+Both SDK CLIs produce identical host/restricted-container reports for each
+previously pinned static demo runtime. All 72 files across the two static trees
+retain their hashes. Go 1.27's core is **8,700,207 raw / 2,241,402 Go gzip-9
+bytes**; Go 1.24's is **7,678,689 / 1,921,088**. Both reference budgets still fail,
+with reports retained and exit status 1. This is measurement of those existing
+artifacts, not a new deployment/browser build or performance improvement.
+The new CI step measures its browser-qualified static tree directly; remote
+results remain unverified. Native race/vet and focused ownership/admission
+evidence are recorded in the [qualification report](benchmarks/existing-runtime-analysis-qualification.json).
+Live deployment authentication, native/runtime pairing, broader analysis and
+G05 remain open. [Command contract](BUNDLE_ANALYSIS.md).
+
+## Local stable-Next.js comparison checkpoint (November 7, 2026)
+
+A checked-in two-route/counter fixture now runs as generated Go/WASM executables
+and a pinned production standalone **Next.js 16.4.5 / React 19.3.1** reference.
+Both use request-time SSR, the same text/CSS/original favicon, disabled prefetch,
+an initially SSR-rendered count of 3, mounted increment behavior and soft/native
+navigation. The Next.js dependency exists only in the reference fixture.
+
+The corrected final run passes **36 fresh-browser samples, three no-JavaScript
+checks and 6,000 native SSR load requests** on local Linux. There are no page or
+console errors; SSR output nodes are retained and navigation preserves the
+document. Owned servers exit without a forced kill, and independent fresh TCP
+checks find all three listeners closed. Served assets are retained/hashed and
+their decoded static sizes match browser observations. Both SDKs pass generated
+helper checks and native/WASM vet for the new fixture. The earlier 80-package
+race/vet matrix remains separate evidence for the unchanged framework code;
+only nine Go example/helper files were added afterward.
+
+In this workload, Go 1.27's median initial encoded body total is **1,853,243
+bytes** versus **141,456** for Next.js. Median application counter-mount marks
+are **216.9 ms** versus **127.8 ms**. Go's local native SSR timings are lower;
+these relationships are not generalized to other workloads or deployments.
+The captured minimal Go 1.27 core still fails both reference byte budgets:
+**6,584,602 raw / 1,780,652 Go gzip-9 bytes**. Go 1.24 fits this small fixture's
+limits but remains compatibility-only with known advisories. Full demo bundles
+remain over both limits on both SDKs. No budget was relaxed or approved.
+
+The shared-host, unthrottled loopback experiment has 12 browser samples per
+variant, warm OS/server state, one unclustered Node server and Go GOMAXPROCS=2.
+Its lab FCP/LCP/CLS, automation timings, SSR request distributions and server
+RSS/ticks are explicitly bounded observations. Cold/warm build distributions,
+isolated/device/field/soak/saturation/container/cloud/CDN qualification remain
+open. The new CI job is syntax-checked but has no remote run. Previous socket,
+readiness, shutdown-convention, favicon and decoder failures remain archived.
+All **79 capabilities and 11 gates remain retained and open**.
+[Controls/results](FRAMEWORK_COMPARISON.md),
+[raw observations](benchmarks/local-framework-comparison.json),
+[provenance](benchmarks/local-framework-comparison-qualification.json).
+
+## Scoped browser-library checkpoint (November 7, 2026)
+
+`Scope.Widget` adds an explicit Go adapter for a trusted imperative browser
+library. It reserves an owned descendant, loads up to 16 copied script
+descriptors through the existing shared loader, and starts a constructor with
+an owned child scope/context. Registered destructors run on close/failure;
+original fallback nodes and their values are restored. Cancelled constructors
+retain their root and physical startup slot until they return; late resource
+registration is cleaned immediately. Panic/Goexit handling, closed ancestors,
+overlapping owners and limits of 128 live/64 physical startup widgets per
+runtime have focused WASM coverage. These are ownership/cancellation contracts,
+not a sandbox or an aggregate budget across independent runtimes.
+
+The checked-in uPlot 1.6.32 example uses SRI/versioned assets, retains its MIT
+license and keeps a readable data table outside the chart. Eager and lazy Go
+components exercise real library creation/destruction, retry after failed
+download, partial construction failure, native navigation and completion after
+unmount. Both SDKs pass **36 Chromium cases each** across HTTP, buffered Lambda,
+streaming Lambda and static files, plus **54 host + 54 restricted-container
+executable cases each** and **54 race deployment cases each**. Fixtures verify
+owned process/listener/socket cleanup and unchanged pinned static trees.
+
+The current framework checkpoint passes native race/vet (80 tested packages per
+SDK), 11 WASM package runs across four targets and four WASM vet targets per SDK.
+Two later example/test path corrections are verified by fresh artifacts, targeted
+vet and the full new browser/deployment matrix; framework Go code is unchanged
+after the broad run. Failed fixture health-export, missing-artifact, table
+selector, transient-status polling and mounted asset/resource-path attempts
+remain preserved. The CI job requires all **144 defined cases / 16 profiles per
+SDK** without skips; only its four Chromium profiles ran locally, and remote
+results remain unverified.
+
+Fresh native/core/module govulncheck reports no known findings for Go 1.27.3
+against the verified official database, whose current Git HEAD remains
+`e22db6528018f9725b3230c4e6429c791f40bb15`. Go 1.24.13 retains 37 reachable native
+and one reachable WASM advisory ID in each of these widget-specific scopes;
+earlier demo-source/binary scopes remain separate. The pinned uPlot npm audit
+reports no known advisories. No independent source-audit approval follows.
+
+Fresh bundle reports exactly match the qualified native executable hashes.
+Go 1.27's widget core measures **6,879,148 raw / 1,848,216 Go gzip-9 bytes**,
+failing both reference limits. Go 1.24's **5,672,808 / 1,517,838** fits this small
+fixture but remains compatibility-only with known findings. The 54,016 vendor
+JS/CSS/license bytes are outside the runtime-only analyzer inventory. No budget
+was relaxed. The earlier matched Next.js performance experiment remains its
+distinct pre-widget source checkpoint.
+
+Broader libraries/ESM/CSS/update orchestration, strict CSP, cross-engine/device,
+aggregate resources/soak, real cloud and independent security qualification
+remain open. **All 79 capabilities and all 11 release gates remain retained
+and open.** [Contract](WIDGETS.md), [example](../examples/widgets/README.md),
+[pinned evidence](benchmarks/widgets-qualification.json).
+
+## Native WASM optimizer experiment (November 7, 2026)
+
+The [Binaryen 133 experiment](benchmarks/wasm-optimization-experiment.json)
+verifies the official Linux release checksum and tests `wasm-opt -Oz` on copies
+of the pinned reference bytes. Both original and optimized client unit binaries
+pass all 223 top-level cases under each SDK's matching Go/WASM runner. This is
+Node ABI/functional experiment evidence, not browser/deployment qualification.
+
+Raw Go 1.27.3 core size falls from 8,700,207 to 7,980,171 bytes, while matching-SDK
+Go gzip-9 increases from 2,241,402 to 2,242,560. Go 1.24.13 falls from 7,678,689
+to 6,828,113 raw and 1,921,088 to 1,908,440 gzip bytes. Both existing raw and gzip
+budgets still fail on both SDKs. The compiler/pinned production artifacts are
+unchanged; no optimizer adoption or performance/release approval follows.
+
+## Current security qualification and remaining blockers
+
+The [current advisory record](benchmarks/govulncheck-local-database-qualification.json)
+now supersedes the earlier database-access blocker. The official repository's
+allowed codeload source was reconstructed as a canonical Go module ZIP and
+verified by normal Go module transparency checksums, without exemptions. The
+observed repository HEAD matches `e22db6528018f9725b3230c4e6429c791f40bb15`.
+Unmodified official `gendb` used Git history to generate 4,789 entries / 9,584
+files with database modified time November 5, 2026, 23:49:57 UTC. The full
+manifest/tool/module/source/output provenance is pinned. Direct API/archive
+redirect denials are retained as historical attempts; they no longer prevent
+these local advisory checks. This does not assert the inaccessible deployed
+live API has identical state or cover undisclosed vulnerabilities.
+
+Ten checks now cover each SDK's native source, core/module WASM source and both
+actual demo/root ELF executables. Go 1.27.3 reports **no known findings** in all
+five scopes. Go 1.24.13 has 43 affected module-level IDs, with **37 reachable
+native-source advisory IDs**, **2 reachable WASM advisory IDs** in each
+configuration, and **42 linked-symbol advisory IDs** in each executable. The
+WASM results include GO-2026-4601 and GO-2026-6218 in `net/url`. Repeated traces
+are not separate vulnerabilities; tool reachability/linked symbols are not an
+independently confirmed exploit. The existing production Dockerfile already
+pins Go 1.27.3; Go 1.24 remains language/compatibility-only and is not security-
+qualified for production. [Scope/policy/reproduction](SECURITY_QUALIFICATION.md).
+
+The checker’s JSON mode exits zero even with findings. Its pinned converter
+returns 3 for the legacy-SDK results and 0 for production-SDK results. New CI
+jobs declare pinned production-SDK native/core-WASM/module-WASM checks against
+the live official database with that nonzero findings gate. Local commands and
+YAML pass; remote CI remains unexecuted.
+
+The separate Codex Security Standard source-audit workflow still cannot start.
+Its [security-scan instructions](skill://Plugin_1e648473be9c8191a91ac3947151af55/security-scan/SKILL.md)
+require: “Start source review and launch scan workers only after preflight
+returns `ready`.” Shared preflight/core/finalizer assets and a headless scan
+start/context are unavailable; only the access-status tool is exposed. No
+source-review workers or current canonical report were created. The
+[historical blocker record](benchmarks/security-qualification-blockers.json)
+retains earlier failed attempts and points to the successful advisory follow-up.
+No current full source audit or production security approval is implied. G02
+remains open with broad conformance, performance, operations and hosted-
+deployment gates. All 79 capabilities and G01–G11 remain retained, without
+acceptance or waiver.
 
 ## Production maturity gates
 
@@ -1446,12 +2192,12 @@ All gates below are **open** until linked evidence from the exact release candid
 | Gate | Required evidence before a production-mature parity claim | Current evidence / gap |
 | --- | --- | --- |
 | G01 Capability conformance | Every inventory capability has a working Go API, examples and successful conformance tests, or a documented experimental/platform-specific qualification matching the baseline. Broad Missing/Partial rows cannot be waived by renaming the milestone. | Expanded routing/data/action/asset/deployment foundations exist; many capabilities remain absent or partial; Chromium and static-host passes do not establish full conformance and current regressions pass while broad conformance remains unfinished. |
-| G02 Security | Document threat model/trust boundaries; independent review; zero unresolved critical/high findings; XSS/URL/serialization/path fuzz tests; CSRF/origin/auth tests for mutations; cache/tenant isolation; image SSRF tests; upload/body/concurrency limits; CSP proven with WASM; secret redaction and disclosure process. | Escaping, constrained URLs/actions, body/image/cache limits and focused security tests exist. A focused audit identified four issues; patches, regression tests and static rechecks passed. Standard scan `40d43f4d-7c7a-4ffc-8f9e-7ef510672b7d` finalized with 117 reviewed files and four fixed-during-audit discoveries. Its host warns that working-tree changes preserve the original snapshot provenance; it is not a clean immutable release audit. Short routing and HTML-escaping fuzz runs pass; sustained fuzz coverage, independent release review, authentication/tenant and complete security qualification remain open. |
+| G02 Security | Document threat model/trust boundaries; independent review; zero unresolved critical/high findings; XSS/URL/serialization/path fuzz tests; CSRF/origin/auth tests for mutations; cache/tenant isolation; image SSRF tests; upload/body/concurrency limits; CSP proven with WASM; secret redaction and disclosure process. | Current official-snapshot govulncheck passes the tested Go 1.27.3 native/WASM source and ELF scopes; Go 1.24.13 reports known standard-library findings and stays compatibility-only. [Evidence](SECURITY_QUALIFICATION.md). Source-audit ready preflight/assets/context remain unavailable; no current canonical full audit or release security approval. |
 | G03 Native correctness | `go test -race ./...` and `go vet ./...` pass on supported Go versions; fuzz corpus and integration suites cover routing/rendering/cache/actions; deterministic fixtures; failures reproduce from a clean checkout. | Integrated go test -race ./..., go vet ./... and npm run test:wasm pass, including current response-control/security/resource changes. No complete parity suite or immutable release matrix yet. |
 | G04 Browser correctness | Production tests pass on Chromium, Firefox and WebKit, desktop/mobile viewports, keyboard-only and no-JS paths; delayed/failed WASM, malformed hydration, nested/persistent components, history, redirects, focus, streaming, actions, cache invalidation, offline and deployment skew. | The recorded broad composition baseline passes 1,172 checks with three platform skips; it predates final cleanup/form additions. Final lifetime-specific verification passes 376 runtime and 80 static checks. The current multipart/shared-transport subset passes 292 runtime and 92 static checks, including forms, files, composition, typed mutation protocol/origin/redirect and optimistic-state regressions. The initial shared-data phase passes 253 production/enabled-cache checks with three existing platform skips; the scheduled-refresh phase passes 269 with those same three skips; the later shared-page source passes 305 with the same three skips; the durable-file source repeats that 305-pass matrix; the shared-prerender source passes 341 with the same three skips. Full provenance appears above and in the feature contracts. This working-tree evidence does not replace an immutable release matrix; physical devices, screen readers, complete offline behavior and production upgrade qualification remain open. |
-| G05 Performance | Published reproducible hardware/network/load profiles, comparison application and Go/Next.js baseline. Record cold/warm build and startup, binary/WASM sizes, compressed transfer, TTFB/FCP/LCP/INP/CLS, hydration, navigation, CPU/memory, p50/p95/p99 and saturation. Enforce approved budgets in CI, not unmeasured “fast” claims. | Historical reference artifacts measured 5.04 MB raw / 1.43 MB server-gzip WASM (1.37 MB level 9). A preceding multipart Go 1.27 sample has an 8,162,036-byte eager bundle (2,119,573 gzip-9) and a 5,617,477-byte lazy component (1,537,221 gzip-9), with hashes and ten-context warm-local observations recorded. The latest controlled ASCII-validator pair is 8,689,715→8,191,328 raw / 2,233,505→2,107,698 gzip-9 bytes on the same Go 1.27.3/default-flags/full-component controls. Paired actual startup reports retain distinct browser/Node clocks and memory-capacity limits; no speed/RSS claim follows. The preceding seven-feature size-only artifact is 8,320,548 raw / 2,142,557 Node gzip-9 bytes. The preceding metadata/phase artifact is 8,225,235 raw / 2,117,285 Node gzip-9. The preceding form-refreeze artifact is 8,237,069 raw / 2,120,177 Node gzip-9; the zones-phase ordinary demo measures 8,237,069 raw / 2,120,180 Node gzip-9. The refresh-phase ordinary core measures 8,401,692 raw / 2,157,893 Node gzip-9, with 24,881,323 raw / 6,671,518 gzip-9 across all runtime assets including three lazy modules. These size-only comparisons do not establish timing, RSS or feature causality. Earlier artifacts remain historical evidence; both eager size budgets still fail. Reproducible browser/native observations and their limitations are in [PERFORMANCE.md](PERFORMANCE.md); no representative production/Next.js comparison, field data or enforced release budgets. Standard Go WASM size/startup is an acknowledged constraint. |
+| G05 Performance | Published reproducible hardware/network/load profiles, comparison application and Go/Next.js baseline. Record cold/warm build and startup, binary/WASM sizes, compressed transfer, TTFB/FCP/LCP/INP/CLS, hydration, navigation, CPU/memory, p50/p95/p99 and saturation. Enforce approved budgets in CI, not unmeasured “fast” claims. | [Current scoped Go/Next.js comparison](FRAMEWORK_COMPARISON.md) records matched production behavior and local lab metrics, with Go 1.27 transfer/readiness gaps and both core reference budgets still failing; broader representative qualification is missing. Historical reference artifacts measured 5.04 MB raw / 1.43 MB server-gzip WASM (1.37 MB level 9). A preceding multipart Go 1.27 sample has an 8,162,036-byte eager bundle (2,119,573 gzip-9) and a 5,617,477-byte lazy component (1,537,221 gzip-9), with hashes and ten-context warm-local observations recorded. The latest controlled ASCII-validator pair is 8,689,715→8,191,328 raw / 2,233,505→2,107,698 gzip-9 bytes on the same Go 1.27.3/default-flags/full-component controls. Paired actual startup reports retain distinct browser/Node clocks and memory-capacity limits; no speed/RSS claim follows. The preceding seven-feature size-only artifact is 8,320,548 raw / 2,142,557 Node gzip-9 bytes. The preceding metadata/phase artifact is 8,225,235 raw / 2,117,285 Node gzip-9. The preceding form-refreeze artifact is 8,237,069 raw / 2,120,177 Node gzip-9; the zones-phase ordinary demo measures 8,237,069 raw / 2,120,180 Node gzip-9. The refresh-phase ordinary core measures 8,401,692 raw / 2,157,893 Node gzip-9, with 24,881,323 raw / 6,671,518 gzip-9 across all runtime assets including three lazy modules. These size-only comparisons do not establish timing, RSS or feature causality. Earlier artifacts remain historical evidence; both eager size budgets still fail. Reproducible browser/native observations and their limitations are in [PERFORMANCE.md](PERFORMANCE.md); no representative production/Next.js comparison, field data or enforced release budgets. Standard Go WASM size/startup is an acknowledged constraint. |
 | G06 Resource behavior | Bounded request/stream/cache/retained-route/asset storage, body sizes, timers and callbacks; cancellation/timeout tests; load plus long-running soak demonstrating memory/resource stabilization and no listener/goroutine leaks. | Listener/deadline/Fetch byte-limit/abort coverage and bounded local image/cache primitives exist; stream size limits are native-tested. App-wide streaming admission/deadlines now have focused tests for shared locale capacity, fail-fast saturation and noncooperative callbacks retaining physical slots; both native SDK/WASM and standalone executable checks pass, and its browser matrix passes 329 checks with three existing CDP skips. Request Memo has key/count/cycle/waiter cancellation bounds; development retains eight generations and cleans owned output on exit. OTLP queue/byte/batch/flush admission and cancellation/recovery tests cover bounded trace export. Seed controls now have an independent configurable byte ledger and hash-only once markers; retained cache metadata and framework snapshots own string backing. Atomic quota/recovery/ownership tests and a bounded lease-allocation observation pass. Transport/GC/whole-process RSS, tenant fairness and realistic concurrency/soak qualification remain open. |
-| G07 Deployment | Clean build/install, checksum/SBOM/provenance as applicable, supported OS/architecture and container tests, non-root execution, reverse proxy/TLS examples, correct forwarded headers, CDN behavior, reproducible config and source-independent binary/static output. | Local Linux non-root/read-only container and mock generated Lambda runtime checked, including gzip WASM and graceful SIGTERM; optional Lambda streaming is mock-tested; real cloud and complete deployment matrix remain missing. Controlled clean-source/pinned-Go/VCS comparisons found WASM hash churn from timestamped generated main-package paths and compiler build IDs, while SDK/bootstrap bytes stayed identical. Normalization evidence is scoped to those inputs; the stable-virtual-path compiler overlay now has controlled same-input/provenance proofs on both SDKs, without a general release reproducibility claim. Native prerender artifacts also intentionally include clocked generation ages, so whole-binary differences are not attributed only to paths. |
+| G07 Deployment | Clean build/install, checksum/SBOM/provenance as applicable, supported OS/architecture and container tests, non-root execution, reverse proxy/TLS examples, correct forwarded headers, CDN behavior, reproducible config and source-independent binary/static output. | Local Linux non-root/read-only container and mock generated Lambda runtime checked, including gzip WASM and graceful SIGTERM. Official AWS RIE adds both-SDK host/restricted-container conformance for buffered/streaming framing and session behavior; its buffered frontend and child-kill shutdown do not qualify hosted early flush or graceful drain. Real cloud and complete deployment matrix remain missing. Controlled clean-source/pinned-Go/VCS comparisons found WASM hash churn from timestamped generated main-package paths and compiler build IDs, while SDK/bootstrap bytes stayed identical. Normalization evidence is scoped to those inputs; the stable-virtual-path compiler overlay now has controlled same-input/provenance proofs on both SDKs, without a general release reproducibility claim. Native prerender artifacts also intentionally include clocked generation ages, so whole-binary differences are not attributed only to paths. |
 | G08 Recovery and operations | SIGTERM drain, forced worker exit, startup/readiness failures, rolling deploy, old-asset loading, build/version skew, rollback, cache/session store outage/recovery and in-flight mutation policy tested. Logs/metrics/traces identify root cause without secrets. | Dev build recovery, old assets, navigation version/configuration mismatch, local real-process proxy switching/rollback, Fetch cancellation and mock Lambda stream failure/deadline cases have focused tests; shared-data HTTP-503 outage/recovery, application restart and TLS-service checks now add focused coverage. The optional file authority adds acknowledged value/invalidation survival after real service-process kill/restart, writer exclusion, fault/corruption refusal and rendered-page reuse on host/Linux. Shared seeds add durable consumed-ticket/invalidation fences, constructor cancellation and held-live-work Lambda drain/publication tests. Real rolling deployment, storage/power-loss recovery, HA failover, network partitions and complete production recovery qualification remain incomplete. |
 | G09 Accessibility/SEO | Automated and manual keyboard/screen-reader review, focus/announcement tests, reduced-motion and contrast checks, valid document/head/status/robots/canonical metadata, crawler verification with and without WASM. | Semantic sample, live status, destination/fragment focus and route announcements have browser tests. Screen-reader/contrast/manual review and full crawler/a11y audit remain open. |
 | G10 Developer experience | A new developer follows published installation, scaffolding, local development, data/action/component and production deployment instructions in an independent module without repository-specific knowledge. Errors explain corrective steps. | `nextgo init -module -framework <source> <new-directory>` creates a staged independent module with layout/counter/dynamic/API/404 examples; native validation and two outside-repository production browser checks pass. No published install version or independent usability study. |

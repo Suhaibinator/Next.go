@@ -79,25 +79,48 @@ func (p fontPreload) Elements() ([]seo.Element, error) {
 // Changing font bytes requires changing the Source URL to preserve immutable
 // caching semantics (typically an application-generated content hash).
 func NewFontStyles(fonts []Font) (http.Handler, string, error) {
+	data, err := fontStyleData(fonts, false)
+	if err != nil {
+		return nil, "", err
+	}
+	digest := sha256.Sum256(data)
+	hash := hex.EncodeToString(digest[:])
+	urlPath := "/_nextgo/fonts/" + hash + ".css"
+	etag := `"` + hash + `"`
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != urlPath {
+			http.NotFound(w, r)
+			return
+		}
+		serveFontBytes(w, r, data, "text/css; charset=utf-8", etag)
+	})
+	return handler, urlPath, nil
+}
+
+func fontStyleData(fonts []Font, relative bool) ([]byte, error) {
 	if len(fonts) == 0 || len(fonts) > 128 {
-		return nil, "", fmt.Errorf("assets: require between 1 and 128 font faces")
+		return nil, fmt.Errorf("assets: require between 1 and 128 font faces")
 	}
 	var css strings.Builder
 	seen := map[string]bool{}
 	for _, raw := range fonts {
 		f, err := normalize(raw)
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
 		key := strings.ToLower(f.Family) + "\x00" + f.Weight + "\x00" + f.Style
 		if seen[key] {
-			return nil, "", fmt.Errorf("assets: duplicate font face %q", f.Family)
+			return nil, fmt.Errorf("assets: duplicate font face %q", f.Family)
 		}
 		seen[key] = true
 		css.WriteString("@font-face{font-family:")
 		css.WriteString(cssString(f.Family))
 		css.WriteString(";src:url(")
-		css.WriteString(cssString(f.Source))
+		source := f.Source
+		if relative {
+			source = path.Base(source) // Controlled digest filenames in LocalFonts only.
+		}
+		css.WriteString(cssString(source))
 		css.WriteString(") format(")
 		css.WriteString(cssString(f.Format))
 		css.WriteString(");font-weight:")
@@ -120,38 +143,30 @@ func NewFontStyles(fonts []Font) (http.Handler, string, error) {
 		}
 		css.WriteString("}\n")
 	}
-	data := []byte(css.String())
-	digest := sha256.Sum256(data)
-	hash := hex.EncodeToString(digest[:])
-	urlPath := "/_nextgo/fonts/" + hash + ".css"
-	etag := `"` + hash + `"`
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != urlPath {
-			http.NotFound(w, r)
+	return []byte(css.String()), nil
+}
+
+func serveFontBytes(w http.ResponseWriter, r *http.Request, data []byte, contentType, etag string) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	w.Header().Set("ETag", etag)
+	for _, tag := range strings.Split(r.Header.Get("If-None-Match"), ",") {
+		tag = strings.TrimSpace(tag)
+		if tag == "*" || strings.TrimPrefix(tag, "W/") == etag {
+			w.WriteHeader(http.StatusNotModified)
 			return
 		}
-		if r.Method != http.MethodGet && r.Method != http.MethodHead {
-			w.Header().Set("Allow", "GET, HEAD")
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("ETag", etag)
-		for _, tag := range strings.Split(r.Header.Get("If-None-Match"), ",") {
-			tag = strings.TrimSpace(tag)
-			if tag == "*" || strings.TrimPrefix(tag, "W/") == etag {
-				w.WriteHeader(http.StatusNotModified)
-				return
-			}
-		}
-		w.Header().Set("Content-Length", strconv.Itoa(len(data)))
-		if r.Method != http.MethodHead {
-			_, _ = w.Write(data)
-		}
-	})
-	return handler, urlPath, nil
+	}
+	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
+	if r.Method != http.MethodHead {
+		_, _ = w.Write(data)
+	}
 }
 
 func normalize(f Font) (Font, error) {

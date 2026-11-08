@@ -30,7 +30,10 @@ type Build struct {
 	ZoneRuntimeIDs               map[string]string
 	Zones                        *ZonesManifest
 	DevRefresh                   *DevRefreshBuild
+	RuntimeModules               []RuntimeModule // Names and immutable files from this compilation.
 }
+
+type RuntimeModule struct{ Component, File string }
 
 func Compile(ctx context.Context, root string, dev bool, output io.Writer) (*Build, error) {
 	build, err := compileApplication(ctx, root, dev, output, true, dev)
@@ -373,7 +376,11 @@ func compileApplicationTarget(ctx context.Context, root string, dev bool, output
 		return nil, err
 	}
 	success = true
-	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p, DevRefresh: refreshMetadata}, nil
+	runtimeModules := make([]RuntimeModule, len(modules))
+	for i, module := range modules {
+		runtimeModules[i] = RuntimeModule{Component: module.Name, File: module.File}
+	}
+	return &Build{Dir: buildDir, Binary: binary, ID: id, Fingerprint: fingerprint, Project: p, DevRefresh: refreshMetadata, RuntimeModules: runtimeModules}, nil
 }
 
 func runtimeBuildID(wasm []byte, fingerprint string, support []byte, loader string) string {
@@ -431,6 +438,9 @@ func serverImports(p *Project) map[string]bool {
 	if p.NotFound != "" {
 		imports[p.NotFound] = true
 	}
+	if p.GlobalError != "" {
+		imports[p.GlobalError] = true
+	}
 	if p.Configure != "" {
 		imports[p.Configure] = true
 	}
@@ -457,6 +467,9 @@ func writeConfigConstruction(b *strings.Builder, p *Project, aliases map[string]
 	fmt.Fprintf(b, "config:=nextgo.Config{Assets:assets,BuildID:%q,Dev:%t,", id, dev)
 	if p.NotFound != "" {
 		fmt.Fprintf(b, "NotFound:%s.NotFound,", aliases[p.NotFound])
+	}
+	if p.GlobalError != "" {
+		fmt.Fprintf(b, "GlobalError:%s.GlobalError,", aliases[p.GlobalError])
 	}
 	for _, handler := range []struct{ field, imp string }{{"Unauthorized", p.Unauthorized}, {"Forbidden", p.Forbidden}} {
 		if handler.imp != "" {
@@ -634,6 +647,7 @@ func fingerprintExceptContext(parent context.Context, root, skip string) (string
 }
 
 const bootstrap = `(async () => {
+  globalThis.__nextgoImportModule = source => import(source);
   // Capture native restores even while the Go runtime is still loading.
   addEventListener('pagehide', event => {
     if (event.persisted && document.body?.hasAttribute('data-nextgo-draft')) {

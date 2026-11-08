@@ -42,6 +42,38 @@ func TestEarlyScriptsFreezeAndParticipateInNavigationIdentity(t *testing.T) {
 		}
 	}
 }
+
+func TestEarlyVendorDataIsImmutableAndChangesConfigurationIdentity(t *testing.T) {
+	values := map[string]string{"data-site": "first.test"}
+	data, err := scripts.NewDataAttributes(values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := Config{EarlyScripts: []scripts.Script{{ID: "vendor", Src: "/vendor.js", Strategy: scripts.BeforeInteractive, Data: data}}, Routes: []Route{{Pattern: "/", Page: func(*Context) (Page, error) { return Page{Body: ui.Text("vendor data")}, nil }}}}
+	first, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer first.Close(context.Background())
+	values["data-site"] = "second.test"
+	config.EarlyScripts[0].Data, err = scripts.NewDataAttributes(values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.Close(context.Background())
+	if first.configurationID == second.configurationID {
+		t.Fatal("vendor data absent from configuration identity")
+	}
+	response := httptest.NewRecorder()
+	first.ServeHTTP(response, httptest.NewRequest("GET", "/", nil))
+	if response.Code != 200 || !strings.Contains(response.Body.String(), ` data-site="first.test"`) || strings.Contains(response.Body.String(), `data-site="second.test"`) {
+		t.Fatal("vendor configuration mutation escaped immutable snapshot", response.Body.String())
+	}
+}
 func TestNonceDocumentsBypassPublicCachesAndBindFrameworkAndStructuredData(t *testing.T) {
 	store := cache.New(8)
 	calls := 0

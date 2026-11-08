@@ -1,0 +1,736 @@
+{
+  "format": "nextgo-root-layouts-qualification-v1",
+  "recordedAtUTC": "2026-11-07T18:10:36.285196+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "files": {
+      ".github/workflows/ci.yml": "935e069eafebde52951cb8a20093c065ce6a00ff7265dd7e3764059137d627a5",
+      "client/root_layouts_js.go": "74b3075f3531d594f71a0ee3f7b71333bda3dcec6728cdeaa86c48ed52c7a668",
+      "client/root_layouts_js_test.go": "0785128e390aa90b17be6a62d9a98d775ef4e27e4a510060aa1a6420e61f4a18",
+      "client/runtime_js.go": "f9f3918d6cf1ea78da11257e413ba9ff4cd4214aa5f7335c11af53653b0dbf80",
+      "cmd/nextgo/export.go": "a20c36a732ee7d702de80d8c56d55cbb3d21034a66f133801255acecd38c5a3f",
+      "cmd/nextgo/export_roots_test.go": "1d569cf25edd182ade3c87a75bacdf5697f1183ad6d8f999df9f407927ee4c29",
+      "docs/ROOT_LAYOUTS.md": "056580cf605751cfea152f2520528bd0f84ae2366d703200df4920fad9465a6a",
+      "examples/root-layouts/README.md": "472d9266df6b0a309bb46ed10f241c195f3976fcf99aa244fd77e370cbfaa5e2",
+      "examples/root-layouts/actionrefs/nextgo_gen.go": "244e238b5e1b98684aec45aa457c397494d96cdfbe21383b2f083badb4329de9",
+      "examples/root-layouts/actionrefs/nextgo_gen_js.go": "c5c77c3f0c1130c35c63b75a5f6bf6ed7143523143d3254d883e0677050b3d36",
+      "examples/root-layouts/actionrefs/nextgo_gen_server.go": "896c371805e73cd9ccf5cfb375883045def3190b67054e657517149d85fe5f1a",
+      "examples/root-layouts/app/api/health/route.go": "c0ea664f07625e5e59a0e8a11fe74dd514761527357a13ffe99fedc1d33579b5",
+      "examples/root-layouts/app/config.go": "9d1cc3c054101c28682a84677ae24a5e825b1399f11ae9778a6ce44ed04edb99",
+      "examples/root-layouts/app/group_marketing/guide/page.go": "7f40e3c20ecce0a1c8c0b023e6155f82ea5c0087d643812668a0d71ff4a0834a",
+      "examples/root-layouts/app/group_marketing/layout.go": "fa40508fe223899e1c66ec0381273439b0bf07db80674960f3aff52107d81537",
+      "examples/root-layouts/app/group_marketing/masked/page.go": "c51f12b57ec71a8dfd49d0fd19911a9584cd0321478fdad4c59e023f48d2e5ae",
+      "examples/root-layouts/app/group_marketing/page.go": "33a2e5bbdec02a3acc713bca3c1db85c080b25e786a3156b44b220c0cf8632e9",
+      "examples/root-layouts/app/group_workspace/dashboard/page.go": "3aa00c1d2e8724e9ae5cd9c557908ff81c5d04802d7b0f0020b74085de9748a3",
+      "examples/root-layouts/app/group_workspace/dashboard/settings/page.go": "6529a5d4905f812e2c5deb943fd0f76148499e2b9c258b2a2568901e3c01757f",
+      "examples/root-layouts/app/group_workspace/dashboard/stream/page.go": "d9421191b7fd141c00810ea031889d949e0c58706ac8d25dba7b67e290375a70",
+      "examples/root-layouts/app/group_workspace/layout.go": "71611511f7dd91e7947e47e4ad187fe9b5115225654e234a0aa70276e5737a57",
+      "examples/root-layouts/app/plain/page.go": "895cd61adbaf18676bacc470e2562b82ee60f8027e91429a48e48bf061b82b28",
+      "examples/root-layouts/components/counter/client_js.go": "fb861721fbe8f58d5fff0a4c3dc33e767ee2dde27c5aa51da3b18eee14557811",
+      "examples/root-layouts/components/counter/props.go": "3e253e066055d2f5841d3847e26c76ad2deed89988ff6542f1f2763d57594114",
+      "examples/root-layouts/components/counter/view.go": "984d065541ffa1cb112417ea0c6f84cab40da9ed2d59c445a2bb1277d9a1ffb1",
+      "examples/root-layouts/components/rootnav/client_js.go": "15102134c269cf38418ccf99648666769bbbf5c711322f975e8b4cd9000e5dff",
+      "examples/root-layouts/components/rootnav/props.go": "968e56bd83369372e042fd4ec5327c9d917fd0425ca87d3df5e8f615d17e6ea5",
+      "examples/root-layouts/components/rootnav/view.go": "260a60c89df28926ed8058a70c6c8e11106d37dce97bc0cd1981052d85889027",
+      "examples/root-layouts/public/style.css": "4435ee0058d5c90aa1ae23b206d30842e1a932caeba73042da5f24fd6018dc57",
+      "examples/root-layouts/routes/nextgo_gen.go": "717c7e4afae21f860353cf6b0702ce83c458d9c7dff4fea0b90e58e107835170",
+      "internal/navigation/manifest.go": "9e4299dcfb6b3ab635eddd6219abf42dd7fc096ca59432100de76ea3b499f2da",
+      "internal/navigation/manifest_test.go": "01a2616c312a6bd2c15e14ec0791b1fecac6e8f631fef7db252e063b9312d013",
+      "internal/project/root_layouts_test.go": "4d82306cacb213f16ad0d7541deaf29602a0f7ee166385501e8e786f94aed566",
+      "navigation_stream.go": "bca6206230abc0c2233b3b17c6f036b475b4f56b1d48896948db2285b3ddced9",
+      "nextgo.go": "2a630a183017345c1c2d20256ecc7d0490b5262a6ab59f4a38019381e9c6050f",
+      "package.json": "068d17ac07da0e803ecb5fac4bdaa65d874d08a7efba9ff817dc79e66d68b6c2",
+      "root_layouts.go": "bc1553245468739951f7f2eb2d4cf8558ad68d7466e9f06943ccf3e81940082a",
+      "root_layouts_test.go": "681f250bafeb75e728c6629c77d74ea7d664ecf940928df33088d50cf8d63f08",
+      "stream.go": "eb960dba4383b02010710862eb093c25e173c7dd6f998c4b19a82200fb98ab3f",
+      "tests/deployment/root_layouts_test.go": "843f3b76a9219ed983f5d6a1195bf7fcce0e8470d7c8b22c33a92cecbe068c16",
+      "tests/root-layouts.config.mjs": "71d5078759005951be9be515d1e5f3cc404341347375b43084edb604a26db171",
+      "tests/root-layouts.spec.mjs": "fc269576230b0fbd94bb7ee71bcf9e64b17ec23b18b29aa5ed3851685987628e"
+    },
+    "allRepositoryGoFiles": {
+      "count": 1239,
+      "manifestEncoding": "sorted compact JSON path -> SHA-256 plus newline",
+      "sha256": "a0919ce76992d52f52f2c024d1659ebdd7f577a793a9c610c0efeca16c70d4a1"
+    }
+  },
+  "baseline": {
+    "nextjs": "16.4.5",
+    "officialStableURL": "https://github.com/vercel/next.js/releases/tag/v16.4.5"
+  },
+  "contract": {
+    "roots": "outermost persistent generated LayoutID, with shared implicit root for pages without IDs; templates excluded",
+    "wire": "optional root tokens in multi-root manifests/documents/envelopes; no import path disclosed",
+    "navigation": "same-root retention; native cross-root anchors, Navigate and Replace; cross-root prefetch rejected",
+    "selection": "after rewrite/interception selection and outside cached materialization",
+    "responseValidation": "buffered/streamed mismatch forces document fallback before UI commit",
+    "staticExport": "matching HTML/envelope root required before atomic publication; conditional request rule omitted by example static-export phase",
+    "fixtureRoots": 3,
+    "staticFixturePages": 6,
+    "browserCasesDefinedPerSDK": 76,
+    "browserProfilesDefinedPerSDK": 16
+  },
+  "environment": {
+    "Go": [
+      "1.24.13",
+      "1.27.3"
+    ],
+    "node": "24.22.1",
+    "playwright": "1.64.1",
+    "browser": "Chromium 156.0.8078.79",
+    "os": "Linux amd64",
+    "CGO": false,
+    "nativeGOMAXPROCS": 2,
+    "wasmTestGOMAXPROCS": 1,
+    "GOFLAGS": "-p=2",
+    "umask": "022"
+  },
+  "validation": {
+    "go1.27": {
+      "nativeRacePackages": 80,
+      "wasmPackageRunsAcrossFourTargets": 9,
+      "nativeVet": "passed",
+      "wasmClientVet": "passed",
+      "browser": {
+        "passed": 19,
+        "stats": {
+          "startTime": "2026-11-07T18:00:13.409Z",
+          "duration": 25007.293,
+          "expected": 19,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "evidence": {
+          "path": ".nextgo-test-results/root-layouts/chromium-go1.27.json",
+          "bytes": 89889,
+          "sha256": "75d4f61a191b4747f58630aed4f7e2ba500d2c855d9a17864f39b749f7bdf1fa"
+        }
+      },
+      "nativeEvidence": [
+        {
+          "path": ".nextgo-test-results/root-layouts/race-go1.27.log",
+          "bytes": 23975,
+          "sha256": "5b0e40598d5f0f3e9b7b448dd84fc4f51e28bc499ae2888c583d5617dff9934c"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/vet-go1.27.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/wasm-go1.27.log",
+          "bytes": 486,
+          "sha256": "5fb9f323d1ecd065bc48eb3de73c4fae2e0da845004d0cdd862422ade4195ac2"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/wasm-vet-go1.27.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "deployment": {
+        "host": {
+          "leafCases": 42,
+          "evidence": {
+            "path": ".nextgo-test-results/root-layouts/deployment-host-go1.27.log",
+            "bytes": 6361,
+            "sha256": "e8673ec289492e7a68c3c87cb287c5f1b512d64ea741ee4a300e20906dc9845e"
+          }
+        },
+        "container": {
+          "leafCases": 42,
+          "evidence": {
+            "path": ".nextgo-test-results/root-layouts/deployment-container-go1.27.log",
+            "bytes": 6361,
+            "sha256": "1002171f4a9418e5d9cd1ce268b95cc21114725184cb5e9d502909f13955a6f1"
+          }
+        }
+      },
+      "artifacts": {
+        "server": {
+          "path": ".nextgo-test-results/root-layouts/app/server",
+          "bytes": 18935968,
+          "sha256": "a6ee97b6ac012cf5017f645302f424ce755236e022915063be7740b20b002ab3"
+        },
+        "deploymentTests": {
+          "path": ".nextgo-test-results/root-layouts/deployment.test",
+          "bytes": 20834315,
+          "sha256": "84ff1cff8b7a2d61a6374cade869bf9dc75fa25414f7f6b04c7038b2f0754557"
+        },
+        "static": {
+          "sha256": "5a2e56ebc8254deb6a2b67d34cc6be07b9d5aca9694a011c4a2845847dc155ed",
+          "bytes": 6625194,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 294,
+              "sha256": "f7487857a6c4baa2683674590738a9fc5eee57ee11c15e8e69883e574de82601"
+            },
+            {
+              "path": "lambda-assets/_nextgo/3ae69eb30c17322f0fc1/app.wasm",
+              "bytes": 6570136,
+              "sha256": "db692b9c521e84b871b415c06ea79497570de1d55cb2cc36bf5467430af57ac4"
+            },
+            {
+              "path": "lambda-assets/_nextgo/3ae69eb30c17322f0fc1/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/3ae69eb30c17322f0fc1/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 270,
+              "sha256": "4435ee0058d5c90aa1ae23b206d30842e1a932caeba73042da5f24fd6018dc57"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/dashboard/settings.json",
+              "bytes": 1834,
+              "sha256": "5f33880d41510ef4f72fa905035621597369e322213a2f5dfdd831959fa963bc"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/dashboard.json",
+              "bytes": 1809,
+              "sha256": "1ac626566f8c9629fa89404c69671e35d404fa32eadd876e516e3936be3ad385"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/guide.json",
+              "bytes": 2290,
+              "sha256": "1b4e0aa92e9aefbf6a54e8a5d987ffa214995dcca880714790d5bec2d2b0ca46"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/index.json",
+              "bytes": 2259,
+              "sha256": "b9c8d3b47e7b1062596565cb382b8632a1578c536fe5fb042a650ad9abab1945"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/masked.json",
+              "bytes": 2300,
+              "sha256": "b0917435122e00ccebeee2f2707c8cb2c56f4ba6294af48fe873b10a561bc643"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/plain.json",
+              "bytes": 611,
+              "sha256": "ec5422cb7b8bbd9414b0ac3c6f6ab97878e56957c642be0147c9ec54af851281"
+            },
+            {
+              "path": "lambda-features/dashboard/index.html",
+              "bytes": 3942,
+              "sha256": "d7e07f1e5b1c82ce11836454464d130421b01e71f770068f90b9713a8f39119c"
+            },
+            {
+              "path": "lambda-features/dashboard/settings/index.html",
+              "bytes": 3968,
+              "sha256": "9a6afb70e1ba4ea2d9c893cc3e20837fef00c292e32dbeac76740d7756bd827c"
+            },
+            {
+              "path": "lambda-features/guide/index.html",
+              "bytes": 4285,
+              "sha256": "70e947b7245627e1da069f41b21a7ca4b967938eb6d95ad94c29653a926ea321"
+            },
+            {
+              "path": "lambda-features/index.html",
+              "bytes": 4270,
+              "sha256": "f02712af405b2fd64d1e407c764f5f2805671564e0b5f643170e68cbdbcac93f"
+            },
+            {
+              "path": "lambda-features/masked/index.html",
+              "bytes": 4314,
+              "sha256": "1c9cb95ecbda1c413a0b45e8ec1fb061a57a71865b13859078ceb401b8c7b168"
+            },
+            {
+              "path": "lambda-features/plain/index.html",
+              "bytes": 3028,
+              "sha256": "afdb633eb6b57d1e02b2415ee0b702518fb1bc6ba1e2c8d3285c3565622d0d7b"
+            }
+          ]
+        }
+      }
+    },
+    "go1.24": {
+      "nativeRacePackages": 80,
+      "wasmPackageRunsAcrossFourTargets": 9,
+      "nativeVet": "passed",
+      "wasmClientVet": "passed",
+      "browser": {
+        "passed": 19,
+        "stats": {
+          "startTime": "2026-11-07T18:08:42.951Z",
+          "duration": 24601.235,
+          "expected": 19,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "evidence": {
+          "path": ".nextgo-test-results/root-layouts/chromium-go1.24.json",
+          "bytes": 90084,
+          "sha256": "55df13e98992770d78aa6d75e658f3d35ea72fd2ad896af6ad2cc0df90db5661"
+        }
+      },
+      "nativeEvidence": [
+        {
+          "path": ".nextgo-test-results/root-layouts/race-go1.24.log",
+          "bytes": 23975,
+          "sha256": "40357fb585daedd3e077b591740d684527ec8c99b37bffecce12e065ae720280"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/vet-go1.24.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/wasm-go1.24.log",
+          "bytes": 486,
+          "sha256": "13abefe4a031f23c1d8220b5c0a8eca15afe919cda467c6b689af16fd3549224"
+        },
+        {
+          "path": ".nextgo-test-results/root-layouts/wasm-vet-go1.24.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "deployment": {
+        "host": {
+          "leafCases": 42,
+          "evidence": {
+            "path": ".nextgo-test-results/root-layouts/deployment-host-go1.24.log",
+            "bytes": 6361,
+            "sha256": "f8704f19b53c37503643446b60392c9d4ee1e819fc7c55e32a87d38f5c7cdbd5"
+          }
+        },
+        "container": {
+          "leafCases": 42,
+          "evidence": {
+            "path": ".nextgo-test-results/root-layouts/deployment-container-go1.24.log",
+            "bytes": 6361,
+            "sha256": "16f542830bf5319910f579b6c0c17b62afd20f746a44a04c3089e6f6bc40b271"
+          }
+        }
+      },
+      "artifacts": {
+        "server": {
+          "path": ".nextgo-test-results/root-layouts/app-go1.24/server",
+          "bytes": 16601272,
+          "sha256": "e9027767c8dc1494a13b0d0a09142e2c2e1805e9534af8f07735f1cf2a038811"
+        },
+        "deploymentTests": {
+          "path": ".nextgo-test-results/root-layouts/deployment-go1.24.test",
+          "bytes": 19248586,
+          "sha256": "320c44f941c93a445ed26d1c860e2fc1f903ec797d542e6a43548239ca50927a"
+        },
+        "static": {
+          "sha256": "79ac47309c1b692dc995c740e171bb77db6690ea3a410ae849c98ed86b7d1222",
+          "bytes": 5384783,
+          "files": [
+            {
+              "path": ".nextgo-export.json",
+              "bytes": 294,
+              "sha256": "6d556a2a8e6a719427fdc2c6523470fda9f93c7b182714ba9d433706f4a7f0ff"
+            },
+            {
+              "path": "lambda-assets/_nextgo/98ec5e5966bab3f759de/app.wasm",
+              "bytes": 5329725,
+              "sha256": "4d8b1278dfe59b7506c6f7db727d45fe16e81f0a2e451bba5b38664de68a2baf"
+            },
+            {
+              "path": "lambda-assets/_nextgo/98ec5e5966bab3f759de/boot.js",
+              "bytes": 2592,
+              "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+            },
+            {
+              "path": "lambda-assets/_nextgo/98ec5e5966bab3f759de/wasm_exec.js",
+              "bytes": 16992,
+              "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+            },
+            {
+              "path": "lambda-assets/assets/style.css",
+              "bytes": 270,
+              "sha256": "4435ee0058d5c90aa1ae23b206d30842e1a932caeba73042da5f24fd6018dc57"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/dashboard/settings.json",
+              "bytes": 1834,
+              "sha256": "fe4e7c93f3668c5a6378abecd9893520e9c4ef469eca7e99b6edf139374e5e6b"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/dashboard.json",
+              "bytes": 1809,
+              "sha256": "d1e2851cff648aad8cd1eb977bfa519ba56d96614e785654af516bbd706491fe"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/guide.json",
+              "bytes": 2290,
+              "sha256": "5577a50087150909cba854e8c03f01917a397a53415c696e084f059d556bf284"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/index.json",
+              "bytes": 2259,
+              "sha256": "447a91e4f938f8f184b6814f4305782c4be9baae42c6c29f2b88432b697a7b1b"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/masked.json",
+              "bytes": 2300,
+              "sha256": "6975bde96a8edaa38ad807c7bde001c90ac78e7c10c866e3709c67cbf33ce4d0"
+            },
+            {
+              "path": "lambda-features/_nextgo/data/plain.json",
+              "bytes": 611,
+              "sha256": "6e5eec13dee8042c10128f5810ebba4affac46bef3fdd479187e71c2889e0a44"
+            },
+            {
+              "path": "lambda-features/dashboard/index.html",
+              "bytes": 3942,
+              "sha256": "53c41bb5e9db5844b328fb36d34ac6fd308e33394ca2eccdb0cdeb9b4efa9cb8"
+            },
+            {
+              "path": "lambda-features/dashboard/settings/index.html",
+              "bytes": 3968,
+              "sha256": "5023681382c0cf7234129c178202401959cab4ba8d287c93ea9abee24aea2f3d"
+            },
+            {
+              "path": "lambda-features/guide/index.html",
+              "bytes": 4285,
+              "sha256": "568239763ca5124372e6b66dc4b555e7e5d4fb6c5e5be3f3891d273a27f0bd3e"
+            },
+            {
+              "path": "lambda-features/index.html",
+              "bytes": 4270,
+              "sha256": "0ac6ed7696963603eb7c3b354a6c9ae17e641cfdd436b8ec139a7c8206992cee"
+            },
+            {
+              "path": "lambda-features/masked/index.html",
+              "bytes": 4314,
+              "sha256": "8996723b0de30c79f831d365f817be250cf24040e3bb1c948139a682e02cf3ea"
+            },
+            {
+              "path": "lambda-features/plain/index.html",
+              "bytes": 3028,
+              "sha256": "b4ff5f169899e7892a138f6166df19d84d0a23f5d8b07f4d40d2c20e678bbf2f"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "singleRootRegressions": {
+    "SDK": "go1.27.3",
+    "server": {
+      "path": ".nextgo-test-results/root-layouts/regression-demo/server",
+      "bytes": 50118816,
+      "sha256": "021b2841b3c7373d1820ad184a24fe1620ad57d5eb17fcafbcf6de489e2fdc2e"
+    },
+    "static": {
+      "sha256": "b563398b62867bb08e1c30f753563c5e717c52d2781a5dd410059f4f788139ae",
+      "bytes": 35955288,
+      "files": [
+        {
+          "path": ".nextgo-export.json",
+          "bytes": 966,
+          "sha256": "cb27040129b6b0ff5c58f56cc809c4c8a78c56327c0563271850d9c5eeed4f48"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/app.wasm",
+          "bytes": 8680366,
+          "sha256": "6defcbd469db006ff190af5b6cb733b08d0925b4de5d151ed8934ef4ae06e851"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/boot.js",
+          "bytes": 2592,
+          "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/module-2ae0fdcd0986c9ce767a3661ac7d371216327be671d7e96ba5ee22e3980b5565.wasm",
+          "bytes": 5408578,
+          "sha256": "2ae0fdcd0986c9ce767a3661ac7d371216327be671d7e96ba5ee22e3980b5565"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/module-608f676f12a2e737a9b2f06356dd54e9f19fa40d769dd0348249567a098b35a9.wasm",
+          "bytes": 5293094,
+          "sha256": "608f676f12a2e737a9b2f06356dd54e9f19fa40d769dd0348249567a098b35a9"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/module-6b9471394d2f27f243201df4d1bce5107f4e6f24701972d5825f49b251b318d1.wasm",
+          "bytes": 5511999,
+          "sha256": "6b9471394d2f27f243201df4d1bce5107f4e6f24701972d5825f49b251b318d1"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/module-89350318aa6f764902c984ae1e31d102c7d3f952441a91ac461dae03b8069f62.wasm",
+          "bytes": 5540075,
+          "sha256": "89350318aa6f764902c984ae1e31d102c7d3f952441a91ac461dae03b8069f62"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/module-c253ebfb3fc0245d39436c15ba2ab64dee091ae8b3efdba3889f138e9556a5e6.wasm",
+          "bytes": 5404207,
+          "sha256": "c253ebfb3fc0245d39436c15ba2ab64dee091ae8b3efdba3889f138e9556a5e6"
+        },
+        {
+          "path": "lambda-assets/_nextgo/2f4861657619360ee0bf/wasm_exec.js",
+          "bytes": 16992,
+          "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.mp4",
+          "bytes": 2125,
+          "sha256": "e3d6e85f0d8afcfad2643100694ff2edadff1711f11a676b53c8a58ec1c9c017"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.vtt",
+          "bytes": 96,
+          "sha256": "e0541e5c8fb30a43fefe03bd09a9bfebd585204fcb44e38f30c78f97bfbff11a"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.wav",
+          "bytes": 9678,
+          "sha256": "19a24a3ed01ab9d4ae4e861799b6020d2d4475b36a470bf6a7d253b1e229b3da"
+        },
+        {
+          "path": "lambda-assets/assets/embeds-demo.webm",
+          "bytes": 1098,
+          "sha256": "419fc0d5f5f6908f38be9c89ab46d420a683effd8aab66c915c26836aefe39ae"
+        },
+        {
+          "path": "lambda-assets/assets/link-status.css",
+          "bytes": 81,
+          "sha256": "12d06cfb681588fbf42c84f18048a73a065f1ae5be8a500377e9326c6a0a5fc1"
+        },
+        {
+          "path": "lambda-assets/assets/local-fonts.css",
+          "bytes": 211,
+          "sha256": "b0b6619c0792c28312ffc0fd4c56cb6df421143da4d2b9e449c620927f656b3e"
+        },
+        {
+          "path": "lambda-assets/assets/media.css",
+          "bytes": 54,
+          "sha256": "7c53ab71cc5114dcd12dbfa589442cbd681f408ead146f15e1bb128455f53c3d"
+        },
+        {
+          "path": "lambda-assets/assets/metadata-stream.css",
+          "bytes": 377,
+          "sha256": "622775b1de95bb54a2d6001df95db36d675789be6d5f1f6a9ad8a4f7044bd4f4"
+        },
+        {
+          "path": "lambda-assets/assets/social-image.css",
+          "bytes": 188,
+          "sha256": "4d2175031712a457aea1b639df72a98e9cfd84df707e977aff0319e60d06dd84"
+        },
+        {
+          "path": "lambda-assets/assets/style.css",
+          "bytes": 8625,
+          "sha256": "df61b34017f67379bddaba6ab85c0580d920751532525c4839166bcf4e0a5cb8"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-demo.js",
+          "bytes": 157,
+          "sha256": "9d86fa84c57ddf0399d92db0e16646aa621d7b07cdba0b7af2f863c3af3f1e52"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-early-second.js",
+          "bytes": 84,
+          "sha256": "e6e8e10e5f36b39861b5584c3597d65d1f24c0d9cc9aa7054ac73df7156e86f6"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-early.js",
+          "bytes": 81,
+          "sha256": "9704cf6f7c9c5723429fb59cc991129b839cef18934281e984939016d2330cce"
+        },
+        {
+          "path": "lambda-assets/assets/vendor-module.js",
+          "bytes": 167,
+          "sha256": "4c5ec21d652ab412c664d1456ecd2a660dd294c6750efced813ff1875895dd4a"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/_public.json",
+          "bytes": 2579,
+          "sha256": "9f72a3b53cd9204da9482e6eba9a20a4f2cfce94a1af74c2d96c5b898af227c7"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/about.json",
+          "bytes": 4069,
+          "sha256": "6c4dcc26ee9e02e03562d1c697e73e6f170c2c52e8acb8c00737ade9b4cd833d"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/client-only.json",
+          "bytes": 7203,
+          "sha256": "977d56731e0ad6d52cc82feac005d1e870d67ad9e24ce5c42a9783808d2742c5"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/local-fonts.json",
+          "bytes": 4475,
+          "sha256": "61c58a92bae494283dcd814658e640557612f45c811c406adc0f29ea9c24ef85"
+        },
+        {
+          "path": "lambda-features/_nextgo/data/routing-private.json",
+          "bytes": 3657,
+          "sha256": "fb912572beb4b0ca29c8b21685c82a8f42244dc04392962d2d13f801769920c2"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e.woff",
+          "bytes": 964,
+          "sha256": "1b3a0146fa9e17a342677315e61dd8b8cb5f7dab7b18a145fc822495653c401e"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65.css",
+          "bytes": 385,
+          "sha256": "553e15cb76d7c9843c1a8ae3e29f36fbd73b5245bcd1e8136313a44aa2566e65"
+        },
+        {
+          "path": "lambda-features/_nextgo/local-fonts/cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196.woff2",
+          "bytes": 592,
+          "sha256": "cd6da10ae5e0a14e29f2bb09330a26e7ef1c94c8c27c28e9a1caa072dc616196"
+        },
+        {
+          "path": "lambda-features/_public/index.html",
+          "bytes": 8401,
+          "sha256": "d7d9f30b1696cef4266e49bb4fbc99fdcf42eed8877673695c6b00e1da099e78"
+        },
+        {
+          "path": "lambda-features/about/index.html",
+          "bytes": 9644,
+          "sha256": "2c951fe22163eae3d5f5c4c9894767b1cdc883c7aa80da87e766cf0653b69ea0"
+        },
+        {
+          "path": "lambda-features/client-only/index.html",
+          "bytes": 12015,
+          "sha256": "d44288cda6d052fffdbeb2aa999d2c2bf7d6d715d80e01a82c361ec782a66a51"
+        },
+        {
+          "path": "lambda-features/local-fonts/index.html",
+          "bytes": 10100,
+          "sha256": "5f09d2e55d713d6610dde12671287d8483250c060fb68e337735b1e3b03f3ee0"
+        },
+        {
+          "path": "lambda-features/routing-private/index.html",
+          "bytes": 9313,
+          "sha256": "47005c0e684493f474ecf09ca749b01a67d6279fb510ef8730afc5b322d3a443"
+        }
+      ]
+    },
+    "browser": {
+      "private": {
+        "passed": 12,
+        "evidence": {
+          "path": ".nextgo-test-results/root-layouts/regression-private-go1.27.json",
+          "bytes": 72604,
+          "sha256": "5dbc3632bfbd4d41f94ab95f2d0268983f997fda1ab3c3258eb2f712a8099e22"
+        }
+      },
+      "fonts": {
+        "passed": 12,
+        "evidence": {
+          "path": ".nextgo-test-results/root-layouts/regression-fonts-go1.27.json",
+          "bytes": 84136,
+          "sha256": "2df31f8bfd8b05834107479bcd1232d185a84eb5d9a1a94984f81ed9a2ae69db"
+        }
+      },
+      "client-only": {
+        "passed": 22,
+        "evidence": {
+          "path": ".nextgo-test-results/root-layouts/regression-client-only-go1.27.json",
+          "bytes": 108043,
+          "sha256": "7ccfa5809df4490cdbf27535edc603ebab781a56bbf0d0ab78429ad8bd6f2f5c"
+        }
+      }
+    }
+  },
+  "bundleBudgetEvidence": {
+    "go1.27": {
+      "application": "examples/demo",
+      "status": "FAILED_BOTH_EXISTING_REFERENCE_BUDGETS",
+      "rawCoreBytes": 8680366,
+      "goGzip9CoreBytes": 2233150,
+      "limits": {
+        "rawBytes": 6291456,
+        "goGzip9Bytes": 1677722
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 8680366,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 2233150,
+          "limit": 1677722
+        }
+      ],
+      "evidence": {
+        "path": "docs/benchmarks/root-layouts-bundle-analysis-go1.27.json",
+        "bytes": 26973,
+        "sha256": "f0ce13ba0f377f3b7f91d941dfc7f6461d26e3fc4176f9b9c96839ab1171f5f1"
+      }
+    },
+    "go1.24": {
+      "application": "examples/demo",
+      "status": "FAILED_BOTH_EXISTING_REFERENCE_BUDGETS",
+      "rawCoreBytes": 7659557,
+      "goGzip9CoreBytes": 1914390,
+      "limits": {
+        "rawBytes": 6291456,
+        "goGzip9Bytes": 1677722
+      },
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 7659557,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 1914390,
+          "limit": 1677722
+        }
+      ],
+      "evidence": {
+        "path": "docs/benchmarks/root-layouts-bundle-analysis-go1.24.json",
+        "bytes": 26975,
+        "sha256": "639e5f2a20b17151c274739ac53cd69bfa697deabba8a08d7060f93b8d290af4"
+      }
+    }
+  },
+  "container": {
+    "base": "existing qualified scratch image, both current executables mounted read-only",
+    "uid": 65532,
+    "readOnly": true,
+    "network": "none",
+    "dropCapabilities": "ALL",
+    "noNewPrivileges": true,
+    "pidsLimit": 128,
+    "memoryBytes": 268435456
+  },
+  "failedAttempts": [
+    {
+      "reason": "WASM unit runner inherited native GOMAXPROCS=2, which Go js/wasm cannot implement. Reran with GOMAXPROCS=1; final complete WASM configurations passed on both SDKs.",
+      "evidence": {
+        "path": ".nextgo-test-results/root-layouts/wasm-gomaxprocs-attempt.log",
+        "bytes": 2532,
+        "sha256": "062c589aef557ebaeb28ca8f9ae55b2e3b275eeb4a7257037cec5add02f5786c"
+      }
+    },
+    {
+      "reason": "Initial scoped root deployment check requested noncanonical /scoped/ with trailing-slash disabled. Corrected the test request to canonical /scoped; final 42 host and container cases passed on each SDK.",
+      "evidence": {
+        "path": ".nextgo-test-results/root-layouts/deployment-noncanonical-attempt.log",
+        "bytes": 8353,
+        "sha256": "5a158ab0f9207ebe0620ba9aa5b32e32a6abd7d67cf9d365ae928109b66dfda4"
+      }
+    }
+  ],
+  "limitations": [
+    "Local Chromium evidence only; defined Firefox/WebKit/touch CI matrix has not run here.",
+    "No real hosted cloud, CDN, proxy or TLS qualification. Runtime API behavior is local executable-adapter evidence.",
+    "Broader roots/locales/parallel/interception/prerender/rollout combinations and naming/diagnostic policy remain unfinished.",
+    "Reference bundle budgets fail on both SDKs; no performance release approval or equivalent Next.js comparison.",
+    "Current security and remaining production release gates remain open."
+  ]
+}

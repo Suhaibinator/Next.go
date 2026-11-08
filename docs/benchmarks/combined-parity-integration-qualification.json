@@ -1,0 +1,293 @@
+{
+  "format": "nextgo-combined-parity-integration-v1",
+  "recordedAtUTC": "2026-11-08T00:49:07.408179+00:00",
+  "status": "partial-local-qualification-not-production-release",
+  "source": {
+    "localBaseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "upstreamIntegratedCommit": "d788b8c3fe8bb4645cc28968f25b93a242e6db83",
+    "uncommitted": true,
+    "GoFiles": 1417,
+    "GoManifestPath": ".nextgo-test-results/integration/go-source-manifest.json",
+    "GoManifestSHA256": "73128d95c5a37cf7e69be3418e0a08334a721bfe3520d15b61ee99c4021f46be",
+    "fullGoGuard": {
+      "files": 1417,
+      "bytes": 6719448,
+      "sha256": "91463b553a7d63538fd3647f1a7b7f3a688e7a1a9022833e7861f13e5098438f",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL"
+    },
+    "GoInputsUnchangedDuringQualification": true
+  },
+  "contracts": {
+    "moduleABI": 7,
+    "navigation": 3,
+    "action": 1,
+    "developmentExtension": 1,
+    "nativeExportConfig": 4,
+    "legacyExportConfig3": "either fonts-only or static-shell-only; combined inventory requires4",
+    "publishedStaticShellFormat": "nextgo-static-v3",
+    "reason": "Independent ABI-6 imports and document-authority increments combined; independent native export v3 font and shell contracts combined"
+  },
+  "toolchains": {
+    "go1.27": {
+      "role": "production",
+      "nativeRacePackages": 85,
+      "nativeBroadPassPackages": 84,
+      "nativeCorrectedPackage": "github.com/Suhaibinator/Next.go/cmd/nextgo",
+      "nativeBroadLogSHA256": "5871d24660fba43f79f8392cca626fbbe22c52e3e469e7d2f724fc1b3ea9e68e",
+      "nativeCorrectedLogSHA256": "b432f65ae05fe44d2c635daaca0ae2e61f5ace1cd2aea72784da71db3318ded2",
+      "nativeVet": true,
+      "WASMPackageRuns": 12,
+      "WASMTargets": 4,
+      "WASMVets": 4,
+      "WASMLogSHA256": "8a3ca827570bb5b55fc9aa44d9df519f7e7fac3719e2e048c356e231c60546c4",
+      "serverSHA256": "01b7449a65be37462fb93956db3d04d98398c5be2865e4b55adc8e23c729f4d2",
+      "CLISHA256": "c0a96fb7a81f7be4c3f96b00833994f0bd5265ead8713ad8b6276df08c4c0c67",
+      "normalHarnessSHA256": "6ed95e62d86d6c6698b2823ff35bf44058496cd46dac745e520247dd4b0af269",
+      "raceHarnessSHA256": "e456458587b3e6bb2aaf942e4f45f17bb45bb1f13535208803be37a9a4702e1f"
+    },
+    "go1.24": {
+      "role": "compatibility-only-known-advisories",
+      "nativeRacePackages": 85,
+      "nativeBroadPassPackages": 84,
+      "nativeCorrectedPackage": "github.com/Suhaibinator/Next.go/cmd/nextgo",
+      "nativeBroadLogSHA256": "6d1091818746da01ea6a0769b3855a9da676de5958ff2ecea8f181332c974853",
+      "nativeCorrectedLogSHA256": "ad504902b59f66c071dd141d5b288874c5553fa5831a6736ea6a58c62f688856",
+      "nativeVet": true,
+      "WASMPackageRuns": 12,
+      "WASMTargets": 4,
+      "WASMVets": 4,
+      "WASMLogSHA256": "3ec045fc87cd71c463ace3bcaa53ea55974b65d095fe8078d2981e6c69bb3627",
+      "serverSHA256": "8f3dac9b0b9a395c236b30c935f8e4f22e97a5b890dd95eb1d141f4288bacb49",
+      "CLISHA256": "2479ce0f1dd6bd44c1b84897a2ca9ea7cc8e16e551366e19962a713616cbb2a8",
+      "normalHarnessSHA256": "3fd59b2ec7b2393988075fd448ddbfc989899d2054d85999e5bba0321c962fcd",
+      "raceHarnessSHA256": "e108a6bfea476b579da3314c65c781cfff1d2343221654c68698c151f1a9cbae"
+    }
+  },
+  "browser": {
+    "go1.27": {
+      "passed": 52,
+      "skipped": 0,
+      "flaky": 0,
+      "failed": 0,
+      "transports": [
+        "http",
+        "buffered",
+        "streaming",
+        "static"
+      ],
+      "ownedCleanupProofs": 52,
+      "sourceRequests": 0,
+      "reportSHA256": "1f06483bde2d79c57150f3eb40855d5d78455335338ef8801b8210377b513576"
+    },
+    "go1.24": {
+      "passed": 52,
+      "skipped": 0,
+      "flaky": 0,
+      "failed": 0,
+      "transports": [
+        "http",
+        "buffered",
+        "streaming",
+        "static"
+      ],
+      "ownedCleanupProofs": 52,
+      "sourceRequests": 0,
+      "reportSHA256": "efbe08d63ae38dd058e2f3e2e6d7c22b4cf874b6b9d4fd1d0129ae884516b01e"
+    }
+  },
+  "deployment": {
+    "ordinaryCases": 336,
+    "raceCases": 168,
+    "logs": {
+      "host-go1.27": {
+        "passed": 84,
+        "logSHA256": "6af26438f5e91250213f2693d49c97879cc528fc0a48bae31dc8f03b0d389019"
+      },
+      "container-go1.27": {
+        "passed": 84,
+        "logSHA256": "160330b0ea16dd01035fbcac22df186043b3685e282756df4e9ad026a14da9dd"
+      },
+      "race-deployment-go1.27": {
+        "passed": 84,
+        "logSHA256": "68e6261d46889d7248098b33406317dc639cda83759edf4b1396fb3e188ce183"
+      },
+      "host-go1.24": {
+        "passed": 84,
+        "logSHA256": "52d6a3d0ab90f58f51368f0dafa81d41fd37f3582c459223f5209818ce4b42bd"
+      },
+      "container-go1.24": {
+        "passed": 84,
+        "logSHA256": "3558c058cbd076fe9977cccc1870b2abb7f9e8961ae0ee3f2001824940a04c5d"
+      },
+      "race-deployment-go1.24": {
+        "passed": 84,
+        "logSHA256": "cd2be5292e8cf18994ab71f1bc2c4050991b2bc8c719a67c1c42f4b4cb8c856b"
+      }
+    },
+    "container": {
+      "baseImageID": "sha256:11b05e8250f6a7b5935e156b8403246a5852cbb5026da85c092461acd8772540",
+      "UID": "65532:65532",
+      "readOnly": true,
+      "network": "none",
+      "capDrop": "ALL",
+      "noNewPrivileges": true,
+      "pids": 128,
+      "memoryBytes": 268435456,
+      "exactCurrentServerAndHarnessReadOnlyBinds": true
+    }
+  },
+  "bundle": {
+    "go1.27": {
+      "report": "combined-parity-bundle-analysis-go1.27.json",
+      "reportSHA256": "fca89230de656121a5623f99af33d92a37f82245dc1d39c8a4419da447e9cb2d",
+      "nativeMatchesQualifiedServer": true,
+      "referenceBudgetExit": 1,
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 8014494,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 2132794,
+          "limit": 1677722
+        }
+      ]
+    },
+    "go1.24": {
+      "report": "combined-parity-bundle-analysis-go1.24.json",
+      "reportSHA256": "b6dee2b88a0107c31920c9c6f03f722d7303c0b4fa23eca4fe40ce74f886edd4",
+      "nativeMatchesQualifiedServer": true,
+      "referenceBudgetExit": 1,
+      "violations": [
+        {
+          "file": "app.wasm",
+          "metric": "bytes",
+          "actual": 6823989,
+          "limit": 6291456
+        },
+        {
+          "file": "app.wasm",
+          "metric": "gzip9Bytes",
+          "actual": 1800023,
+          "limit": 1677722
+        }
+      ]
+    }
+  },
+  "advisories": {
+    "databaseQualification": "govulncheck-local-database-qualification.json",
+    "checker": "govulncheck v1.9.0",
+    "scopes": {
+      "go1.27": {
+        "native": {
+          "conversionExit": 0,
+          "reachableIDs": [],
+          "resultSHA256": "a2eb18f23b10246a4e5f3e1f73b58cd3faafc56931866e917933b1351769176d"
+        },
+        "wasm-core": {
+          "conversionExit": 0,
+          "reachableIDs": [],
+          "resultSHA256": "b041cdb20665f0e18a801ba50ca9dec415f63e4b37989de4cf3d2fbd4c259a69"
+        },
+        "wasm-module": {
+          "conversionExit": 0,
+          "reachableIDs": [],
+          "resultSHA256": "b041cdb20665f0e18a801ba50ca9dec415f63e4b37989de4cf3d2fbd4c259a69"
+        }
+      },
+      "go1.24": {
+        "native": {
+          "conversionExit": 3,
+          "reachableIDs": [
+            "GO-2026-4601",
+            "GO-2026-4602",
+            "GO-2026-4603",
+            "GO-2026-4865",
+            "GO-2026-4870",
+            "GO-2026-4918",
+            "GO-2026-4946",
+            "GO-2026-4947",
+            "GO-2026-4970",
+            "GO-2026-4971",
+            "GO-2026-4976",
+            "GO-2026-4980",
+            "GO-2026-4982",
+            "GO-2026-5026",
+            "GO-2026-5037",
+            "GO-2026-5039",
+            "GO-2026-5856",
+            "GO-2026-5972",
+            "GO-2026-6088",
+            "GO-2026-6089",
+            "GO-2026-6090",
+            "GO-2026-6091",
+            "GO-2026-6218",
+            "GO-2026-6599",
+            "GO-2026-6600",
+            "GO-2026-6603",
+            "GO-2026-6604",
+            "GO-2026-6605",
+            "GO-2026-6607",
+            "GO-2026-6608",
+            "GO-2026-6609",
+            "GO-2026-6610",
+            "GO-2026-6611",
+            "GO-2026-6612",
+            "GO-2026-6613",
+            "GO-2026-6617",
+            "GO-2026-6809"
+          ],
+          "resultSHA256": "6101800f1ad0aa43098fd412c02c1d9897a7d41dd0bbceed2c16241abc0213b7"
+        },
+        "wasm-core": {
+          "conversionExit": 3,
+          "reachableIDs": [
+            "GO-2026-4601"
+          ],
+          "resultSHA256": "84c280308b3c700441c467b4e3d87b35e7684e905d6af7adb9f5f8c56a0e0a19"
+        },
+        "wasm-module": {
+          "conversionExit": 3,
+          "reachableIDs": [
+            "GO-2026-4601"
+          ],
+          "resultSHA256": "84c280308b3c700441c467b4e3d87b35e7684e905d6af7adb9f5f8c56a0e0a19"
+        }
+      }
+    }
+  },
+  "integrationTests": {
+    "nativeCombinedFontsAndShell": "TestManagedFontsAndStaticShellPublishTogetherWithVersionFour passes; publishes and verifies both inventories and checks legacy/native version boundaries",
+    "retainedProducerUnitCases": 46,
+    "sourceIdentityGuardPassed": true
+  },
+  "failureProvenance": [
+    "First native matrix used TMPDIR within source outside excluded dist; Lambda packaging guard correctly refused output under a selected module. Both broad failed logs retained.",
+    "An external temp directory hit sandbox VCS metadata discovery restrictions. No compiler/VCS flags were bypassed.",
+    "Full CLI native/race package reruns used excluded dist/.integration-tmp and passed on both SDKs; combined native results are84 broad package passes plus1 corrected CLI package, not a single all-green broad run."
+  ],
+  "publication": {
+    "state": "user-authorized-draft-pr-created-scoped-remote-ci-observed-full-matrix-open",
+    "branchCreated": true,
+    "PRCreated": true,
+    "PR": "https://github.com/Suhaibinator/Next.go/pull/9",
+    "candidateCommit": "a56c4f22e5422de42607ab36b91c143f6a13f0bf",
+    "candidateTree": "8fca38935d004f1ec6acdd94580020b7a9aa1d3e",
+    "history": "Initial automatic review rejected publication; user subsequently explicitly approved. Published tree verified byte-exact against reviewed staged tree.",
+    "latestImplementationCommit": "2de12c8bfc6ffd3b49ba10717f213f17b52b5add",
+    "remoteCheckpoint": "remote-ci-parity-qualification.json"
+  },
+  "open": [
+    "All79 capability rows and G01-G11 remain open",
+    "Both SDK widget cores exceed both reference byte budgets; Go1.24 compatibility-only with known advisories",
+    "Remote cross-engine independent-zone subset observed at exact earlier head; full corrected-head matrix remains pending",
+    "Full retained-route/merge/offline integration browser matrices are not inferred from widget checks",
+    "Real cloud/IAM/stream delivery/scaling/rollout not qualified",
+    "Full source security audit unavailable; advisory checks are separate",
+    "Manual accessibility/devices/resource soak/release upgrade policy incomplete"
+  ]
+}

@@ -8,6 +8,17 @@ unreleased section records current source work and its scoped verification. See
 [security reporting](SECURITY.md) and the full
 [capability inventory/release gates](docs/PARITY.md).
 
+## Unreleased — native global error fallback
+
+- Add `Config.GlobalError` and the native `app/globalerror.go` convention for
+  terminal synchronous page failures outside route layouts and slot ownership.
+  A failed global fallback uses the generic page without recursive recovery.
+- Both SDKs pass full 85-package native race runs and vet. Generated standalone
+  executables pass 72 host/restricted-container cases over HTTP and both local
+  mock Lambda transports. Production native advisory checks pass; all parity
+  and release gates remain open. [Contract](docs/ERROR_BOUNDARIES.md),
+  [source-scoped evidence](docs/benchmarks/native-global-error-qualification.json).
+
 ## Unreleased — experimental static public shell
 
 - Add `Config.StaticShell` with `StaticShell{Pattern, Component}` for one

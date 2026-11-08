@@ -140,7 +140,7 @@ Framework action dispatch and settlement invalidate resources along with the
 navigation cache, including failed/aborted mutation transports: a transport error
 does not prove server rollback. The core forwards an invalidation epoch to loaded
 lazy modules. The resource checkpoint raised the module ABI from 3 to 4 for this
-mandatory freshness propagation. Those results remain historical. Current ABI 6
+mandatory freshness propagation. Those results remain historical. Current ABI 7
 retains that freshness rule and [per-anchor link-status forwarding](LINK_STATUS.md),
 and adds recognized document revocation before module observer dispatch. This
 ABI-6 source increment remains unqualified by the older resource results. Mixed

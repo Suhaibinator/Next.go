@@ -70,6 +70,7 @@ type Component struct {
 type Project struct {
 	Root, ModuleDir, ModulePath, Import, NotFound, Configure string
 	Offline                                                  string // Native app-root Offline() convention.
+	GlobalError                                              string // Native app-root GlobalError() convention.
 	offlineBuild                                             *offlineBuildPlan
 	Unauthorized, Forbidden                                  string
 	Default                                                  string
@@ -83,6 +84,12 @@ type Project struct {
 
 func ignored(name string) bool {
 	return strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor" || name == "dist"
+}
+
+// Private app directories opt out of routing, not Go imports or build inputs.
+// Keep this separate from ignored: source snapshots/watchers must retain them.
+func privateRouteDirectory(name string) bool {
+	return strings.HasPrefix(name, "_") || strings.HasPrefix(name, "private_")
 }
 
 func Discover(root string) (*Project, error) {
@@ -187,11 +194,21 @@ func Pattern(relative string) (string, error) {
 	parts := strings.Split(filepath.ToSlash(relative), "/")
 	segments := make([]string, 0, len(parts))
 	for _, part := range parts {
+		if privateRouteDirectory(part) {
+			return "", fmt.Errorf("private app directory %q is not a route", part)
+		}
 		// Go import paths cannot contain the bracket syntax used by Next.js.
 		if strings.ContainsAny(part, "[]{} ") {
 			return "", fmt.Errorf("invalid Go route directory %q; use param_name for parameters", part)
 		}
 		switch {
+		case strings.HasPrefix(part, "literal_"):
+			part = strings.TrimPrefix(part, "literal_")
+			if part == "" {
+				return "", fmt.Errorf("literal route directory requires a name")
+			}
+			segments = append(segments, part)
+			continue
 		case strings.HasPrefix(part, "group_"):
 			if part == "group_" {
 				return "", fmt.Errorf("route group requires a name")
@@ -232,7 +249,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 			return walkErr
 		}
 		if d.IsDir() {
-			if path != appDir && (ignored(d.Name()) || strings.HasPrefix(d.Name(), "slot_") || d.Name() == "intercept_root") {
+			if path != appDir && (ignored(d.Name()) || privateRouteDirectory(d.Name()) || strings.HasPrefix(d.Name(), "slot_") || d.Name() == "intercept_root") {
 				if d.Name() == "intercept_root" && (filepath.Dir(path) != appDir || !strings.HasPrefix(filepath.Base(appDir), "slot_")) {
 					return fmt.Errorf("intercept_root must be directly inside a slot directory: %s", path)
 				}
@@ -244,7 +261,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 			return nil
 		}
 		base := d.Name()
-		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" && base != "regions.go" {
+		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "globalerror.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" && base != "regions.go" {
 			return nil
 		}
 		if base == "config.go" && filepath.Dir(path) != appDir {
@@ -252,6 +269,13 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 		}
 		if _, e := parser.ParseFile(token.NewFileSet(), path, nil, parser.PackageClauseOnly); e != nil {
 			return e
+		}
+		if base == "globalerror.go" {
+			if filepath.Dir(path) != filepath.Join(p.Root, "app") {
+				return fmt.Errorf("%s: globalerror.go is supported only at the application app root", path)
+			}
+			p.GlobalError = appImport
+			return nil
 		}
 		dir := filepath.Dir(path)
 		relative, _ := filepath.Rel(appDir, dir)

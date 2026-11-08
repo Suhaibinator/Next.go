@@ -27,7 +27,7 @@ func main() {
 	}
 }
 func execute(ctx context.Context, args []string) error {
-	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-target native|lambda] [-arch amd64|arm64] [-out DIR] <app> | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin ORIGIN -out DIR <zones.json> | nextgo zones ingress -manifest FILE | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
+	const usage = "usage: nextgo init -module example.com/app -framework <source> <new-directory> | nextgo generate [-check] <app> | nextgo dev [-addr localhost:3000] <app> | nextgo inspect [-addr localhost:3000] | nextgo build [-target native|lambda] [-arch amd64|arm64] [-out DIR] <app> | nextgo analyze [-out report.json] [-max-core-bytes N] [-max-core-gzip-bytes N] [-max-lazy-bytes N] [-max-lazy-gzip-bytes N] <app> | nextgo analyze -runtime-dir DIR [-out report.json] [byte-budget flags] | nextgo export [-out dist/static] [-paths /,/about] <app> | nextgo zones build [-out dist/zones] <zones.json> | nextgo zones dev [-addr localhost:3000] <zones.json> | nextgo zones release -zone ID -public-origin ORIGIN -out DIR <zones.json> | nextgo zones ingress -manifest FILE | nextgo zones ingress-build -out DIR -app APPROOT <ingress.json>"
 	if len(args) == 0 {
 		return fmt.Errorf("%s", usage)
 	}
@@ -36,7 +36,7 @@ func execute(ctx context.Context, args []string) error {
 		return nil
 	}
 	switch args[0] {
-	case "init", "generate", "export", "dev", "build", "inspect", "zones":
+	case "init", "generate", "export", "dev", "build", "inspect", "analyze", "zones":
 	default:
 		return fmt.Errorf("unknown command %q; use nextgo help", args[0])
 	}
@@ -51,6 +51,9 @@ func execute(ctx context.Context, args []string) error {
 	}
 	if args[0] == "inspect" {
 		return executeInspect(ctx, args[1:])
+	}
+	if args[0] == "analyze" {
+		return executeAnalyze(ctx, args[1:])
 	}
 	if args[0] == "zones" {
 		return executeZones(ctx, args[1:])

@@ -39,11 +39,11 @@ func TestStaticShellDeclarationIsExplicitOwnedAndVersioned(t *testing.T) {
 	app := staticShellTestApp(t, config)
 	declaration.Pattern, declaration.Component = "/changed/*path?", "changed"
 	info, err := app.StaticExportConfig()
-	if err != nil || info.Version != 3 || info.StaticShell == nil || info.StaticShell.Version != 1 || info.StaticShell.Pattern != "/workspace/*rest?" || info.StaticShell.Component != "workspace" || info.StaticShell.SeedPath != "/workspace" || len(info.Scopes) != 1 || info.Scopes[0].Locale != "" {
+	if err != nil || info.Version != 4 || info.StaticShell == nil || info.StaticShell.Version != 1 || info.StaticShell.Pattern != "/workspace/*rest?" || info.StaticShell.Component != "workspace" || info.StaticShell.SeedPath != "/workspace" || len(info.Scopes) != 1 || info.Scopes[0].Locale != "" {
 		t.Fatal(info, err)
 	}
 	encoded, err := json.Marshal(info)
-	if err != nil || !strings.Contains(string(encoded), `"version":3`) || !strings.Contains(string(encoded), `"staticShell":`) {
+	if err != nil || !strings.Contains(string(encoded), `"version":4`) || !strings.Contains(string(encoded), `"staticShell":`) {
 		t.Fatal(string(encoded), err)
 	}
 	info.StaticShell.Component = "mutated"
@@ -155,7 +155,7 @@ func TestStaticShellVersionThreeKeepsManagedMetadataInventory(t *testing.T) {
 	config := staticShellTestConfig()
 	config.MetadataFiles = metadatafiles.Sources{Static: fstest.MapFS{"robots.txt": {Data: []byte("User-agent: *\nDisallow: /private\n")}}}
 	info, err := staticShellTestApp(t, config).StaticExportConfig()
-	if err != nil || info.Version != 3 || info.StaticShell == nil || len(info.Metadata) != 1 || info.Metadata[0].Name != "robots.txt" {
+	if err != nil || info.Version != 4 || info.StaticShell == nil || len(info.Metadata) != 1 || info.Metadata[0].Name != "robots.txt" {
 		t.Fatal(info, err)
 	}
 	config.StaticShell = nil

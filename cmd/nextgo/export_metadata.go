@@ -22,15 +22,17 @@ func validateMetadataInventory(deployment nextgo.PathConfig, entries []metadataf
 		return fmt.Errorf("managed metadata inventory exceeds filename limit")
 	}
 	seen := map[string]bool{}
+	declarations := make([]string, 0, len(entries))
 	var total int64
 	for _, entry := range entries {
 		if !metadatafiles.IsName(entry.Name) || seen[entry.Name] || entry.Path != deployment.BasePath+"/"+entry.Name || !ascii.LowerHex(entry.Digest, 64) || entry.ETag != `"`+entry.Digest+`"` || entry.Size < 0 || entry.Size > metadatafiles.MaxTotalBytes-total || entry.ContentType == "" || len(entry.ContentType) > 128 || strings.ContainsAny(entry.ContentType, "\r\n\x00") {
 			return fmt.Errorf("invalid managed metadata inventory entry")
 		}
 		seen[entry.Name] = true
+		declarations = append(declarations, entry.Name)
 		total += entry.Size
 	}
-	return nil
+	return metadatafiles.CheckSocialNames(declarations)
 }
 
 // Fetch only the declared fixed names from the private export server. Do not

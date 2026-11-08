@@ -251,6 +251,128 @@ func TestErrorBoundaryLayoutFailureLogsItsActualCause(t *testing.T) {
 	}
 }
 
+func TestGlobalErrorFallbackOmitsFailedLayoutsAndKeepsNativeCausePrivate(t *testing.T) {
+	for _, mode := range []string{"unhandled", "layout-error", "layout-panic", "boundary-error", "boundary-panic"} {
+		for _, nav := range []bool{false, true} {
+			t.Run(mode+map[bool]string{false: "/html", true: "/navigation"}[nav], func(t *testing.T) {
+				layoutCalls, globalCalls := 0, 0
+				route := Route{Pattern: "/", Page: func(*Context) (Page, error) { return Page{}, errors.New("private page cause") }}
+				if strings.HasPrefix(mode, "layout-") {
+					route.Page = static("discarded page")
+					route.Layouts = []LayoutFunc{func(*Context, ui.Node) (ui.Node, error) {
+						layoutCalls++
+						if mode == "layout-panic" {
+							panic("private layout cause")
+						}
+						return nil, errors.New("private layout cause")
+					}}
+				}
+				if strings.HasPrefix(mode, "boundary-") {
+					route.Error = func(*Context, error) (Page, error) {
+						if mode == "boundary-panic" {
+							panic("private boundary cause")
+						}
+						return Page{}, errors.New("private boundary cause")
+					}
+				}
+				app := testApp(t, Config{Routes: []Route{route}, GlobalError: func(c *Context, cause error) (Page, error) {
+					globalCalls++
+					if cause == nil || !strings.Contains(cause.Error(), "private") {
+						t.Fatalf("native cause missing: %v", cause)
+					}
+					if c.parallel != nil || c.mergeOrigin != nil || c.slotParent != "" {
+						t.Fatal("global fallback retained route ownership")
+					}
+					if err := c.SetHeader("X-Global-Fallback", "yes"); err != nil {
+						t.Fatal(err)
+					}
+					return Page{Title: "Global fallback", Body: ui.El("main", nil, ui.Text("Global replacement"))}, nil
+				}})
+				response := request(app, "/", nav)
+				if response.Code != 500 || response.Header().Get("X-Global-Fallback") != "yes" || !strings.Contains(response.Body.String(), "Global replacement") || strings.Contains(response.Body.String(), "private") || globalCalls != 1 {
+					t.Fatalf("status=%d global=%d headers=%v body=%s", response.Code, globalCalls, response.Header(), response.Body)
+				}
+				if strings.HasPrefix(mode, "layout-") && layoutCalls != 1 {
+					t.Fatalf("failed layout invoked %d times", layoutCalls)
+				}
+			})
+		}
+	}
+}
+
+func TestGlobalErrorIsTerminalAndRouteBoundaryTakesPrecedence(t *testing.T) {
+	for _, mode := range []string{"handled", "global-error", "global-panic"} {
+		t.Run(mode, func(t *testing.T) {
+			calls := 0
+			route := Route{Pattern: "/", Page: func(*Context) (Page, error) { return Page{}, errors.New("private page cause") }}
+			if mode == "handled" {
+				route.Error = func(*Context, error) (Page, error) { return Page{Body: ui.Text("Nearest boundary")}, nil }
+			}
+			app := testApp(t, Config{Routes: []Route{route}, GlobalError: func(*Context, error) (Page, error) {
+				calls++
+				if mode == "global-panic" {
+					panic("private global cause")
+				}
+				return Page{}, errors.New("private global cause")
+			}})
+			response := request(app, "/", false)
+			want, count := "Something went wrong", 1
+			if mode == "handled" {
+				want, count = "Nearest boundary", 0
+			}
+			if response.Code != 500 || calls != count || !strings.Contains(response.Body.String(), want) || strings.Contains(response.Body.String(), "private") {
+				t.Fatalf("calls=%d response=%s", calls, response.Body)
+			}
+		})
+	}
+}
+
+func TestGlobalErrorHandlesFailedUnmatchedFallback(t *testing.T) {
+	for _, panicFallback := range []bool{false, true} {
+		calls := 0
+		app := testApp(t, Config{NotFound: func(*Context) (Page, error) {
+			if panicFallback {
+				panic("private404")
+			}
+			return Page{}, errors.New("private404")
+		}, GlobalError: func(c *Context, cause error) (Page, error) {
+			calls++
+			if c.notFoundLayout || cause == nil {
+				t.Fatal("global fallback inherited unmatched-layout state")
+			}
+			return Page{Body: ui.Text("Global unmatched replacement")}, nil
+		}})
+		response := request(app, "/unknown", false)
+		if response.Code != 500 || calls != 1 || !strings.Contains(response.Body.String(), "Global unmatched replacement") || strings.Contains(response.Body.String(), "private404") {
+			t.Fatal(response.Body)
+		}
+	}
+}
+
+func TestGlobalErrorDropsSlotAuthorityAndSharesResponseControls(t *testing.T) {
+	request := httptest.NewRequest("GET", "/?language=en", nil)
+	parent := &Context{Context: request.Context(), Request: request, Params: map[string]string{"id": "item"}, Query: request.URL.Query(), parallel: &parallelState{}, slotParent: "protected", mergeOrigin: &routeMergeOrigin{}, notFoundLayout: true}
+	app := testApp(t, Config{GlobalError: func(c *Context, _ error) (Page, error) {
+		if c == parent || c.parallel != nil || c.mergeOrigin != nil || c.slotParent != "" || c.notFoundLayout {
+			t.Fatal("global context retained route ownership")
+		}
+		if _, err := c.Slot("protected"); !errors.Is(err, ErrSlotScope) {
+			t.Fatalf("global slot lookup: %v", err)
+		}
+		if c.Params["id"] != "item" || c.Query.Get("language") != "en" {
+			t.Fatal("request data missing")
+		}
+		if err := c.SetHeader("X-Global-Control", "shared"); err != nil {
+			t.Fatal(err)
+		}
+		return Page{Body: ui.Text("global")}, nil
+	}})
+	app.renderGlobalError(parent, errors.New("private"))
+	if parent.responseControls().headers.Get("X-Global-Control") != "shared" {
+		t.Fatal("response controls were copied rather than shared")
+	}
+}
+
 func TestNavigationProtocolSeparatesPagesFromJSONEndpoints(t *testing.T) {
 	app := testApp(t, Config{Routes: []Route{{Pattern: "/", Page: static("page")}, {Pattern: "/api/echo", API: func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

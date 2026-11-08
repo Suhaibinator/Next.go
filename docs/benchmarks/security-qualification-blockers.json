@@ -1,0 +1,196 @@
+{
+  "format": "nextgo-security-qualification-blockers-v1",
+  "recordedAtUTC": "2026-11-07T12:11:17.294340+00:00",
+  "status": "historical-network-and-preflight-failures-current-advisory-followup-available",
+  "source": {
+    "baseCommit": "747c43a9d427c17893636a230a5bff5eb55151e0",
+    "uncommitted": true,
+    "securityPolicySHA256": "f7f6e30c4042fc5b003986e9feeadcf715814ed1243cbf435bca5af9e14649c0",
+    "allRepositoryGoFiles": {
+      "count": 1183,
+      "manifestEncoding": "sorted compact JSON path -> SHA-256",
+      "sha256": "706ab46b03640fe6ef44875ed170c64f66902702ffe0471dc9ab9238767b3ed0"
+    }
+  },
+  "codexSecurity": {
+    "skill": "codex-security:security-scan",
+    "instructions": "skill://Plugin_1e648473be9c8191a91ac3947151af55/security-scan/SKILL.md",
+    "requiredInstruction": "Start source review and launch scan workers only after preflight returns ready.",
+    "requiredAssets": [
+      "references/scan-prologue.md",
+      "references/core-scan.md",
+      "scripts/finalize_scan_contract.py"
+    ],
+    "availability": "Main SKILL.md readable; referenced shared assets unavailable via cloud skill resources and not present under /opt, /usr/local/share or workspace skill roots.",
+    "sdkScanContext": false,
+    "headlessScanStartTool": false,
+    "started": false,
+    "workersStarted": 0,
+    "sourceAuditPerformed": false,
+    "verdict": "unavailable, not clean",
+    "remediation": "Provide a complete runnable Codex Security package including required preflight/core/finalizer assets and a ready scan context. No canonical report was fabricated."
+  },
+  "govulncheck": {
+    "tool": "govulncheck v1.9.0",
+    "toolBuiltWith": "go1.27.3",
+    "binarySHA256": "64ee360bad2dcd834cf2b585f54a835fa1d09c920dccad4a0a28528abf811ed0",
+    "version": {
+      "path": ".nextgo-test-results/vulnerability-check/version.txt",
+      "bytes": 66,
+      "sha256": "ea320ed83b2c8a16bdf32d666b59549ade421ba1e740e9bb66f6b56db82b4e49"
+    },
+    "buildProvenance": {
+      "path": ".nextgo-test-results/vulnerability-check/tool-build.txt",
+      "bytes": 780,
+      "sha256": "4fbe972b26dd17278aaf62f05f94497881ecc4eb62d03f4e20e6153e118254ca"
+    },
+    "install": "Official golang.org/x/vuln/cmd/govulncheck@v1.9.0, normal module checksum verification, workspace GOPATH/cache; framework go.mod unchanged.",
+    "initialInstallAttempt": "Default GOPATH checksum-cache write failed outside the workspace. Retried successfully with GOPATH=/workspace/.go; checksum verification was retained.",
+    "attempts": [
+      {
+        "sdk": "go1.27.3",
+        "scope": "native ./... source packages; tests excluded by default",
+        "command": "govulncheck -json ./...",
+        "config": {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "https://vuln.go.dev",
+          "go_version": "go1.27.3",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        },
+        "exitCode": 1,
+        "status": "blocked-no-advisory-verdict",
+        "error": "govulncheck: fetching vulnerabilities: Get \"https://vuln.go.dev/index/modules.json.gz\": Forbidden",
+        "messageKinds": [
+          "config",
+          "SBOM",
+          "progress"
+        ],
+        "findingMessages": 0,
+        "interpretation": "The advisory DB request failed; zero finding messages is not a clean scan.",
+        "stdout": {
+          "path": ".nextgo-test-results/vulnerability-check/source-go1.27.jsonl",
+          "bytes": 19589,
+          "sha256": "e05cbbf8dc3b482bc0f65ea7c6a0544bcefe8995aaa9c1c4bdeaaf802c821419"
+        },
+        "stderr": {
+          "path": ".nextgo-test-results/vulnerability-check/source-go1.27.stderr",
+          "bytes": 98,
+          "sha256": "4602b7fa342718b3affd57d940ea0bdf081c3ba24ce95e98ebd34f01ed076c89"
+        }
+      },
+      {
+        "sdk": "go1.24.13",
+        "scope": "native ./... source packages; tests excluded by default",
+        "command": "govulncheck -json ./...",
+        "config": {
+          "protocol_version": "v1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.9.0",
+          "db": "https://vuln.go.dev",
+          "go_version": "go1.24.13",
+          "scan_level": "symbol",
+          "scan_mode": "source"
+        },
+        "exitCode": 1,
+        "status": "blocked-no-advisory-verdict",
+        "error": "govulncheck: fetching vulnerabilities: Get \"https://vuln.go.dev/index/modules.json.gz\": Forbidden",
+        "messageKinds": [
+          "config",
+          "SBOM",
+          "progress"
+        ],
+        "findingMessages": 0,
+        "interpretation": "The advisory DB request failed; zero finding messages is not a clean scan.",
+        "stdout": {
+          "path": ".nextgo-test-results/vulnerability-check/source-go1.24.jsonl",
+          "bytes": 19592,
+          "sha256": "b763b5189d660c5e00a6bd93e450e6b1eb78a2868c9048bcc1b2f00df45252d1"
+        },
+        "stderr": {
+          "path": ".nextgo-test-results/vulnerability-check/source-go1.24.stderr",
+          "bytes": 98,
+          "sha256": "4602b7fa342718b3affd57d940ea0bdf081c3ba24ce95e98ebd34f01ed076c89"
+        }
+      }
+    ]
+  },
+  "network": {
+    "observationsCurrent": true,
+    "revision": "1",
+    "networkMode": "restricted",
+    "networkState": "enforced",
+    "vulnerabilityHostAllowed": false,
+    "customAllowedHosts": [],
+    "configurationObservedAtUTC": "2026-11-07T12:10:11.043Z",
+    "outboundIdentityCount": 0,
+    "secretBindingCount": 0,
+    "observation": "Both tool requests for the public Go advisory index returned Forbidden. Current enforced restricted package-manager policy does not include vuln.go.dev.",
+    "requestPolicyChangeToolAvailable": false,
+    "requiredHost": "vuln.go.dev",
+    "evidence": {
+      "path": ".nextgo-test-results/vulnerability-check/network-summary.json",
+      "bytes": 296,
+      "sha256": "90ab0d381abcd6d5e41953bfdcb845ce4730f49a1a065df730f6b2bae500157f"
+    }
+  },
+  "limits": [
+    "No current Codex Security audit completed; historical scans retain only their original source provenance.",
+    "Neither SDK vulnerability check obtained advisory data; no vulnerability-free or known-issue-free claim is justified.",
+    "Generated native binaries, WASM targets and test dependencies were not independently vulnerability-qualified by this attempt.",
+    "No security findings were invented, dismissed, fixed or accepted on the basis of unavailable advisory data.",
+    "Existing functional/race/vet/browser/container passes remain separate evidence and do not satisfy G02.",
+    "All 79 capability rows and G01-G11 remain open/retained; no waiver or production maturity claim."
+  ],
+  "officialSourceFallback": {
+    "recordedAtUTC": "2026-11-07T18:35:06.442383+00:00",
+    "sourceGoManifest": {
+      "path": ".nextgo-test-results/routing-index/go-source-manifest.json",
+      "bytes": 128817,
+      "sha256": "8ceb874b665f243a5c1e39bf8eab27acdcda8d1cec75802a693ce98cff5da29c"
+    },
+    "repositoryAPI": {
+      "URL": "https://api.github.com/repos/golang/vulndb/contents/",
+      "HTTPStatus": 403,
+      "outcome": "Denied; no source received"
+    },
+    "moduleProxy": {
+      "Path": "golang.org/x/vulndb",
+      "Version": "v0.0.0-20261105234957-e22db6528018",
+      "Time": "2026-11-05T23:49:57Z",
+      "GoVersion": "1.26.0",
+      "GoModSum": "h1:HnEYM2y9jCNxxP/kHt25bXeLz4yUbQ9rg5c2iP/ggQ4=",
+      "metadataAvailable": true,
+      "archiveAvailable": false,
+      "archiveExitCode": 1,
+      "archiveFailure": "The official proxy archive redirect to storage.googleapis.com returned Forbidden.",
+      "evidence": [
+        {
+          "path": ".nextgo-test-results/routing-index/vulndb-module.json",
+          "bytes": 275,
+          "sha256": "3ab726d162f20db20064743415c09eede2c78aafc675bc40fc3d97afda74ced1"
+        },
+        {
+          "path": ".nextgo-test-results/routing-index/vulndb-download.json",
+          "bytes": 1213,
+          "sha256": "db144cc1d6c8a3554910aabc90daf9f32f0e0abfd2c859278a16cf4115aea2da"
+        }
+      ]
+    },
+    "databaseBuilt": false,
+    "OSVFilesRetrieved": false,
+    "advisoryVerdict": null,
+    "securityAuditStarted": false
+  },
+  "originalStatus": "blocked-no-current-security-audit-or-vulnerability-verdict",
+  "currentResolution": {
+    "recordedAtUTC": "2026-11-07T19:28:43.404048+00:00",
+    "advisoryReport": "govulncheck-local-database-qualification.json",
+    "officialSourceAndDatabaseVerified": true,
+    "sourceAuditPreflightStillBlocked": true,
+    "Go1.27.3": "No known findings reported in native/core-WASM/module-WASM source and both actual ELF samples.",
+    "Go1.24.13": "Known standard-library findings remain; compatibility-only target, not a production recommendation."
+  }
+}

@@ -12,11 +12,18 @@ func TestMetadataSourcesUseCompilerCheckedNativeFactories(t *testing.T) {
 	p := &Project{MetadataFiles: []MetadataFile{
 		{Name: "icon.png", Source: "app/icon.png"},
 		{Name: "robots.txt", Import: "example.test/site/app", Factory: "Robots"},
+		{Name: "opengraph-image.png", Import: "example.test/site/app", Factory: "OpenGraphImage"},
+		{Name: "twitter-image.png", Import: "example.test/site/app", Factory: "TwitterImage"},
 	}}
 	var generated strings.Builder
 	writeMetadataSources(&generated, p, map[string]string{"example.test/site/app": "application"})
 	if !strings.Contains(generated.String(), `fs.Sub(embedded,"assets/metadata")`) || !strings.Contains(generated.String(), "config.MetadataFiles.Robots=application.Robots") {
 		t.Fatal(generated.String())
+	}
+	for _, factory := range []string{"OpenGraphImage", "TwitterImage"} {
+		if !strings.Contains(generated.String(), "config.MetadataFiles."+factory+"=application."+factory) {
+			t.Fatal(generated.String())
+		}
 	}
 	generated.Reset()
 	p.MetadataFiles = p.MetadataFiles[1:]

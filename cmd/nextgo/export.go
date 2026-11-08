@@ -22,6 +22,7 @@ import (
 	"unicode/utf8"
 
 	nextgo "github.com/Suhaibinator/Next.go"
+	assetapi "github.com/Suhaibinator/Next.go/assets"
 	"github.com/Suhaibinator/Next.go/environment"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/internal/project"
@@ -94,7 +95,7 @@ func executeExport(ctx context.Context, args []string) error {
 		return err
 	}
 	defer stop()
-	if err := exportWithStaticShell(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Metadata, config.StaticShell, config.Domain); err != nil {
+	if err := exportWithPublication(ctx, base, filepath.Join(build.Dir, "server", "assets"), *output, build.ID, paths, config.Paths, config.Scopes, config.Metadata, config.Fonts, config.StaticShell, config.Domain); err != nil {
 		return err
 	}
 	dir, _ := filepath.Abs(*output)
@@ -255,10 +256,18 @@ func exportWithScopes(ctx context.Context, base, assets, output, buildID string,
 }
 
 func exportWithMetadata(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, domains ...string) error {
-	return exportWithStaticShell(ctx, base, assets, output, buildID, paths, deployment, scopes, metadata, nil, domains...)
+	return exportWithResources(ctx, base, assets, output, buildID, paths, deployment, scopes, metadata, nil, domains...)
+}
+
+func exportWithResources(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, fonts []assetapi.FontAsset, domains ...string) error {
+	return exportWithPublication(ctx, base, assets, output, buildID, paths, deployment, scopes, metadata, fonts, nil, domains...)
 }
 
 func exportWithStaticShell(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, shell *nextgo.StaticShellDeclaration, domains ...string) error {
+	return exportWithPublication(ctx, base, assets, output, buildID, paths, deployment, scopes, metadata, nil, shell, domains...)
+}
+
+func exportWithPublication(ctx context.Context, base, assets, output, buildID string, paths []string, deployment nextgo.PathConfig, scopes []nextgo.StaticExportScope, metadata []metadatafiles.Entry, fonts []assetapi.FontAsset, shell *nextgo.StaticShellDeclaration, domains ...string) error {
 	domain := ""
 	if len(domains) > 1 {
 		return fmt.Errorf("export requires at most one domain")
@@ -274,6 +283,16 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 	}
 	if err := validateMetadataInventory(deployment, metadata); err != nil {
 		return err
+	}
+	if err := validateFontInventory(fonts); err != nil {
+		return err
+	}
+	if len(fonts) > 0 && scopes == nil {
+		return fmt.Errorf("managed font export requires declared ownership scopes")
+	}
+	declaredFonts := map[string]bool{}
+	for _, entry := range fonts {
+		declaredFonts[entry.URL] = true
 	}
 	if scopes != nil {
 		if err := validateExportScopes(deployment, scopes); err != nil {
@@ -322,6 +341,7 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 			return err
 		}
 		dataPath := exportDataPath(decoded)
+		fontMount := deployment.BasePath
 		expectedConfiguration := configurationID
 		if scopes != nil {
 			scope, _, ok := exportScope(scopes, canonical)
@@ -329,6 +349,7 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 				return fmt.Errorf("cannot export %s: undeclared ownership scope", canonical)
 			}
 			expectedConfiguration = scope.Configuration
+			fontMount += scope.Prefix
 			dataPath = scopedExportDataPath(scope.Prefix, decoded)
 		}
 		publicPath, err := deployment.URL(canonical)
@@ -344,6 +365,9 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 				return fmt.Errorf("cannot export %s: parallel slots, streaming, server actions, and optimized image endpoints require a server", canonical)
 			}
 		}
+		if hasUnpublishedFontHead(html, fontMount, declaredFonts) {
+			return fmt.Errorf("cannot export %s: local font resource is not in the managed inventory", canonical)
+		}
 		body := bytes.Index(html, []byte("<body "))
 		if body < 0 || !bytes.Contains(html, []byte(`data-nextgo-build="`+buildID+`"`)) {
 			return fmt.Errorf("cannot export %s: response is not the expected Next.go document", canonical)
@@ -357,6 +381,11 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 		if err := json.Unmarshal(data, &envelope); err != nil || envelope.Version != nextgo.NavigationProtocolVersion || envelope.Status != http.StatusOK || envelope.Build != buildID || envelope.URL != publicPath {
 			return fmt.Errorf("cannot export %s: invalid navigation response", canonical)
 		}
+		for _, element := range envelope.Head {
+			if element.Tag == "link" && (element.Attrs["rel"] == "stylesheet" || element.Attrs["rel"] == "preload" && element.Attrs["as"] == "font") && unpublishedFontURL(element.Attrs["href"], fontMount, declaredFonts) {
+				return fmt.Errorf("cannot export %s: local font resource is not in the managed inventory", canonical)
+			}
+		}
 		if !exportDocumentMatches(html, envelope.Document) {
 			return fmt.Errorf("cannot export %s: document attributes changed between HTML and navigation data", canonical)
 		}
@@ -366,6 +395,11 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 		openingEnd := bytes.IndexByte(html[body:], '>')
 		if !navigation.ValidConfigurationID(envelope.Configuration) || openingEnd < 0 || !bytes.Contains(html[body:body+openingEnd], []byte(`data-nextgo-configuration="`+envelope.Configuration+`"`)) || expectedConfiguration != "" && expectedConfiguration != envelope.Configuration {
 			return fmt.Errorf("cannot export %s: deployment configuration changed during export", canonical)
+		}
+		opening := html[body : body+openingEnd]
+		rootAttribute := []byte(` data-nextgo-root="`)
+		if envelope.Root != "" && (!navigation.ValidConfigurationID(envelope.Root) || !bytes.Contains(opening, []byte(` data-nextgo-root="`+envelope.Root+`"`))) || envelope.Root == "" && bytes.Contains(opening, rootAttribute) {
+			return fmt.Errorf("cannot export %s: root layout changed between HTML and navigation data", canonical)
 		}
 		configurationID = envelope.Configuration
 		if shell != nil && canonical == shell.SeedPath {
@@ -404,6 +438,9 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 	if err := exportManagedMetadata(ctx, client, base, stage, deployment, domain, buildID, metadata); err != nil {
 		return err
 	}
+	if err := exportManagedFonts(ctx, client, base, stage, deployment, domain, buildID, scopes, fonts); err != nil {
+		return err
+	}
 	publication := exportManifest{Format: "nextgo-static-v1", Protocol: nextgo.NavigationProtocolVersion, Configuration: configurationID, Build: buildID, Paths: paths, BasePath: deployment.BasePath, AssetPrefix: deployment.AssetPrefix, TrailingSlash: deployment.TrailingSlash, Metadata: metadata}
 	for _, scope := range scopes {
 		if scope.Locale != "" {
@@ -415,6 +452,7 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 		return fmt.Errorf("domain export requires declared locale ownership scopes")
 	}
 	publication.Domain = domain
+	publication.Fonts = fonts
 	if shellDescriptor != nil {
 		publication.Format, publication.StaticShell = "nextgo-static-v3", shellDescriptor
 	}
@@ -434,6 +472,59 @@ func exportWithStaticShell(ctx context.Context, base, assets, output, buildID st
 		return err
 	}
 	return publishExport(stage, destination)
+}
+
+// Inspect native-rendered link tags, not body examples or descriptions that
+// happen to mention the reserved namespace. URL parsing also handles encoded
+// path characters. Navigation head resources are checked independently above.
+func hasUnpublishedFontHead(markup []byte, mount string, declared map[string]bool) bool {
+	end := bytes.Index(markup, []byte("</head>"))
+	if end < 0 {
+		return false // The document contract rejects missing head markup later.
+	}
+	head := string(markup[:end])
+	for {
+		_, tail, ok := strings.Cut(head, "<link ")
+		if !ok {
+			return false
+		}
+		tag, rest, ok := strings.Cut(tail, ">")
+		if !ok {
+			return false
+		}
+		tag = " " + tag
+		fontLink := strings.Contains(tag, ` rel="stylesheet"`) || strings.Contains(tag, ` rel="preload"`) && strings.Contains(tag, ` as="font"`)
+		if _, value, ok := strings.Cut(tag, ` href="`); ok && fontLink {
+			href, _, _ := strings.Cut(value, `"`)
+			if unpublishedFontURL(htmlstd.UnescapeString(href), mount, declared) {
+				return true
+			}
+		}
+		head = rest
+	}
+}
+
+func runtimeFontURL(href, mount string) bool {
+	u, err := url.Parse(href)
+	if err != nil || u.Scheme != "" || u.Host != "" {
+		return false
+	}
+	local := u.Path
+	if mount != "" {
+		if !strings.HasPrefix(local, mount+"/") {
+			return false
+		}
+		local = strings.TrimPrefix(local, mount)
+	}
+	return strings.HasPrefix(local, assetapi.LocalFontPrefix)
+}
+
+func unpublishedFontURL(href, mount string, declared map[string]bool) bool {
+	if !runtimeFontURL(href, mount) {
+		return false
+	}
+	u, _ := url.Parse(href)
+	return u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || !declared[strings.TrimPrefix(u.Path, mount)]
 }
 
 func exportResponse(ctx context.Context, client *http.Client, target string, navigation bool, domain string) ([]byte, error) {
@@ -570,6 +661,7 @@ type exportManifest struct {
 	Scopes        []nextgo.StaticExportScope        `json:"scopes,omitempty"`
 	Domain        string                            `json:"domain,omitempty"`
 	Metadata      []metadatafiles.Entry             `json:"metadata,omitempty"`
+	Fonts         []assetapi.FontAsset              `json:"fonts,omitempty"`
 }
 
 func validateExportDestination(destination string) error {

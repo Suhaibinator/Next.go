@@ -1,0 +1,3155 @@
+{
+  "format": "nextgo-local-framework-comparison-v1",
+  "recordedAtUTC": "2026-11-07T20:31:48.702Z",
+  "environment": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.22.1",
+    "playwright": "1.64.1",
+    "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCPUs": 5,
+    "browserExecutable": "/usr/bin/chromium",
+    "viewport": "1280x800",
+    "network": "loopback, no throttle",
+    "GoGOMAXPROCS": 2,
+    "chromium": "156.0.8078.79"
+  },
+  "controls": {
+    "samplesPerVariant": 12,
+    "freshBrowserProcessPerSample": true,
+    "javascriptWarmupSamples": 0,
+    "serverOSCaches": "warm after startup SSR probe",
+    "sampleOrder": "round-robin, reversed on alternating rounds",
+    "routeCache": "request-time SSR, prefetch disabled",
+    "loadRequestsPerConcurrency": 1000,
+    "loadEncoding": "identity",
+    "credentials": "none; complete synthetic child environment"
+  },
+  "variants": [
+    {
+      "name": "go1.27",
+      "entrypointSHA256": "b4b19fde3b568d213344077325b26a1905dbb761aba737ab565c24008e415572",
+      "startupToFirstSSRMs": 49.11824299999989,
+      "readyStats": {
+        "rssBytes": 14385152,
+        "highWaterRSSBytes": 14385152,
+        "userTicks": 0,
+        "systemTicks": 1
+      },
+      "noJS": {
+        "index": 0,
+        "javascript": false,
+        "meaningfulSSR": true,
+        "nativeNavigation": true
+      },
+      "samples": [
+        {
+          "index": 0,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 276.79999999701977,
+          "ttfbMs": 1.2000000029802322,
+          "fcpMs": 52,
+          "lcpMs": 52,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 344.88428699999986,
+          "nodeClickToObservedNavigationMs": 77.13692999999967,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 1,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 240.89999999850988,
+          "ttfbMs": 9.399999998509884,
+          "fcpMs": 68,
+          "lcpMs": 68,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 298.2252660000004,
+          "nodeClickToObservedNavigationMs": 68.71043100000043,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 2,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 194.40000000596046,
+          "ttfbMs": 0.5,
+          "fcpMs": 44,
+          "lcpMs": 44,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 210.941194,
+          "nodeClickToObservedNavigationMs": 79.03654600000027,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 3,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 226.10000000149012,
+          "ttfbMs": 1.5,
+          "fcpMs": 44,
+          "lcpMs": 44,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 253.97779199999968,
+          "nodeClickToObservedNavigationMs": 78.51165299999957,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 4,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 168.60000000149012,
+          "ttfbMs": 0.5,
+          "fcpMs": 48,
+          "lcpMs": 48,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 184.83310900000106,
+          "nodeClickToObservedNavigationMs": 72.60456499999964,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 5,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 247.20000000298023,
+          "ttfbMs": 1.8999999985098839,
+          "fcpMs": 40,
+          "lcpMs": 40,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 297.091128,
+          "nodeClickToObservedNavigationMs": 76.44939499999964,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 6,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 229,
+          "ttfbMs": 0.7000000029802322,
+          "fcpMs": 40,
+          "lcpMs": 40,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 283.3753199999992,
+          "nodeClickToObservedNavigationMs": 84.33919900000001,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 7,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 216.69999999552965,
+          "ttfbMs": 0.5999999940395355,
+          "fcpMs": 44,
+          "lcpMs": 44,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 270.7393219999976,
+          "nodeClickToObservedNavigationMs": 82.8750970000001,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 8,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 213.60000000149012,
+          "ttfbMs": 0.7999999970197678,
+          "fcpMs": 36,
+          "lcpMs": 36,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 252.18502499999886,
+          "nodeClickToObservedNavigationMs": 75.46545599999808,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 9,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 219.39999999850988,
+          "ttfbMs": 0.7000000029802322,
+          "fcpMs": 52,
+          "lcpMs": 52,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 251.63210400000025,
+          "nodeClickToObservedNavigationMs": 50.907037000000855,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 10,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 214.29999999701977,
+          "ttfbMs": 1.5,
+          "fcpMs": 48,
+          "lcpMs": 48,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 264.2127509999991,
+          "nodeClickToObservedNavigationMs": 74.86963599999945,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 11,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 216.90000000596046,
+          "ttfbMs": 1.1000000014901161,
+          "fcpMs": 56,
+          "lcpMs": 56,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1111,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1411
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 199,
+              "decodedBodyBytes": 248,
+              "transferBytes": 499
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4442,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4742
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 986,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1286
+            },
+            {
+              "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1846378,
+              "decodedBodyBytes": 6584602,
+              "transferBytes": 1846678
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 272.74077899999975,
+          "nodeClickToObservedNavigationMs": 74.77804400000241,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      ],
+      "load": [
+        {
+          "concurrency": 1,
+          "requests": 1000,
+          "elapsedMs": 393.727898000001,
+          "completedPerSecond": 2539.825105306603,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 0.23384200000145938,
+            "median": 0.33966099999815924,
+            "p95": 0.6348539999999048,
+            "p99": 1.1084660000014992,
+            "max": 4.531213000002026
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 2333,
+            "median": 2333,
+            "p95": 2333,
+            "p99": 2333,
+            "max": 2333
+          },
+          "before": {
+            "rssBytes": 26505216,
+            "highWaterRSSBytes": 26505216,
+            "userTicks": 90,
+            "systemTicks": 9
+          },
+          "after": {
+            "rssBytes": 28315648,
+            "highWaterRSSBytes": 28315648,
+            "userTicks": 103,
+            "systemTicks": 15
+          }
+        },
+        {
+          "concurrency": 8,
+          "requests": 1000,
+          "elapsedMs": 171.62928000000102,
+          "completedPerSecond": 5826.511653489393,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 0.4272229999987758,
+            "median": 1.2473659999996016,
+            "p95": 1.8372620000009192,
+            "p99": 4.523521999999502,
+            "max": 11.31807900000058
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 2333,
+            "median": 2333,
+            "p95": 2333,
+            "p99": 2333,
+            "max": 2333
+          },
+          "before": {
+            "rssBytes": 28315648,
+            "highWaterRSSBytes": 28315648,
+            "userTicks": 103,
+            "systemTicks": 15
+          },
+          "after": {
+            "rssBytes": 29020160,
+            "highWaterRSSBytes": 29020160,
+            "userTicks": 114,
+            "systemTicks": 19
+          }
+        }
+      ],
+      "servedArtifacts": [
+        {
+          "path": "/",
+          "decodedBytes": 2333,
+          "decodedSHA256": "b8b92a89bba19cad62100fd47765c0adc0a463982ad647b3a5c04f2323ba664d",
+          "contentType": "text/html; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "1111"
+        },
+        {
+          "path": "/_nextgo/e0a5f4244da0c716e1ec/app.wasm",
+          "decodedBytes": 6584602,
+          "decodedSHA256": "363ac237f6d8c1e13a2879f3d6bbd8f8b604b4f99cfe92e5aeca2048282f2941",
+          "contentType": "application/wasm",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_nextgo/e0a5f4244da0c716e1ec/boot.js",
+          "decodedBytes": 2592,
+          "decodedSHA256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add",
+          "contentType": "text/javascript; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "986"
+        },
+        {
+          "path": "/_nextgo/e0a5f4244da0c716e1ec/wasm_exec.js",
+          "decodedBytes": 16992,
+          "decodedSHA256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+          "contentType": "text/javascript; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/assets/style.css",
+          "decodedBytes": 248,
+          "decodedSHA256": "a129ad2a084334115772d50b1e61d70eec7f3cc209499d514c7c9590f069c4e9",
+          "contentType": "text/css; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "199"
+        },
+        {
+          "path": "/favicon.ico",
+          "decodedBytes": 127,
+          "decodedSHA256": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+          "contentType": "image/x-icon",
+          "contentEncoding": null,
+          "declaredContentLength": "127"
+        }
+      ],
+      "summary": {
+        "appReadyMs": {
+          "count": 12,
+          "min": 168.60000000149012,
+          "median": 216.90000000596046,
+          "p95": 276.79999999701977,
+          "p99": 276.79999999701977,
+          "max": 276.79999999701977
+        },
+        "ttfbMs": {
+          "count": 12,
+          "min": 0.5,
+          "median": 0.7999999970197678,
+          "p95": 9.399999998509884,
+          "p99": 9.399999998509884,
+          "max": 9.399999998509884
+        },
+        "fcpMs": {
+          "count": 12,
+          "min": 36,
+          "median": 44,
+          "p95": 68,
+          "p99": 68,
+          "max": 68
+        },
+        "lcpMs": {
+          "count": 12,
+          "min": 36,
+          "median": 44,
+          "p95": 68,
+          "p99": 68,
+          "max": 68
+        },
+        "cls": {
+          "count": 12,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "nodeGotoToObservedReadyMs": {
+          "count": 12,
+          "min": 184.83310900000106,
+          "median": 264.2127509999991,
+          "p95": 344.88428699999986,
+          "p99": 344.88428699999986,
+          "max": 344.88428699999986
+        },
+        "nodeClickToObservedNavigationMs": {
+          "count": 12,
+          "min": 50.907037000000855,
+          "median": 75.46545599999808,
+          "p95": 84.33919900000001,
+          "p99": 84.33919900000001,
+          "max": 84.33919900000001
+        }
+      }
+    },
+    {
+      "name": "go1.24",
+      "entrypointSHA256": "41f5ca8f8011c1b784ffa4745045c75cf20955a044802d7369cb0efb72128867",
+      "startupToFirstSSRMs": 29.051091000000042,
+      "readyStats": {
+        "rssBytes": 16490496,
+        "highWaterRSSBytes": 16490496,
+        "userTicks": 0,
+        "systemTicks": 0
+      },
+      "noJS": {
+        "index": 0,
+        "javascript": false,
+        "meaningfulSSR": true,
+        "nativeNavigation": true
+      },
+      "samples": [
+        {
+          "index": 0,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 374,
+          "ttfbMs": 0.7000000029802322,
+          "fcpMs": 52,
+          "lcpMs": 52,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 391.88688900000034,
+          "nodeClickToObservedNavigationMs": 83.6749319999999,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 1,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 323.80000000447035,
+          "ttfbMs": 0.6999999955296516,
+          "fcpMs": 36,
+          "lcpMs": 36,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 370.6318940000001,
+          "nodeClickToObservedNavigationMs": 72.0345529999995,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 2,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 334.5,
+          "ttfbMs": 1.5,
+          "fcpMs": 40,
+          "lcpMs": 40,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 362.48511399999916,
+          "nodeClickToObservedNavigationMs": 75.08291699999972,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 3,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 331.8999999985099,
+          "ttfbMs": 0.7000000029802322,
+          "fcpMs": 48,
+          "lcpMs": 48,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 390.7789649999995,
+          "nodeClickToObservedNavigationMs": 70.88892500000111,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 4,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 343.5,
+          "ttfbMs": 0.3999999985098839,
+          "fcpMs": 48,
+          "lcpMs": 48,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 375.92443599999933,
+          "nodeClickToObservedNavigationMs": 68.36652299999878,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 5,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 306.19999999552965,
+          "ttfbMs": 0.5,
+          "fcpMs": 56,
+          "lcpMs": 56,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 363.34187999999995,
+          "nodeClickToObservedNavigationMs": 71.905764000001,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 6,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 321,
+          "ttfbMs": 1.5999999940395355,
+          "fcpMs": 48,
+          "lcpMs": 48,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 361.352307000001,
+          "nodeClickToObservedNavigationMs": 160.61474400000225,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 7,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 327.09999999403954,
+          "ttfbMs": 0.7999999970197678,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 363.65318200000183,
+          "nodeClickToObservedNavigationMs": 127.78313899999921,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 8,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 346.3999999985099,
+          "ttfbMs": 1.2000000029802322,
+          "fcpMs": 52,
+          "lcpMs": 52,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 364.77991499999916,
+          "nodeClickToObservedNavigationMs": 74.5112029999982,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 9,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 319.30000000447035,
+          "ttfbMs": 0.8999999985098839,
+          "fcpMs": 44,
+          "lcpMs": 44,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 398.3586670000004,
+          "nodeClickToObservedNavigationMs": 71.89401200000066,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 10,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 372.79999999701977,
+          "ttfbMs": 0.6000000014901161,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 436.93174,
+          "nodeClickToObservedNavigationMs": 80.30477899999823,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 11,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 311.20000000298023,
+          "ttfbMs": 1.6999999955296516,
+          "fcpMs": 40,
+          "lcpMs": 40,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 1100,
+              "decodedBodyBytes": 2333,
+              "transferBytes": 1400
+            },
+            {
+              "path": "/assets/style.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 201,
+              "decodedBodyBytes": 248,
+              "transferBytes": 501
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 4346,
+              "decodedBodyBytes": 16992,
+              "transferBytes": 4646
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 981,
+              "decodedBodyBytes": 2592,
+              "transferBytes": 1281
+            },
+            {
+              "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+              "initiatorType": "fetch",
+              "encodedBodyBytes": 1460133,
+              "decodedBodyBytes": 5344183,
+              "transferBytes": 1460433
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 346.5397100000009,
+          "nodeClickToObservedNavigationMs": 74.48367000000144,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      ],
+      "load": [
+        {
+          "concurrency": 1,
+          "requests": 1000,
+          "elapsedMs": 336.4814340000012,
+          "completedPerSecond": 2971.9321750156255,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 0.23201899999912712,
+            "median": 0.2989099999977043,
+            "p95": 0.45273099999758415,
+            "p99": 0.9906090000004042,
+            "max": 6.388616000000184
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 2333,
+            "median": 2333,
+            "p95": 2333,
+            "p99": 2333,
+            "max": 2333
+          },
+          "before": {
+            "rssBytes": 23478272,
+            "highWaterRSSBytes": 23478272,
+            "userTicks": 250,
+            "systemTicks": 9
+          },
+          "after": {
+            "rssBytes": 24600576,
+            "highWaterRSSBytes": 24600576,
+            "userTicks": 267,
+            "systemTicks": 13
+          }
+        },
+        {
+          "concurrency": 8,
+          "requests": 1000,
+          "elapsedMs": 164.1902889999983,
+          "completedPerSecond": 6090.494182637137,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 0.3336220000019239,
+            "median": 1.1315319999994244,
+            "p95": 2.394509999998263,
+            "p99": 4.492334999999002,
+            "max": 11.810459000000264
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 2333,
+            "median": 2333,
+            "p95": 2333,
+            "p99": 2333,
+            "max": 2333
+          },
+          "before": {
+            "rssBytes": 24600576,
+            "highWaterRSSBytes": 24600576,
+            "userTicks": 267,
+            "systemTicks": 13
+          },
+          "after": {
+            "rssBytes": 27029504,
+            "highWaterRSSBytes": 27029504,
+            "userTicks": 278,
+            "systemTicks": 15
+          }
+        }
+      ],
+      "servedArtifacts": [
+        {
+          "path": "/",
+          "decodedBytes": 2333,
+          "decodedSHA256": "b8db9bc1f4594807969c5ad321f9d2fd8458bbc54832df7e8e02f156d3342ada",
+          "contentType": "text/html; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "1100"
+        },
+        {
+          "path": "/_nextgo/778f9ee94d54a36589b9/app.wasm",
+          "decodedBytes": 5344183,
+          "decodedSHA256": "86ed47ccd0c3c1e0c8c16ddcc73099777137a2d54aa1463f6e8a522a1a8c8b32",
+          "contentType": "application/wasm",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_nextgo/778f9ee94d54a36589b9/boot.js",
+          "decodedBytes": 2592,
+          "decodedSHA256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add",
+          "contentType": "text/javascript; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "981"
+        },
+        {
+          "path": "/_nextgo/778f9ee94d54a36589b9/wasm_exec.js",
+          "decodedBytes": 16992,
+          "decodedSHA256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14",
+          "contentType": "text/javascript; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/assets/style.css",
+          "decodedBytes": 248,
+          "decodedSHA256": "a129ad2a084334115772d50b1e61d70eec7f3cc209499d514c7c9590f069c4e9",
+          "contentType": "text/css; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": "201"
+        },
+        {
+          "path": "/favicon.ico",
+          "decodedBytes": 127,
+          "decodedSHA256": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+          "contentType": "image/x-icon",
+          "contentEncoding": null,
+          "declaredContentLength": "127"
+        }
+      ],
+      "summary": {
+        "appReadyMs": {
+          "count": 12,
+          "min": 306.19999999552965,
+          "median": 327.09999999403954,
+          "p95": 374,
+          "p99": 374,
+          "max": 374
+        },
+        "ttfbMs": {
+          "count": 12,
+          "min": 0.3999999985098839,
+          "median": 0.7000000029802322,
+          "p95": 1.6999999955296516,
+          "p99": 1.6999999955296516,
+          "max": 1.6999999955296516
+        },
+        "fcpMs": {
+          "count": 12,
+          "min": 36,
+          "median": 48,
+          "p95": 64,
+          "p99": 64,
+          "max": 64
+        },
+        "lcpMs": {
+          "count": 12,
+          "min": 36,
+          "median": 48,
+          "p95": 64,
+          "p99": 64,
+          "max": 64
+        },
+        "cls": {
+          "count": 12,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "nodeGotoToObservedReadyMs": {
+          "count": 12,
+          "min": 346.5397100000009,
+          "median": 364.77991499999916,
+          "p95": 436.93174,
+          "p99": 436.93174,
+          "max": 436.93174
+        },
+        "nodeClickToObservedNavigationMs": {
+          "count": 12,
+          "min": 68.36652299999878,
+          "median": 74.48367000000144,
+          "p95": 160.61474400000225,
+          "p99": 160.61474400000225,
+          "max": 160.61474400000225
+        }
+      }
+    },
+    {
+      "name": "nextjs16.4.5",
+      "entrypointSHA256": "c3440ee801739c60455ae77ccaf8b132f1a33a4caa78bebc085d4e444fa9b7fb",
+      "startupToFirstSSRMs": 386.41293900000005,
+      "readyStats": {
+        "rssBytes": 80003072,
+        "highWaterRSSBytes": 80003072,
+        "userTicks": 39,
+        "systemTicks": 7
+      },
+      "noJS": {
+        "index": 0,
+        "javascript": false,
+        "meaningfulSSR": true,
+        "nativeNavigation": true
+      },
+      "samples": [
+        {
+          "index": 0,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 144.89999999850988,
+          "ttfbMs": 14.699999995529652,
+          "fcpMs": 96,
+          "lcpMs": 96,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 171.00822199999948,
+          "nodeClickToObservedNavigationMs": 61.633004000000255,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 1,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 123.79999999701977,
+          "ttfbMs": 10.799999997019768,
+          "fcpMs": 60,
+          "lcpMs": 60,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 146.10330499999964,
+          "nodeClickToObservedNavigationMs": 61.511655999999675,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 2,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 111.20000000298023,
+          "ttfbMs": 15.200000002980232,
+          "fcpMs": 56,
+          "lcpMs": 56,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 147.6853689999989,
+          "nodeClickToObservedNavigationMs": 61.416142000000036,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 3,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 114.10000000149012,
+          "ttfbMs": 11.600000001490116,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 148.33032900000035,
+          "nodeClickToObservedNavigationMs": 66.76618699999926,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 4,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 133.39999999850988,
+          "ttfbMs": 10,
+          "fcpMs": 60,
+          "lcpMs": 60,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 166.8242999999984,
+          "nodeClickToObservedNavigationMs": 58.71235700000034,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 5,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 133.39999999850988,
+          "ttfbMs": 10.5,
+          "fcpMs": 68,
+          "lcpMs": 68,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 150.60782800000015,
+          "nodeClickToObservedNavigationMs": 77.61936500000047,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 6,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 123.5,
+          "ttfbMs": 6.200000002980232,
+          "fcpMs": 60,
+          "lcpMs": 60,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 145.63751400000183,
+          "nodeClickToObservedNavigationMs": 60.934613000001264,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 7,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 117.09999999403954,
+          "ttfbMs": 9.400000005960464,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 148.50597099999868,
+          "nodeClickToObservedNavigationMs": 66.8988559999998,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 8,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 129.69999999552965,
+          "ttfbMs": 13.399999998509884,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 145.97468800000206,
+          "nodeClickToObservedNavigationMs": 64.97840500000166,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 9,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 156,
+          "ttfbMs": 6.5999999940395355,
+          "fcpMs": 52,
+          "lcpMs": 52,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 176.0066220000008,
+          "nodeClickToObservedNavigationMs": 58.82918299999801,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 10,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 155.19999999552965,
+          "ttfbMs": 8.399999998509884,
+          "fcpMs": 80,
+          "lcpMs": 80,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 171.8726319999987,
+          "nodeClickToObservedNavigationMs": 65.23064800000066,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        },
+        {
+          "index": 11,
+          "javascript": true,
+          "ssrNodePreserved": true,
+          "appReadyMs": 127.79999999701977,
+          "ttfbMs": 8.699999995529652,
+          "fcpMs": 64,
+          "lcpMs": 64,
+          "cls": 0,
+          "resources": [
+            {
+              "path": "/",
+              "initiatorType": "document",
+              "encodedBodyBytes": 2307,
+              "decodedBodyBytes": 6276,
+              "transferBytes": 2607
+            },
+            {
+              "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+              "initiatorType": "link",
+              "encodedBodyBytes": 248,
+              "decodedBodyBytes": 248,
+              "transferBytes": 548
+            },
+            {
+              "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+              "initiatorType": "link",
+              "encodedBodyBytes": 1970,
+              "decodedBodyBytes": 5364,
+              "transferBytes": 2270
+            },
+            {
+              "path": "/_next/static/chunks/1wnov70f88xjy.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 7650,
+              "decodedBodyBytes": 29127,
+              "transferBytes": 7950
+            },
+            {
+              "path": "/_next/static/chunks/23e6jep2anmtk.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 71752,
+              "decodedBodyBytes": 229288,
+              "transferBytes": 72052
+            },
+            {
+              "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 46446,
+              "decodedBodyBytes": 169437,
+              "transferBytes": 46746
+            },
+            {
+              "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3905,
+              "decodedBodyBytes": 9974,
+              "transferBytes": 4205
+            },
+            {
+              "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3515,
+              "decodedBodyBytes": 13994,
+              "transferBytes": 3815
+            },
+            {
+              "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+              "initiatorType": "script",
+              "encodedBodyBytes": 3536,
+              "decodedBodyBytes": 8394,
+              "transferBytes": 3836
+            },
+            {
+              "path": "/favicon.ico",
+              "initiatorType": "other",
+              "encodedBodyBytes": 127,
+              "decodedBodyBytes": 127,
+              "transferBytes": 427
+            }
+          ],
+          "nodeGotoToObservedReadyMs": 147.55940499999997,
+          "nodeClickToObservedNavigationMs": 57.53484600000229,
+          "counterInteraction": "3 -> 4",
+          "pageErrors": [],
+          "consoleErrors": []
+        }
+      ],
+      "load": [
+        {
+          "concurrency": 1,
+          "requests": 1000,
+          "elapsedMs": 2425.1900970000024,
+          "completedPerSecond": 412.3388105687119,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 1.5532059999968624,
+            "median": 2.053388000000268,
+            "p95": 4.148278000000573,
+            "p99": 8.225899000000936,
+            "max": 73.2466600000007
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 6276,
+            "median": 6276,
+            "p95": 6276,
+            "p99": 6276,
+            "max": 6276
+          },
+          "before": {
+            "rssBytes": 89874432,
+            "highWaterRSSBytes": 97779712,
+            "userTicks": 115,
+            "systemTicks": 16
+          },
+          "after": {
+            "rssBytes": 234622976,
+            "highWaterRSSBytes": 234622976,
+            "userTicks": 417,
+            "systemTicks": 36
+          }
+        },
+        {
+          "concurrency": 8,
+          "requests": 1000,
+          "elapsedMs": 1622.4019140000019,
+          "completedPerSecond": 616.3700815259264,
+          "responseAndBodyMs": {
+            "count": 1000,
+            "min": 7.453186000006099,
+            "median": 12.151731999998447,
+            "p95": 18.6740690000006,
+            "p99": 23.245233000001463,
+            "max": 26.334799999996903
+          },
+          "bodyBytes": {
+            "count": 1000,
+            "min": 6276,
+            "median": 6276,
+            "p95": 6276,
+            "p99": 6276,
+            "max": 6276
+          },
+          "before": {
+            "rssBytes": 234622976,
+            "highWaterRSSBytes": 234622976,
+            "userTicks": 419,
+            "systemTicks": 36
+          },
+          "after": {
+            "rssBytes": 294854656,
+            "highWaterRSSBytes": 294854656,
+            "userTicks": 605,
+            "systemTicks": 50
+          }
+        }
+      ],
+      "servedArtifacts": [
+        {
+          "path": "/",
+          "decodedBytes": 6276,
+          "decodedSHA256": "1c6960ab3a72feddc7c2bfedd148c67c4334abac0bc3e6adc46a4c199ebddc41",
+          "contentType": "text/html; charset=utf-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/0c1ad7rcpjghx.js",
+          "decodedBytes": 169437,
+          "decodedSHA256": "e8a4c2067d144e6fdb325574e3d6b0cd9a7b1221a466a409156d26580b85208f",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/0c30d8wrkf88x.css",
+          "decodedBytes": 248,
+          "decodedSHA256": "9dc4ec50c2ee3d87d605be8e2b4066eca2e2ec1d6975be2b4f5414d93409dc16",
+          "contentType": "text/css; charset=UTF-8",
+          "contentEncoding": null,
+          "declaredContentLength": "248"
+        },
+        {
+          "path": "/_next/static/chunks/1wnov70f88xjy.js",
+          "decodedBytes": 29127,
+          "decodedSHA256": "279a2bc6537b1cdd6b489788ca91ab8582f1a7d1a4c34b94a0cf0b75ee0784b1",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/23e6jep2anmtk.js",
+          "decodedBytes": 229288,
+          "decodedSHA256": "68d789fee4dacbed154409fc5566bfec50b7d74cd2bfb39e08870d2019e4bac5",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/310vm2bl3xxpt.js",
+          "decodedBytes": 5364,
+          "decodedSHA256": "8a943b00599e56b53569f36f4341e3465ae7705c1391562cd6c7e1f290c0c387",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/3lvpj6h9f2uub.js",
+          "decodedBytes": 8394,
+          "decodedSHA256": "8519ca798515ee04db32413ee2a81747cca287d677db3ee41879abaf1f8d3206",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/3qfy96eoyh-ek.js",
+          "decodedBytes": 13994,
+          "decodedSHA256": "0f13eecc75702fa059f047636cf8814acbb7acaf3702e75d5835ef85a49528b1",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/_next/static/chunks/turbopack-2u1d16houkiyo.js",
+          "decodedBytes": 9974,
+          "decodedSHA256": "439be7f075d69bbf510ceca09cbc0856956be6f1268f40948a2566148e13de07",
+          "contentType": "application/javascript; charset=UTF-8",
+          "contentEncoding": "gzip",
+          "declaredContentLength": null
+        },
+        {
+          "path": "/favicon.ico",
+          "decodedBytes": 127,
+          "decodedSHA256": "dc92ff650fc21b98d183bcb0735e9fd21a6529e4c7b44ef4641b9cc3e638acfe",
+          "contentType": "image/x-icon",
+          "contentEncoding": null,
+          "declaredContentLength": null
+        }
+      ],
+      "summary": {
+        "appReadyMs": {
+          "count": 12,
+          "min": 111.20000000298023,
+          "median": 127.79999999701977,
+          "p95": 156,
+          "p99": 156,
+          "max": 156
+        },
+        "ttfbMs": {
+          "count": 12,
+          "min": 6.200000002980232,
+          "median": 10,
+          "p95": 15.200000002980232,
+          "p99": 15.200000002980232,
+          "max": 15.200000002980232
+        },
+        "fcpMs": {
+          "count": 12,
+          "min": 52,
+          "median": 64,
+          "p95": 96,
+          "p99": 96,
+          "max": 96
+        },
+        "lcpMs": {
+          "count": 12,
+          "min": 52,
+          "median": 64,
+          "p95": 96,
+          "p99": 96,
+          "max": 96
+        },
+        "cls": {
+          "count": 12,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "nodeGotoToObservedReadyMs": {
+          "count": 12,
+          "min": 145.63751400000183,
+          "median": 148.33032900000035,
+          "p95": 176.0066220000008,
+          "p99": 176.0066220000008,
+          "max": 176.0066220000008
+        },
+        "nodeClickToObservedNavigationMs": {
+          "count": 12,
+          "min": 57.53484600000229,
+          "median": 61.511655999999675,
+          "p95": 77.61936500000047,
+          "p99": 77.61936500000047,
+          "max": 77.61936500000047
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Local synthetic two-route counter workload, not framework-wide performance parity.",
+    "Shared host, no CPU affinity/cgroup/network throttle; descriptive percentiles only.",
+    "Browser FCP/LCP/CLS are lab observations, not field Web Vitals, INP or real devices.",
+    "Readiness marks are application instrumentation, not complete framework hydration.",
+    "RSS/HWM are server process snapshots, excluding browsers, descendants and machine memory.",
+    "Load timing includes local client and response consumption; requests/second does not establish saturation.",
+    "Startup has one process observation per variant, with warm OS/dependency caches.",
+    "No hosted/serverless/CDN performance or release budget approval."
+  ],
+  "cleanup": [
+    {
+      "name": "go1.27",
+      "status": "fulfilled",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "forced": false,
+      "listenerClosed": true
+    },
+    {
+      "name": "go1.24",
+      "status": "fulfilled",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "forced": false,
+      "listenerClosed": true
+    },
+    {
+      "name": "nextjs16.4.5",
+      "status": "fulfilled",
+      "exit": {
+        "code": 143,
+        "signal": null
+      },
+      "forced": false,
+      "listenerClosed": true
+    }
+  ]
+}

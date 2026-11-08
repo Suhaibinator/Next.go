@@ -1,0 +1,30 @@
+{
+  "package": "uplot",
+  "version": "1.6.32",
+  "license": "MIT",
+  "source": "https://registry.npmjs.org/uplot/-/uplot-1.6.32.tgz",
+  "npmIntegrity": "sha512-KIMVnG68zvu5XXUbC4LQEPnhwOxBuLyW1AHtpm6IKTXImkbLgkMy+jabjLgSLMasNuGGzQm/ep3tOkyTxpiQIw==",
+  "root": "examples/widgets/public/vendor",
+  "files": {
+    "uPlot-1.6.32.iife.min.js": {
+      "bytes": 51081,
+      "sha256": "19c8d4c6ad88929a79f4ae49d6f7161566dfd0ba3d15cc495e974f787eb78f1f",
+      "sha384": "sha384-Gx3t0zdBAuQOuvvmaLZj7HKEiSgWTAs+VdtNY7wt19QDPTDQjFIwAuXDj0zeN00c"
+    },
+    "uPlot-1.6.32.min.css": {
+      "bytes": 1857,
+      "sha256": "df630c6a8d6f8eeaff264b50f73ce5b114f646ffd9a0bb74f049b0a00135fa04",
+      "sha384": "sha384-IfV0B7MIOYuO95kO9G5ySKPz/85zqFNOAs8iy4tkK5zd9izhJAB8b7lHrwYqqmYE"
+    },
+    "uPlot-LICENSE.txt": {
+      "bytes": 1078,
+      "sha256": "8f989229699b4fe2f1a0432d0e9edc338a8a911e250e2d1b01ecd770a5f5b1bd",
+      "sha384": "sha384-LBMwZlHtMnim4BBA9gOI4OOPUI5cNjaxzIZCJRYYEyIykienqB4X7/vxq0t1Ihgd"
+    },
+    "uPlot-1.6.32.esm.js": {
+      "bytes": 145423,
+      "sha256": "5dd9b3281aa64b461b42d9945f6adb2649d346502b12281a9ae0d46599a80eba",
+      "sha384": "sha384-iUdBlEO5qc07+gOz+3rq/Besyud+KVIxM+xJEuUBObxLG3C/Dlkz8OYuPUcPrCGP"
+    }
+  }
+}

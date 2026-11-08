@@ -1,0 +1,1326 @@
+{
+  "version": 1,
+  "analyzerGo": "go1.24.13",
+  "compression": "go-compress-gzip-level-9",
+  "scope": "shared runtime assets and static route summaries; route component usage is not inferred",
+  "build": "3e41c180cb6d987a6656",
+  "fingerprint": "95a441e79ac62a29521c1f9ce158334ca230a278b2732125126c7eec216c894a",
+  "native": {
+    "bytes": 44978360,
+    "sha256": "653cdad7ec37c425bb8f63171de83fb9e2b111962451033b5c4fa71878648c3c",
+    "go": "go1.24.13",
+    "goos": "linux",
+    "goarch": "amd64",
+    "cgo": "0"
+  },
+  "assets": [
+    {
+      "file": "app.wasm",
+      "kind": "core",
+      "bytes": 7659557,
+      "gzip9Bytes": 1914390,
+      "sha256": "32072edb654950189a361c745f9d44e3f464306cf8f8ba39263badacd899c6ed",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 718,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 4126,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 8152,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 5011436,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 2634712,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "boot.js",
+      "kind": "bootstrap",
+      "bytes": 2592,
+      "gzip9Bytes": 980,
+      "sha256": "49c186098cc4d15a61f63acd6979412acceb4928f79da7ad1a426118df364add"
+    },
+    {
+      "file": "module-0d9c1daa1914963447e733156db0de552fb575d8a3f4fd25d12f45b53eb5f18a.wasm",
+      "kind": "lazy",
+      "bytes": 4359608,
+      "gzip9Bytes": 1210541,
+      "sha256": "0d9c1daa1914963447e733156db0de552fb575d8a3f4fd25d12f45b53eb5f18a",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 688,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2716,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 5331,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2754717,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1595743,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "module-46b04aacf1be3f2efdf7e06e84e25a0e77cda3e8d99eeae6602a825c6739601b.wasm",
+      "kind": "lazy",
+      "bytes": 4258393,
+      "gzip9Bytes": 1174063,
+      "sha256": "46b04aacf1be3f2efdf7e06e84e25a0e77cda3e8d99eeae6602a825c6739601b",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 654,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2610,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 5118,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2704345,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1545253,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "module-ba4407e68983ac9c342dac153619099ebdc9f191931f858c627f2b675539a684.wasm",
+      "kind": "lazy",
+      "bytes": 4202366,
+      "gzip9Bytes": 1173342,
+      "sha256": "ba4407e68983ac9c342dac153619099ebdc9f191931f858c627f2b675539a684",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 654,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2612,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 5122,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2644698,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1548867,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "module-d6624104e98ea457d0ad41dbdefa76f01fd29b877710a68a7c561b754a85fef5.wasm",
+      "kind": "lazy",
+      "bytes": 4097738,
+      "gzip9Bytes": 1144795,
+      "sha256": "d6624104e98ea457d0ad41dbdefa76f01fd29b877710a68a7c561b754a85fef5",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 684,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2544,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 4987,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2581060,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1508050,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "module-faa81d3b2220e9f2fad5852d3c5b88f036413961ef1dad09f1c35b6fffd46f29.wasm",
+      "kind": "lazy",
+      "bytes": 4333592,
+      "gzip9Bytes": 1203352,
+      "sha256": "faa81d3b2220e9f2fad5852d3c5b88f036413961ef1dad09f1c35b6fffd46f29",
+      "sections": [
+        {
+          "id": 0,
+          "name": "custom:go:buildid",
+          "payloadBytes": 114,
+          "framingBytes": 6
+        },
+        {
+          "id": 1,
+          "name": "type",
+          "payloadBytes": 64,
+          "framingBytes": 6
+        },
+        {
+          "id": 2,
+          "name": "import",
+          "payloadBytes": 688,
+          "framingBytes": 6
+        },
+        {
+          "id": 3,
+          "name": "function",
+          "payloadBytes": 2693,
+          "framingBytes": 6
+        },
+        {
+          "id": 4,
+          "name": "table",
+          "payloadBytes": 5,
+          "framingBytes": 6
+        },
+        {
+          "id": 5,
+          "name": "memory",
+          "payloadBytes": 3,
+          "framingBytes": 6
+        },
+        {
+          "id": 6,
+          "name": "global",
+          "payloadBytes": 41,
+          "framingBytes": 6
+        },
+        {
+          "id": 7,
+          "name": "export",
+          "payloadBytes": 33,
+          "framingBytes": 6
+        },
+        {
+          "id": 9,
+          "name": "element",
+          "payloadBytes": 5285,
+          "framingBytes": 6
+        },
+        {
+          "id": 10,
+          "name": "code",
+          "payloadBytes": 2726585,
+          "framingBytes": 6
+        },
+        {
+          "id": 11,
+          "name": "data",
+          "payloadBytes": 1597928,
+          "framingBytes": 6
+        },
+        {
+          "id": 0,
+          "name": "custom:producers",
+          "payloadBytes": 73,
+          "framingBytes": 6
+        }
+      ]
+    },
+    {
+      "file": "wasm_exec.js",
+      "kind": "shim",
+      "bytes": 16992,
+      "gzip9Bytes": 4345,
+      "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+    }
+  ],
+  "components": [
+    {
+      "name": "actionview",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "actionviewlazy",
+      "loading": "lazy",
+      "file": "module-faa81d3b2220e9f2fad5852d3c5b88f036413961ef1dad09f1c35b6fffd46f29.wasm"
+    },
+    {
+      "name": "choiceform",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "clientpanel",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "clientpanellazy",
+      "loading": "lazy",
+      "file": "module-46b04aacf1be3f2efdf7e06e84e25a0e77cda3e8d99eeae6602a825c6739601b.wasm"
+    },
+    {
+      "name": "composition",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "counter",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "fileform",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "generatedaction",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "keyedlist",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "layoutstate",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "lazycounter",
+      "loading": "lazy",
+      "file": "module-ba4407e68983ac9c342dac153619099ebdc9f191931f858c627f2b675539a684.wasm"
+    },
+    {
+      "name": "lazylinkhint",
+      "loading": "lazy",
+      "file": "module-d6624104e98ea457d0ad41dbdefa76f01fd29b877710a68a7c561b754a85fef5.wasm"
+    },
+    {
+      "name": "linkhint",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "modal",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "optimistic",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "profileform",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "resourcepanel",
+      "loading": "lazy",
+      "file": "module-0d9c1daa1914963447e733156db0de552fb575d8a3f4fd25d12f45b53eb5f18a.wasm"
+    },
+    {
+      "name": "scriptwidget",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "selectionnav",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "sessionpanel",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "settings",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "toolbox",
+      "loading": "eager",
+      "file": "app.wasm"
+    },
+    {
+      "name": "transitioncard",
+      "loading": "eager",
+      "file": "app.wasm"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "/",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/_public",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/about",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/action-view",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/embed",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/header-policy",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/health",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/locale",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/report",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/resources",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/api/social",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/boards",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 2
+    },
+    {
+      "pattern": "/boards/activity",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 2
+    },
+    {
+      "pattern": "/boards/chart",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 2
+    },
+    {
+      "pattern": "/boards/drill",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 2
+    },
+    {
+      "pattern": "/boards/reports",
+      "kind": "page",
+      "layouts": 3,
+      "templates": 0,
+      "slots": 3
+    },
+    {
+      "pattern": "/boards/reports/summary",
+      "kind": "page",
+      "layouts": 3,
+      "templates": 0,
+      "slots": 3
+    },
+    {
+      "pattern": "/boards/settings",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 2
+    },
+    {
+      "pattern": "/cache",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/catalog/*path?",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/choice-pair",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/choice-preview",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/choices",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/client-only",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/composition",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/composition/details",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/cookie-session",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/docs/*path",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/downloads/:name",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/embeds",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/environment",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/evergreen",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/features",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/field-preview",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/file-preview",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/form-pair",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/forms",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/gallery",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 1
+    },
+    {
+      "pattern": "/generated-actions",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/keyed",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/keyed/details",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/keyed/table",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy/details",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lazy/stream",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/lifecycle",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/link-status",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/link-status/one",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/link-status/stream",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/link-status/two",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/local-fonts",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/locale",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/market",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/market/:category",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/market/:category/:product",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/market/:category/summary",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/media",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/metadata-clear",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/metadata-stream",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/optimistic",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/partial",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/partial/:slug",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/partial/control",
+      "kind": "api",
+      "layouts": 0,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/photos/:id",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/posts",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/posts/:slug",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/prefetch",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/prerender",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/prerender/:slug",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/prerender/fixed/:slug",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/preview",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/profiles",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/resources",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/restricted",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/routing-private",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/rules",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/rules/headers/:slug",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/scripts",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/scripts/details",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/scripts/stream",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/shared-cache",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/shared-pages",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/shared-pages/:slug",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/shared-prerender",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/shared-prerender/:slug",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/social-image",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/stream",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/templates",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 1,
+      "slots": 0
+    },
+    {
+      "pattern": "/templates/:slug",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 1,
+      "slots": 0
+    },
+    {
+      "pattern": "/templates/:slug/details",
+      "kind": "page",
+      "layouts": 2,
+      "templates": 1,
+      "slots": 0
+    },
+    {
+      "pattern": "/transitions",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/translations",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/uploads",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    },
+    {
+      "pattern": "/welcome",
+      "kind": "page",
+      "layouts": 1,
+      "templates": 0,
+      "slots": 0
+    }
+  ],
+  "totals": {
+    "allBytes": 28930838,
+    "allGzip9Bytes": 7825808,
+    "eagerBytes": 7679141,
+    "eagerGzip9Bytes": 1919715
+  },
+  "budgets": {
+    "coreBytes": 6291456,
+    "coreGzip9Bytes": 1677722,
+    "lazyBytes": 0,
+    "lazyGzip9Bytes": 0
+  },
+  "violations": [
+    {
+      "file": "app.wasm",
+      "metric": "bytes",
+      "actual": 7659557,
+      "limit": 6291456
+    },
+    {
+      "file": "app.wasm",
+      "metric": "gzip9Bytes",
+      "actual": 1914390,
+      "limit": 1677722
+    }
+  ]
+}

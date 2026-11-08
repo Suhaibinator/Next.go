@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/Suhaibinator/Next.go/assets"
+	"github.com/Suhaibinator/Next.go/examples/demo/localfonts"
 	"github.com/Suhaibinator/Next.go/internal/navigation"
 	"github.com/Suhaibinator/Next.go/offline"
 	"github.com/Suhaibinator/Next.go/seo"
@@ -154,10 +155,12 @@ func TestManagedOfflineNewFreezesInventoryAndAtomicBundle(t *testing.T) {
 }
 
 func TestManagedOfflineRejectsInvalidConfigAndAssetBytes(t *testing.T) {
-	for _, kind := range []string{"missing-policy", "missing-build", "wrong-runtime", "wrong-digest", "missing-file", "directory", "truncated", "bad-wasm", "budget", "base", "phase", "unlisted-page", "handler-shadow", "document-handler", "document-route", "rewrite"} {
+	for _, kind := range []string{"missing-policy", "missing-build", "wrong-runtime", "wrong-digest", "missing-file", "directory", "truncated", "bad-wasm", "budget", "base", "phase", "unlisted-page", "handler-shadow", "document-handler", "document-route", "rewrite", "managed-fonts"} {
 		t.Run(kind, func(t *testing.T) {
 			config, files := managedOfflineFixture(t, "")
 			switch kind {
+			case "managed-fonts":
+				config.LocalFonts = []*assets.LocalFonts{localfonts.Set()}
 			case "missing-policy":
 				config.Offline = nil
 			case "missing-build":

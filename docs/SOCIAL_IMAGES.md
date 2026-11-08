@@ -9,11 +9,12 @@ or display it.
 
 This is a limited composition API, not JSX, HTML/CSS, SVG or a browser layout
 engine. It does not implement general ImageResponse/Satori font or layout
-compatibility, automatic social-image filename discovery, or static publication
-of generated images. The dynamic demo declares `Context.RequireServer()` and
+compatibility. App-root generated PNG filename discovery and static publication
+are available through the managed metadata conventions described below.
+The request-dependent dynamic demo declares `Context.RequireServer()` and
 requires a server deployment; static export rejects it before publication. For
-a plain static host, call `Render` during your own build and publish its bytes
-as an ordinary public asset.
+a plain static host, use request-independent managed startup producers, or call
+`Render` during your own build and publish its bytes as an ordinary public asset.
 
 ## A route handler
 
@@ -194,3 +195,38 @@ tests validate escaped output and social metadata. Run:
 ```sh
 go test -race ./socialimage ./examples/demo/socialcard ./examples/demo/app/api/social ./examples/demo/app/social-image
 ```
+
+## Request-independent managed social images
+
+Add native `app/opengraph-image.go` and/or `app/twitter-image.go` with these
+compiler-checked functions:
+
+```go
+func OpenGraphImage(ctx context.Context) ([]byte, error) {
+    return socialimage.Render(ctx, publicDocument,
+        socialimage.Limits{MaxOutputBytes: metadatafiles.MaxImageBytes})
+}
+func TwitterImage(ctx context.Context) ([]byte, error) {
+    return OpenGraphImage(ctx) // Or render a separate public card.
+}
+```
+
+The functions return explicitly public PNG bytes, run once per application
+startup and receive no incoming HTTP request. The managed snapshot validates the
+complete PNG raster and owns the bytes; requests perform no generation/decoding.
+Static `.png`, `.jpg`, `.jpeg` or bounded animated `.gif` files are alternatives, and matching `.alt.txt` files provide
+bounded descriptions. Native GET/HEAD/ETag dispatch and verified staged static
+export share the declared inventory. Defaults use `Metadata.BaseURL` and stay at
+the global application mount, independent of document locale and asset/CDN
+prefixes. Typed image lists replace defaults, non-nil empty lists clear them,
+and explicit card metadata wins. An empty metadata base omits automatic image
+tags rather than inferring an origin from an incoming Host.
+
+Use the [metadata-site example](../examples/metadata-site/README.md) for generated
+Open Graph/Twitter PNGs, alt files, inherited/override/clear navigation and static
+publication. Its 1200 × 630 cards use the existing original ASCII bitmap face.
+The request-dependent `/api/social` demonstration continues to require a server.
+See [metadata file limits](../metadatafiles/README.md#generated-social-image-publication).
+This covers app-root PNG/JPEG/GIF conventions, not nested variants, multiple generated
+IDs, modern codecs, HTML/CSS/shaping compatibility, automatic CDN headers
+or production crawler/cold-start/load/security qualification.

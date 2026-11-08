@@ -5,6 +5,307 @@ on:
 permissions:
   contents: read
 jobs:
+  widgets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.x', 'stable']
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CGO_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Verify the pinned licensed library snapshots
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          import {join} from 'node:path';
+          const manifest = JSON.parse(await readFile('tests/widgets-vendor.json', 'utf8'));
+          for (const [name, pin] of Object.entries(manifest.files)) {
+            const data = await readFile(join(manifest.root, name));
+            assert.equal(data.length, pin.bytes);
+            assert.equal(createHash('sha256').update(data).digest('hex'), pin.sha256);
+            assert.equal('sha384-' + createHash('sha384').update(data).digest('base64'), pin.sha384);
+          }
+          NODE
+      - name: Build and pin standalone and static widget artifacts
+        run: |
+          mkdir -p .nextgo-test-results/widgets
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          ./dist/nextgo generate --check ./examples/widgets
+          ./dist/nextgo build -out ./dist/widgets ./examples/widgets
+          NEXTGO_METADATA_BASE_PATH=/lambda-features NEXTGO_METADATA_ASSET_PREFIX=/lambda-assets ./dist/nextgo export -out ./dist/widgets-static ./examples/widgets
+          go test -c -tags=deployment -o ./dist/widgets/deployment.test ./tests/deployment
+          echo "NEXTGO_WIDGET_BINARY=$PWD/dist/widgets/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_WIDGET_SHA256=$(sha256sum dist/widgets/server | cut -d ' ' -f1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_WIDGET_STATIC_ROOT=$PWD/dist/widgets-static" >> "$GITHUB_ENV"
+          NEXTGO_WIDGET_STATIC_ROOT="$PWD/dist/widgets-static" node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {staticArtifactPin} from './tests/client-only-deployment-fixture.mjs';
+          console.log('NEXTGO_WIDGET_STATIC_SHA256=' + (await staticArtifactPin(process.env.NEXTGO_WIDGET_STATIC_ROOT)).sha256);
+          NODE
+      - name: Browser library lifecycle over HTTP, both Lambda modes and static files
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/widgets/browser.json
+        run: npx playwright test -c tests/widgets.config.mjs --reporter=list,json
+      - name: Require the full browser matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/widgets/browser.json', 'utf8'));
+          assert.equal(report.stats.expected, 208);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Native and restricted-container widget executable conformance
+        run: |
+          NEXTGO_TEST_WIDGET_BINARY="$NEXTGO_WIDGET_BINARY" NEXTGO_TEST_WIDGET_SHA256="$NEXTGO_WIDGET_SHA256" ./dist/widgets/deployment.test '-test.run=^TestWidgetsExecutable$' -test.v -test.timeout=120s > .nextgo-test-results/widgets/host.log 2>&1
+          cat > ./dist/widgets/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_TEST_WIDGET_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestWidgetsExecutable$", "-test.v", "-test.timeout=120s"]
+          DOCKER
+          docker build --network=none -t nextgo-widgets-local ./dist/widgets
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m -e NEXTGO_TEST_WIDGET_SHA256="$NEXTGO_WIDGET_SHA256" nextgo-widgets-local > .nextgo-test-results/widgets/container.log 2>&1
+          python3 - <<'PY'
+          import pathlib, re
+          for name in ('host', 'container'):
+              log = pathlib.Path('.nextgo-test-results/widgets/' + name + '.log').read_text()
+              passed = re.findall(r'^\s*--- PASS: (\S+)', log, re.M)
+              leaves = [p for p in passed if not any(q.startswith(p + '/') for q in passed)]
+              assert len(leaves) == 84, (name, len(leaves))
+              assert not re.search(r'--- (FAIL|SKIP):', log), name
+              assert log.rstrip().endswith('PASS'), name
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: widgets-${{ matrix.go }}
+          path: .nextgo-test-results/widgets/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+  comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CGO_ENABLED: '0'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Install the isolated pinned Next.js reference
+        run: npm --prefix tests/performance/nextjs ci --ignore-scripts --no-audit --no-fund
+      - name: Build the production Next.js reference
+        run: |
+          mkdir -p .nextgo-test-results/framework-comparison/nextjs-standalone
+          npm --prefix tests/performance/nextjs run build > .nextgo-test-results/framework-comparison/build-nextjs.log 2>&1
+          cp -a tests/performance/nextjs/.next/standalone/. .nextgo-test-results/framework-comparison/nextjs-standalone/
+          cp -a tests/performance/nextjs/.next/static .nextgo-test-results/framework-comparison/nextjs-standalone/.next/static
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.13'
+          cache: false
+      - name: Build the Go compatibility reference
+        run: |
+          go run ./cmd/nextgo generate --check ./examples/comparison
+          go vet ./examples/comparison/...
+          GOOS=js GOARCH=wasm go vet ./examples/comparison/components/counter
+          go run ./cmd/nextgo build -out .nextgo-test-results/framework-comparison/go1.24 ./examples/comparison > .nextgo-test-results/framework-comparison/build-go1.24.log 2>&1
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Build the Go production reference
+        run: |
+          go run ./cmd/nextgo generate --check ./examples/comparison
+          go vet ./examples/comparison/...
+          GOOS=js GOARCH=wasm go vet ./examples/comparison/components/counter
+          go run ./cmd/nextgo build -out .nextgo-test-results/framework-comparison/go1.27 ./examples/comparison > .nextgo-test-results/framework-comparison/build-go1.27.log 2>&1
+      - name: Check matched behavior and record local performance
+        run: |
+          node tests/performance/compare.mjs --go27="$PWD/.nextgo-test-results/framework-comparison/go1.27/server" --go24="$PWD/.nextgo-test-results/framework-comparison/go1.24/server" --next="$PWD/.nextgo-test-results/framework-comparison/nextjs-standalone" --out="$PWD/.nextgo-test-results/framework-comparison/observations" --samples=12 --requests=1000
+      - name: Independently verify closed server listeners
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, socket
+          root = pathlib.Path('.nextgo-test-results/framework-comparison/observations')
+          ports = set()
+          for name in ('go1.27', 'go1.24', 'nextjs16.4.5'):
+              found = set(re.findall(r'127\.0\.0\.1:(\d+)', (root / (name + '.log')).read_text()))
+              assert len(found) == 1, (name, found)
+              ports.update(found)
+          assert len(ports) == 3
+          for port in ports:
+              try:
+                  connection = socket.create_connection(('127.0.0.1', int(port)), timeout=.3)
+              except ConnectionRefusedError:
+                  continue
+              connection.close()
+              raise AssertionError('server listener remains: ' + port)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-framework-comparison
+          path: .nextgo-test-results/framework-comparison/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+  aws-rie:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.x', 'stable']
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CGO_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          # The independently built emulator requires Go >= 1.26.6.
+          go-version: '1.27.3'
+          cache: false
+      - name: Build the checksum-verified official AWS emulator
+        run: |
+          mkdir -p dist/aws-rie .nextgo-test-results/aws-rie
+          GOBIN="$PWD/dist/aws-rie" go install github.com/aws/aws-lambda-runtime-interface-emulator/cmd/aws-lambda-rie@v0.0.0-20261030183630-d71cae7ddcf3
+          go version -m dist/aws-rie/aws-lambda-rie > .nextgo-test-results/aws-rie/emulator-build.txt
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Build and pin the standalone application and harness
+        run: |
+          go version > .nextgo-test-results/aws-rie/application-sdk.txt
+          go run ./cmd/nextgo build -out ./dist/aws-rie/demo ./examples/demo
+          cp dist/aws-rie/demo/server dist/aws-rie/server
+          go test -c -tags=deployment -o ./dist/aws-rie/deployment.test ./tests/deployment
+          sha256sum dist/aws-rie/server dist/aws-rie/aws-lambda-rie dist/aws-rie/deployment.test > .nextgo-test-results/aws-rie/executables.sha256
+          echo "NEXTGO_RIE_SHA256=$(sha256sum dist/aws-rie/aws-lambda-rie | cut -d ' ' -f1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_TEST_BINARY_SHA256=$(sha256sum dist/aws-rie/server | cut -d ' ' -f1)" >> "$GITHUB_ENV"
+      - name: Official emulator executable contract on the host
+        run: |
+          NEXTGO_RIE_BINARY="$PWD/dist/aws-rie/aws-lambda-rie" NEXTGO_TEST_BINARY="$PWD/dist/aws-rie/server" ./dist/aws-rie/deployment.test '-test.run=^TestAWSRIE' -test.v -test.timeout=120s > .nextgo-test-results/aws-rie/host.log 2>&1
+      - name: Official emulator in a restricted Linux container
+        run: |
+          cat > dist/aws-rie/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 aws-lambda-rie /rie
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_RIE_BINARY=/rie NEXTGO_TEST_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestAWSRIE", "-test.v", "-test.timeout=120s"]
+          DOCKER
+          docker build --network=none -t nextgo-aws-rie-local ./dist/aws-rie
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m --tmpfs /tmp:rw,nosuid,nodev,noexec,size=32m,mode=1777 -e NEXTGO_RIE_SHA256 -e NEXTGO_TEST_BINARY_SHA256 nextgo-aws-rie-local > .nextgo-test-results/aws-rie/container.log 2>&1
+      - name: Require both complete local matrices
+        run: |
+          python3 - <<'PY'
+          import pathlib, re
+          for name in ('host', 'container'):
+              log = pathlib.Path(f'.nextgo-test-results/aws-rie/{name}.log').read_text()
+              passed = re.findall(r'^\s*--- PASS: (TestAWSRIE\S+)', log, re.M)
+              cases = [p for p in passed if p.startswith('TestAWSRIECookieSessionExecutable/') or p.rsplit('/', 1)[-1] in ('cold-and-warm-health', 'native-SSR', 'navigation-envelope', 'HEAD', 'compressed-runtime-binary', 'warm-generated-mutation', 'unsupported-event-error-and-recovery')]
+              assert len(cases) == len(set(cases)) == 32, (name, len(cases))
+              assert not re.search(r'--- (FAIL|SKIP):', log), name
+              assert log.rstrip().endswith('PASS'), name
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aws-rie-${{ matrix.go }}
+          path: .nextgo-test-results/aws-rie/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+  advisories:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [native, wasm-core, wasm-module]
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CGO_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          # Match the production Docker SDK; 1.24 remains compatibility-only.
+          go-version: '1.27.3'
+          cache: false
+      - name: Install the checksum-verified advisory checker
+        run: |
+          mkdir -p .nextgo-test-results/advisories/tools
+          GOBIN="$PWD/.nextgo-test-results/advisories/tools" go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+          go version > .nextgo-test-results/advisories/sdk.txt
+          go version -m .nextgo-test-results/advisories/tools/govulncheck > .nextgo-test-results/advisories/checker.txt
+      - name: Check the production SDK against the live official database
+        shell: bash
+        run: |
+          checker="$PWD/.nextgo-test-results/advisories/tools/govulncheck"
+          case '${{ matrix.target }}' in
+            native)
+              "$checker" -json ./... > .nextgo-test-results/advisories/result.json
+              ;;
+            wasm-core)
+              GOOS=js GOARCH=wasm "$checker" -json ./client ./mutation ./offline ./offline/worker ./internal/navigation ./internal/routing ./ui ./examples/demo/components/... ./examples/widgets/components/... > .nextgo-test-results/advisories/result.json
+              ;;
+            wasm-module)
+              GOOS=js GOARCH=wasm GOFLAGS='-p=2 -tags=nextgo_module' "$checker" -json ./client ./mutation ./offline ./offline/worker ./internal/navigation ./internal/routing ./ui ./examples/demo/components/... ./examples/widgets/components/... > .nextgo-test-results/advisories/result.json
+              ;;
+          esac
+          # JSON mode exits zero even with findings. The pinned checker's
+          # converter returns nonzero for reachable findings and gates this job.
+          "$checker" -mode=convert < .nextgo-test-results/advisories/result.json > .nextgo-test-results/advisories/result.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: advisories-${{ matrix.target }}
+          path: |
+            .nextgo-test-results/advisories/*.json
+            .nextgo-test-results/advisories/*.txt
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
   go:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-go-${{ matrix.go }}
@@ -23,9 +324,13 @@ jobs:
       - name: Check generated route helpers
         run: |
           go run ./cmd/nextgo generate --check ./examples/demo
+          go run ./cmd/nextgo generate --check ./examples/comparison
+          go run ./cmd/nextgo generate --check ./examples/widgets
           go run ./cmd/nextgo generate --check ./examples/workspace/site
           go run ./cmd/nextgo generate --check ./examples/content
           go run ./cmd/nextgo generate --check ./examples/metadata-site
+          go run ./cmd/nextgo generate --check ./examples/root-layouts
+          go run ./cmd/nextgo generate --check ./examples/social-variants
           go run ./cmd/nextgo generate --check ./examples/form-validation
           go run ./cmd/nextgo generate --check ./examples/refresh
           go run ./cmd/nextgo generate --check ./examples/zones/marketing
@@ -45,11 +350,37 @@ jobs:
         run: sh scripts/test-wasm.sh
       - name: Go WASM core and module vet
         run: |
-          GOOS=js GOARCH=wasm go vet ./client ./mutation ./offline ./offline/worker ./internal/offlinejson
+          GOOS=js GOARCH=wasm go vet ./client ./mutation ./offline ./offline/worker ./internal/offlinejson ./internal/routing ./internal/navigation
           GOOS=js GOARCH=wasm go vet -tags=nextgo_module ./client
           GOOS=js GOARCH=wasm go vet -tags=nextgo_devrefresh ./client ./mutation
           GOOS=js GOARCH=wasm go vet -tags='nextgo_module nextgo_devrefresh' ./client
+      - name: Compiled routing differential fuzz and measurements
+        env:
+          GOMAXPROCS: '1'
+        run: |
+          mkdir -p .nextgo-test-results/routing-index
+          go version > .nextgo-test-results/routing-index/sdk.log
+          go test ./internal/routing -run '^$' -fuzz '^FuzzCompiledIndexAgainstLinear$' -fuzztime=10s > .nextgo-test-results/routing-index/fuzz-match.log
+          go test ./internal/routing -run '^$' -fuzz '^FuzzIndexedValidationAgainstLinear$' -fuzztime=10s > .nextgo-test-results/routing-index/fuzz-validation.log
+          go test ./internal/routing -run '^$' -bench '^BenchmarkRoute' -benchtime=100ms -count=3 > .nextgo-test-results/routing-index/bench.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: routing-index-${{ matrix.go }}
+          path: .nextgo-test-results/routing-index/*.log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
       - run: go run ./cmd/nextgo build -out ./dist/demo ./examples/demo
+      - name: Measure an independent production generation
+        run: go run ./cmd/nextgo analyze -out ./dist/demo-analysis.json ./examples/demo
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-analysis-${{ matrix.go }}
+          path: dist/demo-analysis.json
+          if-no-files-found: warn
+          retention-days: 7
       - run: go run ./cmd/nextgo build -out ./dist/workspace ./examples/workspace/site
       - name: Additional example production and static builds
         run: |
@@ -448,6 +779,267 @@ jobs:
             .nextgo-test-results/independent-zones/browser/
           include-hidden-files: true
           if-no-files-found: warn
+          retention-days: 7
+  client-only-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.24.x', 'stable']
+    env:
+      GOTOOLCHAIN: local
+      GOMAXPROCS: '2'
+      GOFLAGS: -p=2
+      CGO_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Pin production executable and mounted static tree
+        shell: bash
+        run: |
+          mkdir -p .nextgo-test-results/client-only-deployment
+          go build -trimpath -o ./dist/nextgo ./cmd/nextgo
+          ./dist/nextgo build -out ./dist/client-only ./examples/demo
+          NEXTGO_DEMO_BASE_PATH=/lambda-features NEXTGO_DEMO_ASSET_PREFIX=/lambda-assets ./dist/nextgo export -out ./dist/client-only-static -paths /client-only,/about,/local-fonts,/routing-private,/_public ./examples/demo
+          echo "NEXTGO_E2E_SERVER_BINARY=$PWD/dist/client-only/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_METADATA_STREAM_SERVER_SHA256=$(sha256sum dist/client-only/server | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_CLIENT_ONLY_STATIC_ROOT=$PWD/dist/client-only-static" >> "$GITHUB_ENV"
+          echo "NEXTGO_LOCAL_FONTS_STATIC_ROOT=$PWD/dist/client-only-static" >> "$GITHUB_ENV"
+          echo "NEXTGO_PRIVATE_BINARY=$PWD/dist/client-only/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_PRIVATE_SHA256=$(sha256sum dist/client-only/server | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_PRIVATE_STATIC_ROOT=$PWD/dist/client-only-static" >> "$GITHUB_ENV"
+          NEXTGO_CLIENT_ONLY_STATIC_ROOT="$PWD/dist/client-only-static" node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {staticArtifactPin} from './tests/client-only-deployment-fixture.mjs';
+          const pin = (await staticArtifactPin(process.env.NEXTGO_CLIENT_ONLY_STATIC_ROOT)).sha256;
+          console.log('NEXTGO_CLIENT_ONLY_STATIC_SHA256=' + pin);
+          console.log('NEXTGO_LOCAL_FONTS_STATIC_SHA256=' + pin);
+          console.log('NEXTGO_PRIVATE_STATIC_SHA256=' + pin);
+          NODE
+      - name: Measure the exact static runtime used by browser qualification
+        shell: bash
+        run: |
+          namespaces=(dist/client-only-static/lambda-assets/_nextgo/*)
+          test "${#namespaces[@]}" -eq 1
+          test -d "${namespaces[0]}"
+          ./dist/nextgo analyze -runtime-dir "${namespaces[0]}" -out .nextgo-test-results/client-only-deployment/published-runtime-analysis.json
+      - name: Frozen local fonts through HTTP, both Lambda modes and static files
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/local-fonts/report.json
+        run: npm run test:local-fonts -- --reporter=list,json
+      - name: Require the complete fixed local-font matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/local-fonts/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 48);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Pin generated social image executable and static publication
+        shell: bash
+        run: |
+          ./dist/nextgo build -out ./dist/social-metadata ./examples/metadata-site
+          NEXTGO_METADATA_BASE_PATH=/lambda-features NEXTGO_METADATA_ASSET_PREFIX=/lambda-assets ./dist/nextgo export -out ./dist/social-metadata-static ./examples/metadata-site
+          echo "NEXTGO_SOCIAL_METADATA_BINARY=$PWD/dist/social-metadata/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_SOCIAL_METADATA_SHA256=$(sha256sum dist/social-metadata/server | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_SOCIAL_METADATA_STATIC_ROOT=$PWD/dist/social-metadata-static" >> "$GITHUB_ENV"
+          NEXTGO_SOCIAL_METADATA_STATIC_ROOT="$PWD/dist/social-metadata-static" node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {staticArtifactPin} from './tests/client-only-deployment-fixture.mjs';
+          console.log('NEXTGO_SOCIAL_METADATA_STATIC_SHA256=' + (await staticArtifactPin(process.env.NEXTGO_SOCIAL_METADATA_STATIC_ROOT)).sha256);
+          NODE
+      - name: Pin original JPEG and GIF publication
+        shell: bash
+        run: |
+          ./dist/nextgo build -out ./dist/social-variants ./examples/social-variants
+          NEXTGO_METADATA_BASE_PATH=/lambda-features NEXTGO_METADATA_ASSET_PREFIX=/lambda-assets ./dist/nextgo export -out ./dist/social-variants-static ./examples/social-variants
+          echo "NEXTGO_VARIANTS_BINARY=$PWD/dist/social-variants/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_VARIANTS_SHA256=$(sha256sum dist/social-variants/server | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_VARIANTS_STATIC_ROOT=$PWD/dist/social-variants-static" >> "$GITHUB_ENV"
+          NEXTGO_VARIANTS_STATIC_ROOT="$PWD/dist/social-variants-static" node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {staticArtifactPin} from './tests/client-only-deployment-fixture.mjs';
+          console.log('NEXTGO_VARIANTS_STATIC_SHA256=' + (await staticArtifactPin(process.env.NEXTGO_VARIANTS_STATIC_ROOT)).sha256);
+          NODE
+      - name: Private folder and literal route browser matrix
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/private-routes/report.json
+        run: npm run test:private-routes -- --reporter=list,json
+      - name: Require the fixed private-route matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/private-routes/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 48);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Pin independent-root executable and static publication
+        shell: bash
+        run: |
+          ./dist/nextgo build -out ./dist/root-layouts ./examples/root-layouts
+          NEXTGO_METADATA_BASE_PATH=/lambda-features NEXTGO_METADATA_ASSET_PREFIX=/lambda-assets ./dist/nextgo export -out ./dist/root-layouts-static -paths /,/guide,/masked,/dashboard,/dashboard/settings,/plain ./examples/root-layouts
+          echo "NEXTGO_ROOTS_BINARY=$PWD/dist/root-layouts/server" >> "$GITHUB_ENV"
+          echo "NEXTGO_ROOTS_SHA256=$(sha256sum dist/root-layouts/server | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+          echo "NEXTGO_ROOTS_STATIC_ROOT=$PWD/dist/root-layouts-static" >> "$GITHUB_ENV"
+          NEXTGO_ROOTS_STATIC_ROOT="$PWD/dist/root-layouts-static" node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import {staticArtifactPin} from './tests/client-only-deployment-fixture.mjs';
+          console.log('NEXTGO_ROOTS_STATIC_SHA256=' + (await staticArtifactPin(process.env.NEXTGO_ROOTS_STATIC_ROOT)).sha256);
+          NODE
+      - name: Independent roots through HTTP, both Lambda modes and static files
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/root-layouts/report.json
+        run: npm run test:root-layouts -- --reporter=list,json
+      - name: Require the complete independent-root browser matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/root-layouts/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 76);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Independent-root native and isolated container contract
+        shell: bash
+        run: |
+          go test -c -tags=deployment -o ./dist/root-layouts/deployment.test ./tests/deployment
+          NEXTGO_TEST_ROOTS_BINARY="$NEXTGO_ROOTS_BINARY" ./dist/root-layouts/deployment.test '-test.run=^TestRootLayoutsExecutable$' -test.v -test.timeout=45s
+          cat > ./dist/root-layouts/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_TEST_ROOTS_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestRootLayoutsExecutable$", "-test.v", "-test.timeout=45s"]
+          DOCKER
+          docker build --network=none -t nextgo-root-layouts-local ./dist/root-layouts
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m nextgo-root-layouts-local
+      - name: Private route native and isolated container contract
+        shell: bash
+        run: |
+          go test -c -tags=deployment -o ./dist/client-only/deployment.test ./tests/deployment
+          NEXTGO_TEST_BINARY="$NEXTGO_PRIVATE_BINARY" ./dist/client-only/deployment.test '-test.run=^TestPrivateRoutesExecutable$' -test.v -test.timeout=45s
+          cat > ./dist/client-only/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_TEST_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestPrivateRoutesExecutable$", "-test.v", "-test.timeout=45s"]
+          DOCKER
+          docker build --network=none -t nextgo-private-routes-local ./dist/client-only
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m nextgo-private-routes-local
+      - name: Artifact admission checks
+        run: node --test tests/client-only-deployment-fixture.test.mjs
+      - name: Actual HTTP and both Lambda executable contracts
+        # The existing native SDK job runs the race variant; race needs CGO.
+        run: NEXTGO_TEST_BINARY="$NEXTGO_E2E_SERVER_BINARY" go test -tags=deployment ./tests/deployment -run '^TestClientOnlyExecutable$' -count=1 -v
+      - name: Four browser profiles over HTTP, both Lambda modes and static files
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/client-only-deployment/report.json
+        run: npm run test:client-only:deployment -- --reporter=list,json
+      - name: Require the complete fixed deployment matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/client-only-deployment/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 88);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Generated social PNGs through all four transports
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/social-metadata/report.json
+        run: npm run test:social-metadata -- --reporter=list,json
+      - name: Require the fixed social metadata matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/social-metadata/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 48);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: Social metadata native and isolated container contracts
+        shell: bash
+        run: |
+          go test -c -tags=deployment -o ./dist/social-metadata/deployment.test ./tests/deployment
+          NEXTGO_TEST_METADATA_BINARY="$NEXTGO_SOCIAL_METADATA_BINARY" ./dist/social-metadata/deployment.test '-test.run=^TestSocialMetadataExecutable$' -test.v -test.timeout=45s
+          cat > ./dist/social-metadata/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_TEST_METADATA_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestSocialMetadataExecutable$", "-test.v", "-test.timeout=45s"]
+          DOCKER
+          docker build --network=none -t nextgo-social-metadata-local ./dist/social-metadata
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m nextgo-social-metadata-local
+      - name: JPEG and GIF browser matrix
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/social-variants/report.json
+        run: npm run test:social-variants -- --reporter=list,json
+      - name: Require the fixed JPEG and GIF matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/social-variants/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 48);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
+      - name: JPEG and GIF native and isolated container contracts
+        shell: bash
+        run: |
+          cp ./dist/social-metadata/deployment.test ./dist/social-variants/deployment.test
+          NEXTGO_TEST_VARIANTS_BINARY="$NEXTGO_VARIANTS_BINARY" ./dist/social-variants/deployment.test '-test.run=^TestSocialVariantsExecutable$' -test.v -test.timeout=45s
+          cat > ./dist/social-variants/Dockerfile <<'DOCKER'
+          FROM scratch
+          COPY --chmod=0555 server /server
+          COPY --chmod=0555 deployment.test /deployment.test
+          USER 65532:65532
+          ENV NEXTGO_TEST_VARIANTS_BINARY=/server NEXTGO_TEST_UID=65532 GOMAXPROCS=2
+          ENTRYPOINT ["/deployment.test"]
+          CMD ["-test.run=^TestSocialVariantsExecutable$", "-test.v", "-test.timeout=45s"]
+          DOCKER
+          docker build --network=none -t nextgo-social-variants-local ./dist/social-variants
+          docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m nextgo-social-variants-local
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: client-only-${{ matrix.go }}
+          path: |
+            .nextgo-test-results/client-only-deployment/
+            .nextgo-test-results/local-fonts/
+            .nextgo-test-results/social-metadata/
+            .nextgo-test-results/social-variants/
+            .nextgo-test-results/private-routes/
+            .nextgo-test-results/root-layouts/
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 7
   streaming:
     concurrency:
