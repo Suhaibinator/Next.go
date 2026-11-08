@@ -15,8 +15,19 @@ is **8,014,494 raw / 2,132,794 gzip-9 bytes**; compatibility Go 1.24 is
 The user explicitly authorized external publication after automatic approval
 review initially rejected the write. [Draft PR #9](https://github.com/Suhaibinator/Next.go/pull/9)
 publishes the exact reviewed candidate at `a56c4f22e5422de42607ab36b91c143f6a13f0bf`.
-Remote CI results are pending and are not inferred from local checks. All 79
-capabilities and G01–G11 remain in scope; no release gate is complete.
+On CI head `d669169`, both SDKs pass static-shell and invocation-context jobs;
+all four SDK/architecture Lambda-packaging cells pass, with 56 actual extracted-ZIP
+mock Runtime flight passes. The stable independent-zone job passes 52 browser
+cases; native and core-WASM production advisory jobs pass. These results retain
+their exact source/job scope in the [remote CI checkpoint](benchmarks/remote-ci-parity-qualification.json).
+The same head fails client-only discovery because its producer still expects
+20 cases while the existing no-JavaScript scenario increases discovery to 24.
+Commit `2de12c8` requires all 24 exact title/profile pairs and physical cleanup
+proofs. Its hosted qualification remains pending. Current unchanged Go source
+also passes 19 local Chromium cases and 15 metadata adapter cases against a
+fresh production demo; this does not qualify the hosted nonroot producer.
+Full remote CI is not green. All 79 capabilities and G01–G11 remain in scope;
+no release gate is complete.
 
 Research baseline refreshed **November 7, 2026 (UTC)**: the [official latest-release page](https://github.com/vercel/next.js/releases/latest) redirects to stable **v16.4.5** ([release](https://github.com/vercel/next.js/releases/tag/v16.4.5), commit `4e5335a00314be7fbb2aace5e9be56a88e64e5a8`). The original October 22 inventory used v16.4.2; the October 23/25 checkpoint used v16.4.3. Both patch deltas are retained below without removing any capability or gate. This is a capability inventory and an unfinished release checklist. **Next.go is not currently feature-parity or production-mature.** Passing the existing sample tests proves the smaller Go/WASM vertical slice; it does not establish the claims in this document.
 

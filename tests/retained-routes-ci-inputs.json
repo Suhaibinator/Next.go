@@ -533,9 +533,9 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "eb49e77457ab457033b58f94516614225c96a03d3bd74c640252562a2eddc339",
-      "bytes": 276481,
-      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "sha256": "38152f7ed1c581af39144777271b61cb5d3e17e5b2831abca24287349ea94cfd",
+      "bytes": 277332,
+      "origin": "Scoped remote CI checkpoint and exact client-only producer correction; source identity only, no retained runtime admission inherited",
       "previousPins": [
         {
           "sha256": "b80bd8d9091290214bc6b232ff93e0a3790cb50c288c4a112d81db8ce3a919d4",
@@ -550,6 +550,11 @@
         {
           "sha256": "9800a871d806a104ca128cfb76e66f5c742b564b0e5fa6393137393588c0ae88",
           "bytes": 276355,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
+        },
+        {
+          "sha256": "eb49e77457ab457033b58f94516614225c96a03d3bd74c640252562a2eddc339",
+          "bytes": 276481,
           "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
         }
       ]
@@ -9954,7 +9959,7 @@
     "existingFourScalarPolicyErrorAndOuterNativeObserverByteExact": true
   },
   "combinedParityIntegrationSource": {
-    "status": "SOURCE_REBOUND_LOCAL_FOCUSED_AND_WASM_PASS_FULL_NATIVE_AND_REMOTE_PENDING",
+    "status": "SOURCE_REBOUND_LOCAL_NATIVE_WASM_AND_SCOPED_CHROMIUM_PASS_FULL_RETAINED_REMOTE_PENDING",
     "upstreamBaseCommit": "d788b8c3fe8bb4645cc28968f25b93a242e6db83",
     "localQualificationBase": "747c43a9d427c17893636a230a5bff5eb55151e0",
     "previousQualification": "nativeCadenceAndRetainedAftermathQualification",
@@ -9971,6 +9976,7 @@
       "allGoTestsByteExact": false,
       "producerExpectedFullGoGuardEnforced": true,
       "guardExecutedForThisNewSource": false
-    }
+    },
+    "localSourceIdentityRecomputed": true
   }
 }

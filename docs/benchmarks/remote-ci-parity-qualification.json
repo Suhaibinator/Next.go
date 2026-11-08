@@ -1,0 +1,2353 @@
+{
+  "format": "nextgo-remote-ci-parity-checkpoint-v1",
+  "recordedAtUTC": "2026-11-08T01:30:10.085725+00:00",
+  "status": "partial-qualified-subsets-with-full-matrix-pending",
+  "PR": "https://github.com/Suhaibinator/Next.go/pull/9",
+  "source": {
+    "initialCIHead": "d669169008510824ba0056856d8e43db08d615d2",
+    "initialCITree": "2347eb8bbce153b068b3ec2bf17e3751af025b6e",
+    "initialCIMergeAbbreviation": "df0fe9c",
+    "base": "d788b8c3fe8bb4645cc28968f25b93a242e6db83",
+    "clientOnlyCorrectionCommit": "2de12c8bfc6ffd3b49ba10717f213f17b52b5add",
+    "correctionTree": "4cec68f67ac20e8b44841c4a7bfd3b1f4fff4870",
+    "GoFiles": 1417,
+    "GoBytes": 6719448,
+    "fullGoGuardSHA256": "91463b553a7d63538fd3647f1a7b7f3a688e7a1a9022833e7861f13e5098438f",
+    "GoSourceUnchangedByBothCIFixes": true
+  },
+  "CIFixes": [
+    {
+      "commit": "d669169008510824ba0056856d8e43db08d615d2",
+      "problem": "Primary workflow had duplicate client-only mapping keys; GitHub rejected the whole workflow.",
+      "change": "Rename the artifact matrix to client-only-artifacts; preserve the specialized client-only producer. All workflow mappings locally reject duplicate keys."
+    },
+    {
+      "commit": "2de12c8bfc6ffd3b49ba10717f213f17b52b5add",
+      "problem": "The specialized client-only producer required20 while the unchanged spec discovers24 (six scenarios across four profiles). CI failed before browser execution:24 !=20.",
+      "change": "Require all24 exact title/profile pairs,24 passing cases and24 distinct native cleanup proofs; include existing no-JavaScript fallback scenario. Preserve tests, retries, timing and physical cleanup requirements.",
+      "verification": "Node syntax, exact24 discovery and six actual local Chromium cases pass. Complete corrected hosted producer remains pending.",
+      "failedInitialHeadJobs": [
+        128587340160,
+        128587340359
+      ],
+      "observedSDKs": [
+        "1.27.3",
+        "1.24.13"
+      ]
+    }
+  ],
+  "completedInitialHead": {
+    "staticShell": {
+      "runID": 42433515044,
+      "jobs": [
+        128587347531,
+        128587347676
+      ],
+      "SDKs": [
+        "1.24.13",
+        "1.27.3"
+      ],
+      "conclusion": "success",
+      "evidence": "Actual job and every required step succeeded; producer enforces48 discovered/passing cases perSDK. Individual browser reports inside the uploaded ZIP were not inspected."
+    },
+    "serverlessInvocationContext": {
+      "runID": 42433514914,
+      "jobs": [
+        128587338798,
+        128587338976
+      ],
+      "SDKs": [
+        "1.24.13",
+        "1.27.3"
+      ],
+      "conclusion": "success",
+      "actualPassEventsPerSDK": [
+        "http",
+        "buffered",
+        "streaming"
+      ],
+      "scope": "Generated executable and local mock Runtime API, not hosted cloud"
+    },
+    "lambdaPackaging": {
+      "runID": 42433514921,
+      "conclusion": "all-four-jobs-success",
+      "cells": [
+        {
+          "jobID": 128587339004,
+          "SDK": "1.27.3",
+          "nativeRunnerArchitecture": "arm64",
+          "uniqueActualMockRuntimeFlightPassEvents": 14
+        },
+        {
+          "jobID": 128587339160,
+          "SDK": "1.27.3",
+          "nativeRunnerArchitecture": "amd64",
+          "uniqueActualMockRuntimeFlightPassEvents": 14
+        },
+        {
+          "jobID": 128587339204,
+          "SDK": "1.24.13",
+          "nativeRunnerArchitecture": "amd64",
+          "uniqueActualMockRuntimeFlightPassEvents": 14
+        },
+        {
+          "jobID": 128587339266,
+          "SDK": "1.24.13",
+          "nativeRunnerArchitecture": "arm64",
+          "uniqueActualMockRuntimeFlightPassEvents": 14
+        }
+      ],
+      "scope": "Each actual native architecture executes14 extracted-ZIP bootstrap mock Runtime flights. Cross-built target bytes are separate. No hosted AWS or physical ARM-device claim."
+    },
+    "independentZones": {
+      "runID": 42433515181,
+      "jobID": 128587340108,
+      "matrix": "stable",
+      "conclusion": "success",
+      "observedBrowserPasses": 52,
+      "environment": "Linux AMD64 Playwright1.64.1 container, Node22.23.4, UID0; Chromium156.0.8078.4 Firefox157.0 WebKit27.2",
+      "scope": "Local independent origin/ingress processes with HTTP and mock Lambda modes. No real TLS/CDN/cloud, nonroot or G06 isolation claim."
+    },
+    "advisories": {
+      "runID": 42433515181,
+      "jobs": [
+        128587340073,
+        128587340165
+      ],
+      "conclusion": "success",
+      "SDK": "1.27.3",
+      "scopes": [
+        "native",
+        "wasm-core"
+      ],
+      "wasmModulePending": true,
+      "scope": "Official live-database advisory checks; independent full source audit remains open"
+    }
+  },
+  "localCurrentGoSource": {
+    "SDK": "1.27.3",
+    "browser": "system Chromium156, LinuxAMD64, local UID0",
+    "serverSHA256": "1ca640a1ae10420dbce4adb770f5d9966a092fe34422a7af216a4bd944f5a221",
+    "browserSuites": [
+      {
+        "suite": "client-only",
+        "passed": 6,
+        "skipped": 0,
+        "flaky": 0,
+        "failed": 0,
+        "path": ".nextgo-test-results/remote-ci/client-only-local-report.json",
+        "sha256": "1e39ae42924780ce6e078b1703c96e9ebb43e7deef176ef67f775b47e988b112"
+      },
+      {
+        "suite": "metadata",
+        "passed": 11,
+        "skipped": 0,
+        "flaky": 0,
+        "failed": 0,
+        "path": ".nextgo-test-results/remote-ci/metadata-local-report.json",
+        "sha256": "1b8280d6ac5b0eb19ecc9d0585777e6d20dc7ea23437a3e61e024ecc39b6f472"
+      },
+      {
+        "suite": "metadata-clear",
+        "passed": 2,
+        "skipped": 0,
+        "flaky": 0,
+        "failed": 0,
+        "path": ".nextgo-test-results/remote-ci/metadata-clear-local-report.json",
+        "sha256": "3bc5a3a103bcfa259b675ff3f5b27b35a1f8144985d45b15eeafedfd2e21105f"
+      }
+    ],
+    "clientOnlyDistinctPhysicalCleanupProofs": 6,
+    "clientOnlyApplicationDataRequests": 0,
+    "metadataAdapterCases": {
+      "passed": 15,
+      "failed": 0,
+      "path": ".nextgo-test-results/remote-ci/metadata-local-deployment.log",
+      "sha256": "6d31a025396baa1aca145f5e4a528f6af946369f3c191d696c8a0ea58ff2645b"
+    },
+    "scope": "Functional checks of freshly built actual demo; not the nonroot hosted producer or cross-engine matrix"
+  },
+  "rawJobLogs": [
+    {
+      "jobID": 128587338798,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587338798.log",
+      "bytes": 36185,
+      "sha256": "673cabdc4e2517bed6cbc974475e7b9350c7772923db598db4376d01d0c9e236"
+    },
+    {
+      "jobID": 128587338976,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587338976.log",
+      "bytes": 36921,
+      "sha256": "36e368699a25205f393476cea29c4ae93fd9d6ab4468674608a1ffb3ce243195"
+    },
+    {
+      "jobID": 128587339004,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587339004.log",
+      "bytes": 67630,
+      "sha256": "a81bc8bb261f5ed223f4bf8c97fd37b71cdf73643ccf958ecdd20ce98ca9ad7f"
+    },
+    {
+      "jobID": 128587339160,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587339160.log",
+      "bytes": 67545,
+      "sha256": "88b94626fac780e51038e734ed93cfa420aeea3237cafb32090fa48bfad763c0"
+    },
+    {
+      "jobID": 128587339204,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587339204.log",
+      "bytes": 65729,
+      "sha256": "8e0b18ee23ab245fc46d2c4c6ec3f11c752b520b3f68c4c9d45990595b0e886f"
+    },
+    {
+      "jobID": 128587339266,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587339266.log",
+      "bytes": 65791,
+      "sha256": "b52794620648053f6e5f0a5b3296181004f40d7167033c0c81949485120ac957"
+    },
+    {
+      "jobID": 128587340073,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587340073.log",
+      "bytes": 21677,
+      "sha256": "eecac3bcd8640f40d38ca52a0c32d68016b5ecbfa31c8278690e4c76f513d694"
+    },
+    {
+      "jobID": 128587340108,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587340108.log",
+      "bytes": 110765,
+      "sha256": "d5c208a14b861ad87bfde508c1ba55b905fffa5a3e6a9b9fad1c14b7aff04791"
+    },
+    {
+      "jobID": 128587340160,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587340160.log",
+      "bytes": 156443,
+      "sha256": "2835d2e1c40f603ea6e95a4424665f56d542cd26a8c877d44a05380fad5f3722"
+    },
+    {
+      "jobID": 128587340165,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587340165.log",
+      "bytes": 21695,
+      "sha256": "a98b5ed5d8a01f374797d0e9b359326d6ff4ba06537b15ba1a941d443d8799d6"
+    },
+    {
+      "jobID": 128587347531,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587347531.log",
+      "bytes": 31621,
+      "sha256": "f1fdc8dc002cf79a1ab66f9b98674ba15c286d1accc08a5ea6f8813836867f59"
+    },
+    {
+      "jobID": 128587347676,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587347676.log",
+      "bytes": 32379,
+      "sha256": "a410ae933fada845c5c5bc7e4473d83fd9509939d189ec9b6082b3e0c4ce1b6c"
+    },
+    {
+      "jobID": 128587340359,
+      "path": ".nextgo-test-results/remote-ci/d669169/job-128587340359.log",
+      "bytes": 155685,
+      "sha256": "38619d02e4cce26b9ecdab72308eaf5d558ea1aa13a1bcb7ba1aa62a3cdc5b57"
+    }
+  ],
+  "observations": {
+    "recordedAtUTC": "2026-11-08 01:29:28 UTC",
+    "repository": "Suhaibinator/Next.go",
+    "heads": {
+      "d669169008510824ba0056856d8e43db08d615d2": [
+        42433515181,
+        42433515044,
+        42433514914,
+        42433514921
+      ],
+      "2de12c8bfc6ffd3b49ba10717f213f17b52b5add": [
+        42434114431,
+        42434114454,
+        42434114402,
+        42434114407,
+        42434114440,
+        42434114514
+      ]
+    },
+    "runs": [
+      {
+        "id": 42433515181,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42433515181",
+        "jobs": [
+          {
+            "id": 128587340030,
+            "name": "comparison",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340073,
+            "name": "advisories (native)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install the checksum-verified advisory checker",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Check the production SDK against the live official database",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587340102,
+            "name": "client-only-artifacts (stable)",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npx playwright install --with-deps chromium firefox webkit",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Pin production executable and mounted static tree",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Measure the exact static runtime used by browser qualification",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Pin generated social image executable and static publication",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Pin original JPEG and GIF publication",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Private folder and literal route browser matrix",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require the fixed private-route matrix",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Pin independent-root executable and static publication",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Independent roots through HTTP, both Lambda modes and static files",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require the complete independent-root browser matrix",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Independent-root native and isolated container contract",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Private route native and isolated container contract",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Artifact admission checks",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Actual HTTP and both Lambda executable contracts",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Four browser profiles over HTTP, both Lambda modes and static files",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "Require the complete fixed deployment matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Generated social PNGs through all four transports",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Require the fixed social metadata matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Social metadata native and isolated container contracts",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "JPEG and GIF browser matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Require the fixed JPEG and GIF matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "JPEG and GIF native and isolated container contracts",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Frozen local fonts through HTTP, both Lambda modes and static files",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Require the complete fixed local-font matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 128587340108,
+            "name": "independent-zones (stable)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Initialize containers",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Own zones image home and compiler paths",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Trust only the checked-out zones workspace",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve native cgo compiler with verified task-local APT bounds",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Validate preinstalled browser metadata and actual launch versions",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Build independent releases and immutable ingress snapshots",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Standalone application module tests",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Artifact loader boundaries",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "HTTP and both Lambda modes at ingress and origins",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Independent release browser conformance",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Stop containers",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587340143,
+            "name": "widgets (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340156,
+            "name": "advisories (wasm-module)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340157,
+            "name": "aws-rie (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340160,
+            "name": "client-only (1.27.3)",
+            "status": "completed",
+            "conclusion": "failure",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install pinned browser test dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install Playwright browsers and system dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Own client-only qualification paths",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Build the actual CLI and production demo",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Discover and qualify the unchanged client-only browser matrix",
+                "status": "completed",
+                "conclusion": "failure"
+              },
+              {
+                "name": "Discover and qualify the unchanged metadata-stream browser matrix",
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Discover and qualify the unchanged metadata-clear browser matrix",
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Qualify the unchanged metadata Node adapter families",
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Collect bounded client-only qualification evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "skipped"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587340165,
+            "name": "advisories (wasm-core)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install the checksum-verified advisory checker",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Check the production SDK against the live official database",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587340175,
+            "name": "client-only-artifacts (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340176,
+            "name": "browser",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm ci",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install system dependencies with verified task-local APT bounds",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Download repository-pinned Playwright browsers",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run npm test",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "Run npm run test:crossbrowser",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run npm run test:shared-cache",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run npm run test:shared-pages",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run npm run test:shared-prerender",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run npm run test:static:crossbrowser",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Client resources and lazy-module invalidation",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Typed embeds and native media",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Server-rendered social images",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Production artifacts for focused browser fixtures",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Browser hydration and navigation through both local Lambda modes",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Managed metadata through native and static deployments",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Form validation, native choices and lifecycle",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Multi-zone rendering, navigation and tenant membership",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Multi-zone development rebuild and last-good recovery",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 128587340201,
+            "name": "streaming",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340218,
+            "name": "aws-rie (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340251,
+            "name": "link-status",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340280,
+            "name": "widgets (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340324,
+            "name": "go (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340338,
+            "name": "container",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340359,
+            "name": "client-only (1.24.13)",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install pinned browser test dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install Playwright browsers and system dependencies",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "Own client-only qualification paths",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Build the actual CLI and production demo",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Discover and qualify the unchanged client-only browser matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Discover and qualify the unchanged metadata-stream browser matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Discover and qualify the unchanged metadata-clear browser matrix",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Qualify the unchanged metadata Node adapter families",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Collect bounded client-only qualification evidence",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 128587340360,
+            "name": "independent-zones (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340413,
+            "name": "go (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340419,
+            "name": "offline",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128587340429,
+            "name": "refresh",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          }
+        ]
+      },
+      {
+        "id": 42433515044,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42433515044",
+        "jobs": [
+          {
+            "id": 128587347531,
+            "name": "static-shell (1.24.13)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Own fresh temporary caches, exports and evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install exact locked test dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install pinned Playwright browsers and system dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Build one real CLI, preserve generated helpers and export four variants",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Discover exactly48 and require48 actual passing static browser cases",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Collect bounded proof and first-failure browser evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Remove only the marker-verified owned temporary root",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587347676,
+            "name": "static-shell (1.27.3)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Own fresh temporary caches, exports and evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install exact locked test dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install pinned Playwright browsers and system dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Build one real CLI, preserve generated helpers and export four variants",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Discover exactly48 and require48 actual passing static browser cases",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Collect bounded proof and first-failure browser evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Remove only the marker-verified owned temporary root",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "id": 13598945639,
+            "name": "static-shell-functional-evidence-go1.27.3",
+            "sizeInBytes": 172224,
+            "digest": "sha256:2da16cd29fb47e37185a5abf7fcb92d3492e4cb7d1a359ee3c259696ebe5c9c9",
+            "head": "d669169008510824ba0056856d8e43db08d615d2",
+            "expiresAt": "2026-11-15T01:21:13Z"
+          },
+          {
+            "id": 13598129809,
+            "name": "static-shell-functional-evidence-go1.24.13",
+            "sizeInBytes": 172806,
+            "digest": "sha256:40cac9b8f116a3796d1237d1efa1f727ca245e08bc9322b3270fa756975e7320",
+            "head": "d669169008510824ba0056856d8e43db08d615d2",
+            "expiresAt": "2026-11-15T01:20:47Z"
+          }
+        ]
+      },
+      {
+        "id": 42433514914,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42433514914",
+        "jobs": [
+          {
+            "id": 128587338798,
+            "name": "generated-executable (1.24.13)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record SDK, nonroot host and exact source inputs",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "1 \u2014 Build the actual CLI once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "2 \u2014 Build the actual file-routed fixture once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "3 \u2014 Compile the separately tagged deployment test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "4 \u2014 Run and verify actual HTTP and both mock Runtime modes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve actual proof and generated helper bytes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587338976,
+            "name": "generated-executable (1.27.3)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record SDK, nonroot host and exact source inputs",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "1 \u2014 Build the actual CLI once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "2 \u2014 Build the actual file-routed fixture once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "3 \u2014 Compile the separately tagged deployment test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "4 \u2014 Run and verify actual HTTP and both mock Runtime modes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve actual proof and generated helper bytes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "id": 13598677621,
+            "name": "invocation-context-go1.24.13-42433514914-1",
+            "sizeInBytes": 25609052,
+            "digest": "sha256:68fa79717e4023239c60ef2bbf306051436f2219ec641a263d2cbc4120b3f8e9",
+            "head": "d669169008510824ba0056856d8e43db08d615d2",
+            "expiresAt": "2026-11-22T01:19:48Z"
+          },
+          {
+            "id": 13598292761,
+            "name": "invocation-context-go1.27.3-42433514914-1",
+            "sizeInBytes": 28117288,
+            "digest": "sha256:7f4a5c7cfb7475ffa5aaae40b1387906908b2adae7b0885ce506243f1c8be79b",
+            "head": "d669169008510824ba0056856d8e43db08d615d2",
+            "expiresAt": "2026-11-22T01:18:29Z"
+          }
+        ]
+      },
+      {
+        "id": 42433514921,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42433514921",
+        "jobs": [
+          {
+            "id": 128587339004,
+            "name": "Lambda Go 1.27.3 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587339160,
+            "name": "Lambda Go 1.27.3 / amd64",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587339204,
+            "name": "Lambda Go 1.24.13 / amd64",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          },
+          {
+            "id": 128587339266,
+            "name": "Lambda Go 1.24.13 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 42434114431,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114431",
+        "jobs": [
+          {
+            "id": 128589153265,
+            "name": "client-only-artifacts (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153474,
+            "name": "independent-zones (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153496,
+            "name": "advisories (wasm-core)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153501,
+            "name": "comparison",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153503,
+            "name": "aws-rie (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153517,
+            "name": "advisories (wasm-module)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153520,
+            "name": "widgets (1.24.x)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153550,
+            "name": "widgets (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153556,
+            "name": "client-only-artifacts (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153568,
+            "name": "aws-rie (stable)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153570,
+            "name": "browser",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153641,
+            "name": "advisories (native)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153753,
+            "name": "client-only (1.27.3)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153792,
+            "name": "offline",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153893,
+            "name": "streaming",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153953,
+            "name": "refresh",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153961,
+            "name": "client-only (1.24.13)",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589154023,
+            "name": "independent-zones (1.24.x)",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589154036,
+            "name": "go (stable)",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589154069,
+            "name": "container",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589154071,
+            "name": "link-status",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589154129,
+            "name": "go (1.24.x)",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          }
+        ]
+      },
+      {
+        "id": 42434114454,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114454",
+        "jobs": [
+          {
+            "id": 128589153447,
+            "name": "static-shell (1.27.3)",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Own fresh temporary caches, exports and evidence",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install exact locked test dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Install pinned Playwright browsers and system dependencies",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Build one real CLI, preserve generated helpers and export four variants",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "Discover exactly48 and require48 actual passing static browser cases",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Collect bounded proof and first-failure browser evidence",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Remove only the marker-verified owned temporary root",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 128589153645,
+            "name": "static-shell (1.24.13)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          }
+        ]
+      },
+      {
+        "id": 42434114402,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114402",
+        "jobs": [
+          {
+            "id": 128589153270,
+            "name": "generated-executable (1.27.3)",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153433,
+            "name": "generated-executable (1.24.13)",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record SDK, nonroot host and exact source inputs",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "1 \u2014 Build the actual CLI once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "2 \u2014 Build the actual file-routed fixture once",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "3 \u2014 Compile the separately tagged deployment test",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "4 \u2014 Run and verify actual HTTP and both mock Runtime modes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve actual proof and generated helper bytes",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 42434114407,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114407",
+        "jobs": [
+          {
+            "id": 128589153369,
+            "name": "Lambda Go 1.27.3 / arm64",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          },
+          {
+            "id": 128589153580,
+            "name": "Lambda Go 1.27.3 / amd64",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153626,
+            "name": "Lambda Go 1.24.13 / amd64",
+            "status": "queued",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153659,
+            "name": "Lambda Go 1.24.13 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record native SDK, Node and immutable source; own fresh task caches",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Seven real Lambda race groups including exact ZIP bootstrap Runtime API flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Vet both native packages",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Require seven groups, two targets and all fourteen actual native flights",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Preserve text evidence only",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 42434114440,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114440",
+        "jobs": []
+      },
+      {
+        "id": 42434114514,
+        "url": "https://github.com/Suhaibinator/Next.go/actions/runs/42434114514",
+        "jobs": [
+          {
+            "id": 128589153562,
+            "name": "source (1.24.13)",
+            "status": "pending",
+            "conclusion": null,
+            "steps": null
+          },
+          {
+            "id": 128589153648,
+            "name": "source (1.27.3)",
+            "status": "in_progress",
+            "conclusion": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-go@v5",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "Record exact source and compiler identities",
+                "status": "completed",
+                "conclusion": "success"
+              },
+              {
+                "name": "All native packages with race checks",
+                "status": "in_progress",
+                "conclusion": null
+              },
+              {
+                "name": "All core and development WASM packages plus module contracts",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Build the real CLI and both example production bundles",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Run actions/upload-artifact@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/setup-go@v5",
+                "status": "pending",
+                "conclusion": null
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "pending",
+                "conclusion": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Initial head has a recorded client-only producer failure; its complete CI is not green.",
+    "Corrected head and later documentation must earn their own complete matrix; do not transplant older statuses.",
+    "Workflow artifact identities/digests were observed. ZIP content download was denied withHTTP403 by the managed environment; contents were not reviewed.",
+    "Retained/merge/offline complete browser matrices, source audit, hosted cloud, approved performance budgets, physical devices/accessibility and long-running resource/recovery/release qualification remain open.",
+    "All79 capabilities and G01-G11 remain in scope with no waivers or completion claim."
+  ]
+}
