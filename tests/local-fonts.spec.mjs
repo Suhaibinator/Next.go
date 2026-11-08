@@ -32,12 +32,16 @@ async function fontsDecoded(page) {
     await document.fonts.ready;
     const fonts = [...document.fonts].filter(face => face.family.includes('Nextgo Fixture')).map(face => ({family: face.family.replaceAll('"', ''), status: face.status}));
     const canvas = document.createElement('canvas'), context = canvas.getContext('2d');
-    const widths = ['Nextgo Fixture', 'Nextgo Fixture WOFF'].map(family => {context.font = `72px "${family}"`; return context.measureText('GO').width;});
-    return {fonts, widths};
+    // Probe at one font unit per pixel: some Linux font backends grid-fit
+    // each 54.72px advance to 55px at 72px. At the fixture's 1000-unit em,
+    // the two 760-unit advances are integral on both fractional and grid-fit
+    // backends. Keep the same strict tolerance and actual decode requirement.
+    const widths = ['Nextgo Fixture', 'Nextgo Fixture WOFF'].map(family => {context.font = `1000px "${family}"`; return context.measureText('GO').width;});
+    return {fonts, widths, probePixels: 1000, unitsPerEm: 1000};
   });
   expect(proof.fonts).toHaveLength(2);
   expect(proof.fonts.every(font => font.status === 'loaded')).toBe(true);
-  for (const width of proof.widths) expect(width).toBeCloseTo(2 * 760 * 72 / 1000, 1);
+  for (const width of proof.widths) expect(width).toBeCloseTo(2 * 760, 1);
   return proof;
 }
 
