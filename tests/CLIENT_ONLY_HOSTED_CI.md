@@ -1,7 +1,8 @@
 # Hosted client-only browser qualification
 
-The dedicated `client-only` CI job runs the existing five client-only scenarios
-in Chromium, Firefox, WebKit and WebKit touch: **20 executions per SDK**. The Go
+The dedicated `client-only` CI job runs six client-only scenarios, including
+the no-JavaScript fallback, in Chromium, Firefox, WebKit and WebKit touch:
+**24 executions per SDK**. The Go
 1.24.13 and 1.27.3 jobs each build their own real CLI and production demo with
 Node 24.22.1 and the lockfile's Playwright 1.64.1. This is Linux AMD64 hosted
 functional qualification, not evidence for ARM64, deployment platforms, a memory
@@ -29,11 +30,11 @@ The original four phases of `scripts/client-only-ci.mjs` are:
    CLI's production `build -out ... ./examples/demo`. The fresh CLI and server
    become mode-0500 files. The server's SHA256 is exported to the existing
    prebuilt-only browser fixture; there is no fallback producer.
-3. `qualify` requires discovery of exactly the five original titles in all four
+3. `qualify` requires discovery of exactly the six source-declared titles in all four
    profiles, then runs the original config/spec once through the existing
    browser wrapper. Every expected case must pass exactly once, with zero
    retries, skips, unexpected results, flaky cases or report errors. The helper
-   checks all 20 inline `client-only-native-process-and-wire-proof` attachments.
+   checks all 24 inline `client-only-native-process-and-wire-proof` attachments.
 4. `collect` publishes a bounded selection of evidence even after failures.
    The hosted artifact contains source/version pins, command receipts/logs,
    discovery/results, qualification or failure receipts, and selected browser
@@ -60,7 +61,7 @@ observation as unsupported; they do not acquire fabricated Linux evidence.
 The 64 KiB per-proc-file limit bounds bytes, not independent wall time. Existing
 case/startup/job deadlines remain the surrounding time bounds.
 
-All 20 receipts must show graceful TERM, actual native close/stdio join, code 0,
+All 24 receipts must show graceful TERM, actual native close/stdio join, code 0,
 no signal, no forced kill or unexpected exit, both real gateway/data-source
 listeners joined and closed without errors, and zero remaining sockets and
 upstreams. The owned native cwd is marked removed only after successful `rm`

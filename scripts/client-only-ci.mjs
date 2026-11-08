@@ -113,13 +113,14 @@ const titles = [
   'panic after eager and lazy setup restores exact fallback nodes, drafts and focus and removes new listeners',
   'Go navigation disposes eager and lazy browser-view listeners and remounts independent state on return',
   'a superseded lazy download never replaces detached fallbacks and the returned page mounts normally',
+  'native and exported HTML retain four useful fallbacks and an ordinary island',
 ];
 const projects = ['client-only-chromium', 'client-only-firefox', 'client-only-webkit', 'client-only-webkit-touch'];
 const expected = new Set(projects.flatMap(project => titles.map(title => `${project}\n${title}`)));
 function cases(report) {
   const records = [];
   const walk = suites => {for (const suite of suites || []) {for (const spec of suite.specs || []) {assert(spec.file === 'client-only.spec.mjs', 'Unexpected spec'); for (const test of spec.tests || []) records.push({spec, test, key: `${test.projectName}\n${spec.title}`});} walk(suite.suites);}};
-  walk(report.suites); assert.equal(records.length, 20); assert.equal(new Set(records.map(value => value.key)).size, 20);
+  walk(report.suites); assert.equal(records.length, 24); assert.equal(new Set(records.map(value => value.key)).size, 24);
   for (const {key, test} of records) {assert(expected.has(key), `Unexpected case ${key}`); assert.equal(test.expectedStatus, 'passed');}
   assert.deepEqual(report.errors || [], []); return records;
 }
@@ -230,7 +231,7 @@ async function qualify() {
   }
   await json(join(root,'report','browsers.json'), {playwright:pkg.version, browserDefinitions:await pin(join(checkout,'node_modules','playwright-core','browsers.json'),1 << 20), browsers, launchedPIDs, exitedPIDs});
   const report = await readJSON(join(root,'report','report.json')), records = cases(report);
-  assert.equal(report.stats.expected,20); for (const key of ['unexpected','flaky','skipped']) assert.equal(report.stats[key],0);
+  assert.equal(report.stats.expected,24); for (const key of ['unexpected','flaky','skipped']) assert.equal(report.stats[key],0);
   const proofs = [];
   for (const record of records) {
     assert(record.spec.ok && record.test.status === 'expected' && record.test.results.length === 1);
@@ -238,9 +239,9 @@ async function qualify() {
     proofs.push(await validateProof(record,artifact));
   }
   assert.deepEqual(await pin(artifact.path),artifact);
-  assert.equal(new Set(proofs.map(proof=>`${proof.pid}:${proof.nativeIdentity.startTimeTicks}`)).size,20);
+  assert.equal(new Set(proofs.map(proof=>`${proof.pid}:${proof.nativeIdentity.startTimeTicks}`)).size,24);
   const listeners = await listenerEvidence(); assert(listeners.every(table=>table.selectedListeningRows.length === 0),'Qualification ports still listening');
-  await json(join(root,'report','qualification.json'), {version:1,status:'PASS',sdk,node:process.version,platform:process.platform,arch:process.arch,uid,cases:20,profiles:projects,discovered:20,skipped:0,retries:0,artifact,proofs,listeners});
+  await json(join(root,'report','qualification.json'), {version:1,status:'PASS',sdk,node:process.version,platform:process.platform,arch:process.arch,uid,cases:24,profiles:projects,discovered:24,skipped:0,retries:0,artifact,proofs,listeners});
 }
 // These are the existing source-declared cases, including the three instantiated
 // late-mode cases. Discovery must match every title/profile pair exactly.
