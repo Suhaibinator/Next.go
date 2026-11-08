@@ -533,9 +533,9 @@
     },
     {
       "path": "docs/PARITY.md",
-      "sha256": "38152f7ed1c581af39144777271b61cb5d3e17e5b2831abca24287349ea94cfd",
-      "bytes": 277332,
-      "origin": "Scoped remote CI checkpoint and exact client-only producer correction; source identity only, no retained runtime admission inherited",
+      "sha256": "e7426c7ca61ec35f1ff33121e52e9b05fc8653c150964075b5d32ca21d556ae2",
+      "bytes": 278757,
+      "origin": "Native global-error qualification source and exact historical evidence scopes; no retained admission inherited",
       "previousPins": [
         {
           "sha256": "b80bd8d9091290214bc6b232ff93e0a3790cb50c288c4a112d81db8ce3a919d4",
@@ -556,6 +556,21 @@
           "sha256": "eb49e77457ab457033b58f94516614225c96a03d3bd74c640252562a2eddc339",
           "bytes": 276481,
           "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
+        },
+        {
+          "sha256": "38152f7ed1c581af39144777271b61cb5d3e17e5b2831abca24287349ea94cfd",
+          "bytes": 277332,
+          "origin": "Scoped remote CI checkpoint and exact client-only producer correction; source identity only, no retained runtime admission inherited"
+        },
+        {
+          "sha256": "d5626d8f7bf90894aa73d047b8c3f88ac1db97d608f606c38a36bbb2b8a1b94f",
+          "bytes": 278257,
+          "origin": "Native global-error fallback increment; source identity only; earlier runtime qualification retains its original source scope"
+        },
+        {
+          "sha256": "7c37d8a3ca20166ecb87287b76d812544f4e75e1ddd65d970d58a40b29c56587",
+          "bytes": 278737,
+          "origin": "Native global-error qualification complete for documented scopes; no retained runtime/measurement/publisher admission inherited"
         }
       ]
     },
@@ -887,14 +902,19 @@
     },
     {
       "path": "internal/project/build.go",
-      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
-      "bytes": 33255,
-      "sha256": "5a12d50fbb1f0eef031bf7f7674dba413956c54a831a84e08190c30d1dab1dd1",
+      "origin": "Native global-error fallback increment; source identity only; earlier runtime qualification retains its original source scope",
+      "bytes": 33417,
+      "sha256": "0a0671345ebc94281052ae3b6cfd71802781f76b5d61e855764c8fbb7a970d89",
       "previousPins": [
         {
           "sha256": "ac585d92eb956751fc1796279ddae2ff60382a13119c92627718910a43e2bd93",
           "bytes": 32839,
           "origin": "New actual-ZIP LOCAL retained-Lambda qualification helper or exact published3cc CLI packaging source; runtime evidence pending"
+        },
+        {
+          "sha256": "5a12d50fbb1f0eef031bf7f7674dba413956c54a831a84e08190c30d1dab1dd1",
+          "bytes": 33255,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
         }
       ]
     },
@@ -962,14 +982,19 @@
     },
     {
       "path": "nextgo.go",
-      "sha256": "0c8d4302b0867e1cbb3210725b48831dcb74088af1a2d56aa45d7dcfc5b6c124",
-      "bytes": 48288,
-      "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit",
+      "sha256": "4a6f3a11669dee40b695b4cda4c86747041780f639a373bf6c101208ea11a78e",
+      "bytes": 49555,
+      "origin": "Native global-error fallback increment; source identity only; earlier runtime qualification retains its original source scope",
       "previousPins": [
         {
           "sha256": "e0d231d115b2d8f724d422fdd5023b87d3a9199fc974d600b56d4bef4b8cfdd7",
           "bytes": 47304,
           "origin": "Exact203e HTTP-helper composition after root standalone gofmt; source-only/runtime-unqualified"
+        },
+        {
+          "sha256": "0c8d4302b0867e1cbb3210725b48831dcb74088af1a2d56aa45d7dcfc5b6c124",
+          "bytes": 48288,
+          "origin": "Current combined parity candidate: upstream d788b8c plus qualified local features; source identity only, no inherited runtime credit"
         }
       ]
     },
@@ -2460,7 +2485,7 @@
       "runtimeQualificationInherited": false,
       "allOrdinaryGoUnchanged": true
     },
-    "currentQualification": "combinedParityIntegrationSource",
+    "currentQualification": "globalErrorFallbackSource",
     "sourcePins": 207,
     "sourcePinCap": 207,
     "ready": true,
@@ -9978,5 +10003,23 @@
       "guardExecutedForThisNewSource": false
     },
     "localSourceIdentityRecomputed": true
+  },
+  "globalErrorFallbackSource": {
+    "status": "FULL_NATIVE_RACE_VET_AND_SCOPED_STANDALONE_TRANSPORTS_PASS_BOTH_SDKS_FULL_RETAINED_REMOTE_PENDING",
+    "previousQualification": "combinedParityIntegrationSource",
+    "localBasePublishedCommit": "5e28c22d280c2bf4694e63e79d78813d668eecf4",
+    "sourcePins": 207,
+    "runtimeQualified": false,
+    "remoteCampaignObserved": false,
+    "readyMeaning": "Exact source identities permit structural campaign initialization only. No earlier retained runtime, measurement or publisher admission is inherited.",
+    "GoSource": {
+      "files": 1417,
+      "bytes": 6731744,
+      "sha256": "4ac0cf36073182a106d94303fc01c31293567a0bf05a6fee0e973d0c4ee48a9a",
+      "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+      "allGoTestsByteExact": false,
+      "producerExpectedFullGoGuardEnforced": true,
+      "guardExecutedForThisNewSource": false
+    }
   }
 }

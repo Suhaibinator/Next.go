@@ -83,6 +83,11 @@ func TestCompileIndependentModuleWithTargetMarkers(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := fixture(t, map[string]string{
+		"app/globalerror.go": `//go:build !js
+
+package app
+import(nextgo "github.com/Suhaibinator/Next.go";"github.com/Suhaibinator/Next.go/ui")
+func GlobalError(*nextgo.Context,error)(nextgo.Page,error){return nextgo.Page{Body:ui.Text("Independent global fallback")},nil}`,
 		"app/page.go": `//go:build !js
 
 package app

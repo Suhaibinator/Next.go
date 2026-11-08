@@ -15,11 +15,118 @@ import (
 	"time"
 
 	nextgo "github.com/Suhaibinator/Next.go"
+	"github.com/Suhaibinator/Next.go/ui"
 )
 
 type invocationObservation struct {
 	runtime, gateway string
 	ctx              context.Context
+}
+
+func TestGlobalErrorFallbackThroughBothRuntimeTransports(t *testing.T) {
+	for _, streaming := range []bool{false, true} {
+		t.Run(strconv.FormatBool(streaming), func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			modes := []string{"page", "layout", "global-panic", "local"}
+			app, err := nextgo.New(nextgo.Config{Routes: []nextgo.Route{{Pattern: "/", Page: func(c *nextgo.Context) (nextgo.Page, error) {
+				if c.Query.Get("mode") == "layout" {
+					return nextgo.Page{Body: ui.Text("discarded")}, nil
+				}
+				return nextgo.Page{}, errors.New("private page cause")
+			}, Layouts: []nextgo.LayoutFunc{func(c *nextgo.Context, body ui.Node) (ui.Node, error) {
+				if c.Query.Get("mode") == "layout" {
+					return nil, errors.New("private layout cause")
+				}
+				return body, nil
+			}}, Error: func(c *nextgo.Context, _ error) (nextgo.Page, error) {
+				if c.Query.Get("mode") == "local" {
+					return nextgo.Page{Body: ui.Text("Local replacement")}, nil
+				}
+				return nextgo.Page{}, errors.New("private local-boundary cause")
+			}}}, GlobalError: func(c *nextgo.Context, cause error) (nextgo.Page, error) {
+				if cause == nil || !strings.Contains(cause.Error(), "private") {
+					t.Error("native cause missing")
+				}
+				if _, err := c.Slot("protected"); !errors.Is(err, nextgo.ErrSlotScope) {
+					t.Errorf("global slot authority: %v", err)
+				}
+				if c.Query.Get("mode") == "global-panic" {
+					panic("private global cause")
+				}
+				return nextgo.Page{Body: ui.Text("Global replacement")}, nil
+			}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer app.Close(context.Background())
+			var nexts, reports atomic.Int32
+			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == runtimePrefix+"/invocation/next" {
+					i := int(nexts.Add(1)) - 1
+					if i >= len(modes) {
+						w.WriteHeader(503)
+						return
+					}
+					w.Header().Set("Lambda-Runtime-Aws-Request-Id", modes[i])
+					w.Header().Set("Lambda-Runtime-Deadline-Ms", strconv.FormatInt(time.Now().Add(4*time.Second).UnixMilli(), 10))
+					e := afterEvent()
+					e.RawQueryString = "mode=" + modes[i]
+					_ = json.NewEncoder(w).Encode(e)
+					return
+				}
+				i := int(reports.Add(1)) - 1
+				if i >= len(modes) {
+					t.Error("unexpected runtime report")
+					w.WriteHeader(500)
+					return
+				}
+				if r.URL.Path != runtimePrefix+"/invocation/"+modes[i]+"/response" {
+					t.Errorf("unexpected report: %s", r.URL.Path)
+				}
+				var body string
+				if streaming {
+					metadata, reader, err := readStreamPrelude(io.LimitReader(r.Body, 64<<10))
+					if err != nil {
+						t.Error(err)
+					}
+					if metadata.StatusCode != 500 {
+						t.Errorf("stream status=%d", metadata.StatusCode)
+					}
+					data, err := io.ReadAll(reader)
+					if err != nil {
+						t.Error(err)
+					}
+					body = string(data)
+				} else {
+					var response Response
+					if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&response); err != nil {
+						t.Error(err)
+					}
+					if response.StatusCode != 500 || response.IsBase64Encoded {
+						t.Errorf("buffered status/encoding=%d/%t", response.StatusCode, response.IsBase64Encoded)
+					}
+					body = response.Body
+				}
+				want := "Global replacement"
+				if modes[i] == "local" {
+					want = "Local replacement"
+				}
+				if modes[i] == "global-panic" {
+					want = "Something went wrong"
+				}
+				if !strings.Contains(body, want) || strings.Contains(body, "private") || strings.Contains(body, "discarded") {
+					t.Errorf("unexpected fallback body: %s", body)
+				}
+				w.WriteHeader(202)
+			}))
+			defer runtime.Close()
+			err = runWithOptions(ctx, app, runtime.URL, runtime.Client(), runtimeOptions{streaming: streaming})
+			if err == nil || ctx.Err() != nil || reports.Load() != int32(len(modes)) {
+				t.Fatalf("runtime did not report every fallback: err=%v context=%v reports=%d", err, ctx.Err(), reports.Load())
+			}
+		})
+	}
 }
 
 func observeInvocation(ctx context.Context) invocationObservation {

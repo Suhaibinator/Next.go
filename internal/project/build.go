@@ -438,6 +438,9 @@ func serverImports(p *Project) map[string]bool {
 	if p.NotFound != "" {
 		imports[p.NotFound] = true
 	}
+	if p.GlobalError != "" {
+		imports[p.GlobalError] = true
+	}
 	if p.Configure != "" {
 		imports[p.Configure] = true
 	}
@@ -464,6 +467,9 @@ func writeConfigConstruction(b *strings.Builder, p *Project, aliases map[string]
 	fmt.Fprintf(b, "config:=nextgo.Config{Assets:assets,BuildID:%q,Dev:%t,", id, dev)
 	if p.NotFound != "" {
 		fmt.Fprintf(b, "NotFound:%s.NotFound,", aliases[p.NotFound])
+	}
+	if p.GlobalError != "" {
+		fmt.Fprintf(b, "GlobalError:%s.GlobalError,", aliases[p.GlobalError])
 	}
 	for _, handler := range []struct{ field, imp string }{{"Unauthorized", p.Unauthorized}, {"Forbidden", p.Forbidden}} {
 		if handler.imp != "" {

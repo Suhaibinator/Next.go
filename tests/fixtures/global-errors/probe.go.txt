@@ -1,0 +1,286 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"syscall"
+	"time"
+)
+
+type wire struct {
+	Status  int               `json:"statusCode"`
+	Headers map[string]string `json:"headers"`
+	Body    string            `json:"body"`
+	Base64  bool              `json:"isBase64Encoded"`
+}
+type receipt struct {
+	Mode         string
+	UID          int
+	PID          int
+	Cases        []string
+	BodySHA256   []string
+	NativeJoined bool
+	Forced       bool
+}
+
+var cases = []string{"page", "layout", "boundary-panic", "global-panic", "local", "missing"}
+
+func check(name string, status int, headers map[string]string, body string) error {
+	want := "Global replacement"
+	if name == "local" {
+		want = "Local replacement"
+	}
+	if name == "global-panic" {
+		want = "Something went wrong"
+	}
+	if status != 500 || !strings.Contains(body, want) || strings.Contains(body, "private") || strings.Contains(body, "discarded") {
+		return fmt.Errorf("%s: wrong status/public body", name)
+	}
+	if (name == "local") != strings.Contains(body, "data-route-layout") {
+		return fmt.Errorf("%s: route layout ownership", name)
+	}
+	if name != "local" && name != "global-panic" {
+		found := false
+		for k, v := range headers {
+			if strings.EqualFold(k, "X-Global-Fallback") && v == "yes" {
+				found = true
+			}
+		}
+		if !found {
+			return errors.New("native global convention header missing")
+		}
+	}
+	return nil
+}
+func run(binary, mode string) (result receipt, err error) {
+	result.Mode = mode
+	result.UID = os.Getuid()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	env := []string{"PATH=/usr/bin:/bin", "GOMAXPROCS=2"}
+	args := []string{"-env-dir", "/"}
+	origin := ""
+	reports := make(chan wire, len(cases))
+	reportErrors := make(chan error, len(cases)+1)
+	var next, posted atomic.Int32
+	var runtimeServer *httptest.Server
+	if mode == "http" {
+		l, e := net.Listen("tcp", "127.0.0.1:0")
+		if e != nil {
+			return result, e
+		}
+		address := l.Addr().String()
+		l.Close()
+		origin = "http://" + address
+		args = append(args, "-addr", address)
+	} else {
+		runtimeServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasSuffix(r.URL.Path, "/invocation/next") {
+				index := int(next.Add(1)) - 1
+				if index >= len(cases) {
+					<-r.Context().Done()
+					return
+				}
+				name := cases[index]
+				w.Header().Set("Lambda-Runtime-Aws-Request-Id", name)
+				w.Header().Set("Lambda-Runtime-Deadline-Ms", strconv.FormatInt(time.Now().Add(15*time.Second).UnixMilli(), 10))
+				path := "/"
+				if name == "missing" {
+					path = "/unknown"
+				}
+				json.NewEncoder(w).Encode(map[string]any{"version": "2.0", "rawPath": path, "rawQueryString": "mode=" + name, "headers": map[string]string{"accept-encoding": "identity"}, "requestContext": map[string]any{"domainName": "example.test", "http": map[string]string{"method": "GET", "path": path, "protocol": "HTTP/1.1", "sourceIp": "127.0.0.1"}}})
+				return
+			}
+			index := int(posted.Add(1)) - 1
+			if index >= len(cases) || r.URL.Path != "/2018-06-01/runtime/invocation/"+cases[index]+"/response" {
+				reportErrors <- errors.New("unexpected Runtime response route")
+				w.WriteHeader(500)
+				return
+			}
+			data, e := io.ReadAll(io.LimitReader(r.Body, (64<<10)+1))
+			if e != nil || len(data) > 64<<10 {
+				reportErrors <- errors.New("bounded Runtime report failed")
+				w.WriteHeader(500)
+				return
+			}
+			var response wire
+			if mode == "streaming" {
+				delimiter := bytes.Index(data, make([]byte, 8))
+				if delimiter < 0 {
+					reportErrors <- errors.New("stream delimiter missing")
+					w.WriteHeader(500)
+					return
+				}
+				e = json.Unmarshal(data[:delimiter], &response)
+				response.Body = string(data[delimiter+8:])
+				if r.Header.Get("Lambda-Runtime-Function-Response-Mode") != "streaming" {
+					e = errors.New("stream report header missing")
+				}
+			} else {
+				e = json.Unmarshal(data, &response)
+				if e == nil && response.Base64 {
+					var decoded []byte
+					decoded, e = base64.StdEncoding.DecodeString(response.Body)
+					response.Body = string(decoded)
+				}
+			}
+			if e != nil {
+				reportErrors <- e
+				w.WriteHeader(500)
+				return
+			}
+			reports <- response
+			w.WriteHeader(202)
+		}))
+		defer runtimeServer.Close()
+		env = append(env, "AWS_LAMBDA_RUNTIME_API="+strings.TrimPrefix(runtimeServer.URL, "http://"))
+		if mode == "streaming" {
+			env = append(env, "NEXTGO_LAMBDA_RESPONSE_MODE=streaming")
+		}
+	}
+	cmd := exec.Command(binary, args...)
+	cmd.Dir = "/"
+	cmd.Env = env
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	var logs bytes.Buffer
+	cmd.Stdout = &logs
+	cmd.Stderr = &logs
+	if e := cmd.Start(); e != nil {
+		return result, e
+	}
+	result.PID = cmd.Process.Pid
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	defer func() {
+		cmd.Process.Signal(syscall.SIGTERM)
+		select {
+		case e := <-done:
+			result.NativeJoined = true
+			if e != nil && err == nil {
+				err = fmt.Errorf("native exit: %w", e)
+			}
+		case <-time.After(8 * time.Second):
+			result.Forced = true
+			syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+			<-done
+			if err == nil {
+				err = errors.New("native graceful join missing")
+			}
+		}
+		if logs.Len() > 64<<10 && err == nil {
+			err = errors.New("native log bound exceeded")
+		}
+	}()
+	status, e := os.ReadFile(fmt.Sprintf("/proc/%d/status", cmd.Process.Pid))
+	if e != nil {
+		return result, e
+	}
+	uidLine := ""
+	for _, line := range strings.Split(string(status), "\n") {
+		if strings.HasPrefix(line, "Uid:") {
+			uidLine = line
+		}
+	}
+	values := strings.Fields(uidLine)
+	if len(values) != 5 {
+		return result, errors.New("native UID observation missing")
+	}
+	for _, v := range values[1:] {
+		if v != strconv.Itoa(result.UID) {
+			return result, errors.New("native UID mismatch")
+		}
+	}
+	transport := &http.Transport{DisableKeepAlives: true}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Transport: transport, Timeout: time.Second}
+	if mode == "http" {
+		ready := false
+		for !ready {
+			req, _ := http.NewRequestWithContext(ctx, "GET", origin+"/?mode=local", nil)
+			r, e := client.Do(req)
+			if e == nil {
+				io.Copy(io.Discard, r.Body)
+				r.Body.Close()
+				ready = r.StatusCode == 500
+			}
+			if !ready {
+				select {
+				case <-ctx.Done():
+					return result, ctx.Err()
+				case <-time.After(10 * time.Millisecond):
+				}
+			}
+		}
+	}
+	for _, name := range cases {
+		var response wire
+		if mode == "http" {
+			path := "/"
+			if name == "missing" {
+				path = "/unknown"
+			}
+			req, _ := http.NewRequestWithContext(ctx, "GET", origin+path+"?mode="+name, nil)
+			req.Header.Set("Accept-Encoding", "identity")
+			r, e := client.Do(req)
+			if e != nil {
+				return result, e
+			}
+			data, e := io.ReadAll(io.LimitReader(r.Body, (64<<10)+1))
+			r.Body.Close()
+			if e != nil || len(data) > 64<<10 {
+				return result, errors.New("bounded HTTP read failed")
+			}
+			response.Status = r.StatusCode
+			response.Headers = map[string]string{}
+			for k := range r.Header {
+				response.Headers[k] = r.Header.Get(k)
+			}
+			response.Body = string(data)
+		} else {
+			select {
+			case response = <-reports:
+			case e := <-reportErrors:
+				return result, e
+			case <-ctx.Done():
+				return result, ctx.Err()
+			}
+		}
+		if e := check(name, response.Status, response.Headers, response.Body); e != nil {
+			return result, e
+		}
+		result.Cases = append(result.Cases, name)
+		digest := sha256.Sum256([]byte(response.Body))
+		result.BodySHA256 = append(result.BodySHA256, hex.EncodeToString(digest[:]))
+	}
+	return result, nil
+}
+func main() {
+	if len(os.Args) != 2 {
+		panic("one immutable native binary required")
+	}
+	all := []receipt{}
+	for _, mode := range []string{"http", "buffered", "streaming"} {
+		r, e := run(os.Args[1], mode)
+		all = append(all, r)
+		if e != nil {
+			json.NewEncoder(os.Stdout).Encode(map[string]any{"status": "FAIL", "error": e.Error(), "receipts": all})
+			os.Exit(1)
+		}
+	}
+	json.NewEncoder(os.Stdout).Encode(map[string]any{"status": "PASS", "receipts": all})
+}

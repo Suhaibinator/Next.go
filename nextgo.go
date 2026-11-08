@@ -212,13 +212,19 @@ type Config struct {
 	AssetPrefix   string
 	Routes        []Route
 	NotFound      PageFunc
-	Unauthorized  PageFunc
-	Forbidden     PageFunc
-	Assets        fs.FS
-	BuildID       string
-	Dev           bool
-	Logger        *log.Logger
-	Cache         *cache.Store
+	// GlobalError is the terminal synchronous page-error fallback. It renders
+	// without route layouts or slot ownership when no route Error handles the
+	// failure, or when that boundary fails. Its own error/panic uses the generic
+	// fallback. Response-serialization and already-committed stream failures
+	// retain their separate fail-closed paths.
+	GlobalError  ErrorFunc
+	Unauthorized PageFunc
+	Forbidden    PageFunc
+	Assets       fs.FS
+	BuildID      string
+	Dev          bool
+	Logger       *log.Logger
+	Cache        *cache.Store
 	// SharedCache stores opt-in public rendered snapshots. Its namespace must
 	// be trusted for HTML and isolated from unrelated applications/writers.
 	SharedCache   *shared.Store
@@ -923,7 +929,7 @@ func (a *App) renderError(c *Context, r Route, cause error) (page Page, status i
 	defer func() {
 		if p := recover(); p != nil {
 			a.config.Logger.Printf("error boundary panic: %v", p)
-			page, status = errorPage(), 500
+			page, status = a.renderGlobalError(c, fmt.Errorf("error boundary panic: %v", p)), 500
 		}
 	}()
 	if r.Error != nil {
@@ -940,14 +946,37 @@ func (a *App) renderError(c *Context, r Route, cause error) (page Page, status i
 			return a.renderAccess(c, r, err)
 		}
 		a.config.Logger.Printf("error boundary failed: %v", err)
+		cause = err
 	}
-	return errorPage(), 500
+	return a.renderGlobalError(c, cause), 500
+}
+
+func (a *App) renderGlobalError(c *Context, cause error) (page Page) {
+	page = errorPage()
+	if a.config.GlobalError == nil {
+		return page
+	}
+	defer func() {
+		if failure := recover(); failure != nil {
+			a.config.Logger.Printf("global error boundary panic: %v", failure)
+			page = errorPage()
+		}
+	}()
+	// Context owns response synchronization and must not be copied. Share its
+	// staged controls explicitly, while dropping all route/slot/layout authority.
+	view := &Context{Context: c.Context, Request: c.Request, Params: c.Params, Query: c.Query, responseRef: c.responseControls()}
+	result, err := a.config.GlobalError(view, cause)
+	if err != nil {
+		a.config.Logger.Printf("global error boundary failed: %v", err)
+		return page
+	}
+	return result
 }
 func (a *App) notFound(c *Context) (page Page, status int) {
 	defer func() {
 		if v := recover(); v != nil {
 			a.config.Logger.Printf("404 panic: %v", v)
-			page, status = errorPage(), 500
+			page, status = a.renderGlobalError(c, fmt.Errorf("404 panic: %v", v)), 500
 		}
 	}()
 	if a.config.NotFound != nil {
@@ -962,7 +991,7 @@ func (a *App) notFound(c *Context) (page Page, status int) {
 			return a.renderAccess(c, Route{}, err)
 		}
 		a.config.Logger.Printf("404: %v", err)
-		return errorPage(), 500
+		return a.renderGlobalError(c, err), 500
 	}
 	return Page{Title: "Not found", Body: ui.El("h1", nil, ui.Text("Page not found"))}, 404
 }

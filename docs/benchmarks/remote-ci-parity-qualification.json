@@ -126,7 +126,7 @@
   },
   "localCurrentGoSource": {
     "SDK": "1.27.3",
-    "browser": "system Chromium156, LinuxAMD64, local UID0",
+    "browser": "system Chromium156, LinuxAMD64, local UID1000",
     "serverSHA256": "1ca640a1ae10420dbce4adb770f5d9966a092fe34422a7af216a4bd944f5a221",
     "browserSuites": [
       {
@@ -165,7 +165,8 @@
       "path": ".nextgo-test-results/remote-ci/metadata-local-deployment.log",
       "sha256": "6d31a025396baa1aca145f5e4a528f6af946369f3c191d696c8a0ea58ff2645b"
     },
-    "scope": "Functional checks of freshly built actual demo; not the nonroot hosted producer or cross-engine matrix"
+    "scope": "Functional checks of freshly built actual demo; not the nonroot hosted producer or cross-engine matrix",
+    "observedNativeUID": 1000
   },
   "rawJobLogs": [
     {
@@ -2349,5 +2350,11 @@
     "Workflow artifact identities/digests were observed. ZIP content download was denied withHTTP403 by the managed environment; contents were not reviewed.",
     "Retained/merge/offline complete browser matrices, source audit, hosted cloud, approved performance budgets, physical devices/accessibility and long-running resource/recovery/release qualification remain open.",
     "All79 capabilities and G01-G11 remain in scope with no waivers or completion claim."
-  ]
+  ],
+  "localUIDLabelCorrection": {
+    "recordedAtUTC": "2026-11-08T02:23:34.549113+00:00",
+    "previousLabel": "local UID0",
+    "correctedLabel": "local UID1000",
+    "basis": "All six original client-only-native-process-and-wire-proof attachments record process.parentUID1000; the underlying report hash and pass results are unchanged. This does not change the separate hosted-zone container UID0 record."
+  }
 }

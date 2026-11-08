@@ -1,0 +1,207 @@
+{
+  "format": "nextgo-native-global-error-qualification-v1",
+  "recordedAtUTC": "2026-11-08T02:30:36.252661+00:00",
+  "status": "native-subset-qualified-not-production-release",
+  "source": {
+    "basePublishedCommit": "5e28c22d280c2bf4694e63e79d78813d668eecf4",
+    "uncommittedIncrement": true,
+    "ordinaryGoFiles": 1417,
+    "GoSourceSHA256": "4ac0cf36073182a106d94303fc01c31293567a0bf05a6fee0e973d0c4ee48a9a",
+    "treeEncoding": "sortedpathUTF8+NUL+exactsourcebytes+NUL",
+    "GoInputsUnchangedAcrossQualification": true,
+    "manifest": {
+      "path": ".nextgo-test-results/global-errors/go-source-manifest.json",
+      "bytes": 152617,
+      "sha256": "acd32aeb14828bb9b955761663c3bdee342d23027b7f0ae510d8134190c6cb7d"
+    },
+    "privateModuleABI": 7,
+    "navigation": 3,
+    "nativeExportConfig": 4
+  },
+  "SDKs": {
+    "1.27": {
+      "role": "production",
+      "nativeRacePackagePasses": 85,
+      "singleCompleteNativeRun": true,
+      "nativeRaceLog": {
+        "path": ".nextgo-test-results/remote-ci/global-error-native-go1.27.log",
+        "bytes": 27514,
+        "sha256": "4ed0bcea4073a5f09d1e3e641b8fbd889382302e3fba3d9e23f72edc905aab15"
+      },
+      "vetPassed": true,
+      "vetLog": {
+        "path": ".nextgo-test-results/remote-ci/global-error-vet-go1.27.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "CLI": {
+        "path": ".nextgo-test-results/global-errors/nextgo-go1.27",
+        "bytes": 16075174,
+        "sha256": "6f2bf29aed655343153e0eed59852415cc67a45876ae9ac5a64f32515dad8707"
+      },
+      "server": {
+        "path": ".nextgo-test-results/global-errors/go1.27/server",
+        "bytes": 20119712,
+        "sha256": "a7821397d856a865c2234fbf5707c2561b59fcdbfe0e22733637497c08e353ae"
+      },
+      "probe": {
+        "path": ".nextgo-test-results/global-errors/probe-go1.27",
+        "bytes": 10676438,
+        "sha256": "53d2d29089b7ea932bcb80da1e1bd88529fd14eceb35768dfc9fe05e2341af4f"
+      },
+      "imageID": "sha256:3d74c87e8953a855e769517fe581d6937f3b68a55a1fe5a881fbebad24e697f0",
+      "host": {
+        "cases": 18,
+        "transports": [
+          "http",
+          "buffered",
+          "streaming"
+        ],
+        "UID": 1000,
+        "gracefulNativeJoins": 3,
+        "record": {
+          "path": ".nextgo-test-results/global-errors/host-go1.27.json",
+          "bytes": 1744,
+          "sha256": "e5e9cd98e4bca1e67f599426cb9540f84ed83ca5ddacb5635e077c21fca4a5ce"
+        }
+      },
+      "container": {
+        "cases": 18,
+        "transports": [
+          "http",
+          "buffered",
+          "streaming"
+        ],
+        "UID": 65532,
+        "gracefulNativeJoins": 3,
+        "record": {
+          "path": ".nextgo-test-results/global-errors/container-go1.27.json",
+          "bytes": 1735,
+          "sha256": "bbe22628fb40437964003cc4050dc255aadc1f4f06f3b5f7f2bae83c4e1642b4"
+        }
+      }
+    },
+    "1.24": {
+      "role": "compatibility-only-known-advisories",
+      "nativeRacePackagePasses": 85,
+      "singleCompleteNativeRun": true,
+      "nativeRaceLog": {
+        "path": ".nextgo-test-results/remote-ci/global-error-native-go1.24.log",
+        "bytes": 27513,
+        "sha256": "e4ebfe5d8e2ef6f20c2a44a63482f291c17bb19b204e525e46ee727e2bea3f6c"
+      },
+      "vetPassed": true,
+      "vetLog": {
+        "path": ".nextgo-test-results/remote-ci/global-error-vet-go1.24.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "CLI": {
+        "path": ".nextgo-test-results/global-errors/nextgo-go1.24",
+        "bytes": 14736853,
+        "sha256": "5f7e2a7f9bd45d049c1d67429e56dc42a63bd8d81c7e543d5bb00d80136862bf"
+      },
+      "server": {
+        "path": ".nextgo-test-results/global-errors/go1.24/server",
+        "bytes": 17723576,
+        "sha256": "c55140eb41657cd74e8d166b2547376691b7ddc3b6386cdbf3b3b8b4be6d956e"
+      },
+      "probe": {
+        "path": ".nextgo-test-results/global-errors/probe-go1.24",
+        "bytes": 9449874,
+        "sha256": "5b524cefb7682600108ad3219a7aa36c6f098b1ee872af1dda38a15ea00e4d9e"
+      },
+      "imageID": "sha256:25326106bf094d2bc6d187455c4c55945110e69127ce21785bfcd885d2d3ac66",
+      "host": {
+        "cases": 18,
+        "transports": [
+          "http",
+          "buffered",
+          "streaming"
+        ],
+        "UID": 1000,
+        "gracefulNativeJoins": 3,
+        "record": {
+          "path": ".nextgo-test-results/global-errors/host-go1.24.json",
+          "bytes": 1744,
+          "sha256": "1567dfd9a1fcb5de36d4229c40e3cea03db7e8c3b02c900dda896c1d62a98ec4"
+        }
+      },
+      "container": {
+        "cases": 18,
+        "transports": [
+          "http",
+          "buffered",
+          "streaming"
+        ],
+        "UID": 65532,
+        "gracefulNativeJoins": 3,
+        "record": {
+          "path": ".nextgo-test-results/global-errors/container-go1.24.json",
+          "bytes": 1735,
+          "sha256": "28b751e5a14bd91a1218331c3c02c7beeae08ce721dc90540cdd892047c2676d"
+        }
+      }
+    }
+  },
+  "standaloneCases": 72,
+  "retainedProducerUnitCases": 46,
+  "reproductionInputs": [
+    {
+      "path": "tests/fixtures/global-errors/application.go.txt",
+      "bytes": 1494,
+      "sha256": "fabbc7f1014eed6f5a105fbea49af158219683a63bc62caf2cbe61d0b22f32bd"
+    },
+    {
+      "path": "tests/fixtures/global-errors/probe.go.txt",
+      "bytes": 8167,
+      "sha256": "0d998ff8f6fd6a8c2f47ad72d63aba389c96f1e3832bcaf8381c1a5c3662d86b"
+    }
+  ],
+  "containerPolicy": {
+    "base": "scratch",
+    "UID": "65532:65532",
+    "readOnly": true,
+    "network": "none",
+    "capDrop": "ALL",
+    "noNewPrivileges": true,
+    "pids": 128,
+    "memoryBytes": 268435456
+  },
+  "advisories": {
+    "SDK": "1.27.3",
+    "scope": "native ./... source",
+    "JSON": {
+      "path": ".nextgo-test-results/remote-ci/global-error-advisories-native.json",
+      "bytes": 597902,
+      "sha256": "a2eb18f23b10246a4e5f3e1f73b58cd3faafc56931866e917933b1351769176d"
+    },
+    "conversion": {
+      "path": ".nextgo-test-results/remote-ci/global-error-advisories-native.txt",
+      "bytes": 26,
+      "sha256": "3016e51e4eac0d421674d2128bbbdefb2924b4646e0c14a1ab034977ad73fae5"
+    },
+    "conversionExit": 0,
+    "databaseRepositoryHEAD": "e22db6528018f9725b3230c4e6429c791f40bb15",
+    "databaseHEADRechecked": {
+      "path": ".nextgo-test-results/remote-ci/global-error-vulndb-head.txt",
+      "bytes": 46,
+      "sha256": "c9dadb4c9c4e2764c3ad8737bf9574c1ec58c32dabd3556cdba290338bcf2b4c"
+    },
+    "databaseQualification": "govulncheck-local-database-qualification.json",
+    "scopeLimit": "Advisory check against the still-current official database snapshot; not an independent source audit."
+  },
+  "failureProvenance": [
+    "First focused Go1.27 compiler run used default external TMPDIR and hit sandbox VCS discovery restrictions; rerun used excluded dist/.integration-tmp. Initial failure log retained.",
+    "First slot-location diagnostic fixture lacked its parent layout/default and failed earlier validation; fixture corrected before both complete native runs.",
+    "No production source or tests were altered while native full-suite or standalone builds ran.",
+    "Derived cache cleanup first encountered a directory; SDK-specific archive cleanup preserved active Go1.24 cache inputs and all qualification artifacts."
+  ],
+  "open": [
+    "R09 remains partial: reset/retry API, complete layout failure, encoding/late-stream/global-browser recovery and complete crawler/browser combinations.",
+    "Current full cross-engine browser, immutable release, hosted cloud/IAM/early flush/scaling/rollout and independent source audit are unqualified.",
+    "Both existing core reference budgets still fail; this native-only feature makes no WASM performance claim.",
+    "Positive-path probe results do not qualify failure cleanup, process-group quiescence, bounded log memory, resource soak or production maturity.",
+    "All79 capabilities and G01-G11 remain open; no waiver or release approval."
+  ]
+}

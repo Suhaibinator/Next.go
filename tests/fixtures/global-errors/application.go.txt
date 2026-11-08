@@ -1,0 +1,46 @@
+//go:build !js
+
+package app
+
+import (
+	"errors"
+	nextgo "github.com/Suhaibinator/Next.go"
+	"github.com/Suhaibinator/Next.go/ui"
+)
+
+func Page(c *nextgo.Context) (nextgo.Page, error) {
+	if c.Query.Get("mode") == "layout" {
+		return nextgo.Page{Body: ui.Text("discarded page")}, nil
+	}
+	return nextgo.Page{}, errors.New("private page cause")
+}
+func Layout(c *nextgo.Context, n ui.Node) (ui.Node, error) {
+	if c.Query.Get("mode") == "layout" {
+		return nil, errors.New("private layout cause")
+	}
+	return ui.El("section", ui.Attrs{"data-route-layout": ""}, n), nil
+}
+func Error(c *nextgo.Context, _ error) (nextgo.Page, error) {
+	if c.Query.Get("mode") == "local" {
+		return nextgo.Page{Body: ui.Text("Local replacement")}, nil
+	}
+	if c.Query.Get("mode") == "boundary-panic" {
+		panic("private local panic")
+	}
+	return nextgo.Page{}, errors.New("private local cause")
+}
+func NotFound(*nextgo.Context) (nextgo.Page, error) {
+	return nextgo.Page{}, errors.New("private missing cause")
+}
+func GlobalError(c *nextgo.Context, _ error) (nextgo.Page, error) {
+	if c.Query.Get("mode") == "global-panic" {
+		panic("private global cause")
+	}
+	if _, e := c.Slot("protected"); !errors.Is(e, nextgo.ErrSlotScope) {
+		return nextgo.Page{}, errors.New("private slot authority")
+	}
+	if e := c.SetHeader("X-Global-Fallback", "yes"); e != nil {
+		return nextgo.Page{}, e
+	}
+	return nextgo.Page{Title: "Global fallback", Body: ui.El("main", ui.Attrs{"data-global-fallback": ""}, ui.Text("Global replacement"))}, nil
+}

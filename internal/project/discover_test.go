@@ -67,6 +67,27 @@ func TestDiscoveryAndGeneratedEntrypoint(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGlobalErrorConventionIsAppRootOnly(t *testing.T) {
+	root := fixture(t, map[string]string{"app/page.go": "package app", "app/globalerror.go": "package app"})
+	p, err := Discover(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.GlobalError != "example.com/site/app" || !strings.Contains(serverSource(p, "id", false), ".GlobalError,") {
+		t.Fatalf("global error convention absent: %+v", p)
+	}
+	for _, path := range []string{"app/nested/globalerror.go", "app/slot_side/globalerror.go"} {
+		files := map[string]string{"app/page.go": "package app", "app/layout.go": "package app", path: "package nested"}
+		if strings.Contains(path, "slot_side") {
+			files["app/slot_side/default.go"] = "package nested"
+		}
+		root := fixture(t, files)
+		if _, err := Discover(root); err == nil || !strings.Contains(err.Error(), "application app root") {
+			t.Fatalf("%s: %v", path, err)
+		}
+	}
+}
 func TestDiscoveryRejectsAmbiguityAndReservedPaths(t *testing.T) {
 	for _, files := range []map[string]string{
 		{"app/param_id/page.go": "package id", "app/param_name/page.go": "package name"},

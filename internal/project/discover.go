@@ -70,6 +70,7 @@ type Component struct {
 type Project struct {
 	Root, ModuleDir, ModulePath, Import, NotFound, Configure string
 	Offline                                                  string // Native app-root Offline() convention.
+	GlobalError                                              string // Native app-root GlobalError() convention.
 	offlineBuild                                             *offlineBuildPlan
 	Unauthorized, Forbidden                                  string
 	Default                                                  string
@@ -260,7 +261,7 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 			return nil
 		}
 		base := d.Name()
-		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" && base != "regions.go" {
+		if base != "default.go" && base != "page.go" && base != "layout.go" && base != "template.go" && base != "route.go" && base != "notfound.go" && base != "unauthorized.go" && base != "forbidden.go" && base != "error.go" && base != "globalerror.go" && base != "loading.go" && base != "metadata.go" && base != "config.go" && base != "staticparams.go" && base != "prerender.go" && base != "regions.go" {
 			return nil
 		}
 		if base == "config.go" && filepath.Dir(path) != appDir {
@@ -268,6 +269,13 @@ func discoverApp(p *Project, appDir, appImport, prefix string) (*Project, error)
 		}
 		if _, e := parser.ParseFile(token.NewFileSet(), path, nil, parser.PackageClauseOnly); e != nil {
 			return e
+		}
+		if base == "globalerror.go" {
+			if filepath.Dir(path) != filepath.Join(p.Root, "app") {
+				return fmt.Errorf("%s: globalerror.go is supported only at the application app root", path)
+			}
+			p.GlobalError = appImport
+			return nil
 		}
 		dir := filepath.Dir(path)
 		relative, _ := filepath.Rel(appDir, dir)
