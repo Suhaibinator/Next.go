@@ -780,7 +780,7 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
-  client-only:
+  client-only-artifacts:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
