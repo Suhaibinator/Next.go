@@ -832,6 +832,21 @@ jobs:
           test "${#namespaces[@]}" -eq 1
           test -d "${namespaces[0]}"
           ./dist/nextgo analyze -runtime-dir "${namespaces[0]}" -out .nextgo-test-results/client-only-deployment/published-runtime-analysis.json
+      - name: Frozen local fonts through HTTP, both Lambda modes and static files
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/local-fonts/report.json
+        run: npm run test:local-fonts -- --reporter=list,json
+      - name: Require the complete fixed local-font matrix
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          const report = JSON.parse(await readFile('.nextgo-test-results/local-fonts/report.json', 'utf8'));
+          assert.equal(report.stats.expected, 48);
+          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
+          assert.equal(report.config.projects.length, 16);
+          assert.deepEqual(report.errors, []);
+          NODE
       - name: Pin generated social image executable and static publication
         shell: bash
         run: |
@@ -1012,21 +1027,6 @@ jobs:
           DOCKER
           docker build --network=none -t nextgo-social-variants-local ./dist/social-variants
           docker run --rm --read-only --network=none --cap-drop=ALL --security-opt=no-new-privileges --pids-limit=128 --memory=256m nextgo-social-variants-local
-      - name: Frozen local fonts through HTTP, both Lambda modes and static files
-        env:
-          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.nextgo-test-results/local-fonts/report.json
-        run: npm run test:local-fonts -- --reporter=list,json
-      - name: Require the complete fixed local-font matrix
-        run: |
-          node --input-type=module <<'NODE'
-          import assert from 'node:assert/strict';
-          import {readFile} from 'node:fs/promises';
-          const report = JSON.parse(await readFile('.nextgo-test-results/local-fonts/report.json', 'utf8'));
-          assert.equal(report.stats.expected, 48);
-          for (const field of ['unexpected', 'flaky', 'skipped']) assert.equal(report.stats[field], 0, field);
-          assert.equal(report.config.projects.length, 16);
-          assert.deepEqual(report.errors, []);
-          NODE
       - uses: actions/upload-artifact@v4
         if: always()
         with:
